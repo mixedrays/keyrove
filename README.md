@@ -8,7 +8,7 @@ navigation for lists and grids, driven by `data-*` attributes.
 | Package              | Path                                 | Description                                   |
 | -------------------- | ------------------------------------ | --------------------------------------------- |
 | `@mixedrays/keyrove` | [packages/keyrove](packages/keyrove) | The library. Published to npm.                |
-| `@mixedrays/docs`    | [packages/docs](packages/docs)       | Documentation site and landing page. Private. |
+| `@mixedrays/keyrove/docs`    | [packages/docs](packages/docs)       | Documentation site and landing page. Private. |
 
 ## Getting started
 
@@ -37,7 +37,7 @@ Any script can be aimed at one package with a filter:
 
 ```sh
 pnpm --filter @mixedrays/keyrove test
-pnpm --filter @mixedrays/docs build
+pnpm --filter @mixedrays/keyrove/docs build
 ```
 
 ## How the docs resolve the library
