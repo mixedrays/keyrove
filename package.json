@@ -10,7 +10,7 @@
   },
   "packageManager": "pnpm@10.27.0",
   "engines": {
-    "node": ">=20"
+    "node": ">=22.21.0"
   },
   "scripts": {
     "dev": "pnpm --filter @mixedrays/keyrove/docs dev",
@@ -20,7 +20,8 @@
     "format": "prettier --write .",
     "build": "pnpm -r build",
     "typecheck": "pnpm -r typecheck",
-    "preview": "pnpm --filter @mixedrays/keyrove/docs preview"
+    "preview": "pnpm --filter @mixedrays/keyrove/docs preview",
+    "release": "pnpm --filter @mixedrays/keyrove release"
   },
   "devDependencies": {
     "prettier": "^3.9.6"

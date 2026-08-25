@@ -5,10 +5,10 @@ navigation for lists and grids, driven by `data-*` attributes.
 
 ## Packages
 
-| Package              | Path                                 | Description                                   |
-| -------------------- | ------------------------------------ | --------------------------------------------- |
-| `@mixedrays/keyrove` | [packages/keyrove](packages/keyrove) | The library. Published to npm.                |
-| `@mixedrays/keyrove/docs`    | [packages/docs](packages/docs)       | Documentation site and landing page. Private. |
+| Package                   | Path                                 | Description                                   |
+| ------------------------- | ------------------------------------ | --------------------------------------------- |
+| `@mixedrays/keyrove`      | [packages/keyrove](packages/keyrove) | The library. Published to npm.                |
+| `@mixedrays/keyrove/docs` | [packages/docs](packages/docs)       | Documentation site and landing page. Private. |
 
 ## Getting started
 
