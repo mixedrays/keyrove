@@ -47,12 +47,6 @@ The docs site aliases `@mixedrays/keyrove` to the library's TypeScript source
 `pnpm dev` hot-reloads library edits without a build step in between. The
 published package still ships `dist` — nothing about its `exports` changes.
 
-## Releasing
-
-Not wired up yet. `@mixedrays/keyrove` already type-checks and tests on
-`prepublishOnly` and builds on `prepack`, so a release command has that
-groundwork to build on.
-
 ## License
 
 MIT
