@@ -296,9 +296,7 @@ describe('keyRove', () => {
     });
 
     it('defaults to a page length of 10', () => {
-      renderList(
-        Array.from({ length: 12 }, (_, i) => createItem(`i${i}`)),
-      );
+      renderList(Array.from({ length: 12 }, (_, i) => createItem(`i${i}`)));
       document.getElementById('i0')!.focus();
 
       pressKey('PageDown');

@@ -41,16 +41,16 @@ Svelte synthetic events work without an adapter:
 
 ## Attributes
 
-| Attribute | On | Default | Meaning |
-| --- | --- | --- | --- |
-| `data-keyrove-item` | item | — | Marks an element as navigable. |
-| `data-keyrove-skip` | item | — | Passed over when moving; stays in the DOM order. |
-| `data-keyrove-roving-tabindex` | item | — | Moves the `tabindex="0"` tab stop with focus. |
-| `data-keyrove-root` | root | — | Marks the navigation root explicitly, instead of using the listener's element. |
-| `data-keyrove-cols-length` | root | `1` | A value above 1 switches the group to grid navigation. |
-| `data-keyrove-page-length` | root | `10` | Items per page jump — whole rows in a grid. |
-| `data-keyrove-next-key` | root | `ArrowDown` | The `KeyboardEvent.code` that moves forward. |
-| `data-keyrove-prev-key` | root | `ArrowUp` | The `KeyboardEvent.code` that moves back. |
+| Attribute                      | On   | Default     | Meaning                                                                        |
+| ------------------------------ | ---- | ----------- | ------------------------------------------------------------------------------ |
+| `data-keyrove-item`            | item | —           | Marks an element as navigable.                                                 |
+| `data-keyrove-skip`            | item | —           | Passed over when moving; stays in the DOM order.                               |
+| `data-keyrove-roving-tabindex` | item | —           | Moves the `tabindex="0"` tab stop with focus.                                  |
+| `data-keyrove-root`            | root | —           | Marks the navigation root explicitly, instead of using the listener's element. |
+| `data-keyrove-cols-length`     | root | `1`         | A value above 1 switches the group to grid navigation.                         |
+| `data-keyrove-page-length`     | root | `10`        | Items per page jump — whole rows in a grid.                                    |
+| `data-keyrove-next-key`        | root | `ArrowDown` | The `KeyboardEvent.code` that moves forward.                                   |
+| `data-keyrove-prev-key`        | root | `ArrowUp`   | The `KeyboardEvent.code` that moves back.                                      |
 
 Every attribute name is also exported as a constant (`KEYROVE_ATTR_ITEM`,
 `KEYROVE_ATTR_COLS_LENGTH`, …).

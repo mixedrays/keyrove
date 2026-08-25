@@ -83,29 +83,45 @@ describe('findNext / findPrev', () => {
   it('moves one position', () => {
     const elements = buildElements(4);
 
-    expect(idOf(findNext({ elements, fromIndex: 1, skipAttribute: SKIP }))).toBe('e2');
-    expect(idOf(findPrev({ elements, fromIndex: 1, skipAttribute: SKIP }))).toBe('e0');
+    expect(
+      idOf(findNext({ elements, fromIndex: 1, skipAttribute: SKIP })),
+    ).toBe('e2');
+    expect(
+      idOf(findPrev({ elements, fromIndex: 1, skipAttribute: SKIP })),
+    ).toBe('e0');
   });
 
   it('steps over skipped elements', () => {
     const elements = buildElements(4, [1, 2]);
 
-    expect(idOf(findNext({ elements, fromIndex: 0, skipAttribute: SKIP }))).toBe('e3');
-    expect(idOf(findPrev({ elements, fromIndex: 3, skipAttribute: SKIP }))).toBe('e0');
+    expect(
+      idOf(findNext({ elements, fromIndex: 0, skipAttribute: SKIP })),
+    ).toBe('e3');
+    expect(
+      idOf(findPrev({ elements, fromIndex: 3, skipAttribute: SKIP })),
+    ).toBe('e0');
   });
 
   it('holds at the ends rather than wrapping', () => {
     const elements = buildElements(3);
 
-    expect(idOf(findNext({ elements, fromIndex: 2, skipAttribute: SKIP }))).toBe('e2');
-    expect(idOf(findPrev({ elements, fromIndex: 0, skipAttribute: SKIP }))).toBe('e0');
+    expect(
+      idOf(findNext({ elements, fromIndex: 2, skipAttribute: SKIP })),
+    ).toBe('e2');
+    expect(
+      idOf(findPrev({ elements, fromIndex: 0, skipAttribute: SKIP })),
+    ).toBe('e0');
   });
 
   it('enters the list from nothing focused', () => {
     const elements = buildElements(3);
 
-    expect(idOf(findNext({ elements, fromIndex: -1, skipAttribute: SKIP }))).toBe('e0');
-    expect(idOf(findPrev({ elements, fromIndex: -1, skipAttribute: SKIP }))).toBe('e0');
+    expect(
+      idOf(findNext({ elements, fromIndex: -1, skipAttribute: SKIP })),
+    ).toBe('e0');
+    expect(
+      idOf(findPrev({ elements, fromIndex: -1, skipAttribute: SKIP })),
+    ).toBe('e0');
   });
 });
 
@@ -114,41 +130,114 @@ describe('findGridNeighbor', () => {
   it('moves a whole row', () => {
     const elements = buildElements(9);
 
-    expect(idOf(findGridNeighbor({ elements, fromIndex: 4, step: 3, skipAttribute: SKIP }))).toBe('e7');
-    expect(idOf(findGridNeighbor({ elements, fromIndex: 4, step: -3, skipAttribute: SKIP }))).toBe('e1');
+    expect(
+      idOf(
+        findGridNeighbor({
+          elements,
+          fromIndex: 4,
+          step: 3,
+          skipAttribute: SKIP,
+        }),
+      ),
+    ).toBe('e7');
+    expect(
+      idOf(
+        findGridNeighbor({
+          elements,
+          fromIndex: 4,
+          step: -3,
+          skipAttribute: SKIP,
+        }),
+      ),
+    ).toBe('e1');
   });
 
   it('moves one cell', () => {
     const elements = buildElements(9);
 
-    expect(idOf(findGridNeighbor({ elements, fromIndex: 4, step: 1, skipAttribute: SKIP }))).toBe('e5');
-    expect(idOf(findGridNeighbor({ elements, fromIndex: 4, step: -1, skipAttribute: SKIP }))).toBe('e3');
+    expect(
+      idOf(
+        findGridNeighbor({
+          elements,
+          fromIndex: 4,
+          step: 1,
+          skipAttribute: SKIP,
+        }),
+      ),
+    ).toBe('e5');
+    expect(
+      idOf(
+        findGridNeighbor({
+          elements,
+          fromIndex: 4,
+          step: -1,
+          skipAttribute: SKIP,
+        }),
+      ),
+    ).toBe('e3');
   });
 
   it('steps further in the same direction over a skipped cell', () => {
     // 12 elements over 3 columns, so index 10 exists to step on to
     const elements = buildElements(12, [7]);
 
-    expect(idOf(findGridNeighbor({ elements, fromIndex: 4, step: 3, skipAttribute: SKIP }))).toBe('e10');
+    expect(
+      idOf(
+        findGridNeighbor({
+          elements,
+          fromIndex: 4,
+          step: 3,
+          skipAttribute: SKIP,
+        }),
+      ),
+    ).toBe('e10');
   });
 
   it('returns null when every cell beyond the skipped one is off the end', () => {
     const elements = buildElements(9, [7]);
 
-    expect(findGridNeighbor({ elements, fromIndex: 4, step: 3, skipAttribute: SKIP })).toBeNull();
+    expect(
+      findGridNeighbor({
+        elements,
+        fromIndex: 4,
+        step: 3,
+        skipAttribute: SKIP,
+      }),
+    ).toBeNull();
   });
 
   it('returns null at the edge instead of wrapping', () => {
     const elements = buildElements(9);
 
-    expect(findGridNeighbor({ elements, fromIndex: 7, step: 3, skipAttribute: SKIP })).toBeNull();
-    expect(findGridNeighbor({ elements, fromIndex: 1, step: -3, skipAttribute: SKIP })).toBeNull();
+    expect(
+      findGridNeighbor({
+        elements,
+        fromIndex: 7,
+        step: 3,
+        skipAttribute: SKIP,
+      }),
+    ).toBeNull();
+    expect(
+      findGridNeighbor({
+        elements,
+        fromIndex: 1,
+        step: -3,
+        skipAttribute: SKIP,
+      }),
+    ).toBeNull();
   });
 
   it('returns null when nothing is focused', () => {
     const elements = buildElements(9);
 
-    expect(findGridNeighbor({ elements, fromIndex: -1, step: 1, skipAttribute: SKIP })).toBeNull();
+    expect(
+      findGridNeighbor({
+        elements,
+        fromIndex: -1,
+        step: 1,
+        skipAttribute: SKIP,
+      }),
+    ).toBeNull();
   });
 });
 
@@ -156,38 +245,106 @@ describe('findPageTarget', () => {
   it('moves a full stride', () => {
     const elements = buildElements(10);
 
-    expect(idOf(findPageTarget({ elements, fromIndex: 0, direction: 1, stride: 3, skipAttribute: SKIP }))).toBe('e3');
-    expect(idOf(findPageTarget({ elements, fromIndex: 6, direction: -1, stride: 3, skipAttribute: SKIP }))).toBe('e3');
+    expect(
+      idOf(
+        findPageTarget({
+          elements,
+          fromIndex: 0,
+          direction: 1,
+          stride: 3,
+          skipAttribute: SKIP,
+        }),
+      ),
+    ).toBe('e3');
+    expect(
+      idOf(
+        findPageTarget({
+          elements,
+          fromIndex: 6,
+          direction: -1,
+          stride: 3,
+          skipAttribute: SKIP,
+        }),
+      ),
+    ).toBe('e3');
   });
 
   it('clamps to the last element when it overshoots the end', () => {
     const elements = buildElements(5);
 
-    expect(idOf(findPageTarget({ elements, fromIndex: 3, direction: 1, stride: 10, skipAttribute: SKIP }))).toBe('e4');
+    expect(
+      idOf(
+        findPageTarget({
+          elements,
+          fromIndex: 3,
+          direction: 1,
+          stride: 10,
+          skipAttribute: SKIP,
+        }),
+      ),
+    ).toBe('e4');
   });
 
   it('clamps to the first element when it overshoots the start', () => {
     const elements = buildElements(5);
 
-    expect(idOf(findPageTarget({ elements, fromIndex: 1, direction: -1, stride: 10, skipAttribute: SKIP }))).toBe('e0');
+    expect(
+      idOf(
+        findPageTarget({
+          elements,
+          fromIndex: 1,
+          direction: -1,
+          stride: 10,
+          skipAttribute: SKIP,
+        }),
+      ),
+    ).toBe('e0');
   });
 
   it('clamps past skipped elements at the edge', () => {
     const elements = buildElements(5, [4]);
 
-    expect(idOf(findPageTarget({ elements, fromIndex: 0, direction: 1, stride: 10, skipAttribute: SKIP }))).toBe('e3');
+    expect(
+      idOf(
+        findPageTarget({
+          elements,
+          fromIndex: 0,
+          direction: 1,
+          stride: 10,
+          skipAttribute: SKIP,
+        }),
+      ),
+    ).toBe('e3');
   });
 
   it('steps over a skipped element it would have landed on', () => {
     const elements = buildElements(6, [3]);
 
-    expect(idOf(findPageTarget({ elements, fromIndex: 0, direction: 1, stride: 3, skipAttribute: SKIP }))).toBe('e4');
+    expect(
+      idOf(
+        findPageTarget({
+          elements,
+          fromIndex: 0,
+          direction: 1,
+          stride: 3,
+          skipAttribute: SKIP,
+        }),
+      ),
+    ).toBe('e4');
   });
 
   it('returns null when nothing is focused', () => {
     const elements = buildElements(5);
 
-    expect(findPageTarget({ elements, fromIndex: -1, direction: 1, stride: 2, skipAttribute: SKIP })).toBeNull();
+    expect(
+      findPageTarget({
+        elements,
+        fromIndex: -1,
+        direction: 1,
+        stride: 2,
+        skipAttribute: SKIP,
+      }),
+    ).toBeNull();
   });
 });
 

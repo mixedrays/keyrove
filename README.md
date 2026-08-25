@@ -5,10 +5,10 @@ navigation for lists and grids, driven by `data-*` attributes.
 
 ## Packages
 
-| Package | Path | Description |
-| --- | --- | --- |
-| `@mixedrays/keyrove` | [packages/keyrove](packages/keyrove) | The library. Published to npm. |
-| `@mixedrays/docs` | [packages/docs](packages/docs) | Documentation site and landing page. Private. |
+| Package              | Path                                 | Description                                   |
+| -------------------- | ------------------------------------ | --------------------------------------------- |
+| `@mixedrays/keyrove` | [packages/keyrove](packages/keyrove) | The library. Published to npm.                |
+| `@mixedrays/docs`    | [packages/docs](packages/docs)       | Documentation site and landing page. Private. |
 
 ## Getting started
 
@@ -22,14 +22,16 @@ pnpm install
 
 Run from the repo root:
 
-| Command | Does |
-| --- | --- |
-| `pnpm dev` | Starts the docs site on a local dev server. |
-| `pnpm test` | Runs the test suite across the workspace. |
-| `pnpm test:watch` | Runs the library tests in watch mode. |
-| `pnpm build` | Builds every package. |
-| `pnpm typecheck` | Type-checks every package. |
-| `pnpm preview` | Serves the built docs site. |
+| Command           | Does                                                  |
+| ----------------- | ----------------------------------------------------- |
+| `pnpm dev`        | Starts the docs site on a local dev server.           |
+| `pnpm test`       | Runs the test suite across the workspace.             |
+| `pnpm test:watch` | Runs the library tests in watch mode.                 |
+| `pnpm lint`       | Checks formatting across the workspace with Prettier. |
+| `pnpm format`     | Rewrites files to Prettier style.                     |
+| `pnpm build`      | Builds every package.                                 |
+| `pnpm typecheck`  | Type-checks every package.                            |
+| `pnpm preview`    | Serves the built docs site.                           |
 
 Any script can be aimed at one package with a filter:
 

@@ -26,9 +26,11 @@ const reportKeys = (name: string) => {
   const log = document.querySelector<HTMLOutputElement>(`[data-log="${name}"]`);
   if (!log) return {};
 
-  const announce = (action: string) => (({ focused }: { focused: Element | null }) => {
-    log.textContent = `${action} → ${focused?.textContent?.trim() ?? '—'}`;
-  });
+  const announce =
+    (action: string) =>
+    ({ focused }: { focused: Element | null }) => {
+      log.textContent = `${action} → ${focused?.textContent?.trim() ?? '—'}`;
+    };
 
   return {
     next: announce('next'),
