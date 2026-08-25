@@ -1,59 +1,23 @@
 {
-    "name": "@mixedrays/keyrove",
-    "version": "0.0.0",
-    "description": "Framework-agnostic arrow-key navigation for lists and grids, driven by data-* attributes.",
-    "keywords": [
-        "keyboard",
-        "keyboard-navigation",
-        "arrow-keys",
-        "roving-tabindex",
-        "accessibility",
-        "a11y",
-        "focus",
-        "list",
-        "grid"
-    ],
-    "license": "MIT",
-    "author": "mixedrays <mixedrays@gmail.com>",
-    "homepage": "https://github.com/mixedrays/keyrove#readme",
-    "repository": {
-        "type": "git",
-        "url": "git+https://github.com/mixedrays/keyrove.git"
-    },
-    "bugs": {
-        "url": "https://github.com/mixedrays/keyrove/issues"
-    },
-    "type": "module",
-    "sideEffects": false,
-    "main": "./dist/index.js",
-    "module": "./dist/index.js",
-    "types": "./dist/index.d.ts",
-    "exports": {
-        ".": {
-            "types": "./dist/index.d.ts",
-            "import": "./dist/index.js"
-        },
-        "./package.json": "./package.json"
-    },
-    "files": [
-        "dist"
-    ],
-    "scripts": {
-        "build": "vite build",
-        "test": "vitest run",
-        "typecheck": "tsc --noEmit",
-        "prepack": "npm run build",
-        "prepublishOnly": "npm run typecheck && npm run test"
-    },
-    "publishConfig": {
-        "access": "public"
-    },
-    "devDependencies": {
-        "@typescript/typescript6": "^6.0.2",
-        "jsdom": "^29.1.1",
-        "typescript": "^7.0.2",
-        "vite": "^8.2.1",
-        "vite-plugin-dts": "^5.0.3",
-        "vitest": "^4.1.10"
-    }
+  "name": "keyrove-monorepo",
+  "private": true,
+  "type": "module",
+  "license": "MIT",
+  "author": "mixedrays <mixedrays@gmail.com>",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mixedrays/keyrove.git"
+  },
+  "packageManager": "pnpm@10.27.0",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "pnpm --filter @mixedrays/docs dev",
+    "test": "pnpm -r test",
+    "test:watch": "pnpm --filter @mixedrays/keyrove test:watch",
+    "build": "pnpm -r build",
+    "typecheck": "pnpm -r typecheck",
+    "preview": "pnpm --filter @mixedrays/docs preview"
+  }
 }

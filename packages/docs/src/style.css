@@ -1,0 +1,62 @@
+@import 'tailwindcss';
+
+/*
+ * Dark mode rides on `prefers-color-scheme` (Tailwind 4's default `dark:`
+ * behaviour) — there is no theme toggle to keep in sync.
+ */
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-white text-zinc-900 antialiased dark:bg-zinc-950 dark:text-zinc-100;
+  }
+
+  :focus-visible {
+    @apply outline-2 outline-offset-2 outline-indigo-600 dark:outline-indigo-400;
+  }
+}
+
+@layer components {
+  /* Inline and block code. Preflight strips the browser defaults, so size and
+     background are set here rather than inherited. */
+  .code-inline {
+    @apply rounded bg-zinc-100 px-1.5 py-0.5 font-mono text-[0.86em] text-zinc-800 dark:bg-zinc-800 dark:text-zinc-200;
+  }
+
+  .code-block {
+    @apply overflow-x-auto rounded-xl border border-zinc-200 bg-zinc-50 p-4 font-mono text-[0.84rem] leading-relaxed text-zinc-800 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-200;
+  }
+
+  .kbd {
+    @apply inline-block min-w-[1.7em] rounded border border-b-2 border-zinc-300 bg-white px-1.5 py-0.5 text-center font-mono text-[0.75rem] text-zinc-700 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300;
+  }
+
+  /* The inset panel a demo's items sit in. */
+  .demo-surface {
+    @apply rounded-xl border border-zinc-200 bg-zinc-50 p-1.5 dark:border-zinc-800 dark:bg-zinc-950;
+  }
+
+  /*
+   * Applied to elements created in main.ts. `focus:` rather than
+   * `focus-visible:` on purpose — keyrove moves focus programmatically, and the
+   * demo is about making that movement visible however it was triggered.
+   */
+  .item {
+    @apply block w-full cursor-pointer rounded-lg border border-transparent px-3 py-2 text-left text-sm text-zinc-800 transition-colors;
+    @apply hover:bg-indigo-500/10;
+    @apply focus:border-indigo-500 focus:bg-indigo-50 focus:outline-none;
+    @apply dark:text-zinc-200 dark:focus:border-indigo-400 dark:focus:bg-indigo-500/15;
+  }
+
+  .item-skipped {
+    @apply cursor-default pt-3.5 text-[0.7rem] font-semibold tracking-widest text-zinc-500 uppercase;
+    @apply hover:bg-transparent;
+  }
+
+  .log {
+    @apply mt-3 block rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2 font-mono text-xs text-zinc-600 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-400;
+  }
+}
