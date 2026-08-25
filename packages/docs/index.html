@@ -10,16 +10,21 @@
     />
   </head>
   <body>
+    <!-- The bar itself is full-bleed so its border and blur span the viewport;
+         the row inside shares `mx-auto max-w-4xl px-6` with <main>, so the
+         wordmark and nav line up with the page content. -->
     <header
-      class="sticky top-0 z-10 flex items-center justify-between gap-4 border-b border-zinc-200 bg-white/80 px-6 py-3 backdrop-blur dark:border-zinc-800 dark:bg-zinc-950/80"
+      class="sticky top-0 z-10 border-b border-zinc-200 bg-white/80 backdrop-blur dark:border-zinc-800 dark:bg-zinc-950/80"
     >
-      <a href="#top" class="text-base font-semibold tracking-tight">keyrove</a>
-      <nav class="flex flex-wrap gap-4 text-sm sm:gap-6">
-        <a href="#quick-start" class="text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100">Quick start</a>
-        <a href="#demos" class="text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100">Demos</a>
-        <a href="#api" class="text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100">API</a>
-        <a href="https://github.com/mixedrays/keyrove" class="text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100">GitHub</a>
-      </nav>
+      <div class="mx-auto flex max-w-4xl items-center justify-between gap-4 px-6 py-3">
+        <a href="#top" class="text-base font-semibold tracking-tight">keyrove</a>
+        <nav class="flex flex-wrap gap-4 text-sm sm:gap-6">
+          <a href="#quick-start" class="inline-flex items-center gap-1.5 text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"><span class="size-4 shrink-0" data-nav-icon="quick-start"></span>Quick start</a>
+          <a href="#demos" class="inline-flex items-center gap-1.5 text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"><span class="size-4 shrink-0" data-nav-icon="demos"></span>Demos</a>
+          <a href="#api" class="inline-flex items-center gap-1.5 text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"><span class="size-4 shrink-0" data-nav-icon="api"></span>API</a>
+          <a href="https://github.com/mixedrays/keyrove" class="inline-flex items-center gap-1.5 text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"><span class="size-4 shrink-0" data-nav-icon="github"></span>GitHub</a>
+        </nav>
+      </div>
     </header>
 
     <main id="top" class="mx-auto max-w-4xl px-6 pb-24">

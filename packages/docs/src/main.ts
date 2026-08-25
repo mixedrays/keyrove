@@ -5,6 +5,7 @@ import {
   keyRove,
   type Callbacks,
 } from '@mixedrays/keyrove';
+import { Braces, ExternalLink, Keyboard, Rocket, createElement } from 'lucide';
 
 import './style.css';
 
@@ -132,3 +133,31 @@ buildDemo({
   ],
   itemTag: 'button',
 });
+
+/**
+ * Header nav icons.
+ *
+ * `lucide` rather than `lucide-react`: the site is vanilla TS, and the React
+ * binding would pull in react + react-dom for four glyphs. Same icon set,
+ * same version. Lucide dropped brand marks in v1, so the repo link gets
+ * `ExternalLink` — the label already says GitHub.
+ */
+const NAV_ICONS = {
+  'quick-start': Rocket,
+  demos: Keyboard,
+  api: Braces,
+  github: ExternalLink,
+};
+
+for (const [key, icon] of Object.entries(NAV_ICONS)) {
+  const slot = document.querySelector(`[data-nav-icon="${key}"]`);
+  if (!slot) continue;
+
+  const svg = createElement(icon);
+  // The slot reserved `size-4`; carry it over so the row never reflows.
+  svg.setAttribute('class', 'size-4 shrink-0');
+  svg.setAttribute('aria-hidden', 'true');
+  // Lucide's default 2px stroke reads heavy next to 14px nav text.
+  svg.setAttribute('stroke-width', '1.75');
+  slot.replaceWith(svg);
+}

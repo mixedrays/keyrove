@@ -13,6 +13,9 @@ importers:
       '@mixedrays/keyrove':
         specifier: workspace:*
         version: link:../keyrove
+      lucide:
+        specifier: ^1.34.0
+        version: 1.34.0
     devDependencies:
       '@tailwindcss/vite':
         specifier: ^4.3.3
@@ -768,6 +771,9 @@ packages:
   lru-cache@11.5.2:
     resolution: {integrity: sha512-4pfM1Ff0x50o0tQwb5ucw/RzNyD0/YJME6IVcStalZuMWxdt3sR3huStTtxz4PUmvZfRguvDejasvQ2kifR11g==}
     engines: {node: 20 || >=22}
+
+  lucide@1.34.0:
+    resolution: {integrity: sha512-OOPdNzu3Ocs9lLPOu1sWVIp4sue3HXYjZThAmSXu/NhBJ9ZnfLQhCGfbQRYvsVJvSKwi/KtLE5pNbS4fYl5zrA==}
 
   magic-string@0.30.21:
     resolution: {integrity: sha512-vd2F4YUyEXKGcLHoq+TEyCjxueSeHnFxyyjNp80yg0XV4vUhnDer/lvvlqM/arB5bXQN5K2/3oinyCRyx8T2CQ==}
@@ -1610,6 +1616,8 @@ snapshots:
       quansync: 0.2.11
 
   lru-cache@11.5.2: {}
+
+  lucide@1.34.0: {}
 
   magic-string@0.30.21:
     dependencies:
