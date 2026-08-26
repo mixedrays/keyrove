@@ -8,6 +8,20 @@
       name="description"
       content="Framework-agnostic arrow-key navigation for lists and grids, driven by data-* attributes."
     />
+    <!-- Restores an explicit theme choice before the first paint. Inline and
+         render-blocking on purpose: deferring to main.ts would show a frame of
+         the system theme first. No stored value means "follow the system", which
+         style.css already handles, so there is nothing to set. -->
+    <script>
+      try {
+        const stored = localStorage.getItem('keyrove-theme');
+        if (stored === 'light' || stored === 'dark') {
+          document.documentElement.dataset.theme = stored;
+        }
+      } catch {
+        // Storage can be unavailable (Safari private mode); the system theme stands.
+      }
+    </script>
   </head>
   <body>
     <!-- The bar itself is full-bleed so its border and blur span the viewport;
@@ -22,30 +36,40 @@
         <a href="#top" class="text-base font-semibold tracking-tight"
           >keyrove</a
         >
-        <nav class="flex flex-wrap gap-4 text-sm sm:gap-6">
-          <a
-            href="#quick-start"
-            class="inline-flex items-center gap-1.5 text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
-            ><span class="size-4 shrink-0" data-nav-icon="quick-start"></span
-            >Quick start</a
+        <div class="flex items-center gap-4 sm:gap-6">
+          <nav class="flex flex-wrap gap-4 text-sm sm:gap-6">
+            <a
+              href="#quick-start"
+              class="inline-flex items-center gap-1.5 text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
+              ><span class="size-4 shrink-0" data-nav-icon="quick-start"></span
+              >Quick start</a
+            >
+            <a
+              href="#demos"
+              class="inline-flex items-center gap-1.5 text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
+              ><span class="size-4 shrink-0" data-nav-icon="demos"></span
+              >Demos</a
+            >
+            <a
+              href="#api"
+              class="inline-flex items-center gap-1.5 text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
+              ><span class="size-4 shrink-0" data-nav-icon="api"></span>API</a
+            >
+            <a
+              href="https://github.com/mixedrays/keyrove"
+              class="inline-flex items-center gap-1.5 text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
+              ><span class="size-4 shrink-0" data-nav-icon="github"></span
+              >GitHub</a
+            >
+          </nav>
+          <button
+            type="button"
+            data-theme-toggle
+            class="cursor-pointer inline-flex size-8 shrink-0 items-center justify-center rounded-lg border border-zinc-200 bg-white text-zinc-600 hover:bg-zinc-50 hover:text-zinc-900 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100"
           >
-          <a
-            href="#demos"
-            class="inline-flex items-center gap-1.5 text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
-            ><span class="size-4 shrink-0" data-nav-icon="demos"></span>Demos</a
-          >
-          <a
-            href="#api"
-            class="inline-flex items-center gap-1.5 text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
-            ><span class="size-4 shrink-0" data-nav-icon="api"></span>API</a
-          >
-          <a
-            href="https://github.com/mixedrays/keyrove"
-            class="inline-flex items-center gap-1.5 text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
-            ><span class="size-4 shrink-0" data-nav-icon="github"></span
-            >GitHub</a
-          >
-        </nav>
+            <span class="flex size-4 shrink-0" data-theme-icon></span>
+          </button>
+        </div>
       </div>
     </header>
 
