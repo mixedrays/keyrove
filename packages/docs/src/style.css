@@ -30,6 +30,24 @@
     @apply overflow-x-auto rounded-xl border border-zinc-200 bg-zinc-50 p-4 font-mono text-[0.84rem] leading-relaxed text-zinc-800 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-200;
   }
 
+  /*
+   * Token colours for the blocks vite-plugin-shiki.ts highlights. It builds
+   * both themes at once and writes each token's two colours as CSS variables,
+   * so the swap below is all that picks between them — no second stylesheet and
+   * nothing to keep in sync with the rest of the site's `prefers-color-scheme`
+   * dark mode. The <pre> keeps .code-block's own border and background; only
+   * the text inside is themed.
+   */
+  .shiki span {
+    color: var(--shiki-light);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    .shiki span {
+      color: var(--shiki-dark);
+    }
+  }
+
   .kbd {
     @apply inline-block min-w-[1.7em] rounded border border-b-2 border-zinc-300 bg-white px-1.5 py-0.5 text-center font-mono text-[0.75rem] text-zinc-700 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300;
   }
