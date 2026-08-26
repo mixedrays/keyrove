@@ -6,19 +6,20 @@
  * they can be reasoned about and tested without a DOM tree wired to a nav root.
  */
 
+import type {
+  GridNeighborArgs,
+  NavBounds,
+  PageTargetArgs,
+  ToggleTabIndexArgs,
+} from './types.js';
+
 /**
  * Sets `tabindex` to `0` / `-1` on `root`.
  *
  * Descendant `tabindex` values are deliberately left alone — they belong to the
  * consumer. Roving tabindex only needs the item itself to carry the tab stop.
  */
-export const toggleTabIndex = ({
-  root,
-  isActive,
-}: {
-  root: Element | null | undefined;
-  isActive: boolean;
-}) => {
+export const toggleTabIndex = ({ root, isActive }: ToggleTabIndexArgs) => {
   if (!root) return;
 
   root.setAttribute('tabindex', isActive ? '0' : '-1');
@@ -55,11 +56,7 @@ export const findNext = ({
   elements,
   fromIndex,
   skipAttribute,
-}: {
-  elements: Element[];
-  fromIndex: number;
-  skipAttribute: string;
-}): Element | undefined => {
+}: NavBounds): Element | undefined => {
   for (let i = fromIndex + 1; i < elements.length; i++) {
     if (!elements[i].hasAttribute(skipAttribute)) return elements[i];
   }
@@ -72,11 +69,7 @@ export const findPrev = ({
   elements,
   fromIndex,
   skipAttribute,
-}: {
-  elements: Element[];
-  fromIndex: number;
-  skipAttribute: string;
-}): Element | undefined => {
+}: NavBounds): Element | undefined => {
   for (let i = fromIndex - 1; i >= 0; i--) {
     if (!elements[i].hasAttribute(skipAttribute)) return elements[i];
   }
@@ -93,12 +86,7 @@ export const findGridNeighbor = ({
   fromIndex,
   step,
   skipAttribute,
-}: {
-  elements: Element[];
-  fromIndex: number;
-  step: number;
-  skipAttribute: string;
-}): Element | null => {
+}: GridNeighborArgs): Element | null => {
   if (fromIndex < 0) return null;
 
   for (let i = fromIndex + step; i >= 0 && i < elements.length; i += step) {
@@ -121,13 +109,7 @@ export const findPageTarget = ({
   direction,
   stride,
   skipAttribute,
-}: {
-  elements: Element[];
-  fromIndex: number;
-  direction: 1 | -1;
-  stride: number;
-  skipAttribute: string;
-}): Element | null | undefined => {
+}: PageTargetArgs): Element | null | undefined => {
   if (fromIndex < 0) return null;
 
   const targetIndex = fromIndex + stride * direction;

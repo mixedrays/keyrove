@@ -8,6 +8,14 @@ import {
   parseAttributeInt,
   toggleTabIndex,
 } from './utils.js';
+import type {
+  Attributes,
+  CallbacksKeys,
+  GetNavElementsArgs,
+  KeyRoveEvent,
+  KnownCode,
+  Options,
+} from './types.js';
 
 /**
  * Attribute names keyrove reads from the DOM.
@@ -25,9 +33,7 @@ const DEFAULT_ATTRIBUTES = {
   pageLength: 'data-keyrove-page-length',
   colsLength: 'data-keyrove-cols-length',
   rovingTabindex: 'data-keyrove-roving-tabindex',
-} as const;
-
-type Attributes = { [K in keyof typeof DEFAULT_ATTRIBUTES]: string };
+} as const satisfies Attributes;
 
 // Individual constants, so consumers can spread them into markup without
 // reaching into the map.
@@ -39,33 +45,6 @@ export const KEYROVE_ATTR_PREV_KEY = DEFAULT_ATTRIBUTES.prevKey;
 export const KEYROVE_ATTR_PAGE_LENGTH = DEFAULT_ATTRIBUTES.pageLength;
 export const KEYROVE_ATTR_COLS_LENGTH = DEFAULT_ATTRIBUTES.colsLength;
 export const KEYROVE_ATTR_ROVING_TABINDEX = DEFAULT_ATTRIBUTES.rovingTabindex;
-
-/**
- * The `KeyboardEvent.code` values keyrove dispatches on.
- *
- * Strict on purpose: it types the literals *we* author, so a typo is a compile
- * error rather than a key that silently never fires. Consumers get the wider
- * `KeyRoveCode`.
- */
-type KnownCode =
-  | 'ArrowUp'
-  | 'ArrowDown'
-  | 'ArrowLeft'
-  | 'ArrowRight'
-  | 'Home'
-  | 'End'
-  | 'PageUp'
-  | 'PageDown';
-
-/**
- * A `KeyboardEvent.code`.
- *
- * The `(string & {})` arm keeps this assignable from a plain `string` — which
- * is how both the DOM and React type `code`, and what a `data-keyrove-*-key`
- * attribute yields — while editors still complete the codes keyrove acts on.
- * It documents intent and aids autocomplete; it does not validate.
- */
-export type KeyRoveCode = KnownCode | (string & {});
 
 // Named so the dispatch below is checked against `KnownCode` instead of
 // comparing against bare literals that TypeScript cannot vet.
@@ -80,33 +59,12 @@ const KEY = {
   pageDown: 'PageDown',
 } as const satisfies Record<string, KnownCode>;
 
-/**
- * The shape keyrove needs from a keydown event.
- *
- * Structural rather than a union of `KeyboardEvent | React.KeyboardEvent`, so
- * the package stays dependency-free while accepting both. `currentTarget` is
- * widened to `EventTarget` because React types it more narrowly than the DOM.
- * `code` stays assignable from a plain `string` for the same reason — see
- * {@link KeyRoveCode}.
- */
-export type KeyRoveEvent = {
-  code: KeyRoveCode;
-  target: EventTarget | null;
-  currentTarget: EventTarget | null;
-  preventDefault: () => void;
-};
-
 const getNavElements = ({
   root,
   elementsSelector,
   focusedSelector,
   attributes = DEFAULT_ATTRIBUTES,
-}: {
-  root: Element | null | undefined;
-  elementsSelector: string;
-  focusedSelector: string;
-  attributes?: Attributes;
-}) => {
+}: GetNavElementsArgs) => {
   if (!root) return {};
 
   const elements = root.querySelectorAll(elementsSelector);
@@ -142,14 +100,6 @@ const getNavElements = ({
     pageUp: findPageTarget({ ...bounds, direction: -1, stride }),
     pageDown: findPageTarget({ ...bounds, direction: 1, stride }),
   };
-};
-
-type CallbacksKeys = 'home' | 'end' | 'next' | 'prev' | 'pageUp' | 'pageDown';
-export type Callbacks = {
-  [K in CallbacksKeys]?: (args: { focused: Element | null }) => void;
-};
-export type Options = {
-  callbacks?: Callbacks;
 };
 
 /**
