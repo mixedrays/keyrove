@@ -1,13 +1,42 @@
 @import 'tailwindcss';
 
 /*
- * Dark mode rides on `prefers-color-scheme` (Tailwind 4's default `dark:`
- * behaviour) — there is no theme toggle to keep in sync.
+ * Dark mode has three states and `data-theme` on <html> encodes them: absent
+ * means "follow the system", which is the default, while 'light' and 'dark' are
+ * the explicit choices the header toggle writes.
+ *
+ * Redefining `dark:` here rather than handling the toggle separately means
+ * every existing `dark:` utility — and the .shiki rule below — keeps working
+ * off one definition, with nothing to update when a new one is added.
  */
+@custom-variant dark {
+  &:where([data-theme='dark'], [data-theme='dark'] *) {
+    @slot;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    &:where(:root:not([data-theme]), :root:not([data-theme]) *) {
+      @slot;
+    }
+  }
+}
 
 @layer base {
   html {
     scroll-behavior: smooth;
+
+    /* Puts the browser's own surfaces — scrollbars, the canvas behind the page
+       — on the same side as the theme. `light dark` defers to the system, so
+       the default here tracks the variant's fallback above. */
+    color-scheme: light dark;
+  }
+
+  html[data-theme='light'] {
+    color-scheme: light;
+  }
+
+  html[data-theme='dark'] {
+    color-scheme: dark;
   }
 
   body {
@@ -28,6 +57,22 @@
 
   .code-block {
     @apply overflow-x-auto rounded-xl border border-zinc-200 bg-zinc-50 p-4 font-mono text-[0.84rem] leading-relaxed text-zinc-800 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-200;
+  }
+
+  /*
+   * Token colours for the blocks vite-plugin-shiki.ts highlights. It builds
+   * both themes at once and writes each token's two colours as CSS variables,
+   * so the swap below is all that picks between them — no second stylesheet,
+   * and going through `dark` rather than a bare media query means the header
+   * toggle moves the code samples with everything else. The <pre> keeps
+   * .code-block's own border and background; only the text inside is themed.
+   */
+  .shiki span {
+    color: var(--shiki-light);
+
+    @variant dark {
+      color: var(--shiki-dark);
+    }
   }
 
   .kbd {

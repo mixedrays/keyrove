@@ -5,7 +5,16 @@ import {
   keyRove,
   type Callbacks,
 } from '@mixedrays/keyrove';
-import { Braces, ExternalLink, Keyboard, Rocket, createElement } from 'lucide';
+import {
+  Braces,
+  ExternalLink,
+  Keyboard,
+  Monitor,
+  Moon,
+  Rocket,
+  Sun,
+  createElement,
+} from 'lucide';
 
 import './style.css';
 
@@ -162,4 +171,82 @@ for (const [key, icon] of Object.entries(NAV_ICONS)) {
   // Lucide's default 2px stroke reads heavy next to 14px nav text.
   svg.setAttribute('stroke-width', '1.75');
   slot.replaceWith(svg);
+}
+
+/**
+ * Header theme toggle.
+ *
+ * Cycles system → light → dark. An explicit choice is stored; "system" is the
+ * absence of a stored value, so the page keeps tracking `prefers-color-scheme`
+ * until someone opts out, and can opt back in. The inline script in index.html
+ * applies the stored choice before the first paint — this only handles clicks.
+ */
+const THEME_KEY = 'keyrove-theme';
+
+const THEMES = [
+  //   { value: null, name: 'system', icon: Monitor },
+  { value: 'light', name: 'light', icon: Sun },
+  { value: 'dark', name: 'dark', icon: Moon },
+] as const;
+
+/** Storage throws rather than no-ops when a browser has it switched off. */
+const readStoredTheme = () => {
+  try {
+    return localStorage.getItem(THEME_KEY);
+  } catch {
+    return null;
+  }
+};
+
+const storeTheme = (value: string | null) => {
+  try {
+    if (value === null) localStorage.removeItem(THEME_KEY);
+    else localStorage.setItem(THEME_KEY, value);
+  } catch {
+    // The choice still applies to this page; it just will not outlive it.
+  }
+};
+
+const themeToggle = document.querySelector<HTMLButtonElement>(
+  '[data-theme-toggle]',
+);
+const themeIconSlot = themeToggle?.querySelector('[data-theme-icon]');
+
+if (themeToggle && themeIconSlot) {
+  const stored = readStoredTheme();
+  // An unrecognised stored value falls back to following the system.
+  let index = Math.max(
+    THEMES.findIndex((theme) => theme.value === stored),
+    0,
+  );
+
+  const render = () => {
+    const current = THEMES[index];
+    const next = THEMES[(index + 1) % THEMES.length];
+
+    const svg = createElement(current.icon);
+    svg.setAttribute('class', 'size-4 shrink-0');
+    svg.setAttribute('aria-hidden', 'true');
+    svg.setAttribute('stroke-width', '1.75');
+    themeIconSlot.replaceChildren(svg);
+
+    // The icon shows the current state, so the label has to carry it too — and
+    // the next state, since one button cycling three of them is not obvious.
+    const label = `Theme: ${current.name}. Switch to ${next.name}.`;
+    themeToggle.setAttribute('aria-label', label);
+    themeToggle.title = label;
+  };
+
+  themeToggle.addEventListener('click', () => {
+    index = (index + 1) % THEMES.length;
+
+    const { value } = THEMES[index];
+    if (value === null) delete document.documentElement.dataset.theme;
+    else document.documentElement.dataset.theme = value;
+
+    storeTheme(value);
+    render();
+  });
+
+  render();
 }

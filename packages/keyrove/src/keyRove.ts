@@ -41,14 +41,56 @@ export const KEYROVE_ATTR_COLS_LENGTH = DEFAULT_ATTRIBUTES.colsLength;
 export const KEYROVE_ATTR_ROVING_TABINDEX = DEFAULT_ATTRIBUTES.rovingTabindex;
 
 /**
+ * The `KeyboardEvent.code` values keyrove dispatches on.
+ *
+ * Strict on purpose: it types the literals *we* author, so a typo is a compile
+ * error rather than a key that silently never fires. Consumers get the wider
+ * `KeyRoveCode`.
+ */
+type KnownCode =
+  | 'ArrowUp'
+  | 'ArrowDown'
+  | 'ArrowLeft'
+  | 'ArrowRight'
+  | 'Home'
+  | 'End'
+  | 'PageUp'
+  | 'PageDown';
+
+/**
+ * A `KeyboardEvent.code`.
+ *
+ * The `(string & {})` arm keeps this assignable from a plain `string` — which
+ * is how both the DOM and React type `code`, and what a `data-keyrove-*-key`
+ * attribute yields — while editors still complete the codes keyrove acts on.
+ * It documents intent and aids autocomplete; it does not validate.
+ */
+export type KeyRoveCode = KnownCode | (string & {});
+
+// Named so the dispatch below is checked against `KnownCode` instead of
+// comparing against bare literals that TypeScript cannot vet.
+const KEY = {
+  arrowUp: 'ArrowUp',
+  arrowDown: 'ArrowDown',
+  arrowLeft: 'ArrowLeft',
+  arrowRight: 'ArrowRight',
+  home: 'Home',
+  end: 'End',
+  pageUp: 'PageUp',
+  pageDown: 'PageDown',
+} as const satisfies Record<string, KnownCode>;
+
+/**
  * The shape keyrove needs from a keydown event.
  *
  * Structural rather than a union of `KeyboardEvent | React.KeyboardEvent`, so
  * the package stays dependency-free while accepting both. `currentTarget` is
  * widened to `EventTarget` because React types it more narrowly than the DOM.
+ * `code` stays assignable from a plain `string` for the same reason — see
+ * {@link KeyRoveCode}.
  */
 export type KeyRoveEvent = {
-  code: string;
+  code: KeyRoveCode;
   target: EventTarget | null;
   currentTarget: EventTarget | null;
   preventDefault: () => void;
@@ -141,8 +183,8 @@ export const keyRove = (e: KeyRoveEvent, { callbacks = {} }: Options = {}) => {
     attributes,
   });
 
-  const nextCode = root?.getAttribute(attributes.nextKey) || 'ArrowDown';
-  const prevCode = root?.getAttribute(attributes.prevKey) || 'ArrowUp';
+  const nextCode = root?.getAttribute(attributes.nextKey) || KEY.arrowDown;
+  const prevCode = root?.getAttribute(attributes.prevKey) || KEY.arrowUp;
   const useRovingTabindex = focused?.getAttribute(attributes.rovingTabindex);
 
   // Focus a resolved target, moving the roving tab stop with it when enabled.
@@ -174,13 +216,13 @@ export const keyRove = (e: KeyRoveEvent, { callbacks = {} }: Options = {}) => {
     moveFocus(isGrid ? down : next, 'next');
   }
 
-  if (e.code === 'ArrowLeft' && prevCode !== 'ArrowLeft' && isGrid) {
+  if (e.code === KEY.arrowLeft && prevCode !== KEY.arrowLeft && isGrid) {
     // move one cell left within the grid row
     e.preventDefault();
     moveFocus(left, 'prev');
   }
 
-  if (e.code === 'ArrowRight' && nextCode !== 'ArrowRight' && isGrid) {
+  if (e.code === KEY.arrowRight && nextCode !== KEY.arrowRight && isGrid) {
     // move one cell right within the grid row
     e.preventDefault();
     moveFocus(right, 'next');
@@ -191,22 +233,22 @@ export const keyRove = (e: KeyRoveEvent, { callbacks = {} }: Options = {}) => {
   // on a container that has no focused item to move from.
   if (!focused) return;
 
-  if (e.code === 'Home') {
+  if (e.code === KEY.home) {
     e.preventDefault();
     moveFocus(first, 'home');
   }
 
-  if (e.code === 'End') {
+  if (e.code === KEY.end) {
     e.preventDefault();
     moveFocus(last, 'end');
   }
 
-  if (e.code === 'PageUp') {
+  if (e.code === KEY.pageUp) {
     e.preventDefault();
     moveFocus(pageUp, 'pageUp');
   }
 
-  if (e.code === 'PageDown') {
+  if (e.code === KEY.pageDown) {
     e.preventDefault();
     moveFocus(pageDown, 'pageDown');
   }
