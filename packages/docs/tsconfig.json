@@ -8,5 +8,5 @@
       "@mixedrays/keyrove": ["../keyrove/src/index.ts"]
     }
   },
-  "include": ["src", "vite.config.ts", "vite-plugin-shiki.ts"]
+  "include": ["src", "build", "vite.config.ts", "vite-plugin-docs.ts"]
 }

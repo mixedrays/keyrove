@@ -40,7 +40,62 @@ pnpm --filter @mixedrays/keyrove test
 pnpm --filter @mixedrays/keyrove/docs build
 ```
 
-## How the docs resolve the library
+## How the docs site works
+
+Every page is one markdown file under
+[packages/docs/content](packages/docs/content), and its path is its URL:
+`content/docs/examples/basic.md` is served at `/docs/examples/basic`. Adding a
+page means adding a file — the sidebar, the "On this page" rail, the prev/next
+pager, and `llms.txt` are all derived from what is on disk.
+
+Frontmatter carries the little that cannot be inferred:
+
+```yaml
+---
+title: Basic list
+description: One sentence, used as the page lead and in llms.txt.
+group: Examples # sidebar section; omit to keep a page out of the nav
+order: 10 # sorts within the group, and sorts the groups by their lowest
+---
+```
+
+### Markdown for machines
+
+Appending `.md` to any URL returns that page as markdown — `/docs/api` renders
+the API reference, `/docs/api.md` returns its source — and
+[`/llms.txt`](https://llmstxt.org) indexes the lot. Both are generated from the
+same content, in dev and in the build, so they cannot drift from the rendered
+pages.
+
+The served markdown is not the file verbatim: frontmatter is site plumbing, so
+it is replaced by the `title` as an H1 and the `description` as a blockquote,
+leaving a document that stands on its own when fetched in isolation.
+
+### Live demos
+
+A content file embeds a demo with `<div data-demo="grid"></div>`. The shape of
+each demo lives in [packages/docs/src/demos.ts](packages/docs/src/demos.ts),
+which keeps a 24-item list from costing 24 lines of a file that is also served
+as markdown.
+
+### Build
+
+[packages/docs/vite-plugin-docs.ts](packages/docs/vite-plugin-docs.ts) drives
+both modes from one renderer. In dev a middleware renders on request; in the
+build, Vite bundles `index.html` once and every page is stamped out of the
+result, so all pages share one set of hashed asset URLs.
+
+Pages are emitted as `dist/docs/api/index.html` and served at extensionless
+URLs, which is what lets `.md` be appended. That rules out relative asset paths,
+so links are absolute to `base` — set `DOCS_BASE` when deploying to a subpath:
+
+```sh
+DOCS_BASE=/keyrove/ pnpm --filter @mixedrays/keyrove/docs build
+```
+
+`DOCS_SITE_URL` sets the origin used for the links in `llms.txt`.
+
+### Resolving the library
 
 The docs site aliases `@mixedrays/keyrove` to the library's TypeScript source
 (see [packages/docs/vite.config.ts](packages/docs/vite.config.ts)), so
