@@ -44,11 +44,13 @@ const renderChild = ([tag, attrs]: IconNode[number]) => {
   return `<${tag} ${rendered} />`;
 };
 
+/** Lucide's default 2px stroke reads heavy next to 14px nav text. */
+const LUCIDE_STROKE_WIDTH = 1.75;
+
 /** Lucide ships every icon on a 24-unit grid at a nominal 2px stroke. */
 const fromLucide = (node: IconNode): IconDef => ({
   viewBox: '0 0 24 24',
-  // Lucide's default 2px stroke reads heavy next to 14px nav text.
-  strokeWidth: 1.75,
+  strokeWidth: LUCIDE_STROKE_WIDTH,
   body: node.map(renderChild).join(''),
 });
 
@@ -91,6 +93,40 @@ const ICONS = {
 } satisfies Record<string, IconDef>;
 
 export type IconName = keyof typeof ICONS;
+
+/**
+ * The keyboard mark on its own, as a `data:` URI for `<link rel="icon">`.
+ *
+ * The same glyph at the same weight as the header wordmark, with the two
+ * changes a standalone document forces: `currentColor` has nothing to inherit
+ * from out here, so the accent is written out; and there is no stylesheet, so
+ * the dark variant the wordmark gets from `dark:` is an inline media query.
+ *
+ * Inlined rather than emitted as `favicon.svg` because the icon set is already
+ * serialised into the HTML — a file would need threading through the dev
+ * middleware, the build output and the deploy base for one 16px glyph.
+ */
+export const faviconDataUri = (() => {
+  const { viewBox, body } = ICONS.keyboard;
+
+  const svg = [
+    '<svg xmlns="http://www.w3.org/2000/svg"',
+    `viewBox="${viewBox}"`,
+    'fill="none"',
+    // indigo-600 and, below, indigo-400 — the wordmark's two colours. The mark
+    // sits on browser chrome rather than on the page, so it follows the system
+    // theme whatever the header toggle has been set to.
+    'stroke="#4f46e5"',
+    `stroke-width="${LUCIDE_STROKE_WIDTH}"`,
+    'stroke-linecap="round"',
+    'stroke-linejoin="round">',
+    '<style>@media (prefers-color-scheme: dark) { svg { stroke: #818cf8 } }</style>',
+    body,
+    '</svg>',
+  ].join(' ');
+
+  return `data:image/svg+xml,${encodeURIComponent(svg)}`;
+})();
 
 /**
  * One inline `<svg>`.
