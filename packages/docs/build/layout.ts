@@ -1,5 +1,5 @@
 import type { NavGroup, Page } from './content.ts';
-import { icon } from './icons.ts';
+import { faviconDataUri, icon } from './icons.ts';
 import type { Heading } from './markdown.ts';
 
 /**
@@ -271,6 +271,7 @@ export const renderPage = (template: string, render: PageRender) => {
   const head = [
     `<title>${escapeHtml(title)}</title>`,
     `<meta name="description" content="${escapeHtml(page.description)}" />`,
+    `<link rel="icon" href="${faviconDataUri}" />`,
   ].join('\n    ');
 
   return template.replace(SLOTS.head, head).replace(SLOTS.body, body);
