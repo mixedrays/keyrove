@@ -151,7 +151,7 @@
   /* The current page, marked in the markup rather than matched in script, so it
      is right in the HTML that arrives. */
   .sidebar-link[aria-current='page'] {
-    @apply border-indigo-600 font-medium text-indigo-600 dark:border-indigo-400 dark:text-indigo-400;
+    @apply border-indigo-600 bg-indigo-100 text-indigo-600 dark:border-indigo-400 dark:bg-zinc-800 dark:text-indigo-400;
   }
 
   .docs-main {
@@ -431,7 +431,7 @@
   }
 
   .kbd {
-    @apply inline-block min-w-[1.7em] rounded border border-b-2 border-zinc-300 bg-white px-1.5 py-0.5 text-center font-mono text-[0.75rem] text-zinc-700 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300;
+    @apply inline-block min-w-[2em] leading-[1.5em] rounded border border-b-2 border-zinc-300 bg-white px-1.5 py-0.5 text-center font-mono text-[0.75rem] text-zinc-700 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300;
   }
 
   /* ---------- demos ---------- */

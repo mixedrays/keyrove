@@ -3,12 +3,10 @@ import {
   Braces,
   Check,
   Copy,
-  FileText,
   Keyboard,
   LayoutGrid,
   Menu,
   Moon,
-  Pencil,
   Sun,
   type IconNode,
 } from 'lucide';
@@ -28,11 +26,13 @@ import {
  *
  * `strokeWidth` is in the icon's own viewBox units rather than pixels, so an
  * icon drawn on a larger grid can still be given the same visual weight as the
- * rest — which is the only reason this is per-icon and not a constant.
+ * rest — which is the only reason this is per-icon and not a constant. A mark
+ * drawn as a fill rather than a stroke sets it to `null` and carries its own
+ * `fill` on the path.
  */
 type IconDef = {
   viewBox: string;
-  strokeWidth: number;
+  strokeWidth: number | null;
   body: string;
 };
 
@@ -58,12 +58,20 @@ const ICONS = {
   keyboard: fromLucide(Keyboard),
   grid: fromLucide(LayoutGrid),
   braces: fromLucide(Braces),
-  file: fromLucide(FileText),
-  pencil: fromLucide(Pencil),
   copy: fromLucide(Copy),
   check: fromLucide(Check),
   sun: fromLucide(Sun),
   moon: fromLucide(Moon),
+
+  /*
+   * The markdown mark — a filled glyph on a 16-unit grid, so it opts out of the
+   * stroke attributes the rest of the set is drawn with.
+   */
+  markdown: {
+    viewBox: '0 0 16 16',
+    strokeWidth: null,
+    body: '<path fill="currentColor" d="M14.846 12.9233H1.154a1.153 1.153 0 0 1-.44136-.0878 1.152 1.152 0 0 1-.37416-.25 1.153 1.153 0 0 1-.25002-.3741 1.154 1.154 0 0 1-.08779-.4414V4.22999A1.15335 1.15335 0 0 1 1.154 3.07666h13.692c.1515 0 .3014.02983.4414.08779a1.1535 1.1535 0 0 1 .7119 1.06554v7.53871c.0001.1515-.0296.3015-.0876.4415-.0579.14-.1428.2673-.2499.3744a1.153 1.153 0 0 1-.3743.2502c-.14.058-.29.0885-.4415.0885m-11-2.308V7.61533l1.53867 1.92333 1.538-1.92333v2.99997h1.53867V5.38533H6.92267l-1.538 1.92333L3.846 5.38533H2.30734v5.23137zm10.308-2.61531h-1.5387V5.38466h-1.538v2.61533H9.53867L11.846 10.6927z" />',
+  },
 
   /*
    * The GitHub mark, from svgrepo.com/show/504388. Lucide dropped brand marks
@@ -93,15 +101,24 @@ export type IconName = keyof typeof ICONS;
 export const icon = (name: IconName, className: string) => {
   const { viewBox, strokeWidth, body } = ICONS[name];
 
+  // A filled mark carries `fill` on its own path; a stroked one is drawn by
+  // the wrapper, so the two need different attribute sets.
+  const stroke =
+    strokeWidth === null
+      ? []
+      : [
+          'stroke="currentColor"',
+          `stroke-width="${strokeWidth}"`,
+          'stroke-linecap="round"',
+          'stroke-linejoin="round"',
+        ];
+
   return [
     `<svg class="${className} shrink-0"`,
     'xmlns="http://www.w3.org/2000/svg"',
     `viewBox="${viewBox}"`,
     'fill="none"',
-    'stroke="currentColor"',
-    `stroke-width="${strokeWidth}"`,
-    'stroke-linecap="round"',
-    'stroke-linejoin="round"',
+    ...stroke,
     `aria-hidden="true">${body}</svg>`,
   ].join(' ');
 };

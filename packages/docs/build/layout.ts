@@ -13,8 +13,8 @@ import type { Heading } from './markdown.ts';
 
 export const GITHUB_URL = 'https://github.com/mixedrays/keyrove';
 
-/** Where the source markdown lives, for the "Edit this page" link. */
-const EDIT_BASE = `${GITHUB_URL}/edit/main/packages/docs/content`;
+/** Where the source markdown lives, for the "View source" link. */
+const SOURCE_BASE = `${GITHUB_URL}/blob/main/packages/docs/content`;
 
 /**
  * Placeholders the shell in index.html reserves.
@@ -145,7 +145,7 @@ const renderToc = (
   resolveHref: HrefResolver,
 ) => {
   const markdownHref = resolveHref(`${routeToPath(page.route)}.md`);
-  const editHref = `${EDIT_BASE}/${page.route === '' ? 'index' : page.route}.md`;
+  const sourceHref = `${SOURCE_BASE}/${page.route === '' ? 'index' : page.route}.md`;
 
   const list =
     headings.length === 0
@@ -164,13 +164,13 @@ const renderToc = (
           <div class="toc-inner">
             ${list}
             <div class="toc-actions">
-              ${link(markdownHref, `${icon('file', 'size-3.5')}View as Markdown`, 'toc-action')}
+              ${link(markdownHref, `${icon('markdown', 'size-3.5')}View as Markdown`, 'toc-action')}
               <button
                 type="button"
                 class="toc-action"
                 data-copy-markdown="${escapeHtml(markdownHref)}"
               >${icon('copy', 'size-3.5 icon-idle')}${icon('check', 'size-3.5 icon-done')}<span data-copy-label>Copy page</span></button>
-              ${link(editHref, `${icon('pencil', 'size-3.5')}Edit this page`, 'toc-action')}
+              ${link(sourceHref, `${icon('github', 'size-3.5')}View source`, 'toc-action')}
             </div>
           </div>
         </aside>`;
