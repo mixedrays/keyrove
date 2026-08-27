@@ -277,6 +277,21 @@
     @apply text-indigo-600 underline underline-offset-2 hover:text-indigo-500 dark:text-indigo-400;
   }
 
+  /* The anchor must not repaint the heading it wraps, so it beats the generic
+     prose link rule on specificity rather than on source order. */
+  .markdown a.heading-anchor {
+    @apply text-inherit no-underline;
+  }
+
+  .heading-anchor-mark {
+    @apply ml-2 text-indigo-600 opacity-0 transition-opacity dark:text-indigo-400;
+  }
+
+  .heading-anchor:hover .heading-anchor-mark,
+  .heading-anchor:focus-visible .heading-anchor-mark {
+    @apply opacity-100;
+  }
+
   .markdown :where(strong) {
     @apply font-semibold text-zinc-900 dark:text-zinc-100;
   }

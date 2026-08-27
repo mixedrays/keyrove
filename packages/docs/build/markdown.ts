@@ -28,6 +28,12 @@ export type Heading = {
   level: number;
 };
 
+/**
+ * Headings that become their own link — the same ones the rail lists, so every
+ * rail entry has a heading a reader can copy a URL from.
+ */
+const ANCHORED_TAGS = new Set(['h2', 'h3']);
+
 export type RenderContext = {
   /** Turns a site-absolute href like `/docs/api` into one this page can use. */
   resolveHref: (href: string) => string;
@@ -145,6 +151,37 @@ const createRenderer = async () => {
   // and markdown has nowhere to hang the wrapper that needs.
   md.renderer.rules.table_open = () => '<div class="table-wrap"><table>';
   md.renderer.rules.table_close = () => '</table></div>';
+
+  /*
+   * Headings link to themselves.
+   *
+   * The anchor wraps the heading's content rather than sitting beside it, so
+   * the whole title is the click target and the link's accessible name is the
+   * title itself. The trailing `#` is a separate, aria-hidden element — as a
+   * CSS pseudo-element its text can end up announced, and as part of the anchor
+   * text it would end up in the link's name.
+   */
+  const isAnchored = (token: Token | undefined) =>
+    token?.type === 'heading_open' &&
+    ANCHORED_TAGS.has(token.tag) &&
+    token.attrGet('id') !== null;
+
+  md.renderer.rules.heading_open = (tokens, index, options, _env, self) => {
+    const token = tokens[index];
+    const open = self.renderToken(tokens, index, options);
+    if (!isAnchored(token)) return open;
+
+    return `${open}<a class="heading-anchor" href="#${token.attrGet('id')}">`;
+  };
+
+  md.renderer.rules.heading_close = (tokens, index, options, _env, self) => {
+    const close = self.renderToken(tokens, index, options);
+    // markdown-it emits heading_open, inline, heading_close in sequence, so the
+    // opening tag this one closes is always two tokens back.
+    if (!isAnchored(tokens[index - 2])) return close;
+
+    return `<span class="heading-anchor-mark" aria-hidden="true">#</span></a>${close}`;
+  };
 
   // Inline code is styled by class rather than by element, so that the `<code>`
   // Shiki nests inside a highlighted block is not caught by the same rule.
