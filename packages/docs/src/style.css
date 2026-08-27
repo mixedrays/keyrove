@@ -447,6 +447,12 @@
     @apply rounded-xl border border-zinc-200 bg-zinc-50 p-1.5 dark:border-zinc-800 dark:bg-zinc-950;
   }
 
+  /* A nested navigation root, drawn as its own panel inside the one around it
+     so the boundary keyrove scopes to is visible rather than implied. */
+  .demo-nested {
+    @apply mb-1.5 border-dashed bg-white dark:bg-zinc-900;
+  }
+
   /*
    * Applied to elements created in demos.ts. `focus:` rather than
    * `focus-visible:` on purpose — keyrove moves focus programmatically, and the

@@ -21,6 +21,9 @@ The root is the nearest ancestor of the event target carrying
 (`currentTarget`). That fallback is what lets one delegated listener serve
 several independent groups — see
 [several groups, one listener](/docs/installation#several-groups-one-listener).
+Because it is the _nearest_ ancestor, roots can also be
+[nested](/docs/examples/nested-roots): the innermost one governs while focus is
+inside it.
 
 `preventDefault()` is called for every key keyrove acts on, so the page does not
 scroll while you arrow through a list. Keys it does not act on are left

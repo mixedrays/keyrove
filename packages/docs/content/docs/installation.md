@@ -115,6 +115,10 @@ number of independent groups without them seeing each other's items.
 document.querySelector('#panel').addEventListener('keydown', (e) => keyRove(e));
 ```
 
+Roots can also sit inside one another, which is how a group that is part of
+another group's flow keeps its own keys and columns — see
+[nested roots](/docs/examples/nested-roots).
+
 ## Attribute constants
 
 Every attribute name is exported as a constant, so markup built in JavaScript
