@@ -11,6 +11,7 @@ import {
   type NavGroup,
   type Page,
 } from './build/content.ts';
+import { expandDemos, loadDemos, type Demos } from './build/demos.ts';
 import { renderMarkdown } from './build/markdown.ts';
 import { createHrefResolver, renderPage, routeToPath } from './build/layout.ts';
 import { toLlmsTxt, toMarkdown, toMarkdownPath } from './build/plaintext.ts';
@@ -32,6 +33,7 @@ const LLMS_TXT = 'llms.txt';
 
 type Site = {
   pages: Page[];
+  demos: Demos;
   nav: NavGroup[];
   readingOrder: Page[];
   byRoute: Map<string, Page>;
@@ -40,11 +42,12 @@ type Site = {
 };
 
 const loadSite = async (): Promise<Site> => {
-  const pages = await loadPages();
+  const [pages, demos] = await Promise.all([loadPages(), loadDemos()]);
   const nav = toNav(pages);
 
   return {
     pages,
+    demos,
     nav,
     readingOrder: toReadingOrder(nav),
     byRoute: new Map(pages.map((page) => [page.route, page])),
@@ -65,8 +68,11 @@ export const keyroveDocs = (): Plugin => {
   /** Renders one page into the shell, which Vite has already processed. */
   const render = async (page: Page, template: string) => {
     const resolveHref = createHrefResolver(base);
-    const { html, headings } = await renderMarkdown(page.body, { resolveHref });
-    const { nav, readingOrder } = await getSite();
+    const { nav, readingOrder, demos } = await getSite();
+    const { html, headings } = await renderMarkdown(
+      expandDemos(page.body, demos, 'html'),
+      { resolveHref },
+    );
 
     return renderPage(template, {
       page,
@@ -93,7 +99,7 @@ export const keyroveDocs = (): Plugin => {
   };
 
   const serveDev = async (server: ViteDevServer, url: string) => {
-    const { byRoute, byMarkdownPath, nav, pages } = await getSite();
+    const { byRoute, byMarkdownPath, nav, pages, demos } = await getSite();
     const route = toRoute(url);
 
     if (route === LLMS_TXT) {
@@ -103,7 +109,7 @@ export const keyroveDocs = (): Plugin => {
 
     const markdownPage = byMarkdownPath.get(route);
     if (markdownPage) {
-      return { type: 'text/markdown', body: toMarkdown(markdownPage) };
+      return { type: 'text/markdown', body: toMarkdown(markdownPage, demos) };
     }
 
     const page = byRoute.get(route);
@@ -164,7 +170,7 @@ export const keyroveDocs = (): Plugin => {
     async closeBundle() {
       const shellPath = path.join(outDir, 'index.html');
       const shell = await readFile(shellPath, 'utf8');
-      const { pages, nav } = await getSite();
+      const { pages, nav, demos } = await getSite();
 
       const write = async (file: string, body: string) => {
         const target = path.join(outDir, file);
@@ -180,7 +186,7 @@ export const keyroveDocs = (): Plugin => {
             page.route === '' ? 'index.html' : `${page.route}/index.html`;
 
           await write(file, await render(page, shell));
-          await write(toMarkdownPath(page.route), toMarkdown(page));
+          await write(toMarkdownPath(page.route), toMarkdown(page, demos));
         }),
       );
 

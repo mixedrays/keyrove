@@ -13,23 +13,12 @@ Items carrying `data-keyrove-roving-tabindex` opt into it: when focus moves,
 keyrove sets `tabindex="-1"` on the item leaving and `tabindex="0"` on the one
 arriving.
 
+The group holds one `tabindex="0"` to begin with, on the first navigable item;
+every other item starts at `-1`. <kbd class="kbd">Tab</kbd> into the list, arrow
+to an item, then <kbd class="kbd">Tab</kbd> away and back — focus returns to
+where you left it.
+
 <div data-demo="roving"></div>
-
-<kbd class="kbd">Tab</kbd> into the list, arrow to an item, then
-<kbd class="kbd">Tab</kbd> away and back — focus returns to where you left it.
-
-## Markup
-
-The group holds one `tabindex="0"` to begin with, on the first navigable item.
-Every other item starts at `-1`.
-
-```html
-<ul id="options">
-  <li data-keyrove-item data-keyrove-roving-tabindex tabindex="0">Option 1</li>
-  <li data-keyrove-item data-keyrove-roving-tabindex tabindex="-1">Option 2</li>
-  <li data-keyrove-item data-keyrove-roving-tabindex tabindex="-1">Option 3</li>
-</ul>
-```
 
 ## Setting the initial tab stop
 

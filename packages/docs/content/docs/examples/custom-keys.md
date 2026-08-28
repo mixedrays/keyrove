@@ -10,24 +10,10 @@ A toolbar navigates left-to-right, not up-and-down. `data-keyrove-next-key` and
 [`KeyboardEvent.code`](https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/code)
 values.
 
-<div data-demo="keys"></div>
-
 <kbd class="kbd">←</kbd> <kbd class="kbd">→</kbd> move between the buttons; the
 up and down arrows are left to scroll the page.
 
-## Markup
-
-```html
-<div
-  id="toolbar"
-  data-keyrove-next-key="ArrowRight"
-  data-keyrove-prev-key="ArrowLeft"
->
-  <button data-keyrove-item tabindex="0">Bold</button>
-  <button data-keyrove-item tabindex="0">Italic</button>
-  <button data-keyrove-item tabindex="0">Underline</button>
-</div>
-```
+<div data-demo="keys" data-demo-class="flex flex-wrap gap-1.5"></div>
 
 ## Codes, not keys
 

@@ -247,7 +247,8 @@
    * `.markdown` class alone, so the landing page's own classes below — and the
    * demo markup, which is a list inside this prose — override without
    * escalating. The demo exclusions are explicit for the same reason: a
-   * `.demo-surface` is a `<ul>`, and should not pick up list styling.
+   * `.demo-surface` is a `<ul>` whose items are `<li>`, and neither should
+   * pick up list styling.
    */
   .markdown {
     @apply text-zinc-700 dark:text-zinc-300;
@@ -304,11 +305,11 @@
     @apply mt-4 list-decimal space-y-2 pl-6;
   }
 
-  .markdown :where(li:not(.item))::marker {
+  .markdown :where(li:not([data-keyrove-item]))::marker {
     @apply text-zinc-400;
   }
 
-  .markdown :where(li:not(.item)) :where(ul, ol) {
+  .markdown :where(li:not([data-keyrove-item])) :where(ul, ol) {
     @apply mt-2;
   }
 
@@ -436,38 +437,75 @@
 
   /* ---------- demos ---------- */
 
-  /* The host a content file drops in with `<div data-demo="…">`; demos.ts fills
-     it, so the spacing has to hold whether or not the script has run. */
+  /*
+   * A demo is one unit: the live markup on top, the same markup as source
+   * below it, inside a single frame. Both are stamped in from one file under
+   * content/_demos, so what a reader copies is what they just pressed a key in.
+   */
   .demo {
-    @apply mt-6;
+    @apply mt-6 overflow-hidden rounded-xl border border-zinc-200 dark:border-zinc-800;
+  }
+
+  .demo-preview {
+    @apply p-4;
   }
 
   /* The inset panel a demo's items sit in. */
   .demo-surface {
-    @apply rounded-xl border border-zinc-200 bg-zinc-50 p-1.5 dark:border-zinc-800 dark:bg-zinc-950;
+    @apply rounded-lg border border-zinc-200 bg-zinc-50 p-1.5 dark:border-zinc-800 dark:bg-zinc-950;
   }
 
-  /* A nested navigation root, drawn as its own panel inside the one around it
-     so the boundary keyrove scopes to is visible rather than implied. */
-  .demo-nested {
-    @apply mb-1.5 border-dashed bg-white dark:bg-zinc-900;
+  .demo-code {
+    @apply relative border-t border-zinc-200 dark:border-zinc-800;
+  }
+
+  /* The block sits inside the demo's own frame, so it gives up the border and
+     rounding it carries when it stands alone in prose. No height cap: the fold
+     in the demo file is what keeps a block short, so anything that reaches here
+     is meant to be read in full. The padding on the right keeps the longest
+     line clear of the copy button. */
+  .demo-code .code-block {
+    @apply mt-0 rounded-none border-0 pr-14;
+  }
+
+  .demo-copy {
+    @apply absolute top-2.5 right-2.5 z-10 inline-flex cursor-pointer items-center rounded-lg border border-zinc-200 bg-white p-1.5 text-zinc-500 transition-colors dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-400;
+    @apply hover:text-zinc-900 dark:hover:text-zinc-100;
   }
 
   /*
-   * Applied to elements created in demos.ts. `focus:` rather than
-   * `focus-visible:` on purpose — keyrove moves focus programmatically, and the
-   * demo is about making that movement visible however it was triggered.
+   * Demo items are styled off the attributes the docs teach rather than off
+   * classes of their own, so a fragment under content/_demos stays markup a
+   * reader could paste as-is — there is nothing in it that only this site
+   * understands.
+   *
+   * `focus:` rather than `focus-visible:` on purpose — keyrove moves focus
+   * programmatically, and the demo is about making that movement visible
+   * however it was triggered.
    */
-  .item {
+  .demo :where([data-keyrove-item]) {
     @apply block w-full cursor-pointer rounded-lg border border-transparent px-3 py-2 text-left text-sm text-zinc-800 transition-colors;
     @apply hover:bg-indigo-500/10;
     @apply focus:border-indigo-500 focus:bg-indigo-50 focus:outline-none;
     @apply dark:text-zinc-200 dark:focus:border-indigo-400 dark:focus:bg-indigo-500/15;
   }
 
-  .item-skipped {
+  /* Grid cells and toolbar buttons size to content instead of filling a row. */
+  .demo :where(button[data-keyrove-item]) {
+    @apply w-auto text-center;
+  }
+
+  .demo :where([data-keyrove-skip]) {
     @apply cursor-default pt-3.5 text-[0.7rem] font-semibold tracking-widest text-zinc-500 uppercase;
     @apply hover:bg-transparent;
+  }
+
+  /* A nested navigation root, drawn as its own panel inside the one around it
+     so the boundary keyrove scopes to is visible rather than implied. Every
+     nested group in the docs reads horizontally, which is why the row is here
+     rather than declared per demo. */
+  .demo [data-keyrove-root] {
+    @apply mb-1.5 flex gap-1.5 rounded-lg border border-dashed border-zinc-200 bg-white p-1.5 dark:border-zinc-800 dark:bg-zinc-900;
   }
 
   .log {

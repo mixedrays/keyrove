@@ -52,15 +52,10 @@ Left/Right move a cell, with no wrapping at the edges.
 ## Three lines and a list is navigable
 
 Give each navigable element `data-keyrove-item` and a tab stop, then hand the
-container's keydown event to `keyRove`.
+container's keydown event to `keyRove`. Try it — click an item, then use the
+arrow keys.
 
-```html
-<ul id="menu">
-  <li data-keyrove-item tabindex="0">Inbox</li>
-  <li data-keyrove-item tabindex="0">Drafts</li>
-  <li data-keyrove-item tabindex="0">Sent</li>
-</ul>
-```
+<div data-demo="inbox"></div>
 
 ```ts
 import { keyRove } from '@mixedrays/keyrove';
@@ -69,10 +64,6 @@ document.querySelector('#menu').addEventListener('keydown', (e) => {
   keyRove(e);
 });
 ```
-
-Try it — click an item, then use the arrow keys.
-
-<div data-demo="list"></div>
 
 Read the [introduction](/docs/introduction) for how it fits together, or jump
 straight to the [API reference](/docs/api).

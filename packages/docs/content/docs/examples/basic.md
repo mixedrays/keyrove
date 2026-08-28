@@ -6,23 +6,12 @@ order: 10
 ---
 
 A list needs two things: `data-keyrove-item` on every navigable element, and a
-keydown listener on the container.
+keydown listener on the container. Click an item to focus it, then use
+<kbd class="kbd">↑</kbd> <kbd class="kbd">↓</kbd>, <kbd class="kbd">Home</kbd> /
+<kbd class="kbd">End</kbd>, and <kbd class="kbd">PageUp</kbd> /
+<kbd class="kbd">PageDown</kbd>.
 
-<div data-demo="list"></div>
-
-Click an item to focus it, then use <kbd class="kbd">↑</kbd>
-<kbd class="kbd">↓</kbd>, <kbd class="kbd">Home</kbd> / <kbd class="kbd">End</kbd>,
-and <kbd class="kbd">PageUp</kbd> / <kbd class="kbd">PageDown</kbd>.
-
-## Markup
-
-```html
-<ul id="menu" data-keyrove-page-length="5">
-  <li data-keyrove-item tabindex="0">Item 1</li>
-  <li data-keyrove-item tabindex="0">Item 2</li>
-  <li data-keyrove-item tabindex="0">Item 3</li>
-</ul>
-```
+<div data-demo="list" data-demo-class="max-h-60 overflow-y-auto"></div>
 
 ```ts
 import { keyRove } from '@mixedrays/keyrove';

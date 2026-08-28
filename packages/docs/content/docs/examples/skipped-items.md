@@ -12,22 +12,9 @@ focus.
 `data-keyrove-skip` marks an item as passed over: it keeps its place in the DOM
 order, but no key ever lands on it.
 
-<div data-demo="skip"></div>
-
 Arrow through the list — focus moves straight past the group headings.
 
-## Markup
-
-```html
-<ul id="files">
-  <li data-keyrove-item data-keyrove-skip>Recent</li>
-  <li data-keyrove-item tabindex="0">quarterly-report.pdf</li>
-  <li data-keyrove-item tabindex="0">budget-v3.xlsx</li>
-
-  <li data-keyrove-item data-keyrove-skip>Shared with me</li>
-  <li data-keyrove-item tabindex="0">roadmap.md</li>
-</ul>
-```
+<div data-demo="skip"></div>
 
 The headings keep `data-keyrove-item` so that they stay part of the list
 keyrove walks — that is what lets it step over them and land on the next real

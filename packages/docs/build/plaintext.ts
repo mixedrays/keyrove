@@ -1,4 +1,5 @@
 import type { NavGroup, Page } from './content.ts';
+import { expandDemos, type Demos } from './demos.ts';
 import { routeToPath } from './layout.ts';
 
 /**
@@ -19,11 +20,19 @@ import { routeToPath } from './layout.ts';
  */
 const SITE_URL = (process.env.DOCS_SITE_URL ?? '').replace(/\/$/, '');
 
-export const toMarkdown = (page: Page) => {
+/**
+ * A page as standalone markdown.
+ *
+ * Demos are expanded on the way out, so the markup a page documents reaches a
+ * reader who never runs the site — the placeholder on its own carries none of
+ * it.
+ */
+export const toMarkdown = (page: Page, demos: Demos) => {
   const heading = `# ${page.title}`;
   const lead = page.description === '' ? '' : `\n\n> ${page.description}`;
+  const body = expandDemos(page.body, demos, 'markdown');
 
-  return `${heading}${lead}\n\n${page.body}\n`;
+  return `${heading}${lead}\n\n${body}\n`;
 };
 
 /** The `.md` twin of a page: `docs/api` → `docs/api.md`, the landing page → `index.md`. */

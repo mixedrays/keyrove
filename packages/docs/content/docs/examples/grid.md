@@ -10,20 +10,10 @@ grid: <kbd class="kbd">↑</kbd> <kbd class="kbd">↓</kbd> move a whole row, so
 focus lands on the item directly above or below, and <kbd class="kbd">←</kbd>
 <kbd class="kbd">→</kbd> move one cell.
 
-<div data-demo="grid"></div>
-
 Focus stops at the edges instead of wrapping — arrowing left from the first
 column stays put rather than jumping to the end of the row above.
 
-## Markup
-
-```html
-<div id="grid" data-keyrove-cols-length="6" data-keyrove-page-length="2">
-  <button data-keyrove-item tabindex="0">1</button>
-  <button data-keyrove-item tabindex="0">2</button>
-  <button data-keyrove-item tabindex="0">3</button>
-</div>
-```
+<div data-demo="grid" data-demo-class="grid grid-cols-6 gap-1.5"></div>
 
 ```ts
 document.querySelector('#grid').addEventListener('keydown', (e) => keyRove(e));

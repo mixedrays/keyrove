@@ -11,35 +11,14 @@ group, and the root keyrove navigates by is the _nearest_ one above the focused
 element — so an inner group can sit inside an outer one and keep its own keys,
 columns, and page size.
 
-<div data-demo="nested"></div>
-
 <kbd class="kbd">↑</kbd> <kbd class="kbd">↓</kbd> walk the menu, and
 <kbd class="kbd">↑</kbd> from _Reply_ steps into the reaction row. Inside it,
 <kbd class="kbd">←</kbd> <kbd class="kbd">→</kbd> move between reactions and
-<kbd class="kbd">Escape</kbd> returns to the menu.
+<kbd class="kbd">Escape</kbd> returns to the menu. The inner group is a root
+with its own attributes; nothing else about it is special — the same
+`data-keyrove-item` marks its items.
 
-## Markup
-
-The inner group is a root with its own attributes. Nothing else about it is
-special — the same `data-keyrove-item` marks its items.
-
-```html
-<ul id="message-actions">
-  <li
-    data-keyrove-root
-    data-keyrove-next-key="ArrowRight"
-    data-keyrove-prev-key="ArrowLeft"
-  >
-    <button data-keyrove-item tabindex="0">👍</button>
-    <button data-keyrove-item tabindex="0">❤️</button>
-    <button data-keyrove-item tabindex="0">🎉</button>
-  </li>
-
-  <li data-keyrove-item tabindex="0">Reply</li>
-  <li data-keyrove-item tabindex="0">Copy link</li>
-  <li data-keyrove-item tabindex="0">Delete message</li>
-</ul>
-```
+<div data-demo="nested"></div>
 
 ```ts
 document
