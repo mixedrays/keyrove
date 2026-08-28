@@ -1,7 +1,9 @@
 # keyrove
 
-Monorepo for [keyrove](packages/keyrove) — framework-agnostic arrow-key
-navigation for lists and grids, driven by `data-*` attributes.
+Monorepo for [keyrove](packages/keyrove) — framework-agnostic keyboard
+navigation for lists and grids, driven by `data-*` attributes. Arrow keys are
+the default binding, not the only one, and native <kbd>Tab</kbd> navigation is
+left intact.
 
 ## Packages
 

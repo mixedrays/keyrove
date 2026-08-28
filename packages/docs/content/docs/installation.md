@@ -1,6 +1,6 @@
 ---
 title: Installation
-description: Installing the package and wiring the first keydown handler in any framework.
+description: Installing the package, wiring the first keydown handler in any framework, and what the markup has to carry.
 group: Getting started
 order: 2
 ---
@@ -40,6 +40,16 @@ list.addEventListener('keydown', (e) => keyRove(e));
   <li data-keyrove-item tabindex="0">Sent</li>
 </ul>
 ```
+
+The `tabindex="0"` is yours to put there — keyrove moves focus but never makes
+an element focusable. It is also what keeps these items reachable by
+<kbd class="kbd">Tab</kbd>, which keyrove leaves alone; if you would rather the
+group were a single tab stop, that is
+[roving tabindex](/docs/examples/roving-tabindex).
+
+By default the group answers to <kbd class="kbd">↑</kbd> and
+<kbd class="kbd">↓</kbd>. Add `data-keyrove-next-key` / `data-keyrove-prev-key`
+to the root for anything else — see [custom keys](/docs/examples/custom-keys).
 
 ## React
 

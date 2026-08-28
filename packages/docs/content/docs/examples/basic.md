@@ -1,15 +1,21 @@
 ---
 title: Basic list
-description: The default behaviour — arrows step one item, Home and End jump to the ends, PageUp and PageDown move in blocks.
+description: The default behaviour — arrows step one item, Home and End jump to the ends, PageUp and PageDown move in blocks, and Tab still does what Tab does.
 group: Examples
 order: 10
 ---
 
 A list needs two things: `data-keyrove-item` on every navigable element, and a
-keydown listener on the container. Click an item to focus it, then use
-<kbd class="kbd">↑</kbd> <kbd class="kbd">↓</kbd>, <kbd class="kbd">Home</kbd> /
-<kbd class="kbd">End</kbd>, and <kbd class="kbd">PageUp</kbd> /
-<kbd class="kbd">PageDown</kbd>.
+keydown listener on the container. <kbd class="kbd">Tab</kbd> to an item or
+click it, then use <kbd class="kbd">↑</kbd> <kbd class="kbd">↓</kbd>,
+<kbd class="kbd">Home</kbd> / <kbd class="kbd">End</kbd>, and
+<kbd class="kbd">PageUp</kbd> / <kbd class="kbd">PageDown</kbd>.
+
+Both ways in work because both are still available: `tabindex="0"` makes each
+item a real tab stop, and keyrove adds movement on top without taking anything
+away. <kbd class="kbd">Tab</kbd> keeps walking the list item by item here — see
+[roving tabindex](/docs/examples/roving-tabindex) for making the whole group one
+stop instead.
 
 <div data-demo="list" data-demo-class="max-h-60 overflow-y-auto"></div>
 
@@ -18,6 +24,22 @@ import { keyRove } from '@mixedrays/keyrove';
 
 document.querySelector('#menu').addEventListener('keydown', (e) => keyRove(e));
 ```
+
+## The arrows are a default
+
+<kbd class="kbd">↑</kbd> and <kbd class="kbd">↓</kbd> are what a group answers
+to when you have not said otherwise. Two attributes on the root swap them for
+anything else:
+
+```html
+<ul id="menu" data-keyrove-next-key="KeyJ" data-keyrove-prev-key="KeyK">
+  …
+</ul>
+```
+
+The listener does not change, and the keys you did not bind — the arrows now
+included — go back to their browser behaviour. See
+[custom keys](/docs/examples/custom-keys).
 
 ## Page length
 

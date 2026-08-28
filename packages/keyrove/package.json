@@ -1,15 +1,18 @@
 {
   "name": "@mixedrays/keyrove",
   "version": "0.1.0",
-  "description": "Framework-agnostic arrow-key navigation for lists and grids, driven by data-* attributes.",
+  "description": "Framework-agnostic keyboard navigation for lists and grids, driven by data-* attributes. Any key can move focus; arrows are the default.",
   "keywords": [
     "keyboard",
     "keyboard-navigation",
+    "keybindings",
     "arrow-keys",
     "roving-tabindex",
+    "tabindex",
     "accessibility",
     "a11y",
     "focus",
+    "focus-management",
     "list",
     "grid"
   ],

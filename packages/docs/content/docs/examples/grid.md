@@ -13,6 +13,12 @@ focus lands on the item directly above or below, and <kbd class="kbd">←</kbd>
 Focus stops at the edges instead of wrapping — arrowing left from the first
 column stays put rather than jumping to the end of the row above.
 
+The row moves follow whatever the root's next and previous keys are, so a grid
+bound to `KeyJ` / `KeyK` moves a row on those and still moves a cell on
+<kbd class="kbd">←</kbd> <kbd class="kbd">→</kbd>. Bind one of the horizontal
+arrows instead and it takes over the row move, giving up the cell move — see
+[custom keys](/docs/examples/custom-keys#interaction-with-grids).
+
 <div data-demo="grid" data-demo-class="grid grid-cols-6 gap-1.5"></div>
 
 ```ts

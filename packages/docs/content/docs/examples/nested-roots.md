@@ -70,10 +70,11 @@ The outer group's order therefore runs straight _through_ the inner one: in the
 demo, <kbd class="kbd">↑</kbd> from _Reply_ lands on the last reaction rather
 than skipping the row.
 
-That is usually what you want — arrows reach the group instead of it being
-reachable by <kbd class="kbd">Tab</kbd> alone — but an inner group is not hidden
-from the list around it, and there is no attribute that hides it. If a group
-should be unreachable by arrows, put it outside the outer root.
+That is usually what you want — the outer group's keys reach the inner one
+instead of it being reachable by <kbd class="kbd">Tab</kbd> alone — but an inner
+group is not hidden from the list around it, and there is no attribute that
+hides it. If a group should be unreachable that way, put it outside the outer
+root.
 
 ## Getting back out
 
@@ -83,9 +84,13 @@ does nothing at all: keyrove leaves it to the browser rather than passing it on
 to the group outside. Leaving is yours to wire, and there are two ways to do it.
 
 <kbd class="kbd">Tab</kbd> is the first, and it needs no code beyond
-[roving tabindex](/docs/examples/roving-tabindex). Give each group its own
-roving items and each becomes a single tab stop, so
-<kbd class="kbd">Tab</kbd> moves group to group — the arrangement the
+[roving tabindex](/docs/examples/roving-tabindex). keyrove never binds
+<kbd class="kbd">Tab</kbd>, so the browser's own focus order is always a way out
+of a nested group — roving tabindex just makes it a tidy one. Give each group
+its own roving items and each becomes a single tab stop, so
+<kbd class="kbd">Tab</kbd> moves group to group and
+<kbd class="kbd">Shift</kbd>+<kbd class="kbd">Tab</kbd> back — the arrangement
+the
 [ARIA authoring practices](https://www.w3.org/WAI/ARIA/apg/practices/keyboard-interface/)
 describe for composite widgets.
 
@@ -102,7 +107,8 @@ reactions.addEventListener('keydown', (e) => {
 ```
 
 keyrove never acts on <kbd class="kbd">Escape</kbd>, so nothing collides — the
-same holds for any code outside the [key table](/docs/api#keys).
+same holds for any code the roots involved have not bound. Which also means the
+exit key is yours to choose on the same terms as the navigation keys.
 
 ## Nesting, or two roots side by side
 

@@ -1,16 +1,18 @@
 ---
 title: keyrove
-description: Framework-agnostic arrow-key navigation for lists and grids, driven by data-* attributes.
+description: Framework-agnostic keyboard navigation for lists and grids, driven by data-* attributes. Any key can move focus, and native Tab navigation keeps working.
 layout: landing
 ---
 
 <p class="hero-eyebrow">Framework-agnostic · Zero dependencies</p>
 
-# Arrow-key navigation, driven by data attributes.
+# Keyboard navigation, driven by data attributes.
 
 Mark your items with `data-keyrove-item`, pass keydown events to `keyRove`, and
-lists and grids become keyboard navigable — arrows, Home/End, PageUp/PageDown,
-and roving tabindex included.
+lists and grids become keyboard navigable. Arrows are the default binding, not
+the limit — the keys that move focus are attributes, so any key can drive a
+group, and <kbd class="kbd">Tab</kbd> keeps behaving the way the browser
+intends.
 
 <div class="hero-actions">
 
@@ -33,10 +35,20 @@ with a native listener or a React, Vue, or Svelte synthetic event.
 </div>
 <div class="feature">
 
-### Configured in markup
+### Any key, not just arrows
 
-Column count, page size, custom keys, and skipped items are all `data-*`
-attributes — no per-instance config object to keep in sync with the DOM.
+`data-keyrove-next-key` and `data-keyrove-prev-key` take any
+`KeyboardEvent.code`. `ArrowDown` and `ArrowUp` are what you get for free, not
+what you are stuck with.
+
+</div>
+<div class="feature">
+
+### Tab is left alone
+
+Focus moves natively, and `preventDefault()` is called only for keys keyrove is
+bound to — so <kbd class="kbd">Tab</kbd> and
+<kbd class="kbd">Shift</kbd>+<kbd class="kbd">Tab</kbd> keep working beside it.
 
 </div>
 <div class="feature">
@@ -52,8 +64,8 @@ Left/Right move a cell, with no wrapping at the edges.
 ## Three lines and a list is navigable
 
 Give each navigable element `data-keyrove-item` and a tab stop, then hand the
-container's keydown event to `keyRove`. Try it — click an item, then use the
-arrow keys.
+container's keydown event to `keyRove`. Try it — <kbd class="kbd">Tab</kbd> to
+an item, then use the arrow keys.
 
 <div data-demo="inbox"></div>
 
@@ -65,5 +77,18 @@ document.querySelector('#menu').addEventListener('keydown', (e) => {
 });
 ```
 
-Read the [introduction](/docs/introduction) for how it fits together, or jump
+## Or bind the keys you want
+
+The same list, driven by <kbd class="kbd">J</kbd> and <kbd class="kbd">K</kbd>
+instead — one attribute each, and nothing in the JavaScript changes.
+
+```html
+<ul id="menu" data-keyrove-next-key="KeyJ" data-keyrove-prev-key="KeyK">
+  <li data-keyrove-item tabindex="0">Inbox</li>
+  <li data-keyrove-item tabindex="0">Drafts</li>
+</ul>
+```
+
+Read the [introduction](/docs/introduction) for how it fits together, see
+[custom keys](/docs/examples/custom-keys) for the rebinding rules, or jump
 straight to the [API reference](/docs/api).
