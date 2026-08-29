@@ -26,8 +26,12 @@ Because it is the _nearest_ ancestor, roots can also be
 inside it.
 
 `preventDefault()` is called for every key keyrove acts on, so the page does not
-scroll while you move through a list. Keys it does not act on are left entirely
-untouched — <kbd class="kbd">Tab</kbd>,
+scroll while you move through a list. "Acts on" means there was a position to
+move from or to: at the end of a list or the edge of a grid the key is still
+consumed — a group owns its bound keys up to its own boundary — but on a group
+where no item holds focus, or one with no items at all, a bound key keeps its
+browser default rather than being swallowed. Keys it does not act on are left
+entirely untouched — <kbd class="kbd">Tab</kbd>,
 <kbd class="kbd">Shift</kbd>+<kbd class="kbd">Tab</kbd>,
 <kbd class="kbd">Enter</kbd>, <kbd class="kbd">Space</kbd> and
 <kbd class="kbd">Escape</kbd> among them, which is why keyrove composes with
@@ -60,8 +64,9 @@ The two `Arrow` cell moves in a grid stand down if that same code has been bound
 as the next or previous key, so one keypress never fires both.
 
 `Home`, `End`, `PageUp`, and `PageDown` only act once focus is genuinely inside
-an item. Without that gate they would be swallowed — and native page scrolling
-lost — on a container that has no focused item to move from.
+an item: they move _within_ a group rather than into one. The next and previous
+keys differ on purpose — pressed on a group where nothing is focused yet, they
+move focus to the first item, which is how you enter a list from the keyboard.
 
 An item counts as focused when focus is anywhere inside it (`:focus-within`), so
 an item that wraps a link or a button is still the navigation position after

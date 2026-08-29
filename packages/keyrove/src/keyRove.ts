@@ -138,11 +138,23 @@ export const keyRove = (e: KeyRoveEvent, { callbacks = {} }: Options = {}) => {
   const useRovingTabindex = focused?.getAttribute(attributes.rovingTabindex);
 
   // Focus a resolved target, moving the roving tab stop with it when enabled.
-  // A null target (e.g. a grid edge) is a no-op so the current tab stop is kept.
+  //
+  // This is also where `preventDefault()` lives, because only here is it known
+  // that keyrove is actually in a position to act. The press is ours when it
+  // resolves a target, and also when focus already sits inside the group but
+  // the move has nowhere to go (a grid edge): the group owns its bound keys up
+  // to its own boundary, so the page must not scroll there instead. With
+  // neither, keyrove has nothing to move from or to and the key is left with
+  // its browser default rather than being swallowed.
   const moveFocus = (
     target: Element | null | undefined,
     callbackKey: CallbacksKeys,
   ) => {
+    if (!target && !focused) return;
+
+    e.preventDefault();
+
+    // A null target (a grid edge) is a no-op so the current tab stop is kept.
     if (!target) return;
 
     if (useRovingTabindex) {
@@ -155,51 +167,45 @@ export const keyRove = (e: KeyRoveEvent, { callbacks = {} }: Options = {}) => {
   };
 
   if (e.code === prevCode) {
-    e.preventDefault();
     // In a grid, Up moves a whole row; otherwise to the previous item.
     moveFocus(isGrid ? up : prev, 'prev');
   }
 
   if (e.code === nextCode) {
-    e.preventDefault();
     // In a grid, Down moves a whole row; otherwise to the next item.
     moveFocus(isGrid ? down : next, 'next');
   }
 
   if (e.code === KEY.arrowLeft && prevCode !== KEY.arrowLeft && isGrid) {
     // move one cell left within the grid row
-    e.preventDefault();
     moveFocus(left, 'prev');
   }
 
   if (e.code === KEY.arrowRight && nextCode !== KEY.arrowRight && isGrid) {
     // move one cell right within the grid row
-    e.preventDefault();
     moveFocus(right, 'next');
   }
 
-  // Home/End/PageUp/PageDown only act once focus is genuinely inside an item.
-  // Without this gate the keys are swallowed (and native page scrolling lost)
-  // on a container that has no focused item to move from.
+  // Home/End/PageUp/PageDown only act once focus is genuinely inside an item:
+  // they move *within* a group, they are not a way into one. Without this gate
+  // Home and End would resolve the first/last item from outside the group and
+  // pull focus in — which is what the arrows deliberately do, and what these
+  // four deliberately do not.
   if (!focused) return;
 
   if (e.code === KEY.home) {
-    e.preventDefault();
     moveFocus(first, 'home');
   }
 
   if (e.code === KEY.end) {
-    e.preventDefault();
     moveFocus(last, 'end');
   }
 
   if (e.code === KEY.pageUp) {
-    e.preventDefault();
     moveFocus(pageUp, 'pageUp');
   }
 
   if (e.code === KEY.pageDown) {
-    e.preventDefault();
     moveFocus(pageDown, 'pageDown');
   }
 };

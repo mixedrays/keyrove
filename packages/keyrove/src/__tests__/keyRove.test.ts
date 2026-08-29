@@ -122,6 +122,29 @@ describe('keyRove', () => {
       expect(event.defaultPrevented).toBe(true);
     });
 
+    it('enters the list from the container when no item has focus', () => {
+      const container = renderList([createItem('a'), createItem('b')]);
+      container.setAttribute('tabindex', '0');
+      container.focus();
+
+      const event = pressKey('ArrowDown', container);
+
+      // unlike Home/End, an arrow is a way *into* a group
+      expect(activeId()).toBe('a');
+      expect(event.defaultPrevented).toBe(true);
+    });
+
+    it('leaves the key unhandled when the group has no items at all', () => {
+      const container = renderList([]);
+      container.setAttribute('tabindex', '0');
+      container.focus();
+
+      const event = pressKey('ArrowDown', container);
+
+      expect(event.defaultPrevented).toBe(false);
+      expect(document.activeElement).toBe(container);
+    });
+
     it('ignores unrelated keys and leaves focus untouched', () => {
       renderList([createItem('a'), createItem('b')]);
       document.getElementById('a')!.focus();
@@ -577,6 +600,41 @@ describe('keyRove', () => {
       expect(activeId()).toBe('7');
       // the tab stop must not be lost when the move is a no-op
       expect(from.getAttribute('tabindex')).toBe('0');
+    });
+
+    it('leaves the key unhandled when no item has focus', () => {
+      const container = renderGrid(9, 3);
+      container.setAttribute('tabindex', '0');
+      container.focus();
+
+      const event = pressKey('ArrowDown', container);
+
+      // a grid cell move has nothing to resolve from outside the grid, so the
+      // key keeps its browser default rather than being swallowed
+      expect(event.defaultPrevented).toBe(false);
+      expect(document.activeElement).toBe(container);
+    });
+
+    it('still consumes the key at an edge, where the group owns the move', () => {
+      renderGrid(9, 3);
+      document.getElementById('7')!.focus();
+
+      const event = pressKey('ArrowDown'); // no row below -> no-op
+
+      expect(activeId()).toBe('7');
+      // focus is inside the grid, so the grid owns the key up to its boundary
+      // and the page must not scroll instead
+      expect(event.defaultPrevented).toBe(true);
+    });
+
+    it('still consumes a cell move at the end of a row', () => {
+      renderGrid(9, 3);
+      document.getElementById('8')!.focus();
+
+      const event = pressKey('ArrowRight');
+
+      expect(activeId()).toBe('8');
+      expect(event.defaultPrevented).toBe(true);
     });
 
     it('falls back to linear navigation when columns is 1', () => {
