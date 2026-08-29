@@ -7,10 +7,10 @@ left intact.
 
 ## Packages
 
-| Package                   | Path                                 | Description                                   |
-| ------------------------- | ------------------------------------ | --------------------------------------------- |
-| `@mixedrays/keyrove`      | [packages/keyrove](packages/keyrove) | The library. Published to npm.                |
-| `@mixedrays/keyrove/docs` | [packages/docs](packages/docs)       | Documentation site and landing page. Private. |
+| Package                   | Path                                 | Description                                         |
+| ------------------------- | ------------------------------------ | --------------------------------------------------- |
+| `@mixedrays/keyrove`      | [packages/keyrove](packages/keyrove) | The library. Published to npm.                      |
+| `@mixedrays/keyrove/docs` | [packages/docs](packages/docs)       | Documentation site and landing page. Not published. |
 
 ## Getting started
 
