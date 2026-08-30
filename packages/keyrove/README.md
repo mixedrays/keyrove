@@ -71,14 +71,17 @@ The matcher is exported as `matchesCombo(e, combo)` for your own handlers.
 ```
 
 Anything not bound is left entirely alone, browser defaults included. `Home`,
-`End`, `PageUp` and `PageDown` are handled whenever pressed without modifiers;
-in a grid, `ArrowLeft` and `ArrowRight` move one cell unless you have bound
-them to something else.
+`End`, `PageUp` and `PageDown` are handled when pressed without modifiers and
+focus is already inside an item — they move within a group, never into one; in
+a grid, `ArrowLeft` and `ArrowRight` move one cell unless you have bound them
+to something else.
 
-Keys pressed inside an editable element — `input`, `textarea`, `select`, or
-`[contenteditable]` — are never handled: arrows and `Home`/`End` keep moving
-the caret, and a letter binding like `KeyJ` does not swallow typing into a
-field that sits within an item.
+Keys pressed inside an editable element — `textarea`, `select`,
+`[contenteditable]`, or an `input` whose keys act natively (text entry,
+`number`, `range`, `radio`, …) — are never handled: arrows and `Home`/`End`
+keep moving the caret or value, and a letter binding like `KeyJ` does not
+swallow typing into a field that sits within an item. Inputs where those keys
+are inert — a `checkbox`, a `button` — still navigate.
 
 ## Tab still works
 
@@ -104,22 +107,27 @@ that <kbd>Tab</kbd> moves past rather than through.
 Every attribute name is also exported as a constant (`KEYROVE_ATTR_ITEM`,
 `KEYROVE_ATTR_COLS_LENGTH`, …).
 
-## Options
+## Options and return value
 
 ```ts
-keyRove(e, {
-  callbacks: {
-    next: ({ focused }) => {},
-    prev: ({ focused }) => {},
-    home: ({ focused }) => {},
-    end: ({ focused }) => {},
-    pageUp: ({ focused }) => {},
-    pageDown: ({ focused }) => {},
-  },
+const result = keyRove(e, {
+  onMove: ({ action, from, to }) => {},
 });
 ```
 
-Callbacks fire after focus has moved, and only when it actually moved.
+`onMove` fires after focus has moved, and only when it actually moved: a
+consumed key with nowhere to go — the end of a list, the edge of a grid —
+fires nothing. `action` is one of `'next' | 'prev' | 'home' | 'end' |
+'pageUp' | 'pageDown'`; `from` is the item focus left (`null` when the group
+was entered from outside) and `to` the item it landed on.
+
+`keyRove` returns `null` when it left the key untouched, and `{ action, from,
+to }` when it consumed it — with `to: null` for a consumed no-op at an edge. A
+non-null result means the key is claimed, so handlers chain with `||`:
+
+```ts
+element.addEventListener('keydown', (e) => keyRove(e) || myOwnHandler(e));
+```
 
 `toggleTabIndex({ root, isActive })` is exported for cases where you manage the
 tab stop yourself — restoring it after re-rendering a list, for instance.

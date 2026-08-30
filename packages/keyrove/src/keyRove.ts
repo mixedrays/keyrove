@@ -11,10 +11,11 @@ import {
 } from './utils.js';
 import type {
   Attributes,
-  CallbacksKeys,
   GetNavElementsArgs,
   KeyRoveEvent,
   KnownCode,
+  MoveAction,
+  MoveResult,
   Options,
 } from './types.js';
 
@@ -68,10 +69,29 @@ const KEY = {
 // region.
 const EDITABLE_SELECTOR = 'input, textarea, select, [contenteditable]';
 
+// Input types on which every key keyrove binds is natively inert — no caret,
+// no value stepping, no radio-group movement — so navigating from them takes
+// nothing away. Unknown and future types stay guarded.
+const INERT_INPUT_TYPES = new Set([
+  'button',
+  'checkbox',
+  'color',
+  'file',
+  'image',
+  'reset',
+  'submit',
+]);
+
 const isEditableTarget = (target: Element | null) => {
   const editable = target?.closest?.(EDITABLE_SELECTOR);
 
-  return !!editable && editable.getAttribute('contenteditable') !== 'false';
+  if (!editable) return false;
+
+  if (editable.tagName === 'INPUT') {
+    return !INERT_INPUT_TYPES.has((editable as HTMLInputElement).type);
+  }
+
+  return editable.getAttribute('contenteditable')?.toLowerCase() !== 'false';
 };
 
 const getNavElements = ({
@@ -120,13 +140,20 @@ const getNavElements = ({
 /**
  * Handles keyboard navigation within the provided event's current target.
  * @param e - The keydown event, native or framework-synthetic.
- * @param options.callbacks - Callbacks fired after focus moves.
+ * @param options.onMove - Fired after focus moved — only when it actually did.
+ * @returns `null` when the key was left untouched; `{ action, from, to }` when
+ * it was consumed, with `to: null` for a consumed no-op at an edge. A non-null
+ * result means the key is claimed, so handlers chain with `||`:
+ * `keyRove(e) || myOwnHandler(e)`.
  */
-export const keyRove = (e: KeyRoveEvent, { callbacks = {} }: Options = {}) => {
+export const keyRove = (
+  e: KeyRoveEvent,
+  { onMove }: Options = {},
+): MoveResult | null => {
   const attributes = DEFAULT_ATTRIBUTES;
   const eventTarget = e.target as Element | null;
 
-  if (isEditableTarget(eventTarget)) return;
+  if (isEditableTarget(eventTarget)) return null;
 
   const closestRoot = eventTarget?.closest?.(`[${attributes.root}]`);
   const root = (closestRoot || e.currentTarget) as Element | null;
@@ -153,27 +180,33 @@ export const keyRove = (e: KeyRoveEvent, { callbacks = {} }: Options = {}) => {
 
   const nextCode = root?.getAttribute(attributes.nextKey) || KEY.arrowDown;
   const prevCode = root?.getAttribute(attributes.prevKey) || KEY.arrowUp;
-  const useRovingTabindex = focused?.getAttribute(attributes.rovingTabindex);
+  // Presence-based, so the bare `data-keyrove-roving-tabindex` spelling works
+  // — `getAttribute` would read it as "" and silently disable roving.
+  const useRovingTabindex = focused?.hasAttribute(attributes.rovingTabindex);
 
   // Focus a resolved target, moving the roving tab stop with it when enabled.
   //
   // This is also where `preventDefault()` lives, because only here is it known
   // that keyrove is actually in a position to act. The press is ours when it
   // resolves a target, and also when focus already sits inside the group but
-  // the move has nowhere to go (a grid edge): the group owns its bound keys up
-  // to its own boundary, so the page must not scroll there instead. With
-  // neither, keyrove has nothing to move from or to and the key is left with
-  // its browser default rather than being swallowed.
+  // the move has nowhere to go (an edge): the group owns its bound keys up to
+  // its own boundary, so the page must not scroll there instead. With neither,
+  // keyrove has nothing to move from or to and the key is left with its
+  // browser default rather than being swallowed.
   const moveFocus = (
     target: Element | null | undefined,
-    callbackKey: CallbacksKeys,
-  ) => {
-    if (!target && !focused) return;
+    action: MoveAction,
+  ): MoveResult | null => {
+    if (!target && !focused) return null;
 
     e.preventDefault();
 
-    // A null target (a grid edge) is a no-op so the current tab stop is kept.
-    if (!target) return;
+    const from = focused ?? null;
+
+    // A missing target (a grid edge) or a target that is the position itself
+    // (the end of a list) is a consumed no-op: focus and the tab stop stay
+    // put, and `onMove` stays quiet because nothing moved.
+    if (!target || target === focused) return { action, from, to: null };
 
     if (useRovingTabindex) {
       toggleTabIndex({ root: focused, isActive: false });
@@ -181,30 +214,33 @@ export const keyRove = (e: KeyRoveEvent, { callbacks = {} }: Options = {}) => {
     }
 
     (target as HTMLElement).focus();
-    callbacks[callbackKey]?.({ focused: target });
+
+    const move = { action, from, to: target };
+    onMove?.(move);
+
+    return move;
   };
 
+  // First match wins: one keypress resolves to at most one action, so a
+  // custom binding that collides with a fixed key takes the press over it.
   if (matchesCombo(e, prevCode)) {
     // In a grid, Up moves a whole row; otherwise to the previous item.
-    moveFocus(isGrid ? up : prev, 'prev');
+    return moveFocus(isGrid ? up : prev, 'prev');
   }
 
   if (matchesCombo(e, nextCode)) {
     // In a grid, Down moves a whole row; otherwise to the next item.
-    moveFocus(isGrid ? down : next, 'next');
+    return moveFocus(isGrid ? down : next, 'next');
   }
 
-  // The cell moves stand down when the prev/next binding already claimed the
-  // event — gated on the same matcher, so the two can never both fire on one
-  // keypress however the binding is spelled.
-  if (isGrid && !matchesCombo(e, prevCode) && matchesCombo(e, KEY.arrowLeft)) {
-    // move one cell left within the grid row
-    moveFocus(left, 'prev');
+  // Cell moves within a grid row. A prev/next binding to the same key never
+  // reaches here — the returns above already claimed it.
+  if (isGrid && matchesCombo(e, KEY.arrowLeft)) {
+    return moveFocus(left, 'prev');
   }
 
-  if (isGrid && !matchesCombo(e, nextCode) && matchesCombo(e, KEY.arrowRight)) {
-    // move one cell right within the grid row
-    moveFocus(right, 'next');
+  if (isGrid && matchesCombo(e, KEY.arrowRight)) {
+    return moveFocus(right, 'next');
   }
 
   // Home/End/PageUp/PageDown only act once focus is genuinely inside an item:
@@ -212,21 +248,23 @@ export const keyRove = (e: KeyRoveEvent, { callbacks = {} }: Options = {}) => {
   // Home and End would resolve the first/last item from outside the group and
   // pull focus in — which is what the arrows deliberately do, and what these
   // four deliberately do not.
-  if (!focused) return;
+  if (!focused) return null;
 
   if (matchesCombo(e, KEY.home)) {
-    moveFocus(first, 'home');
+    return moveFocus(first, 'home');
   }
 
   if (matchesCombo(e, KEY.end)) {
-    moveFocus(last, 'end');
+    return moveFocus(last, 'end');
   }
 
   if (matchesCombo(e, KEY.pageUp)) {
-    moveFocus(pageUp, 'pageUp');
+    return moveFocus(pageUp, 'pageUp');
   }
 
   if (matchesCombo(e, KEY.pageDown)) {
-    moveFocus(pageDown, 'pageDown');
+    return moveFocus(pageDown, 'pageDown');
   }
+
+  return null;
 };

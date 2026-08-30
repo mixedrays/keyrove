@@ -37,12 +37,14 @@ entirely untouched — <kbd class="kbd">Tab</kbd>,
 <kbd class="kbd">Escape</kbd> among them, which is why keyrove composes with
 native focus navigation instead of replacing it.
 
-Keys arriving from an editable target — an `input`, `textarea`, `select`, or
-`[contenteditable]` element (descendants included; a
-`contenteditable="false"` island opts back out) — are never acted on: the caret
-keeps the arrows and <kbd class="kbd">Home</kbd>/<kbd class="kbd">End</kbd>,
-and typing into a field inside an item is not swallowed by a printable-key
-binding.
+Keys arriving from an editable target — a `textarea`, a `select`, a
+`[contenteditable]` element (descendants included; a `contenteditable="false"`
+island opts back out), or an `input` whose keys act natively (text entry,
+`number`, `range`, `radio`, …) — are never acted on: the caret or value keeps
+the arrows and <kbd class="kbd">Home</kbd>/<kbd class="kbd">End</kbd>, and
+typing into a field inside an item is not swallowed by a printable-key
+binding. Inputs where the bound keys are inert — a `checkbox`, a `button` —
+still navigate, so a list of checkbox rows keeps its arrows.
 
 ### Keys
 
@@ -86,26 +88,42 @@ An item counts as focused when focus is anywhere inside it (`:focus-within`), so
 an item that wraps a link or a button is still the navigation position after
 <kbd class="kbd">Tab</kbd> lands on that inner control.
 
-### options.callbacks
+### options.onMove
 
-Fired _after_ focus has moved, and only when it actually moved: a no-op at a
-grid edge fires nothing.
+Fired _after_ focus has moved, and only when it actually moved: a consumed key
+with nowhere to go — the end of a list, the edge of a grid — fires nothing.
 
 ```ts
 keyRove(e, {
-  callbacks: {
-    next: ({ focused }) => console.log('moved to', focused),
-    prev: ({ focused }) => {},
-    home: ({ focused }) => {},
-    end: ({ focused }) => {},
-    pageUp: ({ focused }) => {},
-    pageDown: ({ focused }) => {},
-  },
+  onMove: ({ action, from, to }) => console.log(action, from, to),
 });
 ```
 
-Every callback is optional and receives `{ focused }` — the element that now has
-focus. In a grid, a left or right cell move reports as `prev` and `next`.
+`action` names the move (`'next'`, `'prev'`, `'home'`, `'end'`, `'pageUp'`,
+`'pageDown'`); `from` is the item focus left — `null` when an arrow entered
+the group from outside — and `to` the item it landed on. In a grid, a left or
+right cell move reports as `prev` and `next`.
+
+### Return value
+
+`keyRove` reports what it did with the key, so handlers compose:
+
+- `null` — the key was not keyrove's and is untouched, browser default
+  included.
+- `{ action, from, to }` — the key was consumed. `to` is the newly focused
+  item, or `null` for a consumed no-op: a bound key pressed at an edge, where
+  the group owns the key but there is nowhere left to go.
+
+A non-null result means "claimed", which is what lets several handlers share
+one listener without stepping on each other:
+
+```ts
+element.addEventListener('keydown', (e) => keyRove(e) || myOwnHandler(e));
+```
+
+One keypress resolves to at most one action. A custom binding that collides
+with a fixed key — say `data-keyrove-next-key="Home"` — takes the press, and
+the fixed key stands down.
 
 ## matchesCombo(event, combo)
 
@@ -192,9 +210,11 @@ import {
 
 ```ts
 import type {
-  Callbacks,
   KeyRoveCode,
   KeyRoveEvent,
+  Move,
+  MoveAction,
+  MoveResult,
   Options,
 } from '@mixedrays/keyrove';
 ```
@@ -244,14 +264,20 @@ type KeyRoveCode =
   | (string & {});
 ```
 
-### Callbacks
+### MoveAction, MoveResult, Move
 
 ```ts
-type Callbacks = {
-  [K in 'home' | 'end' | 'next' | 'prev' | 'pageUp' | 'pageDown']?: (args: {
-    focused: Element | null;
-  }) => void;
+type MoveAction = 'home' | 'end' | 'next' | 'prev' | 'pageUp' | 'pageDown';
+
+// what keyRove returns for a consumed keypress
+type MoveResult = {
+  action: MoveAction;
+  from: Element | null;
+  to: Element | null;
 };
 
-type Options = { callbacks?: Callbacks };
+// what onMove receives: a move that actually happened
+type Move = MoveResult & { to: Element };
+
+type Options = { onMove?: (move: Move) => void };
 ```

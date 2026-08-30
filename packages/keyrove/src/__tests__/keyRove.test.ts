@@ -34,12 +34,13 @@ const createItem = (id: string, spec: ItemSpec = {}) => {
 type RenderOptions = {
   containerAttrs?: Record<string, string>;
   options?: Parameters<typeof keyRove>[1];
+  onResult?: (result: ReturnType<typeof keyRove>) => void;
 };
 
 /** Builds a list container wired to keyRove and appends it to the document. */
 const renderList = (
   items: HTMLElement[],
-  { containerAttrs = {}, options }: RenderOptions = {},
+  { containerAttrs = {}, options, onResult }: RenderOptions = {},
 ) => {
   const container = document.createElement('div');
 
@@ -49,7 +50,10 @@ const renderList = (
   items.forEach((item) => container.appendChild(item));
 
   document.body.appendChild(container);
-  container.addEventListener('keydown', (e) => keyRove(e, options));
+  container.addEventListener('keydown', (e) => {
+    const result = keyRove(e, options);
+    onResult?.(result);
+  });
 
   return container;
 };
@@ -468,43 +472,169 @@ describe('keyRove', () => {
     });
   });
 
-  describe('callbacks', () => {
-    it('invokes the next and prev callbacks with the newly focused element', () => {
-      const next = vi.fn();
-      const prev = vi.fn();
-      renderList([createItem('a'), createItem('b')], {
-        options: { callbacks: { next, prev } },
-      });
+  describe('onMove', () => {
+    it('fires with the action and both endpoints of the move', () => {
+      const onMove = vi.fn();
+      renderList([createItem('a'), createItem('b')], { options: { onMove } });
       document.getElementById('a')!.focus();
 
       pressKey('ArrowDown');
-      expect(next).toHaveBeenCalledWith({
-        focused: document.getElementById('b'),
+      expect(onMove).toHaveBeenLastCalledWith({
+        action: 'next',
+        from: document.getElementById('a'),
+        to: document.getElementById('b'),
       });
 
       pressKey('ArrowUp');
-      expect(prev).toHaveBeenCalledWith({
-        focused: document.getElementById('a'),
+      expect(onMove).toHaveBeenLastCalledWith({
+        action: 'prev',
+        from: document.getElementById('b'),
+        to: document.getElementById('a'),
       });
     });
 
-    it('invokes the home and end callbacks with the focused element', () => {
-      const home = vi.fn();
-      const end = vi.fn();
+    it('fires for home and end moves', () => {
+      const onMove = vi.fn();
       renderList([createItem('a'), createItem('b'), createItem('c')], {
-        options: { callbacks: { home, end } },
+        options: { onMove },
       });
       document.getElementById('b')!.focus();
 
       pressKey('End');
-      expect(end).toHaveBeenCalledWith({
-        focused: document.getElementById('c'),
+      expect(onMove).toHaveBeenLastCalledWith({
+        action: 'end',
+        from: document.getElementById('b'),
+        to: document.getElementById('c'),
       });
 
       pressKey('Home');
-      expect(home).toHaveBeenCalledWith({
-        focused: document.getElementById('a'),
+      expect(onMove).toHaveBeenLastCalledWith({
+        action: 'home',
+        from: document.getElementById('c'),
+        to: document.getElementById('a'),
       });
+    });
+
+    it('reports from as null when the group is entered from outside', () => {
+      const onMove = vi.fn();
+      const container = renderList([createItem('a')], { options: { onMove } });
+      container.setAttribute('tabindex', '0');
+      container.focus();
+
+      pressKey('ArrowDown', container);
+
+      expect(onMove).toHaveBeenCalledWith({
+        action: 'next',
+        from: null,
+        to: document.getElementById('a'),
+      });
+    });
+
+    it('does not fire when the key is consumed at the end of a list', () => {
+      const onMove = vi.fn();
+      renderList([createItem('a'), createItem('b')], { options: { onMove } });
+      document.getElementById('b')!.focus();
+
+      const event = pressKey('ArrowDown');
+
+      // the group owns the key up to its boundary, but nothing moved
+      expect(event.defaultPrevented).toBe(true);
+      expect(activeId()).toBe('b');
+      expect(onMove).not.toHaveBeenCalled();
+    });
+
+    it('does not fire at a grid edge', () => {
+      const onMove = vi.fn();
+      renderList(
+        Array.from({ length: 9 }, (_, i) => createItem(`${i}`)),
+        {
+          containerAttrs: { [KEYROVE_ATTR_COLS_LENGTH]: '3' },
+          options: { onMove },
+        },
+      );
+      document.getElementById('7')!.focus();
+
+      pressKey('ArrowDown');
+
+      expect(onMove).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('return value', () => {
+    const renderCapturing = (
+      items: HTMLElement[],
+      renderOptions: RenderOptions = {},
+    ) => {
+      const results: Array<ReturnType<typeof keyRove>> = [];
+      renderList(items, { ...renderOptions, onResult: (r) => results.push(r) });
+
+      return results;
+    };
+
+    it('returns the move when focus moved', () => {
+      const results = renderCapturing([createItem('a'), createItem('b')]);
+      document.getElementById('a')!.focus();
+
+      pressKey('ArrowDown');
+
+      expect(results).toEqual([
+        {
+          action: 'next',
+          from: document.getElementById('a'),
+          to: document.getElementById('b'),
+        },
+      ]);
+    });
+
+    it('returns to: null for a consumed no-op at the end of a list', () => {
+      const results = renderCapturing([createItem('a'), createItem('b')]);
+      document.getElementById('b')!.focus();
+
+      pressKey('ArrowDown');
+
+      expect(results).toEqual([
+        { action: 'next', from: document.getElementById('b'), to: null },
+      ]);
+    });
+
+    it('returns null for an unbound key', () => {
+      const results = renderCapturing([createItem('a')]);
+      document.getElementById('a')!.focus();
+
+      pressKey('KeyA');
+
+      expect(results).toEqual([null]);
+    });
+
+    it('returns null when the group has no items', () => {
+      const results: Array<ReturnType<typeof keyRove>> = [];
+      const container = renderList([], { onResult: (r) => results.push(r) });
+      container.setAttribute('tabindex', '0');
+      container.focus();
+
+      pressKey('ArrowDown', container);
+
+      expect(results).toEqual([null]);
+    });
+
+    it('resolves a custom binding over a colliding fixed key', () => {
+      const results = renderCapturing(
+        [createItem('a'), createItem('b'), createItem('c')],
+        { containerAttrs: { [KEYROVE_ATTR_NEXT_KEY]: 'Home' } },
+      );
+      document.getElementById('a')!.focus();
+
+      pressKey('Home');
+
+      // one keypress, one action: the binding wins and the fixed key stands down
+      expect(activeId()).toBe('b');
+      expect(results).toEqual([
+        {
+          action: 'next',
+          from: document.getElementById('a'),
+          to: document.getElementById('b'),
+        },
+      ]);
     });
   });
 
@@ -512,6 +642,21 @@ describe('keyRove', () => {
     it('moves the tab stop from the old item to the new item', () => {
       const first = createItem('a', { roving: true, tabindex: '0' });
       const second = createItem('b', { roving: true, tabindex: '-1' });
+      renderList([first, second]);
+      first.focus();
+
+      pressKey('ArrowDown');
+
+      expect(activeId()).toBe('b');
+      expect(first.getAttribute('tabindex')).toBe('-1');
+      expect(second.getAttribute('tabindex')).toBe('0');
+    });
+
+    it('works with the bare attribute spelling, without a value', () => {
+      const first = createItem('a', { tabindex: '0' });
+      const second = createItem('b', { tabindex: '-1' });
+      first.setAttribute(KEYROVE_ATTR_ROVING_TABINDEX, '');
+      second.setAttribute(KEYROVE_ATTR_ROVING_TABINDEX, '');
       renderList([first, second]);
       first.focus();
 
@@ -620,21 +765,24 @@ describe('keyRove', () => {
       expect(activeId()).toBe('7');
     });
 
-    it('fires next/prev callbacks with the grid target', () => {
-      const next = vi.fn();
-      const prev = vi.fn();
-      renderGrid(9, 3, { callbacks: { next, prev } });
+    it('fires onMove with the grid target', () => {
+      const onMove = vi.fn();
+      renderGrid(9, 3, { onMove });
       document.getElementById('4')!.focus();
 
       pressKey('ArrowDown');
-      expect(next).toHaveBeenCalledWith({
-        focused: document.getElementById('7'),
+      expect(onMove).toHaveBeenLastCalledWith({
+        action: 'next',
+        from: document.getElementById('4'),
+        to: document.getElementById('7'),
       });
 
       document.getElementById('4')!.focus();
       pressKey('ArrowUp');
-      expect(prev).toHaveBeenCalledWith({
-        focused: document.getElementById('1'),
+      expect(onMove).toHaveBeenLastCalledWith({
+        action: 'prev',
+        from: document.getElementById('4'),
+        to: document.getElementById('1'),
       });
     });
 
@@ -708,7 +856,7 @@ describe('keyRove', () => {
     });
 
     it('never fires both the row and the cell move for one keypress, however the binding is spelled', () => {
-      const prev = vi.fn();
+      const onMove = vi.fn();
       const items = Array.from({ length: 9 }, (_, i) => createItem(`${i}`));
       renderList(items, {
         containerAttrs: {
@@ -716,7 +864,7 @@ describe('keyRove', () => {
           // whitespace-padded spelling of the bare code
           [KEYROVE_ATTR_PREV_KEY]: ' ArrowLeft ',
         },
-        options: { callbacks: { prev } },
+        options: { onMove },
       });
       document.getElementById('4')!.focus();
 
@@ -724,7 +872,7 @@ describe('keyRove', () => {
 
       // the binding claims the key, so it moves a row up — and only that
       expect(activeId()).toBe('1');
-      expect(prev).toHaveBeenCalledTimes(1);
+      expect(onMove).toHaveBeenCalledTimes(1);
     });
 
     it('falls back to linear navigation when columns is 1', () => {
@@ -814,6 +962,47 @@ describe('keyRove', () => {
 
       expect(activeId()).toBe('b');
     });
+
+    it('treats contenteditable="FALSE" as opted out, case-insensitively', () => {
+      const island = document.createElement('div');
+      island.setAttribute('contenteditable', 'FALSE');
+      island.setAttribute('tabindex', '0');
+      renderWithEditable(island);
+      island.focus();
+
+      pressKey('ArrowDown');
+
+      expect(activeId()).toBe('b');
+    });
+
+    it.each([['checkbox'], ['button']])(
+      'still navigates from a %s input, where the bound keys are inert',
+      (type) => {
+        const input = document.createElement('input');
+        input.type = type;
+        renderWithEditable(input);
+        input.focus();
+
+        pressKey('ArrowDown');
+
+        expect(activeId()).toBe('b');
+      },
+    );
+
+    it.each([['radio'], ['range']])(
+      'leaves keys alone on a %s input, where arrows act natively',
+      (type) => {
+        const input = document.createElement('input');
+        input.type = type;
+        renderWithEditable(input);
+        input.focus();
+
+        const event = pressKey('ArrowDown');
+
+        expect(document.activeElement).toBe(input);
+        expect(event.defaultPrevented).toBe(false);
+      },
+    );
 
     it('still navigates from a non-editable element inside the same item', () => {
       const button = document.createElement('button');

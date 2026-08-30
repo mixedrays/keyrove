@@ -3,7 +3,8 @@ import {
   KEYROVE_ATTR_ROOT,
   KEYROVE_ATTR_SKIP,
   keyRove,
-  type Callbacks,
+  matchesCombo,
+  type Move,
 } from '@mixedrays/keyrove';
 
 /**
@@ -16,22 +17,11 @@ import {
  */
 
 /** Reports each move into the demo's log, so the key that fired is visible. */
-const reportKeys = (log: HTMLElement): Callbacks => {
-  const announce =
-    (action: string) =>
-    ({ focused }: { focused: Element | null }) => {
-      log.textContent = `${action} → ${focused?.textContent?.trim() ?? '—'}`;
-    };
-
-  return {
-    next: announce('next'),
-    prev: announce('prev'),
-    home: announce('home'),
-    end: announce('end'),
-    pageUp: announce('pageUp'),
-    pageDown: announce('pageDown'),
+const reportMoves =
+  (log: HTMLElement) =>
+  ({ action, to }: Move) => {
+    log.textContent = `${action} → ${to.textContent?.trim() ?? '—'}`;
   };
-};
 
 /**
  * Escape, out of a nested group.
@@ -47,7 +37,7 @@ const wireGroupExit = (surface: HTMLElement) => {
 
   for (const group of groups) {
     group.addEventListener('keydown', (e) => {
-      if (e.code !== 'Escape') return;
+      if (!matchesCombo(e, 'Escape')) return;
 
       const exit = [
         group.nextElementSibling,
@@ -103,10 +93,10 @@ export const mountDemos = () => {
     const log = demo.querySelector<HTMLElement>('.log');
     if (!surface || !log) continue;
 
-    const callbacks = reportKeys(log);
+    const onMove = reportMoves(log);
     // One listener for the demo, nested roots included: the event bubbles here
     // and keyrove resolves the root from its target, not from this element.
-    surface.addEventListener('keydown', (e) => keyRove(e, { callbacks }));
+    surface.addEventListener('keydown', (e) => keyRove(e, { onMove }));
     wireGroupExit(surface);
   }
 };

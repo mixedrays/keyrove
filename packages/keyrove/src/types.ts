@@ -56,16 +56,29 @@ export type KeyRoveEvent = {
   metaKey?: boolean;
 };
 
-/** The movements a consumer can hook into. */
-export type CallbacksKeys =
+/** The movements a keypress can resolve to. */
+export type MoveAction =
   'home' | 'end' | 'next' | 'prev' | 'pageUp' | 'pageDown';
 
-export type Callbacks = {
-  [K in CallbacksKeys]?: (args: { focused: Element | null }) => void;
+/**
+ * What `keyRove` returns for a consumed keypress.
+ *
+ * `from` is null when the group was entered from outside; `to` is null for a
+ * consumed no-op — a bound key pressed at an edge, where the group owns the
+ * key but there is nowhere to go.
+ */
+export type MoveResult = {
+  action: MoveAction;
+  from: Element | null;
+  to: Element | null;
 };
 
+/** The argument `onMove` receives: a move that actually happened. */
+export type Move = MoveResult & { to: Element };
+
 export type Options = {
-  callbacks?: Callbacks;
+  /** Fired after focus has moved — and only when it actually moved. */
+  onMove?: (move: Move) => void;
 };
 
 /**

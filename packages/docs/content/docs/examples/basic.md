@@ -53,18 +53,18 @@ progress until focus reaches the end.
 
 ## Reacting to movement
 
-The optional second argument takes callbacks that fire _after_ focus has moved,
-and only when it actually moved.
+The optional second argument takes `onMove`, fired _after_ focus has moved, and
+only when it actually moved.
 
 ```ts
 list.addEventListener('keydown', (e) => {
   keyRove(e, {
-    callbacks: {
-      next: ({ focused }) => console.log('moved to', focused),
-      prev: ({ focused }) => console.log('moved to', focused),
-    },
+    onMove: ({ action, from, to }) => console.log(action, '→', to),
   });
 });
 ```
 
-The log under each demo on this site is wired up exactly that way.
+The log under each demo on this site is wired up exactly that way. `keyRove`
+also [returns what it did](/docs/api#return-value) — `null` for an untouched
+key, the move for a consumed one — so handlers sharing a listener can chain
+with `keyRove(e) || myOwnHandler(e)`.
