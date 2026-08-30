@@ -26,6 +26,13 @@ the up and down arrows are left to scroll the page.
 Rebinding is a markup change and nothing else — the `keyRove(e)` call is
 identical whatever the group answers to.
 
+For exactly this pair there is a more idiomatic spelling:
+`data-keyrove-orientation="horizontal"` maps the defaults to
+`ArrowRight`/`ArrowLeft` and flips them under RTL, so the "forward" arrow
+follows the text direction instead of being hardcoded. Reach for the explicit
+key attributes when the keys are anything other than the reading-direction
+arrows — they win over orientation wherever both are set.
+
 ## Any key, not a shortlist
 
 The attribute value is a combo — an optional set of modifiers and a

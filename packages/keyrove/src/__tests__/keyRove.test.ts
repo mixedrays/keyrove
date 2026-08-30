@@ -9,6 +9,8 @@ import {
   KEYROVE_ATTR_PAGE_LENGTH,
   KEYROVE_ATTR_COLS_LENGTH,
   KEYROVE_ATTR_ROVING_TABINDEX,
+  KEYROVE_ATTR_LOOP,
+  KEYROVE_ATTR_ORIENTATION,
 } from '../keyRove';
 
 type ItemSpec = {
@@ -270,6 +272,193 @@ describe('keyRove', () => {
 
       pressKey('ArrowDown');
 
+      expect(activeId()).toBe('a');
+    });
+  });
+
+  describe('loop', () => {
+    it('wraps from the last item to the first and vice versa', () => {
+      renderList([createItem('a'), createItem('b'), createItem('c')], {
+        containerAttrs: { [KEYROVE_ATTR_LOOP]: 'true' },
+      });
+      document.getElementById('c')!.focus();
+
+      pressKey('ArrowDown');
+      expect(activeId()).toBe('a');
+
+      pressKey('ArrowUp');
+      expect(activeId()).toBe('c');
+    });
+
+    it('works with the bare attribute spelling, without a value', () => {
+      renderList([createItem('a'), createItem('b')], {
+        containerAttrs: { [KEYROVE_ATTR_LOOP]: '' },
+      });
+      document.getElementById('b')!.focus();
+
+      pressKey('ArrowDown');
+
+      expect(activeId()).toBe('a');
+    });
+
+    it('wraps to the first and last non-skipped item', () => {
+      renderList([
+        createItem('a', { skip: true }),
+        createItem('b'),
+        createItem('c'),
+        createItem('d', { skip: true }),
+      ], {
+        containerAttrs: { [KEYROVE_ATTR_LOOP]: 'true' },
+      });
+      document.getElementById('c')!.focus();
+
+      pressKey('ArrowDown');
+      expect(activeId()).toBe('b');
+
+      pressKey('ArrowUp');
+      expect(activeId()).toBe('c');
+    });
+
+    it('is ignored in a grid, where the edge stays a consumed no-op', () => {
+      renderList(
+        Array.from({ length: 9 }, (_, i) => createItem(`${i}`)),
+        {
+          containerAttrs: {
+            [KEYROVE_ATTR_COLS_LENGTH]: '3',
+            [KEYROVE_ATTR_LOOP]: 'true',
+          },
+        },
+      );
+      document.getElementById('7')!.focus();
+
+      const event = pressKey('ArrowDown');
+
+      expect(activeId()).toBe('7');
+      expect(event.defaultPrevented).toBe(true);
+    });
+
+    it('enters the group at the last item on the prev key', () => {
+      const container = renderList([createItem('a'), createItem('b')], {
+        containerAttrs: { [KEYROVE_ATTR_LOOP]: 'true' },
+      });
+      container.setAttribute('tabindex', '0');
+      container.focus();
+
+      // a looping group is a circle: "before the first" is the last, matching
+      // the APG menu-button convention (Down enters first, Up enters last)
+      pressKey('ArrowUp', container);
+
+      expect(activeId()).toBe('b');
+    });
+
+    it('is a consumed no-op on a single item, and onMove stays silent', () => {
+      const onMove = vi.fn();
+      const results: Array<ReturnType<typeof keyRove>> = [];
+      renderList([createItem('a')], {
+        containerAttrs: { [KEYROVE_ATTR_LOOP]: 'true' },
+        options: { onMove },
+        onResult: (r) => results.push(r),
+      });
+      const item = document.getElementById('a')!;
+      item.focus();
+
+      const event = pressKey('ArrowDown');
+
+      expect(activeId()).toBe('a');
+      expect(event.defaultPrevented).toBe(true);
+      expect(onMove).not.toHaveBeenCalled();
+      expect(results).toEqual([{ action: 'next', from: item, to: null }]);
+    });
+  });
+
+  describe('orientation', () => {
+    it('maps next/prev to ArrowRight/ArrowLeft when horizontal', () => {
+      renderList([createItem('a'), createItem('b'), createItem('c')], {
+        containerAttrs: { [KEYROVE_ATTR_ORIENTATION]: 'horizontal' },
+      });
+      document.getElementById('a')!.focus();
+
+      pressKey('ArrowRight');
+      expect(activeId()).toBe('b');
+
+      pressKey('ArrowLeft');
+      expect(activeId()).toBe('a');
+    });
+
+    it('frees ArrowDown/ArrowUp to their browser defaults when horizontal', () => {
+      renderList([createItem('a'), createItem('b')], {
+        containerAttrs: { [KEYROVE_ATTR_ORIENTATION]: 'horizontal' },
+      });
+      document.getElementById('a')!.focus();
+
+      const down = pressKey('ArrowDown');
+      const up = pressKey('ArrowUp');
+
+      expect(activeId()).toBe('a');
+      expect(down.defaultPrevented).toBe(false);
+      expect(up.defaultPrevented).toBe(false);
+    });
+
+    it('keeps the vertical defaults for any other value', () => {
+      renderList([createItem('a'), createItem('b')], {
+        containerAttrs: { [KEYROVE_ATTR_ORIENTATION]: 'vertical' },
+      });
+      document.getElementById('a')!.focus();
+
+      pressKey('ArrowDown');
+
+      expect(activeId()).toBe('b');
+    });
+
+    it('flips the arrows under dir="rtl" on the root', () => {
+      renderList([createItem('a'), createItem('b'), createItem('c')], {
+        containerAttrs: {
+          [KEYROVE_ATTR_ORIENTATION]: 'horizontal',
+          dir: 'rtl',
+        },
+      });
+      document.getElementById('a')!.focus();
+
+      pressKey('ArrowLeft');
+      expect(activeId()).toBe('b');
+
+      pressKey('ArrowRight');
+      expect(activeId()).toBe('a');
+    });
+
+    it('flips the arrows under dir="rtl" on an ancestor', () => {
+      const container = renderList([createItem('a'), createItem('b')], {
+        containerAttrs: { [KEYROVE_ATTR_ORIENTATION]: 'horizontal' },
+      });
+      const wrapper = document.createElement('div');
+      wrapper.setAttribute('dir', 'rtl');
+      document.body.appendChild(wrapper);
+      wrapper.appendChild(container);
+      document.getElementById('a')!.focus();
+
+      pressKey('ArrowLeft');
+
+      expect(activeId()).toBe('b');
+    });
+
+    it('lets an explicit key attribute win over orientation', () => {
+      renderList([createItem('a'), createItem('b')], {
+        containerAttrs: {
+          [KEYROVE_ATTR_ORIENTATION]: 'horizontal',
+          [KEYROVE_ATTR_NEXT_KEY]: 'KeyJ',
+        },
+      });
+      document.getElementById('a')!.focus();
+
+      const event = pressKey('ArrowRight');
+      expect(activeId()).toBe('a');
+      expect(event.defaultPrevented).toBe(false);
+
+      pressKey('KeyJ');
+      expect(activeId()).toBe('b');
+
+      // the prev side is untouched by the override, so orientation still maps it
+      pressKey('ArrowLeft');
       expect(activeId()).toBe('a');
     });
   });

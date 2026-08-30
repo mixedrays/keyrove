@@ -76,13 +76,30 @@ keep their browser defaults inside a group bound to the bare arrows. The fixed
 keys are bare combos too: a modified <kbd class="kbd">Home</kbd> or
 <kbd class="kbd">PageDown</kbd> is left alone.
 
+`data-keyrove-orientation="horizontal"` re-points the two defaults at
+`ArrowRight`/`ArrowLeft` without spelling the combos out — and flips the pair
+under RTL, resolved from the nearest `dir` attribute and falling back to the
+computed direction, so a toolbar reads "forward" the way its text does. It
+only supplies defaults: an explicit `data-keyrove-next-key` or
+`data-keyrove-prev-key` wins over it, and the freed vertical arrows go back
+to their browser behaviour.
+
+At the ends of a list, next and prev are consumed without moving — see the
+[return value](#return-value). With `data-keyrove-loop` on the root they wrap
+instead: forward from the last navigable item lands on the first, and back
+from the first lands on the last. A looping group is also entered as a circle
+— the prev key pressed from outside lands on the _last_ item, matching the
+APG menu-button convention. Wrapping is for lists only; a grid keeps its
+edges, per the APG grid pattern.
+
 The two `Arrow` cell moves in a grid stand down when the press already matched
 the next or previous binding, so one keypress never fires both.
 
 `Home`, `End`, `PageUp`, and `PageDown` only act once focus is genuinely inside
 an item: they move _within_ a group rather than into one. The next and previous
 keys differ on purpose — pressed on a group where nothing is focused yet, they
-move focus to the first item, which is how you enter a list from the keyboard.
+move focus to the first item (the last, for the prev key on a looping group),
+which is how you enter a list from the keyboard.
 
 An item counts as focused when focus is anywhere inside it (`:focus-within`), so
 an item that wraps a link or a button is still the navigation position after
@@ -180,6 +197,8 @@ guarding at the call site.
 | `data-keyrove-page-length`     | root | `10`        | Items per page jump — whole rows in a grid.                                    |
 | `data-keyrove-next-key`        | root | `ArrowDown` | Combo that moves forward, e.g. `KeyJ` or `ctrl+ArrowRight`.                     |
 | `data-keyrove-prev-key`        | root | `ArrowUp`   | Combo that moves back.                                                          |
+| `data-keyrove-loop`            | root | —           | Next/prev wrap past the ends of a list. Grids never wrap.                      |
+| `data-keyrove-orientation`     | root | —           | `horizontal` maps the default keys to `ArrowRight`/`ArrowLeft`, RTL-aware.     |
 
 Root attributes are read on every keypress rather than cached, so changing one
 takes effect immediately — see
@@ -203,6 +222,8 @@ import {
   KEYROVE_ATTR_PAGE_LENGTH,
   KEYROVE_ATTR_COLS_LENGTH,
   KEYROVE_ATTR_ROVING_TABINDEX,
+  KEYROVE_ATTR_LOOP,
+  KEYROVE_ATTR_ORIENTATION,
 } from '@mixedrays/keyrove';
 ```
 

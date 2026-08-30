@@ -35,6 +35,8 @@ const DEFAULT_ATTRIBUTES = {
   pageLength: 'data-keyrove-page-length',
   colsLength: 'data-keyrove-cols-length',
   rovingTabindex: 'data-keyrove-roving-tabindex',
+  loop: 'data-keyrove-loop',
+  orientation: 'data-keyrove-orientation',
 } as const satisfies Attributes;
 
 // Individual constants, so consumers can spread them into markup without
@@ -47,6 +49,8 @@ export const KEYROVE_ATTR_PREV_KEY = DEFAULT_ATTRIBUTES.prevKey;
 export const KEYROVE_ATTR_PAGE_LENGTH = DEFAULT_ATTRIBUTES.pageLength;
 export const KEYROVE_ATTR_COLS_LENGTH = DEFAULT_ATTRIBUTES.colsLength;
 export const KEYROVE_ATTR_ROVING_TABINDEX = DEFAULT_ATTRIBUTES.rovingTabindex;
+export const KEYROVE_ATTR_LOOP = DEFAULT_ATTRIBUTES.loop;
+export const KEYROVE_ATTR_ORIENTATION = DEFAULT_ATTRIBUTES.orientation;
 
 // Named so the dispatch below is checked against `KnownCode` instead of
 // comparing against bare literals that TypeScript cannot vet.
@@ -94,6 +98,22 @@ const isEditableTarget = (target: Element | null) => {
   return editable.getAttribute('contenteditable')?.toLowerCase() !== 'false';
 };
 
+// Reading direction for a horizontal group. The nearest `dir` attribute
+// decides, mirroring how the DOM resolves direction (and working in jsdom,
+// which has no layout); `dir="auto"` — content-dependent, so only the
+// browser can resolve it — and a missing attribute fall through to the
+// computed style, guarded for environments without `getComputedStyle`.
+const isRtl = (root: Element): boolean => {
+  const dir = root.closest('[dir]')?.getAttribute('dir')?.toLowerCase();
+
+  if (dir === 'rtl' || dir === 'ltr') return dir === 'rtl';
+
+  return (
+    typeof getComputedStyle !== 'undefined' &&
+    getComputedStyle(root).direction === 'rtl'
+  );
+};
+
 const getNavElements = ({
   root,
   elementsSelector,
@@ -115,6 +135,12 @@ const getNavElements = ({
   const colsLength = parseAttributeInt(root, attributes.colsLength, 1);
   const isGrid = colsLength > 1;
 
+  // Wrapping is linear-only — a grid keeps its edges, per the APG grid
+  // pattern. Presence-based (`hasAttribute`), so the bare `data-keyrove-loop`
+  // spelling works; `getAttribute` truthiness would read it as "" and
+  // silently disable it.
+  const loop = !isGrid && root.hasAttribute(attributes.loop);
+
   // A page is `pageLength` items in a list, and `pageLength` whole rows in a
   // grid — stepping by whole rows keeps focus in the column it started in.
   const pageLength = parseAttributeInt(root, attributes.pageLength, 10);
@@ -123,8 +149,8 @@ const getNavElements = ({
   return {
     elements,
     focused,
-    next: findNext(bounds),
-    prev: findPrev(bounds),
+    next: findNext({ ...bounds, loop }),
+    prev: findPrev({ ...bounds, loop }),
     first: findFirst(elementsArray, skipAttribute),
     last: findLast(elementsArray, skipAttribute),
     isGrid,
@@ -178,8 +204,28 @@ export const keyRove = (
     attributes,
   });
 
-  const nextCode = root?.getAttribute(attributes.nextKey) || KEY.arrowDown;
-  const prevCode = root?.getAttribute(attributes.prevKey) || KEY.arrowUp;
+  // `orientation="horizontal"` redirects only the *default* keys — an
+  // explicit binding still wins below. "Next" follows the reading direction,
+  // so RTL flips the pair; the direction is resolved only when it can matter.
+  // Nothing but the literal value "horizontal" switches anything, and the
+  // combination with a grid is deliberately left undefined — a grid's cell
+  // moves already cover the horizontal axis.
+  const horizontal =
+    root?.getAttribute(attributes.orientation) === 'horizontal';
+  const rtl = horizontal && root ? isRtl(root) : false;
+  const defaultNext = horizontal
+    ? rtl
+      ? KEY.arrowLeft
+      : KEY.arrowRight
+    : KEY.arrowDown;
+  const defaultPrev = horizontal
+    ? rtl
+      ? KEY.arrowRight
+      : KEY.arrowLeft
+    : KEY.arrowUp;
+
+  const nextCode = root?.getAttribute(attributes.nextKey) || defaultNext;
+  const prevCode = root?.getAttribute(attributes.prevKey) || defaultPrev;
   // Presence-based, so the bare `data-keyrove-roving-tabindex` spelling works
   // — `getAttribute` would read it as "" and silently disable roving.
   const useRovingTabindex = focused?.hasAttribute(attributes.rovingTabindex);

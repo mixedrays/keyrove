@@ -55,6 +55,11 @@ root — `KeyJ`/`KeyK`, `KeyW`/`KeyS`, `ArrowRight`/`ArrowLeft` for a toolbar:
 <div data-keyrove-next-key="KeyJ" data-keyrove-prev-key="KeyK">…</div>
 ```
 
+For the toolbar case there is a shorthand that also respects the text
+direction: `data-keyrove-orientation="horizontal"` maps the default keys to
+`ArrowRight`/`ArrowLeft`, flipped under RTL. An explicit
+`data-keyrove-next-key`/`data-keyrove-prev-key` still wins over it.
+
 A binding is a combo: zero or more of `mod+` / `ctrl+` / `alt+` / `shift+` /
 `meta+` (any order, any case) followed by a
 [`KeyboardEvent.code`](https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/code).
@@ -75,6 +80,10 @@ Anything not bound is left entirely alone, browser defaults included. `Home`,
 focus is already inside an item — they move within a group, never into one; in
 a grid, `ArrowLeft` and `ArrowRight` move one cell unless you have bound them
 to something else.
+
+At the ends of a list the bound keys are consumed but focus stays put. Add
+`data-keyrove-loop` on the root and next on the last item wraps to the first,
+and vice versa. Grids keep their edges — they never wrap.
 
 Keys pressed inside an editable element — `textarea`, `select`,
 `[contenteditable]`, or an `input` whose keys act natively (text entry,
@@ -103,9 +112,11 @@ that <kbd>Tab</kbd> moves past rather than through.
 | `data-keyrove-page-length`     | root | `10`        | Items per page jump — whole rows in a grid.                                    |
 | `data-keyrove-next-key`        | root | `ArrowDown` | Combo that moves forward, e.g. `KeyJ` or `ctrl+ArrowRight`.                     |
 | `data-keyrove-prev-key`        | root | `ArrowUp`   | Combo that moves back.                                                          |
+| `data-keyrove-loop`            | root | —           | Next/prev wrap past the ends of a list. Grids never wrap.                      |
+| `data-keyrove-orientation`     | root | —           | `horizontal` maps the default keys to `ArrowRight`/`ArrowLeft`, RTL-aware.     |
 
 Every attribute name is also exported as a constant (`KEYROVE_ATTR_ITEM`,
-`KEYROVE_ATTR_COLS_LENGTH`, …).
+`KEYROVE_ATTR_COLS_LENGTH`, `KEYROVE_ATTR_LOOP`, `KEYROVE_ATTR_ORIENTATION`, …).
 
 ## Options and return value
 

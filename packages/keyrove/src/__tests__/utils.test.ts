@@ -125,6 +125,66 @@ describe('findNext / findPrev', () => {
       idOf(findPrev({ elements, fromIndex: -1, skipAttribute: SKIP })),
     ).toBe('e0');
   });
+
+  it('wraps around the ends when loop is set', () => {
+    const elements = buildElements(3);
+
+    expect(
+      idOf(
+        findNext({ elements, fromIndex: 2, skipAttribute: SKIP, loop: true }),
+      ),
+    ).toBe('e0');
+    expect(
+      idOf(
+        findPrev({ elements, fromIndex: 0, skipAttribute: SKIP, loop: true }),
+      ),
+    ).toBe('e2');
+  });
+
+  it('wraps to the first and last non-skipped element', () => {
+    const elements = buildElements(4, [0, 3]);
+
+    expect(
+      idOf(
+        findNext({ elements, fromIndex: 2, skipAttribute: SKIP, loop: true }),
+      ),
+    ).toBe('e1');
+    expect(
+      idOf(
+        findPrev({ elements, fromIndex: 1, skipAttribute: SKIP, loop: true }),
+      ),
+    ).toBe('e2');
+  });
+
+  it('enters from nothing focused at the first (next) or last (prev) when looping', () => {
+    const elements = buildElements(3);
+
+    expect(
+      idOf(
+        findNext({ elements, fromIndex: -1, skipAttribute: SKIP, loop: true }),
+      ),
+    ).toBe('e0');
+    expect(
+      idOf(
+        findPrev({ elements, fromIndex: -1, skipAttribute: SKIP, loop: true }),
+      ),
+    ).toBe('e2');
+  });
+
+  it('does not wrap while a target still exists ahead', () => {
+    const elements = buildElements(3);
+
+    expect(
+      idOf(
+        findNext({ elements, fromIndex: 0, skipAttribute: SKIP, loop: true }),
+      ),
+    ).toBe('e1');
+    expect(
+      idOf(
+        findPrev({ elements, fromIndex: 2, skipAttribute: SKIP, loop: true }),
+      ),
+    ).toBe('e1');
+  });
 });
 
 describe('findGridNeighbor', () => {

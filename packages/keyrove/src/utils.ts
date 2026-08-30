@@ -9,7 +9,7 @@
 import type {
   GridNeighborArgs,
   KeyRoveEvent,
-  NavBounds,
+  LinearMoveArgs,
   PageTargetArgs,
   ToggleTabIndexArgs,
 } from './types.js';
@@ -100,30 +100,42 @@ export const findLast = (
     .find((el) => !el.hasAttribute(skipAttribute)) ||
   elements[elements.length - 1];
 
-/** Next navigable element after `fromIndex`, falling back to the last one. */
+/**
+ * Next navigable element after `fromIndex`. Past the end it clamps to the
+ * last one, or wraps to the first when `loop` is set.
+ */
 export const findNext = ({
   elements,
   fromIndex,
   skipAttribute,
-}: NavBounds): Element | undefined => {
+  loop,
+}: LinearMoveArgs): Element | undefined => {
   for (let i = fromIndex + 1; i < elements.length; i++) {
     if (!elements[i].hasAttribute(skipAttribute)) return elements[i];
   }
 
-  return findLast(elements, skipAttribute);
+  return loop
+    ? findFirst(elements, skipAttribute)
+    : findLast(elements, skipAttribute);
 };
 
-/** Previous navigable element before `fromIndex`, falling back to the first one. */
+/**
+ * Previous navigable element before `fromIndex`. Past the start it clamps to
+ * the first one, or wraps to the last when `loop` is set.
+ */
 export const findPrev = ({
   elements,
   fromIndex,
   skipAttribute,
-}: NavBounds): Element | undefined => {
+  loop,
+}: LinearMoveArgs): Element | undefined => {
   for (let i = fromIndex - 1; i >= 0; i--) {
     if (!elements[i].hasAttribute(skipAttribute)) return elements[i];
   }
 
-  return findFirst(elements, skipAttribute);
+  return loop
+    ? findLast(elements, skipAttribute)
+    : findFirst(elements, skipAttribute);
 };
 
 /**

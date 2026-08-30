@@ -96,6 +96,8 @@ export type Attributes = {
   pageLength: string;
   colsLength: string;
   rovingTabindex: string;
+  loop: string;
+  orientation: string;
 };
 
 export type GetNavElementsArgs = {
@@ -120,6 +122,11 @@ export type NavBounds = {
   elements: Element[];
   fromIndex: number;
   skipAttribute: string;
+};
+
+export type LinearMoveArgs = NavBounds & {
+  /** Wrap past the ends instead of clamping to them. */
+  loop?: boolean;
 };
 
 export type GridNeighborArgs = NavBounds & {
