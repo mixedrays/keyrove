@@ -8,10 +8,93 @@
 
 import type {
   GridNeighborArgs,
-  NavBounds,
+  KeyRoveEvent,
+  LinearMoveArgs,
   PageTargetArgs,
   ToggleTabIndexArgs,
 } from './types.js';
+
+const isMacLike = () =>
+  typeof navigator !== 'undefined' &&
+  /mac|iphone|ipad|ipod/i.test(navigator.platform);
+
+const MODIFIERS = ['ctrl', 'alt', 'shift', 'meta'] as const;
+
+type Modifier = (typeof MODIFIERS)[number];
+
+// A plain `includes` (not `in` on the flags object) so inherited property
+// names like "constructor" cannot pass as modifiers.
+const isModifier = (name: string): name is Modifier =>
+  (MODIFIERS as readonly string[]).includes(name);
+
+/**
+ * Whether the event matches a key combo like `"ctrl+ArrowDown"` or `"KeyJ"`.
+ *
+ * Grammar: zero or more of `mod+` / `ctrl+` / `alt+` / `shift+` / `meta+`
+ * (any order, any case) followed by a `KeyboardEvent.code`. `mod` resolves to
+ * `meta` on Apple platforms and `ctrl` elsewhere.
+ *
+ * Matching is exact: every declared modifier must be held and every undeclared
+ * one must not be, so a bare `"ArrowDown"` means "ArrowDown with no modifiers"
+ * and leaves shortcuts like Ctrl+ArrowDown alone. The code is matched on
+ * `e.code` — the physical key, independent of keyboard layout.
+ */
+export const matchesCombo = (e: KeyRoveEvent, combo: string): boolean => {
+  const parts = combo.split('+');
+  const code = parts.pop()?.trim();
+  const declared = { ctrl: false, alt: false, shift: false, meta: false };
+
+  for (const part of parts) {
+    const name = part.trim().toLowerCase();
+    const modifier = name === 'mod' ? (isMacLike() ? 'meta' : 'ctrl') : name;
+
+    if (!isModifier(modifier)) return false;
+
+    declared[modifier] = true;
+  }
+
+  return (
+    e.code === code &&
+    !!e.ctrlKey === declared.ctrl &&
+    !!e.altKey === declared.alt &&
+    !!e.shiftKey === declared.shift &&
+    !!e.metaKey === declared.meta
+  );
+};
+
+// An editable target owns the keys keyrove binds: arrows and Home/End move
+// the caret there, and printable keys type. `closest` rather than `matches`,
+// so descendants of a `contenteditable` region count as inside it — and the
+// nearest `contenteditable` attribute decides, mirroring `isContentEditable`,
+// so a `contenteditable="false"` island opts back out even inside an editable
+// region.
+const EDITABLE_SELECTOR = 'input, textarea, select, [contenteditable]';
+
+// Input types on which every key keyrove binds is natively inert — no caret,
+// no value stepping, no radio-group movement — so navigating from them takes
+// nothing away. Unknown and future types stay guarded.
+const INERT_INPUT_TYPES = new Set([
+  'button',
+  'checkbox',
+  'color',
+  'file',
+  'image',
+  'reset',
+  'submit',
+]);
+
+/** Whether keys arriving from this target belong to it rather than to keyrove. */
+export const isEditableTarget = (target: Element | null) => {
+  const editable = target?.closest?.(EDITABLE_SELECTOR);
+
+  if (!editable) return false;
+
+  if (editable.tagName === 'INPUT') {
+    return !INERT_INPUT_TYPES.has((editable as HTMLInputElement).type);
+  }
+
+  return editable.getAttribute('contenteditable')?.toLowerCase() !== 'false';
+};
 
 /**
  * Sets `tabindex` to `0` / `-1` on `root`.
@@ -51,30 +134,42 @@ export const findLast = (
     .find((el) => !el.hasAttribute(skipAttribute)) ||
   elements[elements.length - 1];
 
-/** Next navigable element after `fromIndex`, falling back to the last one. */
+/**
+ * Next navigable element after `fromIndex`. Past the end it clamps to the
+ * last one, or wraps to the first when `loop` is set.
+ */
 export const findNext = ({
   elements,
   fromIndex,
   skipAttribute,
-}: NavBounds): Element | undefined => {
+  loop,
+}: LinearMoveArgs): Element | undefined => {
   for (let i = fromIndex + 1; i < elements.length; i++) {
     if (!elements[i].hasAttribute(skipAttribute)) return elements[i];
   }
 
-  return findLast(elements, skipAttribute);
+  return loop
+    ? findFirst(elements, skipAttribute)
+    : findLast(elements, skipAttribute);
 };
 
-/** Previous navigable element before `fromIndex`, falling back to the first one. */
+/**
+ * Previous navigable element before `fromIndex`. Past the start it clamps to
+ * the first one, or wraps to the last when `loop` is set.
+ */
 export const findPrev = ({
   elements,
   fromIndex,
   skipAttribute,
-}: NavBounds): Element | undefined => {
+  loop,
+}: LinearMoveArgs): Element | undefined => {
   for (let i = fromIndex - 1; i >= 0; i--) {
     if (!elements[i].hasAttribute(skipAttribute)) return elements[i];
   }
 
-  return findFirst(elements, skipAttribute);
+  return loop
+    ? findLast(elements, skipAttribute)
+    : findFirst(elements, skipAttribute);
 };
 
 /**

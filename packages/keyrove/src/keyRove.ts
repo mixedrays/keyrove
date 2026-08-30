@@ -5,15 +5,18 @@ import {
   findNext,
   findPageTarget,
   findPrev,
+  isEditableTarget,
+  matchesCombo,
   parseAttributeInt,
   toggleTabIndex,
 } from './utils.js';
 import type {
   Attributes,
-  CallbacksKeys,
   GetNavElementsArgs,
   KeyRoveEvent,
   KnownCode,
+  MoveAction,
+  MoveResult,
   Options,
 } from './types.js';
 
@@ -33,6 +36,9 @@ const DEFAULT_ATTRIBUTES = {
   pageLength: 'data-keyrove-page-length',
   colsLength: 'data-keyrove-cols-length',
   rovingTabindex: 'data-keyrove-roving-tabindex',
+  loop: 'data-keyrove-loop',
+  orientation: 'data-keyrove-orientation',
+  typeahead: 'data-keyrove-typeahead',
 } as const satisfies Attributes;
 
 // Individual constants, so consumers can spread them into markup without
@@ -45,6 +51,9 @@ export const KEYROVE_ATTR_PREV_KEY = DEFAULT_ATTRIBUTES.prevKey;
 export const KEYROVE_ATTR_PAGE_LENGTH = DEFAULT_ATTRIBUTES.pageLength;
 export const KEYROVE_ATTR_COLS_LENGTH = DEFAULT_ATTRIBUTES.colsLength;
 export const KEYROVE_ATTR_ROVING_TABINDEX = DEFAULT_ATTRIBUTES.rovingTabindex;
+export const KEYROVE_ATTR_LOOP = DEFAULT_ATTRIBUTES.loop;
+export const KEYROVE_ATTR_ORIENTATION = DEFAULT_ATTRIBUTES.orientation;
+export const KEYROVE_ATTR_TYPEAHEAD = DEFAULT_ATTRIBUTES.typeahead;
 
 // Named so the dispatch below is checked against `KnownCode` instead of
 // comparing against bare literals that TypeScript cannot vet.
@@ -58,6 +67,22 @@ const KEY = {
   pageUp: 'PageUp',
   pageDown: 'PageDown',
 } as const satisfies Record<string, KnownCode>;
+
+// Reading direction for a horizontal group. The nearest `dir` attribute
+// decides, mirroring how the DOM resolves direction (and working in jsdom,
+// which has no layout); `dir="auto"` — content-dependent, so only the
+// browser can resolve it — and a missing attribute fall through to the
+// computed style, guarded for environments without `getComputedStyle`.
+const isRtl = (root: Element): boolean => {
+  const dir = root.closest('[dir]')?.getAttribute('dir')?.toLowerCase();
+
+  if (dir === 'rtl' || dir === 'ltr') return dir === 'rtl';
+
+  return (
+    typeof getComputedStyle !== 'undefined' &&
+    getComputedStyle(root).direction === 'rtl'
+  );
+};
 
 const getNavElements = ({
   root,
@@ -80,6 +105,12 @@ const getNavElements = ({
   const colsLength = parseAttributeInt(root, attributes.colsLength, 1);
   const isGrid = colsLength > 1;
 
+  // Wrapping is linear-only — a grid keeps its edges, per the APG grid
+  // pattern. Presence-based (`hasAttribute`), so the bare `data-keyrove-loop`
+  // spelling works; `getAttribute` truthiness would read it as "" and
+  // silently disable it.
+  const loop = !isGrid && root.hasAttribute(attributes.loop);
+
   // A page is `pageLength` items in a list, and `pageLength` whole rows in a
   // grid — stepping by whole rows keeps focus in the column it started in.
   const pageLength = parseAttributeInt(root, attributes.pageLength, 10);
@@ -88,8 +119,8 @@ const getNavElements = ({
   return {
     elements,
     focused,
-    next: findNext(bounds),
-    prev: findPrev(bounds),
+    next: findNext({ ...bounds, loop }),
+    prev: findPrev({ ...bounds, loop }),
     first: findFirst(elementsArray, skipAttribute),
     last: findLast(elementsArray, skipAttribute),
     isGrid,
@@ -105,11 +136,21 @@ const getNavElements = ({
 /**
  * Handles keyboard navigation within the provided event's current target.
  * @param e - The keydown event, native or framework-synthetic.
- * @param options.callbacks - Callbacks fired after focus moves.
+ * @param options.onMove - Fired after focus moved — only when it actually did.
+ * @returns `null` when the key was left untouched; `{ action, from, to }` when
+ * it was consumed, with `to: null` for a consumed no-op at an edge. A non-null
+ * result means the key is claimed, so handlers chain with `||`:
+ * `keyRove(e) || myOwnHandler(e)`.
  */
-export const keyRove = (e: KeyRoveEvent, { callbacks = {} }: Options = {}) => {
+export const keyRove = (
+  e: KeyRoveEvent,
+  { onMove }: Options = {},
+): MoveResult | null => {
   const attributes = DEFAULT_ATTRIBUTES;
   const eventTarget = e.target as Element | null;
+
+  if (isEditableTarget(eventTarget)) return null;
+
   const closestRoot = eventTarget?.closest?.(`[${attributes.root}]`);
   const root = (closestRoot || e.currentTarget) as Element | null;
 
@@ -133,17 +174,56 @@ export const keyRove = (e: KeyRoveEvent, { callbacks = {} }: Options = {}) => {
     attributes,
   });
 
-  const nextCode = root?.getAttribute(attributes.nextKey) || KEY.arrowDown;
-  const prevCode = root?.getAttribute(attributes.prevKey) || KEY.arrowUp;
-  const useRovingTabindex = focused?.getAttribute(attributes.rovingTabindex);
+  // `orientation="horizontal"` redirects only the *default* keys — an
+  // explicit binding still wins below. "Next" follows the reading direction,
+  // so RTL flips the pair; the direction is resolved only when it can matter.
+  // Nothing but the literal value "horizontal" switches anything, and a grid
+  // ignores the attribute outright: its cell moves already cover the
+  // horizontal axis, and re-pointing the row keys at the arrows would break
+  // both.
+  const horizontal =
+    !isGrid && root?.getAttribute(attributes.orientation) === 'horizontal';
+  const rtl = horizontal && root ? isRtl(root) : false;
+  const defaultNext = horizontal
+    ? rtl
+      ? KEY.arrowLeft
+      : KEY.arrowRight
+    : KEY.arrowDown;
+  const defaultPrev = horizontal
+    ? rtl
+      ? KEY.arrowRight
+      : KEY.arrowLeft
+    : KEY.arrowUp;
+
+  const nextCode = root?.getAttribute(attributes.nextKey) || defaultNext;
+  const prevCode = root?.getAttribute(attributes.prevKey) || defaultPrev;
+  // Presence-based, so the bare `data-keyrove-roving-tabindex` spelling works
+  // — `getAttribute` would read it as "" and silently disable roving.
+  const useRovingTabindex = focused?.hasAttribute(attributes.rovingTabindex);
 
   // Focus a resolved target, moving the roving tab stop with it when enabled.
-  // A null target (e.g. a grid edge) is a no-op so the current tab stop is kept.
+  //
+  // This is also where `preventDefault()` lives, because only here is it known
+  // that keyrove is actually in a position to act. The press is ours when it
+  // resolves a target, and also when focus already sits inside the group but
+  // the move has nowhere to go (an edge): the group owns its bound keys up to
+  // its own boundary, so the page must not scroll there instead. With neither,
+  // keyrove has nothing to move from or to and the key is left with its
+  // browser default rather than being swallowed.
   const moveFocus = (
     target: Element | null | undefined,
-    callbackKey: CallbacksKeys,
-  ) => {
-    if (!target) return;
+    action: MoveAction,
+  ): MoveResult | null => {
+    if (!target && !focused) return null;
+
+    e.preventDefault();
+
+    const from = focused ?? null;
+
+    // A missing target (a grid edge) or a target that is the position itself
+    // (the end of a list) is a consumed no-op: focus and the tab stop stay
+    // put, and `onMove` stays quiet because nothing moved.
+    if (!target || target === focused) return { action, from, to: null };
 
     if (useRovingTabindex) {
       toggleTabIndex({ root: focused, isActive: false });
@@ -151,55 +231,57 @@ export const keyRove = (e: KeyRoveEvent, { callbacks = {} }: Options = {}) => {
     }
 
     (target as HTMLElement).focus();
-    callbacks[callbackKey]?.({ focused: target });
+
+    const move = { action, from, to: target };
+    onMove?.(move);
+
+    return move;
   };
 
-  if (e.code === prevCode) {
-    e.preventDefault();
+  // First match wins: one keypress resolves to at most one action, so a
+  // custom binding that collides with a fixed key takes the press over it.
+  if (matchesCombo(e, prevCode)) {
     // In a grid, Up moves a whole row; otherwise to the previous item.
-    moveFocus(isGrid ? up : prev, 'prev');
+    return moveFocus(isGrid ? up : prev, 'prev');
   }
 
-  if (e.code === nextCode) {
-    e.preventDefault();
+  if (matchesCombo(e, nextCode)) {
     // In a grid, Down moves a whole row; otherwise to the next item.
-    moveFocus(isGrid ? down : next, 'next');
+    return moveFocus(isGrid ? down : next, 'next');
   }
 
-  if (e.code === KEY.arrowLeft && prevCode !== KEY.arrowLeft && isGrid) {
-    // move one cell left within the grid row
-    e.preventDefault();
-    moveFocus(left, 'prev');
+  // Cell moves within a grid row. A prev/next binding to the same key never
+  // reaches here — the returns above already claimed it.
+  if (isGrid && matchesCombo(e, KEY.arrowLeft)) {
+    return moveFocus(left, 'prev');
   }
 
-  if (e.code === KEY.arrowRight && nextCode !== KEY.arrowRight && isGrid) {
-    // move one cell right within the grid row
-    e.preventDefault();
-    moveFocus(right, 'next');
+  if (isGrid && matchesCombo(e, KEY.arrowRight)) {
+    return moveFocus(right, 'next');
   }
 
-  // Home/End/PageUp/PageDown only act once focus is genuinely inside an item.
-  // Without this gate the keys are swallowed (and native page scrolling lost)
-  // on a container that has no focused item to move from.
-  if (!focused) return;
+  // Home/End/PageUp/PageDown only act once focus is genuinely inside an item:
+  // they move *within* a group, they are not a way into one. Without this gate
+  // Home and End would resolve the first/last item from outside the group and
+  // pull focus in — which is what the arrows deliberately do, and what these
+  // four deliberately do not.
+  if (!focused) return null;
 
-  if (e.code === KEY.home) {
-    e.preventDefault();
-    moveFocus(first, 'home');
+  if (matchesCombo(e, KEY.home)) {
+    return moveFocus(first, 'home');
   }
 
-  if (e.code === KEY.end) {
-    e.preventDefault();
-    moveFocus(last, 'end');
+  if (matchesCombo(e, KEY.end)) {
+    return moveFocus(last, 'end');
   }
 
-  if (e.code === KEY.pageUp) {
-    e.preventDefault();
-    moveFocus(pageUp, 'pageUp');
+  if (matchesCombo(e, KEY.pageUp)) {
+    return moveFocus(pageUp, 'pageUp');
   }
 
-  if (e.code === KEY.pageDown) {
-    e.preventDefault();
-    moveFocus(pageDown, 'pageDown');
+  if (matchesCombo(e, KEY.pageDown)) {
+    return moveFocus(pageDown, 'pageDown');
   }
+
+  return null;
 };

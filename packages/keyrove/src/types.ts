@@ -48,19 +48,65 @@ export type KeyRoveEvent = {
   target: EventTarget | null;
   currentTarget: EventTarget | null;
   preventDefault: () => void;
+  // Optional so any object with the four fields above still qualifies; a
+  // missing flag is treated as "not held" by `matchesCombo`.
+  ctrlKey?: boolean;
+  altKey?: boolean;
+  shiftKey?: boolean;
+  metaKey?: boolean;
+  // The produced character (`KeyboardEvent.key`). Only typeahead reads it —
+  // matching typed text needs the layout-dependent character, where bindings
+  // deliberately stay on the physical `code`. Optional: an event without it
+  // still navigates; it just never typeaheads.
+  key?: string;
 };
 
-/** The movements a consumer can hook into. */
-export type CallbacksKeys =
+/** The movements a keypress can resolve to. */
+export type MoveAction =
   'home' | 'end' | 'next' | 'prev' | 'pageUp' | 'pageDown';
 
-export type Callbacks = {
-  [K in CallbacksKeys]?: (args: { focused: Element | null }) => void;
+/**
+ * What `keyRove` returns for a consumed keypress.
+ *
+ * `from` is null when the group was entered from outside; `to` is null for a
+ * consumed no-op — a bound key pressed at an edge, where the group owns the
+ * key but there is nowhere to go.
+ */
+export type MoveResult = {
+  action: MoveAction;
+  from: Element | null;
+  to: Element | null;
 };
 
+/** The argument `onMove` receives: a move that actually happened. */
+export type Move = MoveResult & { to: Element };
+
 export type Options = {
-  callbacks?: Callbacks;
+  /** Fired after focus has moved — and only when it actually moved. */
+  onMove?: (move: Move) => void;
 };
+
+export type TypeaheadOptions = {
+  /** Milliseconds of typing silence after which the buffer resets. Defaults to 500. */
+  resetMs?: number;
+  /** Fired after focus has moved — and only when it actually moved. */
+  onMove?: (move: TypeaheadMove) => void;
+};
+
+/**
+ * What a typeahead handler returns for a consumed keypress.
+ *
+ * {@link MoveResult}'s shape with its own action — derived rather than
+ * re-spelled, so a field added there reaches both branches of the chain
+ * `keyRove(e) || typeahead(e)`. `to` is null for a consumed no-op — the
+ * buffer grew but still matches the focused item.
+ */
+export type TypeaheadResult = Omit<MoveResult, 'action'> & {
+  action: 'typeahead';
+};
+
+/** The argument a typeahead `onMove` receives: a move that actually happened. */
+export type TypeaheadMove = TypeaheadResult & { to: Element };
 
 /**
  * Attribute names keyrove reads from the DOM, keyed by role.
@@ -77,6 +123,9 @@ export type Attributes = {
   pageLength: string;
   colsLength: string;
   rovingTabindex: string;
+  loop: string;
+  orientation: string;
+  typeahead: string;
 };
 
 export type GetNavElementsArgs = {
@@ -101,6 +150,11 @@ export type NavBounds = {
   elements: Element[];
   fromIndex: number;
   skipAttribute: string;
+};
+
+export type LinearMoveArgs = NavBounds & {
+  /** Wrap past the ends instead of clamping to them. */
+  loop?: boolean;
 };
 
 export type GridNeighborArgs = NavBounds & {

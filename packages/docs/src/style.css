@@ -46,9 +46,365 @@
   :focus-visible {
     @apply outline-2 outline-offset-2 outline-indigo-600 dark:outline-indigo-400;
   }
+
+  /* The drawer takes over the viewport below `lg`; letting the page behind it
+     scroll would move the content the reader is about to navigate to. */
+  html[data-sidebar-open] {
+    @apply overflow-hidden lg:overflow-auto;
+  }
 }
 
 @layer components {
+  /* ---------- chrome ---------- */
+
+  .site-header {
+    @apply sticky top-0 z-30 border-b border-zinc-200 bg-white/80 backdrop-blur dark:border-zinc-800 dark:bg-zinc-950/80;
+  }
+
+  .header-row {
+    @apply mx-auto flex h-14 max-w-[90rem] items-center justify-between gap-4 px-6;
+  }
+
+  /* The landing page's content is narrower than the docs grid; the wordmark and
+     nav track whichever the page below them uses. */
+  .header-row-narrow {
+    @apply max-w-4xl;
+  }
+
+  /* The mark is the keyboard glyph the nav used to spend on Examples. It takes
+     the accent colour so it reads as a logo rather than a fourth nav icon. */
+  .wordmark {
+    @apply inline-flex items-center gap-2 text-base font-semibold tracking-tight;
+  }
+
+  .wordmark svg {
+    @apply text-indigo-600 dark:text-indigo-400;
+  }
+
+  .header-link {
+    @apply inline-flex items-center gap-1.5 text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100;
+  }
+
+  .icon-button {
+    @apply inline-flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-lg border border-zinc-200 bg-white text-zinc-600 hover:bg-zinc-50 hover:text-zinc-900 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100;
+  }
+
+  .link {
+    @apply text-indigo-600 underline underline-offset-2 dark:text-indigo-400;
+  }
+
+  .site-footer {
+    @apply border-t border-zinc-200 px-6 py-6 text-center text-sm text-zinc-600 dark:border-zinc-800 dark:text-zinc-400;
+  }
+
+  /* ---------- docs shell ---------- */
+
+  /*
+   * Sidebar, content, rail. The centre column is `minmax(0, 1fr)` rather than
+   * `1fr` so a wide code block or table scrolls inside itself instead of
+   * stretching the grid past the viewport.
+   */
+  .docs-shell {
+    @apply mx-auto grid max-w-[90rem] gap-x-10 px-6;
+    @apply lg:grid-cols-[15rem_minmax(0,1fr)];
+    @apply xl:grid-cols-[15rem_minmax(0,1fr)_15rem];
+  }
+
+  /*
+   * Off-canvas below `lg` and slid in by the header's menu button; a sticky
+   * column from `lg` up. One element in both cases, so there is no second copy
+   * of the nav to keep in step.
+   */
+  .sidebar {
+    @apply fixed inset-y-0 left-0 z-50 w-72 -translate-x-full overflow-y-auto border-r border-zinc-200 bg-white px-6 py-8 transition-transform duration-200 dark:border-zinc-800 dark:bg-zinc-950;
+    @apply lg:sticky lg:top-14 lg:z-auto lg:h-[calc(100vh-3.5rem)] lg:w-auto lg:translate-x-0 lg:border-r-0 lg:bg-transparent lg:px-0 lg:pr-4 dark:lg:bg-transparent;
+  }
+
+  :root[data-sidebar-open] .sidebar {
+    @apply translate-x-0;
+  }
+
+  .sidebar-backdrop {
+    @apply fixed inset-0 z-40 bg-zinc-950/40 lg:hidden;
+  }
+
+  .sidebar-backdrop[hidden] {
+    display: none;
+  }
+
+  .sidebar-group + .sidebar-group {
+    @apply mt-6;
+  }
+
+  .sidebar-heading {
+    @apply mb-2 text-sm font-semibold text-zinc-900 dark:text-zinc-100;
+  }
+
+  .sidebar-link {
+    @apply -ml-px block border-l border-transparent py-1.5 pl-4 text-sm text-zinc-600 hover:border-zinc-300 hover:text-zinc-900 dark:text-zinc-400 dark:hover:border-zinc-700 dark:hover:text-zinc-100;
+  }
+
+  .sidebar-nav ul {
+    @apply border-l border-zinc-200 dark:border-zinc-800;
+  }
+
+  /* The current page, marked in the markup rather than matched in script, so it
+     is right in the HTML that arrives. */
+  .sidebar-link[aria-current='page'] {
+    @apply border-indigo-600 bg-indigo-100 text-indigo-600 dark:border-indigo-400 dark:bg-zinc-800 dark:text-indigo-400;
+  }
+
+  .docs-main {
+    @apply min-w-0 py-10;
+  }
+
+  /* ---------- on this page ---------- */
+
+  .toc {
+    @apply hidden xl:block;
+  }
+
+  .toc-inner {
+    @apply sticky top-14 max-h-[calc(100vh-3.5rem)] overflow-y-auto py-10 pl-4;
+  }
+
+  .toc-heading {
+    @apply mb-3 text-sm font-semibold text-zinc-900 dark:text-zinc-100;
+  }
+
+  .toc-link {
+    @apply block py-1 text-sm text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100;
+  }
+
+  /* h3 entries sit under their h2 without needing a nested list in the markup. */
+  .toc-link[data-level='3'] {
+    @apply pl-4;
+  }
+
+  .toc-link[data-active] {
+    @apply font-medium text-indigo-600 dark:text-indigo-400;
+  }
+
+  .toc-actions {
+    @apply mt-6 flex flex-col items-start gap-2 border-t border-zinc-200 pt-4 dark:border-zinc-800;
+  }
+
+  .toc-action {
+    @apply inline-flex cursor-pointer items-center gap-2 text-xs text-zinc-500 no-underline hover:text-zinc-900 dark:text-zinc-500 dark:hover:text-zinc-100;
+  }
+
+  /*
+   * Icons are inlined at build time, so anything that changes with state ships
+   * both glyphs and hides one in CSS. That keeps every icon painted with the
+   * first frame — swapping them in script is what used to leave empty boxes in
+   * the header on every navigation.
+   */
+  .icon-light {
+    @apply block dark:hidden;
+  }
+
+  .icon-dark {
+    @apply hidden dark:block;
+  }
+
+  .icon-done {
+    @apply hidden;
+  }
+
+  [data-copied] .icon-idle {
+    @apply hidden;
+  }
+
+  [data-copied] .icon-done {
+    @apply block;
+  }
+
+  /* ---------- pager ---------- */
+
+  .pager {
+    @apply mt-16 flex justify-between gap-4 border-t border-zinc-200 pt-6 dark:border-zinc-800;
+  }
+
+  .pager-link {
+    @apply flex flex-col gap-1 rounded-lg px-3 py-2 no-underline hover:bg-zinc-50 dark:hover:bg-zinc-900;
+  }
+
+  .pager-label {
+    @apply text-xs text-zinc-500;
+  }
+
+  .pager-title {
+    @apply text-sm font-medium text-indigo-600 dark:text-indigo-400;
+  }
+
+  /* ---------- prose ---------- */
+
+  /*
+   * Element styling for the markdown-generated body. Preflight strips the
+   * browser defaults, so everything a content file can produce is set here.
+   *
+   * Selectors are wrapped in `:where()` to keep their specificity at the
+   * `.markdown` class alone, so the landing page's own classes below — and the
+   * demo markup, which is a list inside this prose — override without
+   * escalating. The demo exclusions are explicit for the same reason: a
+   * `.demo-surface` is a `<ul>` whose items are `<li>`, and neither should
+   * pick up list styling.
+   */
+  .markdown {
+    @apply text-zinc-700 dark:text-zinc-300;
+  }
+
+  .markdown :where(h1) {
+    @apply scroll-mt-20 text-3xl font-semibold tracking-tight text-balance text-zinc-900 sm:text-4xl dark:text-zinc-100;
+  }
+
+  .markdown :where(h2) {
+    @apply mt-12 scroll-mt-20 border-b border-zinc-200 pb-2 text-xl font-semibold tracking-tight text-zinc-900 dark:border-zinc-800 dark:text-zinc-100;
+  }
+
+  .markdown :where(h3) {
+    @apply mt-8 scroll-mt-20 text-base font-semibold text-zinc-900 dark:text-zinc-100;
+  }
+
+  .markdown :where(p) {
+    @apply mt-4 leading-7;
+  }
+
+  .markdown :where(.lead) {
+    @apply mt-3 text-lg text-zinc-600 dark:text-zinc-400;
+  }
+
+  .markdown :where(a) {
+    @apply text-indigo-600 underline underline-offset-2 hover:text-indigo-500 dark:text-indigo-400;
+  }
+
+  /* The anchor must not repaint the heading it wraps, so it beats the generic
+     prose link rule on specificity rather than on source order. */
+  .markdown a.heading-anchor {
+    @apply text-inherit no-underline;
+  }
+
+  .heading-anchor-mark {
+    @apply ml-2 text-indigo-600 opacity-0 transition-opacity dark:text-indigo-400;
+  }
+
+  .heading-anchor:hover .heading-anchor-mark,
+  .heading-anchor:focus-visible .heading-anchor-mark {
+    @apply opacity-100;
+  }
+
+  .markdown :where(strong) {
+    @apply font-semibold text-zinc-900 dark:text-zinc-100;
+  }
+
+  .markdown :where(ul:not(.demo-surface)) {
+    @apply mt-4 list-disc space-y-2 pl-6;
+  }
+
+  .markdown :where(ol) {
+    @apply mt-4 list-decimal space-y-2 pl-6;
+  }
+
+  .markdown :where(li:not([data-keyrove-item]))::marker {
+    @apply text-zinc-400;
+  }
+
+  .markdown :where(li:not([data-keyrove-item])) :where(ul, ol) {
+    @apply mt-2;
+  }
+
+  .markdown :where(pre) {
+    @apply mt-4;
+  }
+
+  .markdown :where(blockquote) {
+    @apply mt-4 border-l-2 border-zinc-300 pl-4 text-zinc-600 italic dark:border-zinc-700 dark:text-zinc-400;
+  }
+
+  .markdown :where(hr) {
+    @apply mt-10 border-zinc-200 dark:border-zinc-800;
+  }
+
+  /* markdown-it emits a bare <table>; the plugin wraps it so a wide one scrolls
+     in its own box rather than widening the page. */
+  .table-wrap {
+    @apply mt-4 overflow-x-auto rounded-xl border border-zinc-200 dark:border-zinc-800;
+  }
+
+  .markdown :where(table) {
+    @apply w-full min-w-[36rem] border-collapse text-sm;
+  }
+
+  .markdown :where(th) {
+    @apply border-b border-zinc-200 bg-zinc-50 px-4 py-2.5 text-left font-semibold text-zinc-900 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-100;
+  }
+
+  .markdown :where(td) {
+    @apply border-b border-zinc-200 px-4 py-2.5 align-top text-zinc-600 dark:border-zinc-800 dark:text-zinc-400;
+  }
+
+  .markdown :where(tr:last-child td) {
+    @apply border-b-0;
+  }
+
+  /* ---------- landing ---------- */
+
+  .landing {
+    @apply mx-auto max-w-4xl px-6 pb-24;
+  }
+
+  .landing :where(h1) {
+    @apply mt-3 text-4xl leading-[1.1] sm:text-5xl;
+  }
+
+  .landing :where(h2) {
+    @apply mt-16 border-b-0 text-2xl;
+  }
+
+  /* The hero lead is the paragraph after the headline. Matching on
+     `p:first-of-type` instead would land on the eyebrow above it — and win,
+     since `:first-of-type` carries specificity that `:where()` does not. */
+  .landing :where(h1 + p) {
+    @apply text-lg text-zinc-600 dark:text-zinc-400;
+  }
+
+  .hero-eyebrow {
+    @apply pt-16 text-xs font-semibold tracking-[0.12em] text-indigo-600 uppercase sm:pt-24 dark:text-indigo-400;
+  }
+
+  /* The two links are one markdown paragraph; the row is the paragraph itself. */
+  .hero-actions p {
+    @apply mt-7 flex flex-wrap gap-3;
+  }
+
+  .hero-actions a {
+    @apply rounded-lg border border-zinc-200 bg-white px-5 py-2.5 text-sm font-medium text-zinc-900 no-underline hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-100 dark:hover:bg-zinc-800;
+  }
+
+  /* First link is the primary call to action — the markdown cannot carry a
+     class, and the order in the source is the order of importance. */
+  .hero-actions a:first-child {
+    @apply border-transparent bg-indigo-600 text-white hover:bg-indigo-700 dark:bg-indigo-500 dark:text-zinc-950 dark:hover:bg-indigo-400;
+  }
+
+  .feature-grid {
+    @apply mt-12 grid gap-4 sm:grid-cols-2;
+  }
+
+  .feature {
+    @apply rounded-xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900;
+  }
+
+  .feature :where(h3) {
+    @apply mt-0 text-base;
+  }
+
+  .feature :where(p) {
+    @apply mt-2 text-sm leading-6 text-zinc-600 dark:text-zinc-400;
+  }
+
+  /* ---------- code ---------- */
+
   /* Inline and block code. Preflight strips the browser defaults, so size and
      background are set here rather than inherited. */
   .code-inline {
@@ -60,7 +416,7 @@
   }
 
   /*
-   * Token colours for the blocks vite-plugin-shiki.ts highlights. It builds
+   * Token colours for the blocks the markdown pipeline highlights. Shiki builds
    * both themes at once and writes each token's two colours as CSS variables,
    * so the swap below is all that picks between them — no second stylesheet,
    * and going through `dark` rather than a bare media query means the header
@@ -76,29 +432,80 @@
   }
 
   .kbd {
-    @apply inline-block min-w-[1.7em] rounded border border-b-2 border-zinc-300 bg-white px-1.5 py-0.5 text-center font-mono text-[0.75rem] text-zinc-700 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300;
+    @apply inline-block min-w-[2em] leading-[1.5em] rounded border border-b-2 border-zinc-300 bg-white px-1.5 py-0.5 text-center font-mono text-[0.75rem] text-zinc-700 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300;
+  }
+
+  /* ---------- demos ---------- */
+
+  /*
+   * A demo is one unit: the live markup on top, the same markup as source
+   * below it, inside a single frame. Both are stamped in from one file under
+   * content/_demos, so what a reader copies is what they just pressed a key in.
+   */
+  .demo {
+    @apply mt-6 overflow-hidden rounded-xl border border-zinc-200 dark:border-zinc-800;
+  }
+
+  .demo-preview {
+    @apply p-4;
   }
 
   /* The inset panel a demo's items sit in. */
   .demo-surface {
-    @apply rounded-xl border border-zinc-200 bg-zinc-50 p-1.5 dark:border-zinc-800 dark:bg-zinc-950;
+    @apply rounded-lg border border-zinc-200 bg-zinc-50 p-1.5 dark:border-zinc-800 dark:bg-zinc-950;
+  }
+
+  .demo-code {
+    @apply relative border-t border-zinc-200 dark:border-zinc-800;
+  }
+
+  /* The block sits inside the demo's own frame, so it gives up the border and
+     rounding it carries when it stands alone in prose. No height cap: the fold
+     in the demo file is what keeps a block short, so anything that reaches here
+     is meant to be read in full. The padding on the right keeps the longest
+     line clear of the copy button. */
+  .demo-code .code-block {
+    @apply mt-0 rounded-none border-0 pr-14;
+  }
+
+  .demo-copy {
+    @apply absolute top-2.5 right-2.5 z-10 inline-flex cursor-pointer items-center rounded-lg border border-zinc-200 bg-white p-1.5 text-zinc-500 transition-colors dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-400;
+    @apply hover:text-zinc-900 dark:hover:text-zinc-100;
   }
 
   /*
-   * Applied to elements created in main.ts. `focus:` rather than
-   * `focus-visible:` on purpose — keyrove moves focus programmatically, and the
-   * demo is about making that movement visible however it was triggered.
+   * Demo items are styled off the attributes the docs teach rather than off
+   * classes of their own, so a fragment under content/_demos stays markup a
+   * reader could paste as-is — there is nothing in it that only this site
+   * understands.
+   *
+   * `focus:` rather than `focus-visible:` on purpose — keyrove moves focus
+   * programmatically, and the demo is about making that movement visible
+   * however it was triggered.
    */
-  .item {
+  .demo :where([data-keyrove-item]) {
     @apply block w-full cursor-pointer rounded-lg border border-transparent px-3 py-2 text-left text-sm text-zinc-800 transition-colors;
     @apply hover:bg-indigo-500/10;
     @apply focus:border-indigo-500 focus:bg-indigo-50 focus:outline-none;
     @apply dark:text-zinc-200 dark:focus:border-indigo-400 dark:focus:bg-indigo-500/15;
   }
 
-  .item-skipped {
+  /* Grid cells and toolbar buttons size to content instead of filling a row. */
+  .demo :where(button[data-keyrove-item]) {
+    @apply w-auto text-center;
+  }
+
+  .demo :where([data-keyrove-skip]) {
     @apply cursor-default pt-3.5 text-[0.7rem] font-semibold tracking-widest text-zinc-500 uppercase;
     @apply hover:bg-transparent;
+  }
+
+  /* A nested navigation root, drawn as its own panel inside the one around it
+     so the boundary keyrove scopes to is visible rather than implied. Every
+     nested group in the docs reads horizontally, which is why the row is here
+     rather than declared per demo. */
+  .demo [data-keyrove-root] {
+    @apply mb-1.5 flex gap-1.5 rounded-lg border border-dashed border-zinc-200 bg-white p-1.5 dark:border-zinc-800 dark:bg-zinc-900;
   }
 
   .log {
