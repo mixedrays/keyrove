@@ -9,21 +9,9 @@ import {
   matchesCombo,
   parseAttributeInt,
   toggleTabIndex,
-} from '../utils';
-import type { KeyRoveEvent } from '../types';
-
-const SKIP = 'data-skip';
-
-/** Builds a detached list of elements, marking the given indices as skipped. */
-const buildElements = (count: number, skipped: number[] = []) =>
-  Array.from({ length: count }, (_, i) => {
-    const el = document.createElement('div');
-    el.id = `e${i}`;
-    if (skipped.includes(i)) el.setAttribute(SKIP, 'true');
-    return el;
-  });
-
-const idOf = (el: Element | null | undefined) => el?.id;
+} from '../../utils';
+import type { KeyRoveEvent } from '../../types';
+import { SKIP, buildElements, idOf } from './testUtils';
 
 afterEach(() => {
   document.body.innerHTML = '';
