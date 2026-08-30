@@ -5,6 +5,7 @@ import {
   findNext,
   findPageTarget,
   findPrev,
+  isEditableTarget,
   matchesCombo,
   parseAttributeInt,
   toggleTabIndex,
@@ -37,6 +38,7 @@ const DEFAULT_ATTRIBUTES = {
   rovingTabindex: 'data-keyrove-roving-tabindex',
   loop: 'data-keyrove-loop',
   orientation: 'data-keyrove-orientation',
+  typeahead: 'data-keyrove-typeahead',
 } as const satisfies Attributes;
 
 // Individual constants, so consumers can spread them into markup without
@@ -51,6 +53,7 @@ export const KEYROVE_ATTR_COLS_LENGTH = DEFAULT_ATTRIBUTES.colsLength;
 export const KEYROVE_ATTR_ROVING_TABINDEX = DEFAULT_ATTRIBUTES.rovingTabindex;
 export const KEYROVE_ATTR_LOOP = DEFAULT_ATTRIBUTES.loop;
 export const KEYROVE_ATTR_ORIENTATION = DEFAULT_ATTRIBUTES.orientation;
+export const KEYROVE_ATTR_TYPEAHEAD = DEFAULT_ATTRIBUTES.typeahead;
 
 // Named so the dispatch below is checked against `KnownCode` instead of
 // comparing against bare literals that TypeScript cannot vet.
@@ -64,39 +67,6 @@ const KEY = {
   pageUp: 'PageUp',
   pageDown: 'PageDown',
 } as const satisfies Record<string, KnownCode>;
-
-// An editable target owns the keys keyrove binds: arrows and Home/End move
-// the caret there, and printable keys type. `closest` rather than `matches`,
-// so descendants of a `contenteditable` region count as inside it — and the
-// nearest `contenteditable` attribute decides, mirroring `isContentEditable`,
-// so a `contenteditable="false"` island opts back out even inside an editable
-// region.
-const EDITABLE_SELECTOR = 'input, textarea, select, [contenteditable]';
-
-// Input types on which every key keyrove binds is natively inert — no caret,
-// no value stepping, no radio-group movement — so navigating from them takes
-// nothing away. Unknown and future types stay guarded.
-const INERT_INPUT_TYPES = new Set([
-  'button',
-  'checkbox',
-  'color',
-  'file',
-  'image',
-  'reset',
-  'submit',
-]);
-
-const isEditableTarget = (target: Element | null) => {
-  const editable = target?.closest?.(EDITABLE_SELECTOR);
-
-  if (!editable) return false;
-
-  if (editable.tagName === 'INPUT') {
-    return !INERT_INPUT_TYPES.has((editable as HTMLInputElement).type);
-  }
-
-  return editable.getAttribute('contenteditable')?.toLowerCase() !== 'false';
-};
 
 // Reading direction for a horizontal group. The nearest `dir` attribute
 // decides, mirroring how the DOM resolves direction (and working in jsdom,
@@ -207,11 +177,12 @@ export const keyRove = (
   // `orientation="horizontal"` redirects only the *default* keys — an
   // explicit binding still wins below. "Next" follows the reading direction,
   // so RTL flips the pair; the direction is resolved only when it can matter.
-  // Nothing but the literal value "horizontal" switches anything, and the
-  // combination with a grid is deliberately left undefined — a grid's cell
-  // moves already cover the horizontal axis.
+  // Nothing but the literal value "horizontal" switches anything, and a grid
+  // ignores the attribute outright: its cell moves already cover the
+  // horizontal axis, and re-pointing the row keys at the arrows would break
+  // both.
   const horizontal =
-    root?.getAttribute(attributes.orientation) === 'horizontal';
+    !isGrid && root?.getAttribute(attributes.orientation) === 'horizontal';
   const rtl = horizontal && root ? isRtl(root) : false;
   const defaultNext = horizontal
     ? rtl

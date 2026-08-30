@@ -62,6 +62,40 @@ export const matchesCombo = (e: KeyRoveEvent, combo: string): boolean => {
   );
 };
 
+// An editable target owns the keys keyrove binds: arrows and Home/End move
+// the caret there, and printable keys type. `closest` rather than `matches`,
+// so descendants of a `contenteditable` region count as inside it — and the
+// nearest `contenteditable` attribute decides, mirroring `isContentEditable`,
+// so a `contenteditable="false"` island opts back out even inside an editable
+// region.
+const EDITABLE_SELECTOR = 'input, textarea, select, [contenteditable]';
+
+// Input types on which every key keyrove binds is natively inert — no caret,
+// no value stepping, no radio-group movement — so navigating from them takes
+// nothing away. Unknown and future types stay guarded.
+const INERT_INPUT_TYPES = new Set([
+  'button',
+  'checkbox',
+  'color',
+  'file',
+  'image',
+  'reset',
+  'submit',
+]);
+
+/** Whether keys arriving from this target belong to it rather than to keyrove. */
+export const isEditableTarget = (target: Element | null) => {
+  const editable = target?.closest?.(EDITABLE_SELECTOR);
+
+  if (!editable) return false;
+
+  if (editable.tagName === 'INPUT') {
+    return !INERT_INPUT_TYPES.has((editable as HTMLInputElement).type);
+  }
+
+  return editable.getAttribute('contenteditable')?.toLowerCase() !== 'false';
+};
+
 /**
  * Sets `tabindex` to `0` / `-1` on `root`.
  *

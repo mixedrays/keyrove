@@ -82,7 +82,8 @@ under RTL, resolved from the nearest `dir` attribute and falling back to the
 computed direction, so a toolbar reads "forward" the way its text does. It
 only supplies defaults: an explicit `data-keyrove-next-key` or
 `data-keyrove-prev-key` wins over it, and the freed vertical arrows go back
-to their browser behaviour.
+to their browser behaviour. A grid ignores the attribute — its cell moves
+already cover the horizontal axis.
 
 At the ends of a list, next and prev are consumed without moving — see the
 [return value](#return-value). With `data-keyrove-loop` on the root they wrap
@@ -142,6 +143,51 @@ One keypress resolves to at most one action. A custom binding that collides
 with a fixed key — say `data-keyrove-next-key="Home"` — takes the press, and
 the fixed key stands down.
 
+## createTypeahead(options?)
+
+Builds a keydown handler that focuses items as their labels are typed —
+printable characters accumulate in a buffer, and focus jumps to the first
+navigable item whose label starts with it, case-insensitively.
+
+```ts
+import { keyRove, createTypeahead } from '@mixedrays/keyrove';
+
+const typeahead = createTypeahead();
+
+list.addEventListener('keydown', (e) => keyRove(e) || typeahead(e));
+```
+
+A factory rather than a plain handler on purpose: a buffer is state, and
+holding it in the returned closure keeps `keyRove` itself stateless. Create
+one handler per listener; the buffer resets after `options.resetMs`
+(default `500`) milliseconds of typing silence, with no timer to clean up.
+
+The label is the item's `data-keyrove-typeahead` attribute, falling back to
+its trimmed `textContent` when the attribute is absent or empty. Items
+carrying `data-keyrove-skip` or `disabled` are passed over, and the root
+resolves exactly as in `keyRove` — nearest `data-keyrove-root`, else
+`currentTarget` — so the same delegated listener serves both.
+
+Unlike bindings, which match the physical `e.code`, typeahead reads `e.key` —
+the produced character, which is what the pressed key means in the user's
+keyboard layout. A press is buffered only when it is genuinely typing: single
+characters without <kbd class="kbd">Ctrl</kbd>/<kbd class="kbd">Alt</kbd>/<kbd
+class="kbd">Meta</kbd> (<kbd class="kbd">Shift</kbd> stays — it is how
+capitals are typed), never inside an
+[editable element](/docs/examples/custom-keys#editable-elements-are-exempt),
+and a space only once a match is underway, so the spacebar keeps scrolling
+and clicking. A character that matches nothing is left to its browser
+default.
+
+The handler follows the `keyRove` contract: `null` when the key was left
+untouched, `{ action: 'typeahead', from, to }` when it was consumed — with
+`to: null` when the buffer grew but still names the already-focused item.
+`options.onMove` fires after focus has moved and only when it actually moved,
+mirroring [`keyRove`'s option](#options-onmove), so both handlers can feed the
+same follow-focus logic. Chain the handler _after_ navigation, as above, so a
+printable binding like `KeyJ` navigates instead of entering the buffer. The
+roving tab stop moves with the match, exactly as for an arrow move.
+
 ## matchesCombo(event, combo)
 
 Whether a keydown event matches a combo — the matcher behind every key check
@@ -199,6 +245,7 @@ guarding at the call site.
 | `data-keyrove-prev-key`        | root | `ArrowUp`   | Combo that moves back.                                                          |
 | `data-keyrove-loop`            | root | —           | Next/prev wrap past the ends of a list. Grids never wrap.                      |
 | `data-keyrove-orientation`     | root | —           | `horizontal` maps the default keys to `ArrowRight`/`ArrowLeft`, RTL-aware.     |
+| `data-keyrove-typeahead`       | item | text        | Label for [type-to-focus](#createtypeahead-options), when the item's own text is not it. |
 
 Root attributes are read on every keypress rather than cached, so changing one
 takes effect immediately — see
@@ -224,6 +271,7 @@ import {
   KEYROVE_ATTR_ROVING_TABINDEX,
   KEYROVE_ATTR_LOOP,
   KEYROVE_ATTR_ORIENTATION,
+  KEYROVE_ATTR_TYPEAHEAD,
 } from '@mixedrays/keyrove';
 ```
 
@@ -237,6 +285,9 @@ import type {
   MoveAction,
   MoveResult,
   Options,
+  TypeaheadMove,
+  TypeaheadOptions,
+  TypeaheadResult,
 } from '@mixedrays/keyrove';
 ```
 
@@ -256,6 +307,7 @@ type KeyRoveEvent = {
   altKey?: boolean;
   shiftKey?: boolean;
   metaKey?: boolean;
+  key?: string;
 };
 ```
 
@@ -263,6 +315,10 @@ The modifier flags are optional so a hand-built event object still qualifies,
 and a missing flag reads as "not held". Native and framework events carry all
 four; if you bridge events through an object of your own, forward them — an
 object without them matches every binding as though no modifier were pressed.
+`key` is optional for the same reason and only
+[typeahead](#createtypeahead-options) reads it: matching typed text needs the
+layout-dependent character, where bindings deliberately stay on the physical
+`code`. An event without it navigates as ever; it just never typeaheads.
 
 ### KeyRoveCode
 
@@ -301,4 +357,26 @@ type MoveResult = {
 type Move = MoveResult & { to: Element };
 
 type Options = { onMove?: (move: Move) => void };
+```
+
+### TypeaheadOptions, TypeaheadResult, TypeaheadMove
+
+What [`createTypeahead`](#createtypeahead-options) takes and its handler
+returns. The result is `MoveResult`'s shape with its own action, which is
+what lets the two handlers share one listener with `||`.
+
+```ts
+type TypeaheadOptions = {
+  resetMs?: number; // buffer lifetime, default 500
+  onMove?: (move: TypeaheadMove) => void;
+};
+
+type TypeaheadResult = {
+  action: 'typeahead';
+  from: Element | null;
+  to: Element | null; // null: the buffer grew but still names the focused item
+};
+
+// what onMove receives: a move that actually happened
+type TypeaheadMove = TypeaheadResult & { to: Element };
 ```

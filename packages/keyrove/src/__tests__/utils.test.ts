@@ -478,9 +478,9 @@ describe('matchesCombo', () => {
   });
 
   it('treats modifier case as insignificant', () => {
-    expect(
-      matchesCombo(keyEvent('Home', { altKey: true }), 'ALT+Home'),
-    ).toBe(true);
+    expect(matchesCombo(keyEvent('Home', { altKey: true }), 'ALT+Home')).toBe(
+      true,
+    );
   });
 
   it('matches the code case-sensitively', () => {
@@ -503,9 +503,9 @@ describe('matchesCombo', () => {
   });
 
   it('never matches a combo with an empty code, like "ctrl++"', () => {
-    expect(
-      matchesCombo(keyEvent('Equal', { ctrlKey: true }), 'ctrl++'),
-    ).toBe(false);
+    expect(matchesCombo(keyEvent('Equal', { ctrlKey: true }), 'ctrl++')).toBe(
+      false,
+    );
     expect(matchesCombo(keyEvent('Equal', { ctrlKey: true }), 'ctrl + +')).toBe(
       false,
     );
@@ -513,30 +513,33 @@ describe('matchesCombo', () => {
 
   it('tolerates whitespace around combo parts', () => {
     expect(
-      matchesCombo(keyEvent('ArrowLeft', { ctrlKey: true }), ' ctrl + ArrowLeft '),
+      matchesCombo(
+        keyEvent('ArrowLeft', { ctrlKey: true }),
+        ' ctrl + ArrowLeft ',
+      ),
     ).toBe(true);
   });
 
   it('resolves mod to meta on Apple platforms', () => {
     mockPlatform('MacIntel');
 
-    expect(
-      matchesCombo(keyEvent('KeyK', { metaKey: true }), 'mod+KeyK'),
-    ).toBe(true);
-    expect(
-      matchesCombo(keyEvent('KeyK', { ctrlKey: true }), 'mod+KeyK'),
-    ).toBe(false);
+    expect(matchesCombo(keyEvent('KeyK', { metaKey: true }), 'mod+KeyK')).toBe(
+      true,
+    );
+    expect(matchesCombo(keyEvent('KeyK', { ctrlKey: true }), 'mod+KeyK')).toBe(
+      false,
+    );
   });
 
   it('resolves mod to ctrl elsewhere', () => {
     mockPlatform('Win32');
 
-    expect(
-      matchesCombo(keyEvent('KeyK', { ctrlKey: true }), 'mod+KeyK'),
-    ).toBe(true);
-    expect(
-      matchesCombo(keyEvent('KeyK', { metaKey: true }), 'mod+KeyK'),
-    ).toBe(false);
+    expect(matchesCombo(keyEvent('KeyK', { ctrlKey: true }), 'mod+KeyK')).toBe(
+      true,
+    );
+    expect(matchesCombo(keyEvent('KeyK', { metaKey: true }), 'mod+KeyK')).toBe(
+      false,
+    );
   });
 });
 

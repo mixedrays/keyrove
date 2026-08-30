@@ -54,6 +54,11 @@ export type KeyRoveEvent = {
   altKey?: boolean;
   shiftKey?: boolean;
   metaKey?: boolean;
+  // The produced character (`KeyboardEvent.key`). Only typeahead reads it —
+  // matching typed text needs the layout-dependent character, where bindings
+  // deliberately stay on the physical `code`. Optional: an event without it
+  // still navigates; it just never typeaheads.
+  key?: string;
 };
 
 /** The movements a keypress can resolve to. */
@@ -81,6 +86,28 @@ export type Options = {
   onMove?: (move: Move) => void;
 };
 
+export type TypeaheadOptions = {
+  /** Milliseconds of typing silence after which the buffer resets. Defaults to 500. */
+  resetMs?: number;
+  /** Fired after focus has moved — and only when it actually moved. */
+  onMove?: (move: TypeaheadMove) => void;
+};
+
+/**
+ * What a typeahead handler returns for a consumed keypress.
+ *
+ * {@link MoveResult}'s shape with its own action — derived rather than
+ * re-spelled, so a field added there reaches both branches of the chain
+ * `keyRove(e) || typeahead(e)`. `to` is null for a consumed no-op — the
+ * buffer grew but still matches the focused item.
+ */
+export type TypeaheadResult = Omit<MoveResult, 'action'> & {
+  action: 'typeahead';
+};
+
+/** The argument a typeahead `onMove` receives: a move that actually happened. */
+export type TypeaheadMove = TypeaheadResult & { to: Element };
+
 /**
  * Attribute names keyrove reads from the DOM, keyed by role.
  *
@@ -98,6 +125,7 @@ export type Attributes = {
   rovingTabindex: string;
   loop: string;
   orientation: string;
+  typeahead: string;
 };
 
 export type GetNavElementsArgs = {

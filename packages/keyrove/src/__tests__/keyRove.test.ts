@@ -302,14 +302,17 @@ describe('keyRove', () => {
     });
 
     it('wraps to the first and last non-skipped item', () => {
-      renderList([
-        createItem('a', { skip: true }),
-        createItem('b'),
-        createItem('c'),
-        createItem('d', { skip: true }),
-      ], {
-        containerAttrs: { [KEYROVE_ATTR_LOOP]: 'true' },
-      });
+      renderList(
+        [
+          createItem('a', { skip: true }),
+          createItem('b'),
+          createItem('c'),
+          createItem('d', { skip: true }),
+        ],
+        {
+          containerAttrs: { [KEYROVE_ATTR_LOOP]: 'true' },
+        },
+      );
       document.getElementById('c')!.focus();
 
       pressKey('ArrowDown');
@@ -408,6 +411,25 @@ describe('keyRove', () => {
       pressKey('ArrowDown');
 
       expect(activeId()).toBe('b');
+    });
+
+    it('is ignored in a grid, whose arrows keep their grid meaning', () => {
+      renderList(
+        Array.from({ length: 9 }, (_, i) => createItem(`${i}`)),
+        {
+          containerAttrs: {
+            [KEYROVE_ATTR_COLS_LENGTH]: '3',
+            [KEYROVE_ATTR_ORIENTATION]: 'horizontal',
+          },
+        },
+      );
+      document.getElementById('4')!.focus();
+
+      pressKey('ArrowRight');
+      expect(activeId()).toBe('5');
+
+      pressKey('ArrowDown');
+      expect(activeId()).toBe('8');
     });
 
     it('flips the arrows under dir="rtl" on the root', () => {

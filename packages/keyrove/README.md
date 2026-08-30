@@ -100,6 +100,32 @@ ordinary tab stops that arrows _also_ reach. Opt into
 `data-keyrove-roving-tabindex` when a group should instead be a single tab stop
 that <kbd>Tab</kbd> moves past rather than through.
 
+## Typeahead
+
+`createTypeahead` adds type-to-focus: printable characters accumulate in a
+buffer (reset after 500 ms of silence), and focus jumps to the first item
+whose label starts with what was typed, case-insensitively.
+
+```ts
+import { keyRove, createTypeahead } from '@mixedrays/keyrove';
+
+const typeahead = createTypeahead(); // { resetMs?, onMove? }
+
+list.addEventListener('keydown', (e) => keyRove(e) || typeahead(e));
+```
+
+It is a factory because a buffer is state and `keyRove` itself stays
+stateless — create one handler per listener. Chain it after `keyRove` so
+bound keys win: a `KeyJ` binding keeps navigating and never enters the
+buffer. The label is the item's `data-keyrove-typeahead` attribute, falling
+back to its trimmed text. Matching reads `e.key` — the typed character —
+unlike key bindings, which stay on the physical `e.code`. Typing inside
+editable elements is never captured, modified presses (Ctrl/Alt/Meta) are
+left to their shortcuts, and a space only counts once a match is underway.
+The handler returns `{ action: 'typeahead', from, to }` or `null`, the same
+contract as `keyRove` — and `onMove` fires after a real move, exactly as
+`keyRove`'s does, so both handlers can feed the same follow-focus logic.
+
 ## Attributes
 
 | Attribute                      | On   | Default     | Meaning                                                                        |
@@ -113,7 +139,8 @@ that <kbd>Tab</kbd> moves past rather than through.
 | `data-keyrove-next-key`        | root | `ArrowDown` | Combo that moves forward, e.g. `KeyJ` or `ctrl+ArrowRight`.                     |
 | `data-keyrove-prev-key`        | root | `ArrowUp`   | Combo that moves back.                                                          |
 | `data-keyrove-loop`            | root | —           | Next/prev wrap past the ends of a list. Grids never wrap.                      |
-| `data-keyrove-orientation`     | root | —           | `horizontal` maps the default keys to `ArrowRight`/`ArrowLeft`, RTL-aware.     |
+| `data-keyrove-orientation`     | root | —           | `horizontal` maps the default keys to `ArrowRight`/`ArrowLeft`, RTL-aware. Grids ignore it. |
+| `data-keyrove-typeahead`       | item | text        | Label for type-to-focus, when the item's own text is not it.                   |
 
 Every attribute name is also exported as a constant (`KEYROVE_ATTR_ITEM`,
 `KEYROVE_ATTR_COLS_LENGTH`, `KEYROVE_ATTR_LOOP`, `KEYROVE_ATTR_ORIENTATION`, …).
