@@ -8,10 +8,59 @@
 
 import type {
   GridNeighborArgs,
+  KeyRoveEvent,
   NavBounds,
   PageTargetArgs,
   ToggleTabIndexArgs,
 } from './types.js';
+
+const isMacLike = () =>
+  typeof navigator !== 'undefined' &&
+  /mac|iphone|ipad|ipod/i.test(navigator.platform);
+
+const MODIFIERS = ['ctrl', 'alt', 'shift', 'meta'] as const;
+
+type Modifier = (typeof MODIFIERS)[number];
+
+// A plain `includes` (not `in` on the flags object) so inherited property
+// names like "constructor" cannot pass as modifiers.
+const isModifier = (name: string): name is Modifier =>
+  (MODIFIERS as readonly string[]).includes(name);
+
+/**
+ * Whether the event matches a key combo like `"ctrl+ArrowDown"` or `"KeyJ"`.
+ *
+ * Grammar: zero or more of `mod+` / `ctrl+` / `alt+` / `shift+` / `meta+`
+ * (any order, any case) followed by a `KeyboardEvent.code`. `mod` resolves to
+ * `meta` on Apple platforms and `ctrl` elsewhere.
+ *
+ * Matching is exact: every declared modifier must be held and every undeclared
+ * one must not be, so a bare `"ArrowDown"` means "ArrowDown with no modifiers"
+ * and leaves shortcuts like Ctrl+ArrowDown alone. The code is matched on
+ * `e.code` — the physical key, independent of keyboard layout.
+ */
+export const matchesCombo = (e: KeyRoveEvent, combo: string): boolean => {
+  const parts = combo.split('+');
+  const code = parts.pop()?.trim();
+  const declared = { ctrl: false, alt: false, shift: false, meta: false };
+
+  for (const part of parts) {
+    const name = part.trim().toLowerCase();
+    const modifier = name === 'mod' ? (isMacLike() ? 'meta' : 'ctrl') : name;
+
+    if (!isModifier(modifier)) return false;
+
+    declared[modifier] = true;
+  }
+
+  return (
+    e.code === code &&
+    !!e.ctrlKey === declared.ctrl &&
+    !!e.altKey === declared.alt &&
+    !!e.shiftKey === declared.shift &&
+    !!e.metaKey === declared.meta
+  );
+};
 
 /**
  * Sets `tabindex` to `0` / `-1` on `root`.

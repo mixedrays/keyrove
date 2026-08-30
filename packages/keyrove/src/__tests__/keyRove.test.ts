@@ -58,11 +58,16 @@ const renderList = (
 const pressKey = (
   code: string,
   from: Element = document.activeElement as Element,
+  modifiers: Pick<
+    KeyboardEventInit,
+    'ctrlKey' | 'altKey' | 'shiftKey' | 'metaKey'
+  > = {},
 ) => {
   const event = new KeyboardEvent('keydown', {
     code,
     bubbles: true,
     cancelable: true,
+    ...modifiers,
   });
   from.dispatchEvent(event);
 
@@ -73,6 +78,7 @@ const activeId = () => document.activeElement?.id;
 
 afterEach(() => {
   document.body.innerHTML = '';
+  vi.restoreAllMocks();
 });
 
 describe('keyRove', () => {
@@ -165,6 +171,70 @@ describe('keyRove', () => {
       expect(activeId()).toBe('a');
       expect(enter.defaultPrevented).toBe(false);
       expect(space.defaultPrevented).toBe(false);
+    });
+  });
+
+  describe('modifier keys', () => {
+    it('leaves modified presses of a bound key alone', () => {
+      renderList([createItem('a'), createItem('b')]);
+      document.getElementById('a')!.focus();
+
+      const ctrlDown = pressKey('ArrowDown', undefined, { ctrlKey: true });
+      const altHome = pressKey('Home', undefined, { altKey: true });
+      const shiftEnd = pressKey('End', undefined, { shiftKey: true });
+
+      expect(activeId()).toBe('a');
+      expect(ctrlDown.defaultPrevented).toBe(false);
+      expect(altHome.defaultPrevented).toBe(false);
+      expect(shiftEnd.defaultPrevented).toBe(false);
+    });
+
+    it('navigates with a combo declared in the key attribute', () => {
+      renderList([createItem('a'), createItem('b')], {
+        containerAttrs: {
+          [KEYROVE_ATTR_NEXT_KEY]: 'ctrl+ArrowRight',
+          [KEYROVE_ATTR_PREV_KEY]: 'ctrl+ArrowLeft',
+        },
+      });
+      document.getElementById('a')!.focus();
+
+      pressKey('ArrowRight', undefined, { ctrlKey: true });
+      expect(activeId()).toBe('b');
+
+      pressKey('ArrowLeft', undefined, { ctrlKey: true });
+      expect(activeId()).toBe('a');
+    });
+
+    it('does not navigate with the bare code once a combo is declared', () => {
+      renderList([createItem('a'), createItem('b')], {
+        containerAttrs: { [KEYROVE_ATTR_NEXT_KEY]: 'ctrl+ArrowRight' },
+      });
+      document.getElementById('a')!.focus();
+
+      const event = pressKey('ArrowRight');
+
+      expect(activeId()).toBe('a');
+      expect(event.defaultPrevented).toBe(false);
+    });
+
+    it('resolves the mod alias per platform', () => {
+      const platform = vi.spyOn(navigator, 'platform', 'get');
+      renderList([createItem('a'), createItem('b')], {
+        containerAttrs: { [KEYROVE_ATTR_NEXT_KEY]: 'mod+ArrowDown' },
+      });
+
+      platform.mockReturnValue('MacIntel');
+      document.getElementById('a')!.focus();
+      pressKey('ArrowDown', undefined, { metaKey: true });
+      expect(activeId()).toBe('b');
+
+      platform.mockReturnValue('Win32');
+      document.getElementById('a')!.focus();
+      pressKey('ArrowDown', undefined, { metaKey: true });
+      expect(activeId()).toBe('a');
+
+      pressKey('ArrowDown', undefined, { ctrlKey: true });
+      expect(activeId()).toBe('b');
     });
   });
 
@@ -635,6 +705,26 @@ describe('keyRove', () => {
 
       expect(activeId()).toBe('8');
       expect(event.defaultPrevented).toBe(true);
+    });
+
+    it('never fires both the row and the cell move for one keypress, however the binding is spelled', () => {
+      const prev = vi.fn();
+      const items = Array.from({ length: 9 }, (_, i) => createItem(`${i}`));
+      renderList(items, {
+        containerAttrs: {
+          [KEYROVE_ATTR_COLS_LENGTH]: '3',
+          // whitespace-padded spelling of the bare code
+          [KEYROVE_ATTR_PREV_KEY]: ' ArrowLeft ',
+        },
+        options: { callbacks: { prev } },
+      });
+      document.getElementById('4')!.focus();
+
+      pressKey('ArrowLeft');
+
+      // the binding claims the key, so it moves a row up — and only that
+      expect(activeId()).toBe('1');
+      expect(prev).toHaveBeenCalledTimes(1);
     });
 
     it('falls back to linear navigation when columns is 1', () => {

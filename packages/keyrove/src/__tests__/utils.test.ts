@@ -1,4 +1,4 @@
-import { describe, it, expect, afterEach } from 'vitest';
+import { describe, it, expect, afterEach, vi } from 'vitest';
 import {
   findFirst,
   findGridNeighbor,
@@ -6,9 +6,11 @@ import {
   findNext,
   findPageTarget,
   findPrev,
+  matchesCombo,
   parseAttributeInt,
   toggleTabIndex,
 } from '../utils';
+import type { KeyRoveEvent } from '../types';
 
 const SKIP = 'data-skip';
 
@@ -345,6 +347,136 @@ describe('findPageTarget', () => {
         skipAttribute: SKIP,
       }),
     ).toBeNull();
+  });
+});
+
+describe('matchesCombo', () => {
+  type Modifiers = Pick<
+    KeyRoveEvent,
+    'ctrlKey' | 'altKey' | 'shiftKey' | 'metaKey'
+  >;
+
+  const keyEvent = (code: string, modifiers: Modifiers = {}) => ({
+    code,
+    target: null,
+    currentTarget: null,
+    preventDefault: () => {},
+    ...modifiers,
+  });
+
+  const mockPlatform = (platform: string) =>
+    vi.spyOn(navigator, 'platform', 'get').mockReturnValue(platform);
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it('matches a bare code with no modifiers held', () => {
+    expect(matchesCombo(keyEvent('ArrowDown'), 'ArrowDown')).toBe(true);
+  });
+
+  it('rejects a bare code when any modifier is held', () => {
+    expect(
+      matchesCombo(keyEvent('ArrowDown', { ctrlKey: true }), 'ArrowDown'),
+    ).toBe(false);
+    expect(
+      matchesCombo(keyEvent('ArrowDown', { altKey: true }), 'ArrowDown'),
+    ).toBe(false);
+    expect(
+      matchesCombo(keyEvent('ArrowDown', { shiftKey: true }), 'ArrowDown'),
+    ).toBe(false);
+    expect(
+      matchesCombo(keyEvent('ArrowDown', { metaKey: true }), 'ArrowDown'),
+    ).toBe(false);
+  });
+
+  it('rejects a different code', () => {
+    expect(matchesCombo(keyEvent('ArrowUp'), 'ArrowDown')).toBe(false);
+  });
+
+  it('requires every declared modifier', () => {
+    expect(
+      matchesCombo(keyEvent('ArrowDown', { ctrlKey: true }), 'ctrl+ArrowDown'),
+    ).toBe(true);
+    expect(matchesCombo(keyEvent('ArrowDown'), 'ctrl+ArrowDown')).toBe(false);
+  });
+
+  it('forbids undeclared modifiers', () => {
+    expect(
+      matchesCombo(
+        keyEvent('ArrowDown', { ctrlKey: true, shiftKey: true }),
+        'ctrl+ArrowDown',
+      ),
+    ).toBe(false);
+  });
+
+  it('matches multiple declared modifiers in any order', () => {
+    const event = keyEvent('KeyS', { ctrlKey: true, shiftKey: true });
+
+    expect(matchesCombo(event, 'ctrl+shift+KeyS')).toBe(true);
+    expect(matchesCombo(event, 'shift+ctrl+KeyS')).toBe(true);
+  });
+
+  it('treats modifier case as insignificant', () => {
+    expect(
+      matchesCombo(keyEvent('Home', { altKey: true }), 'ALT+Home'),
+    ).toBe(true);
+  });
+
+  it('matches the code case-sensitively', () => {
+    expect(matchesCombo(keyEvent('KeyA'), 'keya')).toBe(false);
+  });
+
+  it('never matches an unknown modifier', () => {
+    expect(
+      matchesCombo(keyEvent('KeyA', { ctrlKey: true }), 'hyper+KeyA'),
+    ).toBe(false);
+  });
+
+  it('never matches inherited object property names as modifiers', () => {
+    expect(matchesCombo(keyEvent('ArrowDown'), 'constructor+ArrowDown')).toBe(
+      false,
+    );
+    expect(matchesCombo(keyEvent('ArrowDown'), '__proto__+ArrowDown')).toBe(
+      false,
+    );
+  });
+
+  it('never matches a combo with an empty code, like "ctrl++"', () => {
+    expect(
+      matchesCombo(keyEvent('Equal', { ctrlKey: true }), 'ctrl++'),
+    ).toBe(false);
+    expect(matchesCombo(keyEvent('Equal', { ctrlKey: true }), 'ctrl + +')).toBe(
+      false,
+    );
+  });
+
+  it('tolerates whitespace around combo parts', () => {
+    expect(
+      matchesCombo(keyEvent('ArrowLeft', { ctrlKey: true }), ' ctrl + ArrowLeft '),
+    ).toBe(true);
+  });
+
+  it('resolves mod to meta on Apple platforms', () => {
+    mockPlatform('MacIntel');
+
+    expect(
+      matchesCombo(keyEvent('KeyK', { metaKey: true }), 'mod+KeyK'),
+    ).toBe(true);
+    expect(
+      matchesCombo(keyEvent('KeyK', { ctrlKey: true }), 'mod+KeyK'),
+    ).toBe(false);
+  });
+
+  it('resolves mod to ctrl elsewhere', () => {
+    mockPlatform('Win32');
+
+    expect(
+      matchesCombo(keyEvent('KeyK', { ctrlKey: true }), 'mod+KeyK'),
+    ).toBe(true);
+    expect(
+      matchesCombo(keyEvent('KeyK', { metaKey: true }), 'mod+KeyK'),
+    ).toBe(false);
   });
 });
 

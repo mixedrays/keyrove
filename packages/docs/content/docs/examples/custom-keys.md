@@ -1,6 +1,6 @@
 ---
 title: Custom keys
-description: Arrows are the default, not the rule — rebinding the next and previous keys to any KeyboardEvent.code.
+description: Arrows are the default, not the rule — rebinding the next and previous keys to any key combo.
 group: Examples
 order: 14
 ---
@@ -8,7 +8,8 @@ order: 14
 Nothing about keyrove is tied to the arrow keys. The keys that move focus are
 attributes on the root, and `ArrowDown` / `ArrowUp` are simply what they fall
 back to. `data-keyrove-next-key` and `data-keyrove-prev-key` rebind them to any
-[`KeyboardEvent.code`](https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/code).
+[`KeyboardEvent.code`](https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/code),
+with or without [modifiers](#modifiers).
 
 A toolbar, for one, navigates left-to-right rather than up-and-down.
 <kbd class="kbd">←</kbd> <kbd class="kbd">→</kbd> move between the buttons here;
@@ -27,8 +28,9 @@ identical whatever the group answers to.
 
 ## Any key, not a shortlist
 
-The attribute value is passed straight through to a comparison against the
-event's `code`, so there is no set of supported keys to choose from:
+The attribute value is a combo — an optional set of modifiers and a
+`KeyboardEvent.code` — matched against the event on every press, so there is no
+set of supported keys to choose from:
 
 ```html
 <!-- vim-style, for a results list in a keyboard-first app -->
@@ -49,6 +51,24 @@ event's `code`, so there is no set of supported keys to choose from:
 
 Each root is read on its own, so two groups on the same page can answer to
 completely different keys with one delegated listener serving both.
+
+## Modifiers
+
+Prefix the code with any of `mod+`, `ctrl+`, `alt+`, `shift+`, `meta+` — in any
+order and any case. `mod` resolves to `meta` on Apple platforms and `ctrl`
+elsewhere:
+
+```html
+<ul data-keyrove-next-key="ctrl+ArrowRight" data-keyrove-prev-key="ctrl+ArrowLeft">
+  …
+</ul>
+```
+
+Matching is exact in both directions: a declared modifier is required, an
+undeclared one is forbidden. A bare `KeyJ` binding means "J with nothing else
+held", so <kbd class="kbd">Ctrl</kbd>+<kbd class="kbd">J</kbd> keeps its
+browser default — and a `ctrl+KeyJ` binding never fires on a plain
+<kbd class="kbd">J</kbd>.
 
 ## Codes, not keys
 
@@ -92,9 +112,8 @@ row while <kbd class="kbd">←</kbd> <kbd class="kbd">→</kbd> still move a cel
 
 ## Two bindings worth avoiding
 
-The comparison is on the code alone — no check on what the event's target is,
-and no modifier awareness — which makes two choices misbehave in ways worth
-knowing before you make them.
+The comparison never checks what the event's target is, which makes two choices
+misbehave in ways worth knowing before you make them.
 
 **A printable key, in a group that contains a text field.** `preventDefault()`
 runs whichever element the keydown came from, so with `KeyJ` bound, typing "j"
@@ -103,7 +122,10 @@ letter bindings for groups made of buttons and links, or scope the root so the
 field sits outside it.
 
 **`Tab` itself.** Binding `data-keyrove-next-key="Tab"` does work, and it costs
-you the browser's own tab navigation for the whole group — including the way out
-of it. If what you want is <kbd class="kbd">Tab</kbd> moving past a group rather
-than through it, [roving tabindex](/docs/examples/roving-tabindex) is the
-mechanism for that, and it leaves the key alone.
+you the browser's own forward tab navigation for the whole group.
+<kbd class="kbd">Shift</kbd>+<kbd class="kbd">Tab</kbd> is a different combo,
+so it stays native and remains the way out — but a group where the two
+<kbd class="kbd">Tab</kbd> directions behave that differently is confusing. If
+what you want is <kbd class="kbd">Tab</kbd> moving past a group rather than
+through it, [roving tabindex](/docs/examples/roving-tabindex) is the mechanism
+for that, and it leaves the key alone.

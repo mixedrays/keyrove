@@ -55,13 +55,20 @@ The forward and back keys are configurable; the rest are fixed.
 The first two rows show what a group answers to with no configuration. Set
 `data-keyrove-next-key` or `data-keyrove-prev-key` on the root and that key
 takes over the row, while the default it replaced goes back to its browser
-behaviour — see [custom keys](/docs/examples/custom-keys). The value is any
-[`KeyboardEvent.code`](https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/code)
-and is compared literally: no target check, no modifier handling, so `KeyJ`
-matches whether or not <kbd class="kbd">Ctrl</kbd> is held.
+behaviour — see [custom keys](/docs/examples/custom-keys). The value is a
+combo: zero or more of `mod+` / `ctrl+` / `alt+` / `shift+` / `meta+` (any
+order, any case) followed by a
+[`KeyboardEvent.code`](https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/code).
+`mod` resolves to `meta` on Apple platforms and `ctrl` elsewhere. Matching is
+exact — declared modifiers are required, undeclared ones are forbidden — so
+`KeyJ` matches only while <kbd class="kbd">Ctrl</kbd> is _not_ held, and
+shortcuts like <kbd class="kbd">Ctrl</kbd>+<kbd class="kbd">ArrowDown</kbd>
+keep their browser defaults inside a group bound to the bare arrows. The fixed
+keys are bare combos too: a modified <kbd class="kbd">Home</kbd> or
+<kbd class="kbd">PageDown</kbd> is left alone.
 
-The two `Arrow` cell moves in a grid stand down if that same code has been bound
-as the next or previous key, so one keypress never fires both.
+The two `Arrow` cell moves in a grid stand down when the press already matched
+the next or previous binding, so one keypress never fires both.
 
 `Home`, `End`, `PageUp`, and `PageDown` only act once focus is genuinely inside
 an item: they move _within_ a group rather than into one. The next and previous
@@ -93,6 +100,31 @@ keyRove(e, {
 Every callback is optional and receives `{ focused }` — the element that now has
 focus. In a grid, a left or right cell move reports as `prev` and `next`.
 
+## matchesCombo(event, combo)
+
+Whether a keydown event matches a combo — the matcher behind every key check
+keyrove itself makes, exported for your own handlers.
+
+```ts
+import { matchesCombo } from '@mixedrays/keyrove';
+
+list.addEventListener('keydown', (e) => {
+  if (matchesCombo(e, 'Escape')) closePanel();
+  if (matchesCombo(e, 'mod+KeyK')) openPalette();
+});
+```
+
+A combo is zero or more of `mod+` / `ctrl+` / `alt+` / `shift+` / `meta+` (any
+order, any case) followed by a `KeyboardEvent.code`; whitespace around the
+parts is ignored. `mod` resolves to `meta` on Apple platforms and `ctrl`
+elsewhere. Matching is exact: every declared modifier must be held and every
+undeclared one must not be, so `'Escape'` above rejects
+<kbd class="kbd">Ctrl</kbd>+<kbd class="kbd">Escape</kbd>. The code part is
+matched case-sensitively against `e.code` — the physical key, unaffected by
+keyboard layout. No `code` value contains a `+` (the plus key itself is `Equal`
+or `NumpadAdd`), so the separator is unambiguous; a combo that names an unknown
+modifier or ends in a dangling `+` matches nothing.
+
 ## toggleTabIndex({ root, isActive })
 
 Sets `tabindex` to `0` or `-1` on a single element.
@@ -121,8 +153,8 @@ guarding at the call site.
 | `data-keyrove-root`            | root | —           | Marks the navigation root explicitly, instead of using the listener's element. |
 | `data-keyrove-cols-length`     | root | `1`         | A value above 1 switches the group to grid navigation.                         |
 | `data-keyrove-page-length`     | root | `10`        | Items per page jump — whole rows in a grid.                                    |
-| `data-keyrove-next-key`        | root | `ArrowDown` | Any `KeyboardEvent.code` that should move forward.                             |
-| `data-keyrove-prev-key`        | root | `ArrowUp`   | Any `KeyboardEvent.code` that should move back.                                |
+| `data-keyrove-next-key`        | root | `ArrowDown` | Combo that moves forward, e.g. `KeyJ` or `ctrl+ArrowRight`.                     |
+| `data-keyrove-prev-key`        | root | `ArrowUp`   | Combo that moves back.                                                          |
 
 Root attributes are read on every keypress rather than cached, so changing one
 takes effect immediately — see
@@ -172,16 +204,25 @@ type KeyRoveEvent = {
   target: EventTarget | null;
   currentTarget: EventTarget | null;
   preventDefault: () => void;
+  ctrlKey?: boolean;
+  altKey?: boolean;
+  shiftKey?: boolean;
+  metaKey?: boolean;
 };
 ```
+
+The modifier flags are optional so a hand-built event object still qualifies,
+and a missing flag reads as "not held". Native and framework events carry all
+four; if you bridge events through an object of your own, forward them — an
+object without them matches every binding as though no modifier were pressed.
 
 ### KeyRoveCode
 
 A `KeyboardEvent.code`. The union arm keeps it assignable from a plain `string`
-— which is how both the DOM and React type `code`, and what any
-`data-keyrove-*-key` value is — while editors still complete the codes keyrove
-handles by default. It documents intent; it does not validate, and it does not
-constrain what you can bind.
+— which is how both the DOM and React type `code`, and what the code part of
+any `data-keyrove-*-key` combo is — while editors still complete the codes
+keyrove handles by default. It documents intent; it does not validate, and it
+does not constrain what you can bind.
 
 ```ts
 type KeyRoveCode =

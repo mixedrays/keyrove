@@ -143,6 +143,9 @@ these remain yours:
 There is no adapter, and none is needed. `keyRove` accepts anything with
 `code`, `target`, `currentTarget`, and `preventDefault` — which is the shape of
 a native `KeyboardEvent` and of every framework's synthetic wrapper around one.
+The modifier flags (`ctrlKey`, `altKey`, `shiftKey`, `metaKey`) are read when
+present; events carry them natively, but an object of your own that bridges
+events must forward them or every press reads as unmodified.
 
 ```tsx
 <ul onKeyDown={(e) => keyRove(e)}>

@@ -5,6 +5,7 @@ import {
   findNext,
   findPageTarget,
   findPrev,
+  matchesCombo,
   parseAttributeInt,
   toggleTabIndex,
 } from './utils.js';
@@ -166,22 +167,25 @@ export const keyRove = (e: KeyRoveEvent, { callbacks = {} }: Options = {}) => {
     callbacks[callbackKey]?.({ focused: target });
   };
 
-  if (e.code === prevCode) {
+  if (matchesCombo(e, prevCode)) {
     // In a grid, Up moves a whole row; otherwise to the previous item.
     moveFocus(isGrid ? up : prev, 'prev');
   }
 
-  if (e.code === nextCode) {
+  if (matchesCombo(e, nextCode)) {
     // In a grid, Down moves a whole row; otherwise to the next item.
     moveFocus(isGrid ? down : next, 'next');
   }
 
-  if (e.code === KEY.arrowLeft && prevCode !== KEY.arrowLeft && isGrid) {
+  // The cell moves stand down when the prev/next binding already claimed the
+  // event — gated on the same matcher, so the two can never both fire on one
+  // keypress however the binding is spelled.
+  if (isGrid && !matchesCombo(e, prevCode) && matchesCombo(e, KEY.arrowLeft)) {
     // move one cell left within the grid row
     moveFocus(left, 'prev');
   }
 
-  if (e.code === KEY.arrowRight && nextCode !== KEY.arrowRight && isGrid) {
+  if (isGrid && !matchesCombo(e, nextCode) && matchesCombo(e, KEY.arrowRight)) {
     // move one cell right within the grid row
     moveFocus(right, 'next');
   }
@@ -193,19 +197,19 @@ export const keyRove = (e: KeyRoveEvent, { callbacks = {} }: Options = {}) => {
   // four deliberately do not.
   if (!focused) return;
 
-  if (e.code === KEY.home) {
+  if (matchesCombo(e, KEY.home)) {
     moveFocus(first, 'home');
   }
 
-  if (e.code === KEY.end) {
+  if (matchesCombo(e, KEY.end)) {
     moveFocus(last, 'end');
   }
 
-  if (e.code === KEY.pageUp) {
+  if (matchesCombo(e, KEY.pageUp)) {
     moveFocus(pageUp, 'pageUp');
   }
 
-  if (e.code === KEY.pageDown) {
+  if (matchesCombo(e, KEY.pageDown)) {
     moveFocus(pageDown, 'pageDown');
   }
 };

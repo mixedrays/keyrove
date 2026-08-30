@@ -48,6 +48,12 @@ export type KeyRoveEvent = {
   target: EventTarget | null;
   currentTarget: EventTarget | null;
   preventDefault: () => void;
+  // Optional so any object with the four fields above still qualifies; a
+  // missing flag is treated as "not held" by `matchesCombo`.
+  ctrlKey?: boolean;
+  altKey?: boolean;
+  shiftKey?: boolean;
+  metaKey?: boolean;
 };
 
 /** The movements a consumer can hook into. */

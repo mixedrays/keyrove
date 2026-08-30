@@ -55,9 +55,25 @@ root — `KeyJ`/`KeyK`, `KeyW`/`KeyS`, `ArrowRight`/`ArrowLeft` for a toolbar:
 <div data-keyrove-next-key="KeyJ" data-keyrove-prev-key="KeyK">…</div>
 ```
 
+A binding is a combo: zero or more of `mod+` / `ctrl+` / `alt+` / `shift+` /
+`meta+` (any order, any case) followed by a
+[`KeyboardEvent.code`](https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/code).
+`mod` resolves to `meta` on Apple platforms and `ctrl` elsewhere. Matching is
+exact — declared modifiers are required, undeclared ones are forbidden — so a
+bare `ArrowDown` binding leaves shortcuts like <kbd>Ctrl</kbd>+<kbd>ArrowDown</kbd>
+with their browser defaults. Keys are matched on `e.code`, the physical key, so
+bindings hold across keyboard layouts. No `code` value contains a `+` — the
+plus key itself is `Equal` (or `NumpadAdd`) — so the separator is unambiguous.
+The matcher is exported as `matchesCombo(e, combo)` for your own handlers.
+
+```html
+<div data-keyrove-next-key="ctrl+ArrowRight" data-keyrove-prev-key="ctrl+ArrowLeft">…</div>
+```
+
 Anything not bound is left entirely alone, browser defaults included. `Home`,
-`End`, `PageUp` and `PageDown` are always handled; in a grid, `ArrowLeft` and
-`ArrowRight` move one cell unless you have bound them to something else.
+`End`, `PageUp` and `PageDown` are handled whenever pressed without modifiers;
+in a grid, `ArrowLeft` and `ArrowRight` move one cell unless you have bound
+them to something else.
 
 ## Tab still works
 
@@ -77,8 +93,8 @@ that <kbd>Tab</kbd> moves past rather than through.
 | `data-keyrove-root`            | root | —           | Marks the navigation root explicitly, instead of using the listener's element. |
 | `data-keyrove-cols-length`     | root | `1`         | A value above 1 switches the group to grid navigation.                         |
 | `data-keyrove-page-length`     | root | `10`        | Items per page jump — whole rows in a grid.                                    |
-| `data-keyrove-next-key`        | root | `ArrowDown` | Any `KeyboardEvent.code` that should move forward.                             |
-| `data-keyrove-prev-key`        | root | `ArrowUp`   | Any `KeyboardEvent.code` that should move back.                                |
+| `data-keyrove-next-key`        | root | `ArrowDown` | Combo that moves forward, e.g. `KeyJ` or `ctrl+ArrowRight`.                     |
+| `data-keyrove-prev-key`        | root | `ArrowUp`   | Combo that moves back.                                                          |
 
 Every attribute name is also exported as a constant (`KEYROVE_ATTR_ITEM`,
 `KEYROVE_ATTR_COLS_LENGTH`, …).
