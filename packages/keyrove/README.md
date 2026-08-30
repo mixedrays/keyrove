@@ -72,7 +72,12 @@ plus key itself is `Equal` (or `NumpadAdd`) — so the separator is unambiguous.
 The matcher is exported as `matchesCombo(e, combo)` for your own handlers.
 
 ```html
-<div data-keyrove-next-key="ctrl+ArrowRight" data-keyrove-prev-key="ctrl+ArrowLeft">…</div>
+<div
+  data-keyrove-next-key="ctrl+ArrowRight"
+  data-keyrove-prev-key="ctrl+ArrowLeft"
+>
+  …
+</div>
 ```
 
 Anything not bound is left entirely alone, browser defaults included. `Home`,
@@ -128,19 +133,19 @@ contract as `keyRove` — and `onMove` fires after a real move, exactly as
 
 ## Attributes
 
-| Attribute                      | On   | Default     | Meaning                                                                        |
-| ------------------------------ | ---- | ----------- | ------------------------------------------------------------------------------ |
-| `data-keyrove-item`            | item | —           | Marks an element as navigable.                                                 |
-| `data-keyrove-skip`            | item | —           | Passed over when moving; stays in the DOM order.                               |
-| `data-keyrove-roving-tabindex` | item | —           | Moves the `tabindex="0"` tab stop with focus.                                  |
-| `data-keyrove-root`            | root | —           | Marks the navigation root explicitly, instead of using the listener's element. |
-| `data-keyrove-cols-length`     | root | `1`         | A value above 1 switches the group to grid navigation.                         |
-| `data-keyrove-page-length`     | root | `10`        | Items per page jump — whole rows in a grid.                                    |
-| `data-keyrove-next-key`        | root | `ArrowDown` | Combo that moves forward, e.g. `KeyJ` or `ctrl+ArrowRight`.                     |
-| `data-keyrove-prev-key`        | root | `ArrowUp`   | Combo that moves back.                                                          |
-| `data-keyrove-loop`            | root | —           | Next/prev wrap past the ends of a list. Grids never wrap.                      |
+| Attribute                      | On   | Default     | Meaning                                                                                     |
+| ------------------------------ | ---- | ----------- | ------------------------------------------------------------------------------------------- |
+| `data-keyrove-item`            | item | —           | Marks an element as navigable.                                                              |
+| `data-keyrove-skip`            | item | —           | Passed over when moving; stays in the DOM order.                                            |
+| `data-keyrove-roving-tabindex` | item | —           | Moves the `tabindex="0"` tab stop with focus.                                               |
+| `data-keyrove-root`            | root | —           | Marks the navigation root explicitly, instead of using the listener's element.              |
+| `data-keyrove-cols-length`     | root | `1`         | A value above 1 switches the group to grid navigation.                                      |
+| `data-keyrove-page-length`     | root | `10`        | Items per page jump — whole rows in a grid.                                                 |
+| `data-keyrove-next-key`        | root | `ArrowDown` | Combo that moves forward, e.g. `KeyJ` or `ctrl+ArrowRight`.                                 |
+| `data-keyrove-prev-key`        | root | `ArrowUp`   | Combo that moves back.                                                                      |
+| `data-keyrove-loop`            | root | —           | Next/prev wrap past the ends of a list. Grids never wrap.                                   |
 | `data-keyrove-orientation`     | root | —           | `horizontal` maps the default keys to `ArrowRight`/`ArrowLeft`, RTL-aware. Grids ignore it. |
-| `data-keyrove-typeahead`       | item | text        | Label for type-to-focus, when the item's own text is not it.                   |
+| `data-keyrove-typeahead`       | item | text        | Label for type-to-focus, when the item's own text is not it.                                |
 
 Every attribute name is also exported as a constant (`KEYROVE_ATTR_ITEM`,
 `KEYROVE_ATTR_COLS_LENGTH`, `KEYROVE_ATTR_LOOP`, `KEYROVE_ATTR_ORIENTATION`, …).

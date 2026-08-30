@@ -66,7 +66,10 @@ order and any case. `mod` resolves to `meta` on Apple platforms and `ctrl`
 elsewhere:
 
 ```html
-<ul data-keyrove-next-key="ctrl+ArrowRight" data-keyrove-prev-key="ctrl+ArrowLeft">
+<ul
+  data-keyrove-next-key="ctrl+ArrowRight"
+  data-keyrove-prev-key="ctrl+ArrowLeft"
+>
   …
 </ul>
 ```

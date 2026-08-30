@@ -233,18 +233,18 @@ guarding at the call site.
 
 ## Attributes
 
-| Attribute                      | On   | Default     | Meaning                                                                        |
-| ------------------------------ | ---- | ----------- | ------------------------------------------------------------------------------ |
-| `data-keyrove-item`            | item | —           | Marks an element as navigable.                                                 |
-| `data-keyrove-skip`            | item | —           | Passed over when moving; stays in the DOM order.                               |
-| `data-keyrove-roving-tabindex` | item | —           | Moves the `tabindex="0"` tab stop with focus.                                  |
-| `data-keyrove-root`            | root | —           | Marks the navigation root explicitly, instead of using the listener's element. |
-| `data-keyrove-cols-length`     | root | `1`         | A value above 1 switches the group to grid navigation.                         |
-| `data-keyrove-page-length`     | root | `10`        | Items per page jump — whole rows in a grid.                                    |
-| `data-keyrove-next-key`        | root | `ArrowDown` | Combo that moves forward, e.g. `KeyJ` or `ctrl+ArrowRight`.                     |
-| `data-keyrove-prev-key`        | root | `ArrowUp`   | Combo that moves back.                                                          |
-| `data-keyrove-loop`            | root | —           | Next/prev wrap past the ends of a list. Grids never wrap.                      |
-| `data-keyrove-orientation`     | root | —           | `horizontal` maps the default keys to `ArrowRight`/`ArrowLeft`, RTL-aware.     |
+| Attribute                      | On   | Default     | Meaning                                                                                  |
+| ------------------------------ | ---- | ----------- | ---------------------------------------------------------------------------------------- |
+| `data-keyrove-item`            | item | —           | Marks an element as navigable.                                                           |
+| `data-keyrove-skip`            | item | —           | Passed over when moving; stays in the DOM order.                                         |
+| `data-keyrove-roving-tabindex` | item | —           | Moves the `tabindex="0"` tab stop with focus.                                            |
+| `data-keyrove-root`            | root | —           | Marks the navigation root explicitly, instead of using the listener's element.           |
+| `data-keyrove-cols-length`     | root | `1`         | A value above 1 switches the group to grid navigation.                                   |
+| `data-keyrove-page-length`     | root | `10`        | Items per page jump — whole rows in a grid.                                              |
+| `data-keyrove-next-key`        | root | `ArrowDown` | Combo that moves forward, e.g. `KeyJ` or `ctrl+ArrowRight`.                              |
+| `data-keyrove-prev-key`        | root | `ArrowUp`   | Combo that moves back.                                                                   |
+| `data-keyrove-loop`            | root | —           | Next/prev wrap past the ends of a list. Grids never wrap.                                |
+| `data-keyrove-orientation`     | root | —           | `horizontal` maps the default keys to `ArrowRight`/`ArrowLeft`, RTL-aware.               |
 | `data-keyrove-typeahead`       | item | text        | Label for [type-to-focus](#createtypeahead-options), when the item's own text is not it. |
 
 Root attributes are read on every keypress rather than cached, so changing one
