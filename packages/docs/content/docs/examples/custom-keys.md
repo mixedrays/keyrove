@@ -110,16 +110,15 @@ Binding a _non_-arrow pair leaves cell movement alone: with `KeyJ` and `KeyK` on
 a grid root, <kbd class="kbd">J</kbd> and <kbd class="kbd">K</kbd> move a whole
 row while <kbd class="kbd">←</kbd> <kbd class="kbd">→</kbd> still move a cell.
 
-## Two bindings worth avoiding
+## Editable elements are exempt
 
-The comparison never checks what the event's target is, which makes two choices
-misbehave in ways worth knowing before you make them.
+A key pressed inside an `input`, `textarea`, `select`, or `[contenteditable]`
+element is never handled, whatever it is bound to. Arrows and
+<kbd class="kbd">Home</kbd>/<kbd class="kbd">End</kbd> keep moving the caret,
+and a letter binding like `KeyJ` does not swallow typing "j" into a field that
+sits inside an item — navigation resumes once focus leaves the field.
 
-**A printable key, in a group that contains a text field.** `preventDefault()`
-runs whichever element the keydown came from, so with `KeyJ` bound, typing "j"
-into an input inside that root is swallowed and focus jumps instead. Reserve
-letter bindings for groups made of buttons and links, or scope the root so the
-field sits outside it.
+## A binding worth avoiding
 
 **`Tab` itself.** Binding `data-keyrove-next-key="Tab"` does work, and it costs
 you the browser's own forward tab navigation for the whole group.

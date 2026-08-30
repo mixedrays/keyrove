@@ -37,6 +37,13 @@ entirely untouched — <kbd class="kbd">Tab</kbd>,
 <kbd class="kbd">Escape</kbd> among them, which is why keyrove composes with
 native focus navigation instead of replacing it.
 
+Keys arriving from an editable target — an `input`, `textarea`, `select`, or
+`[contenteditable]` element (descendants included; a
+`contenteditable="false"` island opts back out) — are never acted on: the caret
+keeps the arrows and <kbd class="kbd">Home</kbd>/<kbd class="kbd">End</kbd>,
+and typing into a field inside an item is not swallowed by a printable-key
+binding.
+
 ### Keys
 
 The forward and back keys are configurable; the rest are fixed.

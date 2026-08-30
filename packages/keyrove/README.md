@@ -75,6 +75,11 @@ Anything not bound is left entirely alone, browser defaults included. `Home`,
 in a grid, `ArrowLeft` and `ArrowRight` move one cell unless you have bound
 them to something else.
 
+Keys pressed inside an editable element — `input`, `textarea`, `select`, or
+`[contenteditable]` — are never handled: arrows and `Home`/`End` keep moving
+the caret, and a letter binding like `KeyJ` does not swallow typing into a
+field that sits within an item.
+
 ## Tab still works
 
 keyrove moves focus with `element.focus()` and never touches <kbd>Tab</kbd>, so

@@ -60,6 +60,20 @@ const KEY = {
   pageDown: 'PageDown',
 } as const satisfies Record<string, KnownCode>;
 
+// An editable target owns the keys keyrove binds: arrows and Home/End move
+// the caret there, and printable keys type. `closest` rather than `matches`,
+// so descendants of a `contenteditable` region count as inside it — and the
+// nearest `contenteditable` attribute decides, mirroring `isContentEditable`,
+// so a `contenteditable="false"` island opts back out even inside an editable
+// region.
+const EDITABLE_SELECTOR = 'input, textarea, select, [contenteditable]';
+
+const isEditableTarget = (target: Element | null) => {
+  const editable = target?.closest?.(EDITABLE_SELECTOR);
+
+  return !!editable && editable.getAttribute('contenteditable') !== 'false';
+};
+
 const getNavElements = ({
   root,
   elementsSelector,
@@ -111,6 +125,9 @@ const getNavElements = ({
 export const keyRove = (e: KeyRoveEvent, { callbacks = {} }: Options = {}) => {
   const attributes = DEFAULT_ATTRIBUTES;
   const eventTarget = e.target as Element | null;
+
+  if (isEditableTarget(eventTarget)) return;
+
   const closestRoot = eventTarget?.closest?.(`[${attributes.root}]`);
   const root = (closestRoot || e.currentTarget) as Element | null;
 
