@@ -1,7 +1,15 @@
 # @mixedrays/keyrove
 
+[![npm](https://img.shields.io/npm/v/@mixedrays/keyrove?color=4f46e5)](https://www.npmjs.com/package/@mixedrays/keyrove)
+[![minzipped size](https://img.shields.io/bundlephobia/minzip/@mixedrays/keyrove?color=4f46e5)](https://bundlephobia.com/package/@mixedrays/keyrove)
+[![license](https://img.shields.io/npm/l/@mixedrays/keyrove?color=4f46e5)](https://github.com/mixedrays/keyrove/blob/main/LICENSE)
+
 Framework-agnostic keyboard navigation for lists and grids, driven by `data-*`
 attributes.
+
+**[Documentation](https://keyrove.pages.dev)** ·
+[API reference](https://keyrove.pages.dev/docs/api) ·
+[Examples](https://keyrove.pages.dev/docs/examples/basic)
 
 Arrow keys are the default binding, not the whole library: the keys that move
 focus are `data-*` attributes on the root, so any

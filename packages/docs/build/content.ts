@@ -37,6 +37,12 @@ export type Page = {
   group: string | null;
   /** Sort key within the group; also orders the groups, by their lowest value. */
   order: number;
+  /**
+   * Keep the page out of the index: no canonical or Open Graph tags, no
+   * sitemap entry, and an explicit `robots` meta. For pages that exist but are
+   * not destinations — the 404 body, which is served at every dead URL.
+   */
+  noindex: boolean;
 };
 
 /** A sidebar entry with no page behind it — see EXTRA_LINKS. */
@@ -112,6 +118,7 @@ const loadPage = async (relativePath: string): Promise<Page> => {
     group: readString(data, 'group') ?? null,
     order:
       typeof data.order === 'number' ? data.order : Number.MAX_SAFE_INTEGER,
+    noindex: data.noindex === true,
   };
 };
 

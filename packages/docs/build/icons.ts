@@ -76,6 +76,19 @@ const ICONS = {
   },
 
   /*
+   * The npm mark, from simple-icons. A brand mark, so — like the GitHub one
+   * below — it is not from lucide, which dropped them in v1.
+   *
+   * Drawn as a fill rather than a stroke: the glyph is a solid square with the
+   * wordmark knocked out of it, which is what makes it read as npm at 16px.
+   */
+  npm: {
+    viewBox: '0 0 24 24',
+    strokeWidth: null,
+    body: '<path fill="currentColor" d="M1.763 0C.786 0 0 .786 0 1.763v20.474C0 23.214.786 24 1.763 24h20.474c.977 0 1.763-.786 1.763-1.763V1.763C24 .786 23.214 0 22.237 0zM5.13 5.323l13.837.019-.009 13.836h-3.464l.01-10.382h-3.456L12.04 19.17H5.113z" />',
+  },
+
+  /*
    * The GitHub mark, from svgrepo.com/show/504388. Lucide dropped brand marks
    * in v1, so this is the one icon on the site that is not from the set.
    *

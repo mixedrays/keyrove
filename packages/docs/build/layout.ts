@@ -85,6 +85,10 @@ const renderHeader = (resolveHref: HrefResolver, page: Page) => {
             ${link(resolveHref('/docs/examples/basic'), `${icon('grid', 'size-4')}Examples`, 'header-link')}
             ${link(resolveHref('/docs/api'), `${icon('braces', 'size-4')}API`, 'header-link')}
             ${link(META.repoUrl, `${icon('github', 'size-4')}GitHub`, 'header-link')}
+            <!-- A hair smaller than its neighbours: the npm mark is a solid
+                 block where the rest of the set is drawn in outline, so at a
+                 matching size it reads heavier than everything beside it. -->
+            ${link(META.npmUrl, `${icon('npm', 'size-3.5')}npm`, 'header-link')}
           </nav>
           <!-- The nav is hidden on narrow screens, so the repo keeps an
                icon-only stop in the header there rather than dropping out of
@@ -232,6 +236,16 @@ const renderDocsBody = ({
   resolveHref,
 }: PageRender) => {
   const index = readingOrder.findIndex((entry) => entry.route === page.route);
+  // A page outside the sidebar — the 404 — has no siblings to page between,
+  // and index -1 would otherwise offer the first page as its "next".
+  const pager =
+    index === -1
+      ? ''
+      : renderPager(
+          readingOrder[index - 1],
+          readingOrder[index + 1],
+          resolveHref,
+        );
 
   return `${renderHeader(resolveHref, page)}
     <div class="docs-shell">
@@ -242,7 +256,7 @@ const renderDocsBody = ({
             ${page.description ? `<p class="lead">${escapeHtml(page.description)}</p>` : ''}
             ${html}
           </div>
-          ${renderPager(readingOrder[index - 1], readingOrder[index + 1], resolveHref)}
+          ${pager}
         </main>
         ${renderToc(headings, page, resolveHref)}
     </div>
@@ -255,6 +269,63 @@ const renderLandingBody = ({ page, html, resolveHref }: PageRender) =>
       ${html}
     </main>
     ${renderFooter()}`;
+
+/**
+ * The social card, reused by every page: 1200x630, served from `public/`.
+ *
+ * One image rather than one per page — the card carries the library's name and
+ * what it does, which is what an unfurled link needs to say whichever page was
+ * shared.
+ */
+const OG_IMAGE = {
+  path: '/og.png',
+  width: 1200,
+  height: 630,
+  alt: 'keyrove — framework-agnostic keyboard navigation for lists and grids.',
+} as const;
+
+const meta = (attribute: 'name' | 'property', key: string, content: string) =>
+  `<meta ${attribute}="${key}" content="${escapeHtml(content)}" />`;
+
+/**
+ * What a crawler and a link unfurler need: which URL is the canonical one, and
+ * what to show when the page is shared.
+ *
+ * Every route has a `.md` twin at a sibling path, so which of the two is the
+ * indexable one has to be said outright rather than left to be guessed. A page
+ * marked `noindex` skips all of it and says so instead — it is served at every
+ * dead URL, so it has no canonical URL of its own to claim.
+ */
+const renderIndexingTags = (
+  { page, resolveHref }: PageRender,
+  title: string,
+) => {
+  if (page.noindex) return [meta('name', 'robots', 'noindex, follow')];
+
+  const url = `${META.siteUrl}${resolveHref(routeToPath(page.route))}`;
+  const image = `${META.siteUrl}${resolveHref(OG_IMAGE.path)}`;
+
+  return [
+    `<link rel="canonical" href="${escapeHtml(url)}" />`,
+    meta(
+      'property',
+      'og:type',
+      page.layout === 'landing' ? 'website' : 'article',
+    ),
+    meta('property', 'og:site_name', 'keyrove'),
+    meta('property', 'og:title', title),
+    meta('property', 'og:description', page.description),
+    meta('property', 'og:url', url),
+    meta('property', 'og:image', image),
+    meta('property', 'og:image:width', String(OG_IMAGE.width)),
+    meta('property', 'og:image:height', String(OG_IMAGE.height)),
+    meta('property', 'og:image:alt', OG_IMAGE.alt),
+    meta('name', 'twitter:card', 'summary_large_image'),
+    meta('name', 'twitter:title', title),
+    meta('name', 'twitter:description', page.description),
+    meta('name', 'twitter:image', image),
+  ];
+};
 
 /** Stamps one page out of the built shell. */
 export const renderPage = (template: string, render: PageRender) => {
@@ -281,6 +352,7 @@ export const renderPage = (template: string, render: PageRender) => {
     `<title>${escapeHtml(title)}</title>`,
     `<meta name="description" content="${escapeHtml(page.description)}" />`,
     `<link rel="icon" href="${faviconDataUri}" />`,
+    ...renderIndexingTags(render, title),
   ].join('\n    ');
 
   return template.replace(SLOTS.head, head).replace(SLOTS.body, body);
