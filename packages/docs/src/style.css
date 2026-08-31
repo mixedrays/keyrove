@@ -158,6 +158,34 @@
     @apply min-w-0 py-10;
   }
 
+  /*
+   * The page's own source links, between the title and the lead. A row rather
+   * than a column: they used to be stacked at the foot of the "On this page"
+   * rail, which is hidden below `xl`, so this is the width where they have to
+   * wrap instead.
+   */
+  .page-actions {
+    @apply my-4 flex flex-wrap items-center gap-x-4 gap-y-1.5;
+  }
+
+  /* Rendered inside the prose, so the link half has to out-specify the generic
+     prose link rule — the same escalation the heading anchors make. The button
+     is dressed as its neighbours so the three read as one set. */
+  .page-action,
+  .markdown a.page-action {
+    @apply inline-flex cursor-pointer items-center gap-1.5 text-sm text-zinc-500 no-underline hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100;
+  }
+
+  /* The rule the labels are wrapped for: underlining the control itself would
+     draw the line under its icon too. */
+  .page-action span {
+    @apply underline decoration-zinc-300 underline-offset-4 dark:decoration-zinc-600;
+  }
+
+  .page-action:hover span {
+    @apply decoration-zinc-500 dark:decoration-zinc-400;
+  }
+
   /* ---------- on this page ---------- */
 
   .toc {
@@ -183,14 +211,6 @@
 
   .toc-link[data-active] {
     @apply font-medium text-indigo-600 dark:text-indigo-400;
-  }
-
-  .toc-actions {
-    @apply mt-6 flex flex-col items-start gap-2 border-t border-zinc-200 pt-4 dark:border-zinc-800;
-  }
-
-  .toc-action {
-    @apply inline-flex cursor-pointer items-center gap-2 text-xs text-zinc-500 no-underline hover:text-zinc-900 dark:text-zinc-500 dark:hover:text-zinc-100;
   }
 
   /*

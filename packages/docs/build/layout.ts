@@ -152,41 +152,49 @@ const renderSidebar = (
         </aside>`;
 };
 
-const renderToc = (
-  headings: Heading[],
-  page: Page,
-  resolveHref: HrefResolver,
-) => {
-  const markdownHref = resolveHref(`${routeToPath(page.route)}.md`);
-  const sourceHref = `${SOURCE_BASE}/${page.route === '' ? 'index' : page.route}.md`;
-
-  const list =
-    headings.length === 0
-      ? ''
-      : `<p class="toc-heading">On this page</p>
-          <ul class="toc-list">
-            ${headings
-              .map(
-                (heading) =>
-                  `<li><a href="#${heading.id}" class="toc-link" data-toc-link data-level="${heading.level}">${escapeHtml(heading.text)}</a></li>`,
-              )
-              .join('\n            ')}
-          </ul>`;
+const renderToc = (headings: Heading[]) => {
+  // Nothing to list on a page with no headings, and the rail carries nothing
+  // else, so it is left out of the markup entirely rather than sitting empty.
+  if (headings.length === 0) return '';
 
   return `<aside class="toc">
           <div class="toc-inner">
-            ${list}
-            <div class="toc-actions">
-              ${link(markdownHref, `${icon('markdown', 'size-3.5')}View as Markdown`, 'toc-action')}
-              <button
-                type="button"
-                class="toc-action"
-                data-copy-markdown="${escapeHtml(markdownHref)}"
-              >${icon('copy', 'size-3.5 icon-idle')}${icon('check', 'size-3.5 icon-done')}<span data-copy-label>Copy page</span></button>
-              ${link(sourceHref, `${icon('github', 'size-3.5')}View source`, 'toc-action')}
-            </div>
+            <p class="toc-heading">On this page</p>
+            <ul class="toc-list">
+              ${headings
+                .map(
+                  (heading) =>
+                    `<li><a href="#${heading.id}" class="toc-link" data-toc-link data-level="${heading.level}">${escapeHtml(heading.text)}</a></li>`,
+                )
+                .join('\n              ')}
+            </ul>
           </div>
         </aside>`;
+};
+
+/**
+ * The page's own source, in three forms: the markdown twin, the same file on
+ * the clipboard, and the file in the repo.
+ *
+ * These sit between the title and the lead rather than at the foot of the "On
+ * this page" rail, which is hidden below `xl` — where they used to live, a
+ * narrow screen lost them along with the rail.
+ */
+const renderPageActions = (page: Page, resolveHref: HrefResolver) => {
+  const markdownHref = resolveHref(`${routeToPath(page.route)}.md`);
+  const sourceHref = `${SOURCE_BASE}/${page.route === '' ? 'index' : page.route}.md`;
+
+  // Every label is wrapped, icons are not: the underline is drawn on the span
+  // so it stops at the text instead of running under the glyph beside it.
+  return `<div class="page-actions">
+              ${link(markdownHref, `${icon('markdown', 'size-3.5')}<span>View as Markdown</span>`, 'page-action')}
+              <button
+                type="button"
+                class="page-action"
+                data-copy-markdown="${escapeHtml(markdownHref)}"
+              >${icon('copy', 'size-3.5 icon-idle')}${icon('check', 'size-3.5 icon-done')}<span data-copy-label>Copy page</span></button>
+              ${link(sourceHref, `${icon('github', 'size-3.5')}<span>View source</span>`, 'page-action')}
+            </div>`;
 };
 
 const renderPager = (
@@ -253,12 +261,13 @@ const renderDocsBody = ({
         <main class="docs-main">
           <div class="markdown">
             <h1>${escapeHtml(page.title)}</h1>
+            ${renderPageActions(page, resolveHref)}
             ${page.description ? `<p class="lead">${escapeHtml(page.description)}</p>` : ''}
             ${html}
           </div>
           ${pager}
         </main>
-        ${renderToc(headings, page, resolveHref)}
+        ${renderToc(headings)}
     </div>
     ${renderFooter()}`;
 };
