@@ -1,0 +1,49 @@
+name: Deploy docs
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# A newer commit supersedes an in-flight deploy, but never cancel a run that is
+# already uploading — that is what would leave the site half-published.
+concurrency:
+  group: deploy-docs
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: docs
+      url: ${{ steps.deploy.outputs.deployment-url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      # Cloudflare Pages serves the site from the root of its domain, so the
+      # default DOCS_BASE of `/` is already right — unlike a GitHub Pages
+      # project site, which would need `/keyrove/`.
+      - run: pnpm build
+
+      - name: Deploy to Cloudflare Pages
+        id: deploy
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          # `--branch` must match the project's production branch for this to
+          # publish to the live domain rather than to a preview URL.
+          command: >-
+            pages deploy packages/docs/dist
+            --project-name=keyrove
+            --branch=main

@@ -1,8 +1,8 @@
 ---
 title: API reference
 description: Every export in the package — the handler, the helper, the key bindings, the attributes, and the types.
-group: Reference
-order: 20
+group: Guide
+order: 3
 ---
 
 ## keyRove(event, options?)

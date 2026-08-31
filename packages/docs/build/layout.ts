@@ -1,6 +1,7 @@
 import type { NavGroup, Page } from './content.ts';
 import { faviconDataUri, icon } from './icons.ts';
 import type { Heading } from './markdown.ts';
+import { META } from './meta.ts';
 
 /**
  * The HTML around a rendered markdown body: header, sidebar, "On this page"
@@ -11,10 +12,8 @@ import type { Heading } from './markdown.ts';
  * markup for crawlers and for anyone reading with scripting off.
  */
 
-export const GITHUB_URL = 'https://github.com/mixedrays/keyrove';
-
 /** Where the source markdown lives, for the "View source" link. */
-const SOURCE_BASE = `${GITHUB_URL}/blob/main/packages/docs/content`;
+const SOURCE_BASE = `${META.repoUrl}/blob/main/packages/docs/content`;
 
 /**
  * Placeholders the shell in index.html reserves.
@@ -85,12 +84,12 @@ const renderHeader = (resolveHref: HrefResolver, page: Page) => {
             ${link(resolveHref('/docs/introduction'), `${icon('book', 'size-4')}Docs`, 'header-link')}
             ${link(resolveHref('/docs/examples/basic'), `${icon('grid', 'size-4')}Examples`, 'header-link')}
             ${link(resolveHref('/docs/api'), `${icon('braces', 'size-4')}API`, 'header-link')}
-            ${link(GITHUB_URL, `${icon('github', 'size-4')}GitHub`, 'header-link')}
+            ${link(META.repoUrl, `${icon('github', 'size-4')}GitHub`, 'header-link')}
           </nav>
           <!-- The nav is hidden on narrow screens, so the repo keeps an
                icon-only stop in the header there rather than dropping out of
                it entirely. -->
-          ${link(GITHUB_URL, icon('github', 'size-4'), 'icon-button sm:hidden', ' aria-label="keyrove on GitHub"')}
+          ${link(META.repoUrl, icon('github', 'size-4'), 'icon-button sm:hidden', ' aria-label="keyrove on GitHub"')}
           <!-- Both glyphs ship; style.css shows one per theme. Picking in
                script would mean an empty button until the bundle ran, and the
                theme is not known until the inline head script has run anyway. -->
@@ -111,24 +110,34 @@ const renderSidebar = (
   resolveHref: HrefResolver,
 ) => {
   const groups = nav
-    .map(
-      (group) => `<div class="sidebar-group">
+    .map((group) => {
+      // Pages first, then whatever the group carries that is not one — the
+      // generated llms.txt, which has no route to mark as current.
+      const items = [
+        ...group.pages.map((page) =>
+          link(
+            resolveHref(routeToPath(page.route)),
+            escapeHtml(page.title),
+            'sidebar-link',
+            page.route === current.route ? ' aria-current="page"' : '',
+          ),
+        ),
+        ...group.links.map((entry) =>
+          link(
+            resolveHref(entry.href),
+            escapeHtml(entry.label),
+            'sidebar-link',
+          ),
+        ),
+      ];
+
+      return `<div class="sidebar-group">
             <p class="sidebar-heading">${escapeHtml(group.label)}</p>
             <ul>
-              ${group.pages
-                .map((page) => {
-                  const active = page.route === current.route;
-                  return `<li>${link(
-                    resolveHref(routeToPath(page.route)),
-                    escapeHtml(page.title),
-                    'sidebar-link',
-                    active ? ' aria-current="page"' : '',
-                  )}</li>`;
-                })
-                .join('\n              ')}
+              ${items.map((item) => `<li>${item}</li>`).join('\n              ')}
             </ul>
-          </div>`,
-    )
+          </div>`;
+    })
     .join('\n          ');
 
   return `<div class="sidebar-backdrop" data-sidebar-close hidden></div>
@@ -201,7 +210,7 @@ const renderPager = (
 const renderFooter = () =>
   `<footer class="site-footer">
       MIT licensed &middot;
-      <a href="${GITHUB_URL}" class="link">github.com/mixedrays/keyrove</a>
+      <a href="${META.repoUrl}" class="link">${META.repoLabel}</a>
     </footer>`;
 
 export type PageRender = {
