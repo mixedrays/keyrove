@@ -15,7 +15,13 @@ import { expandDemos, loadDemos, type Demos } from './build/demos.ts';
 import { renderMarkdown } from './build/markdown.ts';
 import { createHrefResolver, renderPage, routeToPath } from './build/layout.ts';
 import { expandMeta } from './build/meta.ts';
-import { toLlmsTxt, toMarkdown, toMarkdownPath } from './build/plaintext.ts';
+import {
+  toLlmsTxt,
+  toMarkdown,
+  toMarkdownPath,
+  toRobotsTxt,
+  toSitemap,
+} from './build/plaintext.ts';
 
 /**
  * Builds the site out of `content/**\/*.md`.
@@ -30,7 +36,12 @@ import { toLlmsTxt, toMarkdown, toMarkdownPath } from './build/plaintext.ts';
  * makes every URL on the site work with `.md` appended.
  */
 
-const LLMS_TXT = 'llms.txt';
+/**
+ * Cloudflare Pages looks for exactly this filename on an unmatched route.
+ * Without it every dead URL answers 200 with the landing page — a soft 404,
+ * and the same content indexed under every wrong address.
+ */
+const NOT_FOUND_ROUTE = '404';
 
 type Site = {
   pages: Page[];
@@ -40,6 +51,32 @@ type Site = {
   byRoute: Map<string, Page>;
   /** Keyed by the emitted path, e.g. `docs/api.md`. */
   byMarkdownPath: Map<string, Page>;
+};
+
+type Generated = { file: string; type: string; body: string };
+
+/**
+ * The files the site emits that are not pages.
+ *
+ * Listed once so the dev middleware serves exactly what the build writes —
+ * these used to be a special case in each, and llms.txt was the only one.
+ */
+const toGenerated = (site: Site, base: string): Generated[] => {
+  const landing = site.pages.find((page) => page.layout === 'landing');
+
+  return [
+    {
+      file: 'llms.txt',
+      type: 'text/plain',
+      body: toLlmsTxt(landing, site.nav, base),
+    },
+    {
+      file: 'sitemap.xml',
+      type: 'application/xml',
+      body: toSitemap(site.pages, base),
+    },
+    { file: 'robots.txt', type: 'text/plain', body: toRobotsTxt(base) },
+  ];
 };
 
 const loadSite = async (): Promise<Site> => {
@@ -100,13 +137,14 @@ export const keyroveDocs = (): Plugin => {
   };
 
   const serveDev = async (server: ViteDevServer, url: string) => {
-    const { byRoute, byMarkdownPath, nav, pages, demos } = await getSite();
+    const site = await getSite();
+    const { byRoute, byMarkdownPath, demos } = site;
     const route = toRoute(url);
 
-    if (route === LLMS_TXT) {
-      const landing = pages.find((page) => page.layout === 'landing');
-      return { type: 'text/plain', body: toLlmsTxt(landing, nav, base) };
-    }
+    const generated = toGenerated(site, base).find(
+      (entry) => entry.file === route,
+    );
+    if (generated) return generated;
 
     const markdownPage = byMarkdownPath.get(route);
     if (markdownPage) {
@@ -171,7 +209,8 @@ export const keyroveDocs = (): Plugin => {
     async closeBundle() {
       const shellPath = path.join(outDir, 'index.html');
       const shell = await readFile(shellPath, 'utf8');
-      const { pages, nav, demos } = await getSite();
+      const site = await getSite();
+      const { pages, demos } = site;
 
       const write = async (file: string, body: string) => {
         const target = path.join(outDir, file);
@@ -191,11 +230,24 @@ export const keyroveDocs = (): Plugin => {
         }),
       );
 
-      const landing = pages.find((page) => page.layout === 'landing');
-      await write(LLMS_TXT, toLlmsTxt(landing, nav, base));
+      // The same rendered page as `/404`, at the filename Pages looks for.
+      const notFound = pages.find((page) => page.route === NOT_FOUND_ROUTE);
+      if (!notFound) {
+        throw new Error(
+          `[docs] content/${NOT_FOUND_ROUTE}.md is missing; Pages needs a ${NOT_FOUND_ROUTE}.html to answer dead URLs.`,
+        );
+      }
+      await write(`${NOT_FOUND_ROUTE}.html`, await render(notFound, shell));
+
+      const generated = toGenerated(site, base);
+      await Promise.all(
+        generated.map((entry) => write(entry.file, entry.body)),
+      );
 
       this.info(
-        `stamped ${pages.length} pages, their .md twins, and ${LLMS_TXT}`,
+        `stamped ${pages.length} pages, their .md twins, ${NOT_FOUND_ROUTE}.html, and ${generated
+          .map((entry) => entry.file)
+          .join(', ')}`,
       );
     },
   };

@@ -1,25 +1,17 @@
 import type { NavGroup, Page } from './content.ts';
 import { expandDemos, type Demos } from './demos.ts';
 import { routeToPath } from './layout.ts';
-import { expandMeta } from './meta.ts';
+import { expandMeta, META } from './meta.ts';
 
 /**
- * The machine-readable half of the site.
+ * The machine-readable half of the site: the markdown twins, llms.txt, and the
+ * two files crawlers look for.
  *
  * Every page is served twice: as HTML at `/docs/api`, and as markdown at
  * `/docs/api.md`. The markdown is not the raw source file — frontmatter is
  * site plumbing, so it is replaced by the title and description it carried,
  * leaving a document that stands on its own when fetched in isolation.
  */
-
-/**
- * Absolute origin for the links in llms.txt, e.g. `https://keyrove.dev`.
- *
- * The convention calls for absolute URLs, but the site does not know where it
- * is deployed; with this unset the links stay root-relative, which still
- * resolves for anything fetching llms.txt from the site itself.
- */
-const SITE_URL = (process.env.DOCS_SITE_URL ?? '').replace(/\/$/, '');
 
 /**
  * A page as standalone markdown.
@@ -51,7 +43,8 @@ export const toLlmsTxt = (
   nav: NavGroup[],
   base: string,
 ) => {
-  const url = (route: string) => `${SITE_URL}${base}${toMarkdownPath(route)}`;
+  const url = (route: string) =>
+    `${META.siteUrl}${base}${toMarkdownPath(route)}`;
 
   const sections = nav.map((group) => {
     const entries = group.pages
@@ -80,3 +73,41 @@ export const toLlmsTxt = (
 
 /** The URL a page's markdown is served at, for the "View as Markdown" link. */
 export const markdownHref = (page: Page) => `${routeToPath(page.route)}.md`;
+
+/**
+ * sitemap.xml — every indexable page, as an absolute URL.
+ *
+ * The `.md` twins are left out on purpose: they are the same document at a
+ * sibling path, and each page's canonical tag already points at the HTML.
+ */
+export const toSitemap = (pages: Page[], base: string) => {
+  const urls = pages
+    .filter((page) => !page.noindex)
+    // The landing page carries no `order`, so it sorts last among the pages;
+    // in a sitemap the site root belongs at the top.
+    .sort((a, b) => Number(a.route !== '') - Number(b.route !== ''))
+    .map((page) => {
+      const path = `${base}${routeToPath(page.route).replace(/^\//, '')}`;
+      return `  <url><loc>${META.siteUrl}${path}</loc></url>`;
+    })
+    .join('\n');
+
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${urls}
+</urlset>
+`;
+};
+
+/**
+ * robots.txt — everything is crawlable, and here is the sitemap.
+ *
+ * The `.md` twins are not disallowed: they are worth reading as text, and the
+ * canonical tag on each page is what settles which of the pair is indexed.
+ */
+export const toRobotsTxt = (base: string) =>
+  `User-agent: *
+Allow: /
+
+Sitemap: ${META.siteUrl}${base}sitemap.xml
+`;

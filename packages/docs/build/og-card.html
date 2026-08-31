@@ -1,0 +1,140 @@
+<!--
+  Source for public/og.png — the social card, referenced as og:image by every
+  page and uploaded to GitHub as the repo's social preview.
+
+  Kept as HTML so the card can be edited and re-rendered rather than being an
+  unexplainable binary. To regenerate, from packages/docs:
+
+    "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" \
+      --headless --disable-gpu --hide-scrollbars --force-device-scale-factor=1 \
+      --window-size=1200,630 --screenshot=public/og.png build/og-card.html
+
+  The window size is the card size: 1200x630 is what Open Graph asks for and
+  what Twitter's summary_large_image crops from.
+-->
+<!doctype html>
+<meta charset="utf-8" />
+<style>
+  * {
+    margin: 0;
+    box-sizing: border-box;
+  }
+  html,
+  body {
+    width: 1200px;
+    height: 630px;
+  }
+  body {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 72px 80px;
+    background: #09090b;
+    background-image:
+      radial-gradient(
+        900px 420px at 88% -8%,
+        rgba(99, 102, 241, 0.28),
+        transparent 70%
+      ),
+      linear-gradient(#27272a 1px, transparent 1px),
+      linear-gradient(90deg, #27272a 1px, transparent 1px);
+    background-size:
+      auto,
+      48px 48px,
+      48px 48px;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    color: #fafafa;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wordmark {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    font-size: 34px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+  }
+  .wordmark svg {
+    width: 44px;
+    height: 44px;
+    color: #818cf8;
+  }
+  h1 {
+    font-size: 74px;
+    line-height: 1.06;
+    font-weight: 640;
+    letter-spacing: -0.035em;
+    max-width: 15ch;
+  }
+  h1 em {
+    font-style: normal;
+    color: #a5b4fc;
+  }
+  p {
+    margin-top: 26px;
+    font-size: 28px;
+    line-height: 1.45;
+    color: #a1a1aa;
+    max-width: 30ch;
+  }
+  .foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .keys {
+    display: flex;
+    gap: 12px;
+  }
+  kbd {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 62px;
+    height: 62px;
+    border-radius: 12px;
+    border: 1px solid #3f3f46;
+    border-bottom-width: 4px;
+    background: #18181b;
+    color: #d4d4d8;
+    font-size: 26px;
+    font-family: inherit;
+  }
+  kbd.on {
+    border-color: #6366f1;
+    background: #312e81;
+    color: #e0e7ff;
+  }
+  .url {
+    font-size: 25px;
+    color: #71717a;
+  }
+</style>
+<div class="wordmark">
+  <svg
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    stroke-width="1.75"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  >
+    <path
+      d="M10 8h.01M12 12h.01M14 8h.01M16 12h.01M18 8h.01M6 8h.01M7 16h10M8 12h.01"
+    />
+    <rect width="20" height="16" x="2" y="4" rx="2" />
+  </svg>
+  keyrove
+</div>
+<div>
+  <h1>Keyboard navigation, driven by <em>data attributes</em>.</h1>
+  <p>
+    Framework-agnostic focus movement for lists and grids. Zero dependencies.
+  </p>
+</div>
+<div class="foot">
+  <div class="keys">
+    <kbd>↑</kbd><kbd class="on">↓</kbd><kbd>←</kbd><kbd>→</kbd>
+  </div>
+  <span class="url">keyrove.pages.dev</span>
+</div>

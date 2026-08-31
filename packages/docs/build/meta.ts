@@ -15,6 +15,7 @@ import { fileURLToPath } from 'node:url';
  */
 
 type Manifest = {
+  name?: string;
   version?: string;
   author?: string;
   repository?: { url?: string };
@@ -39,24 +40,42 @@ const toAuthorName = (author: string) => author.replace(/\s*<.*$/, '').trim();
 
 const docs = readManifest('../package.json');
 const workspace = readManifest('../../../package.json');
+// The published library, which is the one an npm link should point at — the
+// docs package is private and its name is not a package name.
+const library = readManifest('../../keyrove/package.json');
+
+/**
+ * Where the site is deployed.
+ *
+ * Canonical tags, Open Graph, the sitemap and llms.txt all need absolute URLs,
+ * and nothing in a static build can work out its own origin. Overridable so a
+ * preview deploy describes itself rather than claiming to be production.
+ */
+const siteUrl = (
+  process.env.DOCS_SITE_URL ?? 'https://keyrove.pages.dev'
+).replace(/\/$/, '');
 
 const repoUrl = toBrowserUrl(workspace.repository?.url ?? '');
 const author = toAuthorName(workspace.author ?? '');
 const version = docs.version ?? '';
+const packageName = library.name ?? '';
 
-if (repoUrl === '' || author === '' || version === '') {
+if (repoUrl === '' || author === '' || version === '' || packageName === '') {
   throw new Error(
-    '[docs] a package.json is missing its version, repository or author.',
+    '[docs] a package.json is missing its name, version, repository or author.',
   );
 }
 
 export const META = {
   version,
+  siteUrl,
   repoUrl,
   /** The repository without its scheme, e.g. `github.com/mixedrays/keyrove`. */
   repoLabel: repoUrl.replace(/^https?:\/\//, ''),
   author,
   authorUrl: `https://github.com/${author}`,
+  packageName,
+  npmUrl: `https://www.npmjs.com/package/${packageName}`,
 } as const;
 
 /**
@@ -70,7 +89,8 @@ const PLACEHOLDER = /^<div data-about><\/div>$/gm;
 
 const renderFacts = () =>
   [
-    `- **Version** — ${META.version}`,
+    `- **Package** — [${META.packageName}](${META.npmUrl}) on npm`,
+    `- **Docs version** — ${META.version}`,
     `- **Repository** — [${META.repoLabel}](${META.repoUrl})`,
     `- **Author** — [@${META.author}](${META.authorUrl})`,
   ].join('\n');
