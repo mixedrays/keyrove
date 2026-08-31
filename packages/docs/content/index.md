@@ -27,24 +27,44 @@ pnpm add @mixedrays/keyrove
 <div class="feature-grid">
 <div class="feature">
 
-### No framework, no adapter
+### <span aria-hidden="true">🧩</span> No framework, no adapter
 
 `keyRove` takes anything shaped like a keydown event, so the same call works
-with a native listener or a React, Vue, or Svelte synthetic event.
+with a native listener or a React, Vue, or Svelte synthetic event — and the
+package ships no dependencies.
 
 </div>
 <div class="feature">
 
-### Any key, not just arrows
+### <span aria-hidden="true">⌨️</span> Any key, not just arrows
 
 `data-keyrove-next-key` and `data-keyrove-prev-key` take any
-`KeyboardEvent.code`. `ArrowDown` and `ArrowUp` are what you get for free, not
-what you are stuck with.
+`KeyboardEvent.code`, alone or in a combo like `mod+KeyJ`. `ArrowDown` and
+`ArrowUp` are what you get for free, not what you are stuck with.
 
 </div>
 <div class="feature">
 
-### Tab is left alone
+### <span aria-hidden="true">↕️</span> Lists, grids, and the keys between
+
+<kbd class="kbd">Home</kbd> / <kbd class="kbd">End</kbd> and
+<kbd class="kbd">PageUp</kbd> / <kbd class="kbd">PageDown</kbd> come with the
+list. Declare `data-keyrove-cols-length` and Up/Down move a whole row while
+Left/Right move a cell; add `data-keyrove-loop` and a list wraps at its ends.
+
+</div>
+<div class="feature">
+
+### <span aria-hidden="true">↔️</span> Horizontal groups read as they should
+
+`data-keyrove-orientation="horizontal"` points the defaults at Left/Right
+without spelling out a combo — and flips the pair under RTL, resolved from the
+nearest `dir`, so a toolbar moves "forward" the way its text does.
+
+</div>
+<div class="feature">
+
+### <span aria-hidden="true">🎯</span> Tab is left alone
 
 Focus moves natively, and `preventDefault()` is called only for keys keyrove is
 bound to — so <kbd class="kbd">Tab</kbd> and
@@ -53,10 +73,44 @@ bound to — so <kbd class="kbd">Tab</kbd> and
 </div>
 <div class="feature">
 
-### Grid-aware
+### <span aria-hidden="true">🧭</span> Roving tabindex, when you want it
 
-Declare `data-keyrove-cols-length` and Up/Down move a whole row while
-Left/Right move a cell, with no wrapping at the edges.
+`data-keyrove-roving-tabindex` moves the `tabindex="0"` tab stop along with
+focus, so <kbd class="kbd">Tab</kbd> enters and leaves a group rather than
+walking through every item in it.
+
+</div>
+<div class="feature">
+
+### <span aria-hidden="true">⏭️</span> Not everything is a stop
+
+`data-keyrove-skip` and plain `disabled` keep headings, separators, and dead
+entries in the DOM and in the reading order, but out of the navigation order.
+
+</div>
+<div class="feature">
+
+### <span aria-hidden="true">🪆</span> Groups inside groups
+
+`data-keyrove-root` scopes a group, and the nearest root wins — so one
+delegated listener can serve a list nested in a list, each with its own keys.
+
+</div>
+<div class="feature">
+
+### <span aria-hidden="true">✍️</span> Typing still types
+
+Arrows and <kbd class="kbd">Home</kbd> belong to the caret inside an input,
+textarea, select, or `contenteditable` region, and keyrove leaves them there.
+Inputs those keys do nothing on — a checkbox, a button — keep navigating.
+
+</div>
+<div class="feature">
+
+### <span aria-hidden="true">🔎</span> Type-to-focus
+
+`createTypeahead()` adds case-insensitive typeahead, matching an item by
+`data-keyrove-typeahead` or by its own text.
 
 </div>
 </div>

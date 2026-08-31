@@ -64,6 +64,10 @@ gaining an attribute, and nothing in your JavaScript changes.
   rather than walking through every item in it.
 - Skipping: items marked `data-keyrove-skip`, and anything `disabled`, stay in
   the DOM but out of the navigation order.
+- Horizontal groups, via `data-keyrove-orientation` — and the forward and back
+  keys swap under RTL, so a toolbar moves the way its text reads.
+- Typeahead, as an opt-in second handler: `createTypeahead()` focuses an item
+  as you type its label.
 
 ## Which keys move focus
 

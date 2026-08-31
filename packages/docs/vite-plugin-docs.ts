@@ -1,3 +1,4 @@
+import { existsSync } from 'node:fs';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 
@@ -198,6 +199,27 @@ export const keyroveDocs = (): Plugin => {
             res.end(result.body);
           })
           .catch(next);
+      });
+    },
+
+    /**
+     * `vite preview` serves `dist` behind a fallback that only tries
+     * `${url}.html`, but a page is written to `docs/api/index.html` — the
+     * layout Pages serves at the extensionless URL. Without this every page
+     * but the landing one answers 404 in preview while the deploy is fine.
+     *
+     * Registered from the hook body, so it runs before Vite's static handler.
+     */
+    configurePreviewServer(server) {
+      server.middlewares.use((req, _res, next) => {
+        if (req.method !== 'GET' && req.method !== 'HEAD') return next();
+
+        const route = toRoute(req.url ?? '/');
+        if (route && existsSync(path.join(outDir, route, 'index.html'))) {
+          req.url = `${base}${route}/index.html`;
+        }
+
+        next();
       });
     },
 

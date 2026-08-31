@@ -22,6 +22,36 @@ can drive a group. And because keyrove moves real DOM focus and only calls
 pnpm add @mixedrays/keyrove
 ```
 
+## Features
+
+- **Framework-agnostic:** takes DOM events and React, Vue, or Svelte synthetic
+  events, with no adapter and no dependencies.
+- **Configurable key bindings:** `data-keyrove-next-key` and
+  `data-keyrove-prev-key` take any `KeyboardEvent.code`, with exact modifier
+  combos and platform-aware `mod`.
+- **Lists and grids:** arrows, <kbd>Home</kbd>/<kbd>End</kbd> and
+  <kbd>PageUp</kbd>/<kbd>PageDown</kbd> out of the box;
+  `data-keyrove-cols-length` makes Up/Down move a whole row, and
+  `data-keyrove-loop` wraps a list at its ends.
+- **Horizontal and RTL groups:** `data-keyrove-orientation="horizontal"`
+  re-points the defaults at <kbd>←</kbd>/<kbd>→</kbd>, flipped under RTL from
+  the nearest `dir`.
+- **Native focus behavior:** moves real DOM focus and calls `preventDefault()`
+  only on the keys it is bound to, so unbound keys and
+  <kbd>Tab</kbd>/<kbd>Shift</kbd>+<kbd>Tab</kbd> are left untouched.
+- **Roving tabindex:** `data-keyrove-roving-tabindex` moves the `tabindex="0"`
+  tab stop with focus, so <kbd>Tab</kbd> enters and leaves a group instead of
+  walking through every item in it.
+- **Skippable items:** `data-keyrove-skip` and `disabled` keep headings,
+  separators, and dead entries in the DOM but out of the navigation order.
+- **Nested roots:** `data-keyrove-root` scopes a group and the nearest one
+  wins, so a single delegated listener can serve a list inside a list.
+- **Editable control awareness:** the caret and value keys stay with inputs,
+  textareas, selects, and `contenteditable` regions — while inputs those keys
+  do nothing on, like a checkbox or a button, keep navigating.
+- **Typeahead:** `createTypeahead()` adds case-insensitive type-to-focus,
+  matching `data-keyrove-typeahead` or the item's own text.
+
 ## Usage
 
 Mark navigable elements with `data-keyrove-item`, give them a tab stop, and pass
