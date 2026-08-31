@@ -14,6 +14,7 @@ import {
 import { expandDemos, loadDemos, type Demos } from './build/demos.ts';
 import { renderMarkdown } from './build/markdown.ts';
 import { createHrefResolver, renderPage, routeToPath } from './build/layout.ts';
+import { expandMeta } from './build/meta.ts';
 import { toLlmsTxt, toMarkdown, toMarkdownPath } from './build/plaintext.ts';
 
 /**
@@ -70,7 +71,7 @@ export const keyroveDocs = (): Plugin => {
     const resolveHref = createHrefResolver(base);
     const { nav, readingOrder, demos } = await getSite();
     const { html, headings } = await renderMarkdown(
-      expandDemos(page.body, demos, 'html'),
+      expandMeta(expandDemos(page.body, demos, 'html')),
       { resolveHref },
     );
 
