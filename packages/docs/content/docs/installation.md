@@ -114,7 +114,7 @@ number of independent groups without them seeing each other's items.
     <li data-keyrove-item tabindex="0">Drafts</li>
   </ul>
 
-  <ul data-keyrove-root data-keyrove-cols-length="4">
+  <ul data-keyrove-root data-keyrove-cols="4">
     <li data-keyrove-item tabindex="0">1</li>
     <li data-keyrove-item tabindex="0">2</li>
   </ul>

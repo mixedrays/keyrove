@@ -3,7 +3,7 @@ import {
   keyRove,
   KEYROVE_ATTR_ITEM,
   KEYROVE_ATTR_SKIP,
-  KEYROVE_ATTR_COLS_LENGTH,
+  KEYROVE_ATTR_COLS,
   KEYROVE_ATTR_ROVING_TABINDEX,
 } from '../../keyRove';
 
@@ -72,7 +72,7 @@ export const renderGrid = (
     Array.from({ length: count }, (_, i) => createItem(`${i}`)),
     {
       containerAttrs: {
-        [KEYROVE_ATTR_COLS_LENGTH]: String(columns),
+        [KEYROVE_ATTR_COLS]: String(columns),
         ...containerAttrs,
       },
       ...renderOptions,

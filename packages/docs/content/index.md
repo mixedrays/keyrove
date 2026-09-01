@@ -49,7 +49,7 @@ package ships no dependencies.
 
 <kbd class="kbd">Home</kbd> / <kbd class="kbd">End</kbd> and
 <kbd class="kbd">PageUp</kbd> / <kbd class="kbd">PageDown</kbd> come with the
-list. Declare `data-keyrove-cols-length` and Up/Down move a whole row while
+list. Declare `data-keyrove-cols` and Up/Down move a whole row while
 Left/Right move a cell; add `data-keyrove-loop` and a list wraps at its ends.
 
 </div>
@@ -59,7 +59,8 @@ Left/Right move a cell; add `data-keyrove-loop` and a list wraps at its ends.
 
 `data-keyrove-orientation="horizontal"` points the defaults at Left/Right
 without spelling out a combo — and flips the pair under RTL, resolved from the
-nearest `dir`, so a toolbar moves "forward" the way its text does.
+nearest `dir`, so a toolbar — and a grid's cell arrows — move "forward" the
+way the text does.
 
 </div>
 <div class="feature">

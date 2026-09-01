@@ -48,42 +48,80 @@ still navigate, so a list of checkbox rows keeps its arrows.
 
 ### Keys
 
-The forward and back keys are configurable; the rest are fixed.
+A group is one sequence of items in DOM order, and `next`/`prev` always move
+±1 through it — a list item, or a grid cell. Declaring
+`data-keyrove-cols` folds the sequence into rows and adds a second pair,
+`next-row`/`prev-row`, that jumps a whole row keeping the column. All four
+directional pairs are configurable; `Home`, `End`, `PageUp` and `PageDown`
+are fixed.
 
-| Key                     | Bound by                | In a list                   | In a grid                  |
-| ----------------------- | ----------------------- | --------------------------- | -------------------------- |
-| `ArrowDown` _(default)_ | `data-keyrove-next-key` | Next item                   | Next row, same column      |
-| `ArrowUp` _(default)_   | `data-keyrove-prev-key` | Previous item               | Previous row, same column  |
-| `ArrowRight`            | fixed                   | —                           | Next cell in the row       |
-| `ArrowLeft`             | fixed                   | —                           | Previous cell in the row   |
-| `Home`                  | fixed                   | First navigable item        | First navigable item       |
-| `End`                   | fixed                   | Last navigable item         | Last navigable item        |
-| `PageDown`              | fixed                   | Forward `page-length` items | Forward `page-length` rows |
-| `PageUp`                | fixed                   | Back `page-length` items    | Back `page-length` rows    |
+In a list:
 
-The first two rows show what a group answers to with no configuration. Set
-`data-keyrove-next-key` or `data-keyrove-prev-key` on the root and that key
-takes over the row, while the default it replaced goes back to its browser
-behaviour — see [custom keys](/docs/examples/custom-keys). The value is a
-combo: zero or more of `mod+` / `ctrl+` / `alt+` / `shift+` / `meta+` (any
-order, any case) followed by a
+| Key                     | Bound by                | Moves                       |
+| ----------------------- | ----------------------- | --------------------------- |
+| `ArrowDown` _(default)_ | `data-keyrove-next-key` | Next item                   |
+| `ArrowUp` _(default)_   | `data-keyrove-prev-key` | Previous item               |
+| `Home`                  | fixed                   | First navigable item        |
+| `End`                   | fixed                   | Last navigable item         |
+| `PageDown`              | fixed                   | Forward `page-length` items |
+| `PageUp`                | fixed                   | Back `page-length` items    |
+
+In a grid (`data-keyrove-cols` above 1 — defaults shown for LTR; the cell
+arrows follow the [reading direction](#horizontal-groups-and-rtl)):
+
+| Key                      | Bound by                    | Moves                              |
+| ------------------------ | --------------------------- | ---------------------------------- |
+| `ArrowRight` _(default)_ | `data-keyrove-next-key`     | Next cell, flowing across row ends |
+| `ArrowLeft` _(default)_  | `data-keyrove-prev-key`     | Previous cell                      |
+| `ArrowDown` _(default)_  | `data-keyrove-next-row-key` | Next row, same column              |
+| `ArrowUp` _(default)_    | `data-keyrove-prev-row-key` | Previous row, same column          |
+| `Home`                   | fixed                       | First navigable cell of the row    |
+| `End`                    | fixed                       | Last navigable cell of the row     |
+| `ctrl+Home`              | fixed                       | First navigable cell of the grid   |
+| `ctrl+End`               | fixed                       | Last navigable cell of the grid    |
+| `PageDown`               | fixed                       | Forward `page-length` rows         |
+| `PageUp`                 | fixed                       | Back `page-length` rows            |
+
+The _(default)_ rows show what a group answers to with no configuration. Set
+the matching attribute on the root and that key takes over the move, while
+the default it replaced goes back to its browser behaviour — see
+[custom keys](/docs/examples/custom-keys). The value is a combo: zero or more
+of `mod+` / `ctrl+` / `alt+` / `shift+` / `meta+` (any order, any case)
+followed by a
 [`KeyboardEvent.code`](https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/code).
 `mod` resolves to `meta` on Apple platforms and `ctrl` elsewhere. Matching is
 exact — declared modifiers are required, undeclared ones are forbidden — so
 `KeyJ` matches only while <kbd class="kbd">Ctrl</kbd> is _not_ held, and
 shortcuts like <kbd class="kbd">Ctrl</kbd>+<kbd class="kbd">ArrowDown</kbd>
 keep their browser defaults inside a group bound to the bare arrows. The fixed
-keys are bare combos too: a modified <kbd class="kbd">Home</kbd> or
-<kbd class="kbd">PageDown</kbd> is left alone.
+keys are exact combos too: a modified <kbd class="kbd">PageDown</kbd> is left
+alone, and in a list — which has no second scope for them — so are
+<kbd class="kbd">Ctrl</kbd>+<kbd class="kbd">Home</kbd> and
+<kbd class="kbd">Ctrl</kbd>+<kbd class="kbd">End</kbd>.
 
-`data-keyrove-orientation="horizontal"` re-points the two defaults at
-`ArrowRight`/`ArrowLeft` without spelling the combos out — and flips the pair
-under RTL, resolved from the nearest `dir` attribute and falling back to the
-computed direction, so a toolbar reads "forward" the way its text does. It
-only supplies defaults: an explicit `data-keyrove-next-key` or
-`data-keyrove-prev-key` wins over it, and the freed vertical arrows go back
-to their browser behaviour. A grid ignores the attribute — its cell moves
-already cover the horizontal axis.
+One keypress resolves to at most one action, and precedence is explicit over
+default over fixed: an explicit binding that names a key some default or
+fixed binding also answers to takes the press, and the other stands down.
+
+### Horizontal groups and RTL
+
+Direction never changes what a move _does_ — every move is defined in DOM
+order — only which physical key is its default. Where an axis reads sideways,
+its default arrows follow the reading direction, resolved from the nearest
+`dir` attribute and falling back to the computed direction:
+
+- `data-keyrove-orientation="horizontal"` on a list re-points the next/prev
+  defaults at `ArrowRight`/`ArrowLeft` — flipped under RTL, so a toolbar
+  reads "forward" the way its text does. A grid ignores the attribute: its
+  cell axis is already horizontal.
+- A grid's default cell arrows follow the reading direction the same way:
+  under RTL, where DOM order renders right-to-left,
+  <kbd class="kbd">←</kbd> is the next cell — each arrow keeps moving focus
+  the way it points. The row arrows never flip.
+
+Both apply to defaults only. An explicit binding is physical and literal —
+never flipped, never remapped — and wins over orientation wherever both are
+set, with the freed default arrows going back to their browser behaviour.
 
 At the ends of a list, next and prev are consumed without moving — see the
 [return value](#return-value). With `data-keyrove-loop` on the root they wrap
@@ -93,14 +131,11 @@ from the first lands on the last. A looping group is also entered as a circle
 APG menu-button convention. Wrapping is for lists only; a grid keeps its
 edges, per the APG grid pattern.
 
-The two `Arrow` cell moves in a grid stand down when the press already matched
-the next or previous binding, so one keypress never fires both.
-
 `Home`, `End`, `PageUp`, and `PageDown` only act once focus is genuinely inside
-an item: they move _within_ a group rather than into one. The next and previous
-keys differ on purpose — pressed on a group where nothing is focused yet, they
-move focus to the first item (the last, for the prev key on a looping group),
-which is how you enter a list from the keyboard.
+an item: they move _within_ a group rather than into one. The four directional
+bindings differ on purpose — pressed on a group where nothing is focused yet,
+they move focus to the first item (the last, for the prev key on a looping
+group), which is how you enter a list or a grid from the keyboard.
 
 An item counts as focused when focus is anywhere inside it (`:focus-within`), so
 an item that wraps a link or a button is still the navigation position after
@@ -117,10 +152,12 @@ keyRove(e, {
 });
 ```
 
-`action` names the move (`'next'`, `'prev'`, `'home'`, `'end'`, `'pageUp'`,
-`'pageDown'`); `from` is the item focus left — `null` when an arrow entered
-the group from outside — and `to` the item it landed on. In a grid, a left or
-right cell move reports as `prev` and `next`.
+`action` names the move: `'next'`, `'prev'`, `'home'`, `'end'`, `'pageUp'`,
+`'pageDown'`, plus — in grids only — `'nextRow'`, `'prevRow'`, `'homeRow'`
+and `'endRow'`. A cell move and a row move never report the same token, so an
+`onMove` consumer can tell them apart. `from` is the item focus left — `null`
+when a directional key entered the group from outside — and `to` the item it
+landed on.
 
 ### Return value
 
@@ -239,13 +276,19 @@ guarding at the call site.
 | `data-keyrove-skip`            | item | —           | Passed over when moving; stays in the DOM order.                                         |
 | `data-keyrove-roving-tabindex` | item | —           | Moves the `tabindex="0"` tab stop with focus.                                            |
 | `data-keyrove-root`            | root | —           | Marks the navigation root explicitly, instead of using the listener's element.           |
-| `data-keyrove-cols-length`     | root | `1`         | A value above 1 switches the group to grid navigation.                                   |
+| `data-keyrove-cols`            | root | `1`         | Column count; above 1 the group navigates as a grid.                                     |
 | `data-keyrove-page-length`     | root | `10`        | Items per page jump — whole rows in a grid.                                              |
-| `data-keyrove-next-key`        | root | `ArrowDown` | Combo that moves forward, e.g. `KeyJ` or `ctrl+ArrowRight`.                              |
-| `data-keyrove-prev-key`        | root | `ArrowUp`   | Combo that moves back.                                                                   |
+| `data-keyrove-next-key`        | root | axis arrow  | Combo for the next item — the next cell, in a grid. E.g. `KeyJ` or `ctrl+ArrowRight`.    |
+| `data-keyrove-prev-key`        | root | axis arrow  | Combo for the previous item.                                                             |
+| `data-keyrove-next-row-key`    | root | `ArrowDown` | Combo for the next row, same column. Inert on a list.                                    |
+| `data-keyrove-prev-row-key`    | root | `ArrowUp`   | Combo for the previous row, same column. Inert on a list.                                |
 | `data-keyrove-loop`            | root | —           | Next/prev wrap past the ends of a list. Grids never wrap.                                |
-| `data-keyrove-orientation`     | root | —           | `horizontal` maps the default keys to `ArrowRight`/`ArrowLeft`, RTL-aware.               |
+| `data-keyrove-orientation`     | root | —           | `horizontal` maps a list's default keys to `ArrowRight`/`ArrowLeft`, RTL-aware.          |
 | `data-keyrove-typeahead`       | item | text        | Label for [type-to-focus](#createtypeahead-options), when the item's own text is not it. |
+
+The next/prev defaults follow the group's axis — `ArrowDown`/`ArrowUp` in a
+vertical list, the reading-direction arrows in a horizontal list or a grid;
+see [the keys tables](#keys).
 
 Root attributes are read on every keypress rather than cached, so changing one
 takes effect immediately — see
@@ -266,8 +309,10 @@ import {
   KEYROVE_ATTR_ROOT,
   KEYROVE_ATTR_NEXT_KEY,
   KEYROVE_ATTR_PREV_KEY,
+  KEYROVE_ATTR_NEXT_ROW_KEY,
+  KEYROVE_ATTR_PREV_ROW_KEY,
   KEYROVE_ATTR_PAGE_LENGTH,
-  KEYROVE_ATTR_COLS_LENGTH,
+  KEYROVE_ATTR_COLS,
   KEYROVE_ATTR_ROVING_TABINDEX,
   KEYROVE_ATTR_LOOP,
   KEYROVE_ATTR_ORIENTATION,
@@ -344,7 +389,17 @@ type KeyRoveCode =
 ### MoveAction, MoveResult, Move
 
 ```ts
-type MoveAction = 'home' | 'end' | 'next' | 'prev' | 'pageUp' | 'pageDown';
+type MoveAction =
+  | 'home'
+  | 'end'
+  | 'homeRow' // grid only: first cell of the focused row
+  | 'endRow' // grid only: last cell of the focused row
+  | 'next' // +1 item in DOM order: a list item, or a grid cell
+  | 'prev'
+  | 'nextRow' // grid only: +1 row, same column
+  | 'prevRow'
+  | 'pageUp'
+  | 'pageDown';
 
 // what keyRove returns for a consumed keypress
 type MoveResult = {

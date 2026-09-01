@@ -61,9 +61,26 @@ export type KeyRoveEvent = {
   key?: string;
 };
 
-/** The movements a keypress can resolve to. */
+/**
+ * The movements a keypress can resolve to.
+ *
+ * `next`/`prev` are ±1 in DOM order in every layout — a list item, or a grid
+ * cell flowing across row ends. The `Row` actions exist only in grids:
+ * `nextRow`/`prevRow` move a whole row keeping the column; `homeRow`/`endRow`
+ * are the focused row's ends (bare Home/End there), while `home`/`end` are the
+ * whole sequence's (bare Home/End in a list, `ctrl+Home`/`ctrl+End` in a grid).
+ */
 export type MoveAction =
-  'home' | 'end' | 'next' | 'prev' | 'pageUp' | 'pageDown';
+  | 'home'
+  | 'end'
+  | 'homeRow'
+  | 'endRow'
+  | 'next'
+  | 'prev'
+  | 'nextRow'
+  | 'prevRow'
+  | 'pageUp'
+  | 'pageDown';
 
 /**
  * What `keyRove` returns for a consumed keypress.
@@ -120,19 +137,49 @@ export type Attributes = {
   root: string;
   nextKey: string;
   prevKey: string;
+  nextRowKey: string;
+  prevRowKey: string;
   pageLength: string;
-  colsLength: string;
+  cols: string;
   rovingTabindex: string;
   loop: string;
   orientation: string;
   typeahead: string;
 };
 
-export type GetNavElementsArgs = {
-  root: Element | null | undefined;
-  elementsSelector: string;
-  focusedSelector: string;
-  attributes?: Attributes;
+/** One row of the binding table: a key combo and the move it resolves to. */
+export type Binding = {
+  combo: string;
+  intent: MoveAction;
+};
+
+/**
+ * The explicitly bound combos, straight off the root's attributes — `null`
+ * or absent where the attribute is unset and the intent falls back to its
+ * default key.
+ */
+export type ExplicitBindings = Partial<
+  Record<'next' | 'prev' | 'nextRow' | 'prevRow', string | null>
+>;
+
+export type BuildBindingsArgs = {
+  explicit: ExplicitBindings;
+  isGrid: boolean;
+  /** A horizontal list (`orientation="horizontal"`); never true for a grid. */
+  horizontal: boolean;
+  /** Resolved reading direction — consulted only for default keys. */
+  rtl: boolean;
+};
+
+export type ResolveTargetArgs = {
+  intent: MoveAction;
+  elements: Element[];
+  /** Index of the focused item, or -1 when the group is entered from outside. */
+  fromIndex: number;
+  cols: number;
+  pageLength: number;
+  loop: boolean;
+  skipAttribute: string;
 };
 
 export type ToggleTabIndexArgs = {

@@ -52,20 +52,24 @@ gaining an attribute, and nothing in your JavaScript changes.
 ## What it handles
 
 - **Forward and back**, by default <kbd class="kbd">↓</kbd> and
-  <kbd class="kbd">↑</kbd> — one item, or a whole row once the group declares
-  columns. Either can be rebound; see below.
-- <kbd class="kbd">←</kbd> <kbd class="kbd">→</kbd> move a single cell, in grids
-  only.
+  <kbd class="kbd">↑</kbd> — always one item through the DOM order. Rebindable;
+  see below.
+- **Rows**, once the group declares columns: <kbd class="kbd">↓</kbd>
+  <kbd class="kbd">↑</kbd> move a whole row while forward and back — now
+  <kbd class="kbd">→</kbd> <kbd class="kbd">←</kbd> by default — move a single
+  cell. Both pairs rebind independently.
 - <kbd class="kbd">Home</kbd> / <kbd class="kbd">End</kbd> jump to the first and
-  last navigable item.
+  last navigable item — the focused row's, in a grid, where
+  <kbd class="kbd">Ctrl</kbd> makes them grid-wide.
 - <kbd class="kbd">PageUp</kbd> / <kbd class="kbd">PageDown</kbd> move by
   `data-keyrove-page-length` items — whole rows in a grid.
 - Roving tabindex, so <kbd class="kbd">Tab</kbd> enters and leaves a group
   rather than walking through every item in it.
 - Skipping: items marked `data-keyrove-skip`, and anything `disabled`, stay in
   the DOM but out of the navigation order.
-- Horizontal groups, via `data-keyrove-orientation` — and the forward and back
-  keys swap under RTL, so a toolbar moves the way its text reads.
+- Horizontal groups, via `data-keyrove-orientation` — and the default forward
+  and back keys swap under RTL, so a toolbar, or a grid's cell arrows, move
+  the way the text reads.
 - Typeahead, as an opt-in second handler: `createTypeahead()` focuses an item
   as you type its label.
 

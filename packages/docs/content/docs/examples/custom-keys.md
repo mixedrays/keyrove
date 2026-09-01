@@ -103,22 +103,41 @@ default, which is what lets custom keys sit alongside
 [native tab navigation](/docs/introduction#tab-still-works) rather than in place
 of it.
 
-### Two things that are not rebindable
+### What is not rebindable
 
 <kbd class="kbd">Home</kbd>, <kbd class="kbd">End</kbd>,
 <kbd class="kbd">PageUp</kbd> and <kbd class="kbd">PageDown</kbd> are fixed —
-there is no attribute for them. So is the grid's cell movement, below.
+there is no attribute for them. In a grid that includes the
+<kbd class="kbd">Ctrl</kbd>-modified pair that jumps to the grid's ends.
 
-## Interaction with grids
+## Grids
 
-In a grid, <kbd class="kbd">←</kbd> and <kbd class="kbd">→</kbd> already move
-one cell. Binding one of them as the next or previous key hands it to that
-binding instead — the cell move gives way, so the two never both fire on one
-keypress.
+The attributes keep their meaning in a grid: `data-keyrove-next-key` and
+`data-keyrove-prev-key` move one item — a _cell_ there, flowing across row
+ends — and the row moves have their own pair, `data-keyrove-next-row-key` and
+`data-keyrove-prev-row-key`, defaulting to `ArrowDown`/`ArrowUp`. Each pair
+rebinds independently, and every replaced default arrow goes back to its
+browser behaviour. A full vim-style grid binds all four:
 
-Binding a _non_-arrow pair leaves cell movement alone: with `KeyJ` and `KeyK` on
-a grid root, <kbd class="kbd">J</kbd> and <kbd class="kbd">K</kbd> move a whole
-row while <kbd class="kbd">←</kbd> <kbd class="kbd">→</kbd> still move a cell.
+```html
+<div
+  data-keyrove-cols="6"
+  data-keyrove-prev-key="KeyH"
+  data-keyrove-next-key="KeyL"
+  data-keyrove-prev-row-key="KeyK"
+  data-keyrove-next-row-key="KeyJ"
+>
+  …
+</div>
+```
+
+One keypress still resolves to at most one action. An explicit binding that
+names a key a default pair answers to — say
+`data-keyrove-next-key="ArrowDown"` — takes the press, and the default row
+move stands down. Explicit bindings are also literal under RTL: only the
+_default_ cell arrows follow the
+[reading direction](/docs/api#horizontal-groups-and-rtl), exactly as
+orientation's defaults do for a list.
 
 ## Editable elements are exempt
 

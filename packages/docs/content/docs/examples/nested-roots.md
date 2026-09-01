@@ -46,7 +46,7 @@ inherited across the boundary:
   <!-- A grid inside a list: 4 columns and 2-row pages apply in here only. -->
   <div
     data-keyrove-root
-    data-keyrove-cols-length="4"
+    data-keyrove-cols="4"
     data-keyrove-page-length="2"
   >
     <button data-keyrove-item tabindex="0">1</button>
@@ -61,7 +61,8 @@ inherited across the boundary:
 the grid; <kbd class="kbd">←</kbd> <kbd class="kbd">→</kbd> move a cell inside
 the grid and nothing outside it. <kbd class="kbd">Home</kbd> and
 <kbd class="kbd">End</kbd> follow the same rule: while focus is in the grid they
-land on its first and last cell, not on the panel's.
+land on the ends of its focused row (<kbd class="kbd">Ctrl</kbd>-modified, on
+the grid's first and last cell), never on the panel's.
 
 ### The outer group still sees the inner items
 
