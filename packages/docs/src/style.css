@@ -522,9 +522,10 @@
 
   /* A nested navigation root, drawn as its own panel inside the one around it
      so the boundary keyrove scopes to is visible rather than implied. Every
-     nested group in the docs reads horizontally, which is why the row is here
-     rather than declared per demo. */
-  .demo [data-keyrove-root] {
+     nested list in the docs reads horizontally, which is why the row is here
+     rather than declared per demo. A nested grid brings its own layout — the
+     responsive demo's stylesheet — and is left alone. */
+  .demo [data-keyrove-root]:not([data-keyrove-cols]) {
     @apply mb-1.5 flex gap-1.5 rounded-lg border border-dashed border-zinc-200 bg-white p-1.5 dark:border-zinc-800 dark:bg-zinc-900;
   }
 

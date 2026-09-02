@@ -66,16 +66,7 @@ wide the grid is — and focus keeps the column it started in. The demo above us
 ## Responsive grids
 
 The column count is read from the attribute on every keypress, not cached, so
-updating it when a breakpoint changes is enough to keep navigation matching the
-layout.
-
-```ts
-const media = window.matchMedia('(min-width: 768px)');
-
-const syncColumns = () => {
-  grid.setAttribute('data-keyrove-cols', media.matches ? '6' : '3');
-};
-
-media.addEventListener('change', syncColumns);
-syncColumns();
-```
+updating it when the layout changes is enough to keep navigation matching the
+layout. The surest way to know when it changed is to let the stylesheet decide
+the count in the first place and read it back — see
+[responsive grid](/docs/examples/responsive-grid).

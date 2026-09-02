@@ -1,4 +1,5 @@
 import {
+  KEYROVE_ATTR_COLS,
   KEYROVE_ATTR_ITEM,
   KEYROVE_ATTR_ROOT,
   KEYROVE_ATTR_SKIP,
@@ -82,6 +83,25 @@ const wireCopy = (demo: HTMLElement) => {
   });
 };
 
+/**
+ * Columns decided by CSS.
+ *
+ * The responsive demo lets a container query choose its column count and
+ * publishes it as `--cols` on the grid. keyrove reads `data-keyrove-cols`, so
+ * the attribute is brought level with the property right before each keypress
+ * — the line the page's own snippet shows — rather than watched for resizes.
+ * The grid is a descendant of the surface rather than the surface itself
+ * because the query needs a container above the element it lays out.
+ */
+const syncColumns = (surface: HTMLElement) => {
+  const grids = surface.querySelectorAll<HTMLElement>(`[${KEYROVE_ATTR_COLS}]`);
+
+  for (const grid of grids) {
+    const cols = getComputedStyle(grid).getPropertyValue('--cols');
+    if (cols) grid.setAttribute(KEYROVE_ATTR_COLS, cols);
+  }
+};
+
 /** Wires every demo on the current page. */
 export const mountDemos = () => {
   for (const demo of document.querySelectorAll<HTMLElement>('.demo')) {
@@ -96,7 +116,10 @@ export const mountDemos = () => {
     const onMove = reportMoves(log);
     // One listener for the demo, nested roots included: the event bubbles here
     // and keyrove resolves the root from its target, not from this element.
-    surface.addEventListener('keydown', (e) => keyRove(e, { onMove }));
+    surface.addEventListener('keydown', (e) => {
+      syncColumns(surface);
+      keyRove(e, { onMove });
+    });
     wireGroupExit(surface);
   }
 };

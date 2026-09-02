@@ -298,7 +298,7 @@ see [the keys tables](#keys).
 
 Root attributes are read on every keypress rather than cached, so changing one
 takes effect immediately — see
-[responsive grids](/docs/examples/grid#responsive-grids).
+[responsive grid](/docs/examples/responsive-grid).
 
 Elements carrying `disabled` are excluded from navigation without needing
 `data-keyrove-skip`.

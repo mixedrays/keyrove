@@ -2,7 +2,7 @@
 title: Custom keys
 description: Arrows are the default, not the rule — rebinding any move to any key combo.
 group: Examples
-order: 14
+order: 15
 ---
 
 Nothing about keyrove is tied to the arrow keys. The keys that move focus are
