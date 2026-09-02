@@ -127,10 +127,11 @@ default — while `data-keyrove-next-row-key`/`data-keyrove-prev-row-key` move a
 whole row, defaulting to `ArrowDown`/`ArrowUp`.
 
 Anything not bound is left entirely alone, browser defaults included. `Home`,
-`End`, `PageUp` and `PageDown` are handled when pressed without modifiers and
-focus is already inside an item — they move within a group, never into one. In
-a grid, `Home`/`End` jump to the ends of the focused row and
-`ctrl+Home`/`ctrl+End` to the grid's first and last cell.
+`End`, `PageUp` and `PageDown` act only once focus is already inside an item —
+they move within a group, never into one. In a list they are handled when
+pressed without modifiers. In a grid, bare `Home`/`End` jump to the ends of the
+focused row instead and `ctrl+Home`/`ctrl+End` to the grid's first and last
+cell.
 
 At the ends of a list the bound keys are consumed but focus stays put. Add
 `data-keyrove-loop` on the root and next on the last item wraps to the first,
@@ -179,21 +180,21 @@ contract as `keyRove` — and `onMove` fires after a real move, exactly as
 
 ## Attributes
 
-| Attribute                      | On   | Default     | Meaning                                                                                     |
-| ------------------------------ | ---- | ----------- | ------------------------------------------------------------------------------------------- |
-| `data-keyrove-item`            | item | —           | Marks an element as navigable.                                                              |
-| `data-keyrove-skip`            | item | —           | Passed over when moving; stays in the DOM order.                                            |
-| `data-keyrove-roving-tabindex` | item | —           | Moves the `tabindex="0"` tab stop with focus.                                               |
-| `data-keyrove-root`            | root | —           | Marks the navigation root explicitly, instead of using the listener's element.              |
-| `data-keyrove-cols`            | root | `1`         | Column count; above 1 the group navigates as a grid.                                        |
-| `data-keyrove-page-length`     | root | `10`        | Items per page jump — whole rows in a grid.                                                 |
-| `data-keyrove-next-key`        | root | axis arrow  | Combo for the next item — the next cell, in a grid. E.g. `KeyJ` or `ctrl+ArrowRight`.       |
-| `data-keyrove-prev-key`        | root | axis arrow  | Combo for the previous item.                                                                |
-| `data-keyrove-next-row-key`    | root | `ArrowDown` | Combo for the next row, same column. Grids only.                                            |
-| `data-keyrove-prev-row-key`    | root | `ArrowUp`   | Combo for the previous row. Grids only.                                                     |
-| `data-keyrove-loop`            | root | —           | Next/prev wrap past the ends of a list. Grids never wrap.                                   |
-| `data-keyrove-orientation`     | root | —           | `horizontal` maps a list's default keys to `ArrowRight`/`ArrowLeft`, RTL-aware.             |
-| `data-keyrove-typeahead`       | item | text        | Label for type-to-focus, when the item's own text is not it.                                |
+| Attribute                      | On   | Default     | Meaning                                                                               |
+| ------------------------------ | ---- | ----------- | ------------------------------------------------------------------------------------- |
+| `data-keyrove-item`            | item | —           | Marks an element as navigable.                                                        |
+| `data-keyrove-skip`            | item | —           | Passed over when moving; stays in the DOM order.                                      |
+| `data-keyrove-roving-tabindex` | item | —           | Moves the `tabindex="0"` tab stop with focus.                                         |
+| `data-keyrove-root`            | root | —           | Marks the navigation root explicitly, instead of using the listener's element.        |
+| `data-keyrove-cols`            | root | `1`         | Column count; above 1 the group navigates as a grid.                                  |
+| `data-keyrove-page-length`     | root | `10`        | Items per page jump — whole rows in a grid.                                           |
+| `data-keyrove-next-key`        | root | axis arrow  | Combo for the next item — the next cell, in a grid. E.g. `KeyJ` or `ctrl+ArrowRight`. |
+| `data-keyrove-prev-key`        | root | axis arrow  | Combo for the previous item.                                                          |
+| `data-keyrove-next-row-key`    | root | `ArrowDown` | Combo for the next row, same column. Grids only.                                      |
+| `data-keyrove-prev-row-key`    | root | `ArrowUp`   | Combo for the previous row. Grids only.                                               |
+| `data-keyrove-loop`            | root | —           | Next/prev wrap past the ends of a list. Grids never wrap.                             |
+| `data-keyrove-orientation`     | root | —           | `horizontal` maps a list's default keys to `ArrowRight`/`ArrowLeft`, RTL-aware.       |
+| `data-keyrove-typeahead`       | item | text        | Label for type-to-focus, when the item's own text is not it.                          |
 
 The next/prev defaults follow the group's axis: `ArrowDown`/`ArrowUp` in a
 vertical list, the reading-direction arrows in a horizontal list or a grid.

@@ -51,9 +51,8 @@ still navigate, so a list of checkbox rows keeps its arrows.
 A group is one sequence of items in DOM order, and `next`/`prev` always move
 ±1 through it — a list item, or a grid cell. Declaring
 `data-keyrove-cols` folds the sequence into rows and adds a second pair,
-`next-row`/`prev-row`, that jumps a whole row keeping the column. All four
-directional pairs are configurable; `Home`, `End`, `PageUp` and `PageDown`
-are fixed.
+`next-row`/`prev-row`, that jumps a whole row keeping the column. Both pairs
+are configurable; `Home`, `End`, `PageUp` and `PageDown` are fixed.
 
 In a list:
 

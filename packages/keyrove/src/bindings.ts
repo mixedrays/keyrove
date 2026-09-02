@@ -10,8 +10,9 @@
 import type {
   Binding,
   BuildBindingsArgs,
+  DirectionalIntent,
   KnownCode,
-  MoveAction,
+  Layout,
 } from './types.js';
 
 // Named so the tables below are checked against `KnownCode` instead of
@@ -27,15 +28,48 @@ const KEY = {
   pageDown: 'PageDown',
 } as const satisfies Record<string, KnownCode>;
 
-type DirectionalIntent = 'prev' | 'next' | 'prevRow' | 'nextRow';
+type FixedKey = Pick<Binding, 'combo' | 'intent'>;
 
-const LIST_INTENTS = ['prev', 'next'] as const satisfies DirectionalIntent[];
-const GRID_INTENTS = [
+const LIST_INTENTS = [
   'prev',
   'next',
+] as const satisfies readonly DirectionalIntent[];
+const ROW_INTENTS = [
   'prevRow',
   'nextRow',
-] as const satisfies DirectionalIntent[];
+] as const satisfies readonly DirectionalIntent[];
+
+/**
+ * What each layout binds, in table order: the directional intents that take a
+ * default key when left unbound, then that layout's fixed keys. The page keys
+ * are shared and follow both.
+ */
+const LAYOUT_KEYS: Record<
+  Layout['kind'],
+  { directional: readonly DirectionalIntent[]; fixed: readonly FixedKey[] }
+> = {
+  list: {
+    directional: LIST_INTENTS,
+    fixed: [
+      { combo: KEY.home, intent: 'home' },
+      { combo: KEY.end, intent: 'end' },
+    ],
+  },
+  grid: {
+    directional: [...LIST_INTENTS, ...ROW_INTENTS],
+    fixed: [
+      { combo: KEY.home, intent: 'homeRow' },
+      { combo: KEY.end, intent: 'endRow' },
+      { combo: `ctrl+${KEY.home}`, intent: 'home' },
+      { combo: `ctrl+${KEY.end}`, intent: 'end' },
+    ],
+  },
+};
+
+const PAGE_KEYS: readonly FixedKey[] = [
+  { combo: KEY.pageUp, intent: 'pageUp' },
+  { combo: KEY.pageDown, intent: 'pageDown' },
+];
 
 /**
  * Builds the ordered binding table for a group. The first entry that matches
@@ -48,65 +82,46 @@ const GRID_INTENTS = [
  */
 export const buildBindings = ({
   explicit,
-  isGrid,
-  horizontal,
+  layout,
   rtl,
 }: BuildBindingsArgs): Binding[] => {
-  // The inline axis reads sideways in a horizontal list and in every grid, so
-  // its default arrows follow the reading direction; the row axis is vertical
+  const { directional, fixed } = LAYOUT_KEYS[layout.kind];
+  const unbound = directional.filter((intent) => !explicit[intent]);
+
+  // Direction is read only when a default that could flip is in play: an
+  // unbound side of a horizontal `next`/`prev` axis. The row axis is vertical
   // and never flips.
-  const inline = isGrid || horizontal;
-  const defaults: Record<DirectionalIntent, string> = {
-    next: inline ? (rtl ? KEY.arrowLeft : KEY.arrowRight) : KEY.arrowDown,
-    prev: inline ? (rtl ? KEY.arrowRight : KEY.arrowLeft) : KEY.arrowUp,
+  const flip = layout.horizontal && !(explicit.next && explicit.prev) && rtl();
+  const defaults: Record<DirectionalIntent, KnownCode> = {
+    next: layout.horizontal
+      ? flip
+        ? KEY.arrowLeft
+        : KEY.arrowRight
+      : KEY.arrowDown,
+    prev: layout.horizontal
+      ? flip
+        ? KEY.arrowRight
+        : KEY.arrowLeft
+      : KEY.arrowUp,
     nextRow: KEY.arrowDown,
     prevRow: KEY.arrowUp,
   };
 
-  const directional: readonly DirectionalIntent[] = isGrid
-    ? GRID_INTENTS
-    : LIST_INTENTS;
   const bindings: Binding[] = [];
 
   for (const intent of directional) {
     const combo = explicit[intent];
 
-    if (combo) bindings.push({ combo, intent });
+    if (combo) bindings.push({ combo, intent, enters: true });
   }
 
-  for (const intent of directional) {
-    if (!explicit[intent]) bindings.push({ combo: defaults[intent], intent });
+  for (const intent of unbound) {
+    bindings.push({ combo: defaults[intent], intent, enters: true });
   }
 
-  const fixed: Binding[] = isGrid
-    ? [
-        { combo: KEY.home, intent: 'homeRow' },
-        { combo: KEY.end, intent: 'endRow' },
-        { combo: `ctrl+${KEY.home}`, intent: 'home' },
-        { combo: `ctrl+${KEY.end}`, intent: 'end' },
-      ]
-    : [
-        { combo: KEY.home, intent: 'home' },
-        { combo: KEY.end, intent: 'end' },
-      ];
-
-  bindings.push(
-    ...fixed,
-    { combo: KEY.pageUp, intent: 'pageUp' },
-    { combo: KEY.pageDown, intent: 'pageDown' },
-  );
+  for (const { combo, intent } of [...fixed, ...PAGE_KEYS]) {
+    bindings.push({ combo, intent, enters: false });
+  }
 
   return bindings;
 };
-
-/**
- * The intents that enter a group from outside — pressed while no item holds
- * focus, they land on the first navigable item. The fixed keys move only
- * within a group, never into one.
- */
-export const ENTERING_INTENTS: ReadonlySet<MoveAction> = new Set([
-  'next',
-  'prev',
-  'nextRow',
-  'prevRow',
-]);

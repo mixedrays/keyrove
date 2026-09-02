@@ -147,10 +147,43 @@ export type Attributes = {
   typeahead: string;
 };
 
-/** One row of the binding table: a key combo and the move it resolves to. */
+/**
+ * The moves with a default arrow key: rebindable from the root's attributes,
+ * and the only ones that enter a group from outside. The `Row` pair exists in
+ * grids alone.
+ */
+export type DirectionalIntent = Extract<
+  MoveAction,
+  'prev' | 'next' | 'prevRow' | 'nextRow'
+>;
+
+/**
+ * How a group folds its DOM-ordered sequence — read once off the root and
+ * handed to both pure layers, so neither re-derives it.
+ *
+ * A list is a single column (`cols` is 1); `cols` above 1 makes a grid.
+ * `horizontal` says whether `next`/`prev` run sideways — every grid, and a
+ * list with `orientation="horizontal"` — and decides nothing but which default
+ * arrows they get. `loop` wraps `next`/`prev` past the ends; lists only, a
+ * grid keeps its edges per the APG grid pattern.
+ */
+export type Layout = {
+  kind: 'list' | 'grid';
+  cols: number;
+  horizontal: boolean;
+  loop: boolean;
+};
+
+/**
+ * One row of the binding table: a key combo, the move it resolves to, and
+ * whether the combo enters a group when pressed with nothing focused inside —
+ * true for the directional intents, false for the fixed keys, which move only
+ * within a group.
+ */
 export type Binding = {
   combo: string;
   intent: MoveAction;
+  enters: boolean;
 };
 
 /**
@@ -159,16 +192,17 @@ export type Binding = {
  * default key.
  */
 export type ExplicitBindings = Partial<
-  Record<'next' | 'prev' | 'nextRow' | 'prevRow', string | null>
+  Record<DirectionalIntent, string | null>
 >;
 
 export type BuildBindingsArgs = {
   explicit: ExplicitBindings;
-  isGrid: boolean;
-  /** A horizontal list (`orientation="horizontal"`); never true for a grid. */
-  horizontal: boolean;
-  /** Resolved reading direction — consulted only for default keys. */
-  rtl: boolean;
+  layout: Layout;
+  /**
+   * Reading direction, resolved on demand: called only when an unbound
+   * `next`/`prev` default on a horizontal axis could flip, never otherwise.
+   */
+  rtl: () => boolean;
 };
 
 export type ResolveTargetArgs = {
@@ -176,9 +210,9 @@ export type ResolveTargetArgs = {
   elements: Element[];
   /** Index of the focused item, or -1 when the group is entered from outside. */
   fromIndex: number;
-  cols: number;
+  layout: Layout;
+  /** Rows per page jump — items, in a list. */
   pageLength: number;
-  loop: boolean;
   skipAttribute: string;
 };
 
@@ -205,7 +239,7 @@ export type LinearMoveArgs = NavBounds & {
 };
 
 export type GridNeighborArgs = NavBounds & {
-  /** Signed offset to the neighbour: ±1 within a row, ±`colsLength` across rows. */
+  /** Signed offset to the neighbour: ±1 within a row, ±`cols` across rows. */
   step: number;
 };
 

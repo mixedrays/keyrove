@@ -1,4 +1,4 @@
-import { buildBindings, ENTERING_INTENTS } from './bindings.js';
+import { buildBindings } from './bindings.js';
 import { resolveTarget } from './position.js';
 import {
   isEditableTarget,
@@ -8,7 +8,9 @@ import {
 } from './utils.js';
 import type {
   Attributes,
+  ExplicitBindings,
   KeyRoveEvent,
+  Layout,
   MoveResult,
   Options,
 } from './types.js';
@@ -69,6 +71,30 @@ const isRtl = (root: Element): boolean => {
 };
 
 /**
+ * Reads the group's layout off its root. A list is one column; `cols` above 1
+ * makes a grid, which has no orientation of its own — its `next`/`prev` axis is
+ * sideways by nature — and never wraps, per the APG grid pattern.
+ */
+const readLayout = (root: Element, attributes: Attributes): Layout => {
+  const cols = parseAttributeInt(root, attributes.cols, 1);
+
+  if (cols > 1) return { kind: 'grid', cols, horizontal: true, loop: false };
+
+  return {
+    kind: 'list',
+    cols: 1,
+    // `orientation="horizontal"` redirects only the *default* keys — an
+    // explicit binding still wins in the table. Nothing but the literal value
+    // "horizontal" switches anything.
+    horizontal: root.getAttribute(attributes.orientation) === 'horizontal',
+    // Presence-based (`hasAttribute`), so the bare `data-keyrove-loop`
+    // spelling works; `getAttribute` truthiness would read it as "" and
+    // silently disable it.
+    loop: root.hasAttribute(attributes.loop),
+  };
+};
+
+/**
  * Handles keyboard navigation within the provided event's current target.
  * @param e - The keydown event, native or framework-synthetic.
  * @param options.onMove - Fired after focus moved — only when it actually did.
@@ -97,57 +123,38 @@ export const keyRove = (
   const focused = root.querySelector(`[${attributes.item}]:focus-within`);
   const fromIndex = focused ? elements.indexOf(focused) : -1;
 
-  const cols = parseAttributeInt(root, attributes.cols, 1);
-  const isGrid = cols > 1;
+  const layout = readLayout(root, attributes);
 
-  // Wrapping is linear-only — a grid keeps its edges, per the APG grid
-  // pattern. Presence-based (`hasAttribute`), so the bare `data-keyrove-loop`
-  // spelling works; `getAttribute` truthiness would read it as "" and
-  // silently disable it.
-  const loop = !isGrid && root.hasAttribute(attributes.loop);
-
-  // `orientation="horizontal"` redirects only the *default* keys — an
-  // explicit binding still wins in the table. Nothing but the literal value
-  // "horizontal" switches anything, and a grid ignores the attribute
-  // outright: its inline axis is already horizontal.
-  const horizontal =
-    !isGrid && root.getAttribute(attributes.orientation) === 'horizontal';
-
-  const explicit = {
+  // Straight off the attributes, unfiltered: the binding table consults only
+  // the intents its layout has, so a row key set on a list is never read.
+  const explicit: ExplicitBindings = {
     next: root.getAttribute(attributes.nextKey),
     prev: root.getAttribute(attributes.prevKey),
-    nextRow: isGrid ? root.getAttribute(attributes.nextRowKey) : null,
-    prevRow: isGrid ? root.getAttribute(attributes.prevRowKey) : null,
+    nextRow: root.getAttribute(attributes.nextRowKey),
+    prevRow: root.getAttribute(attributes.prevRowKey),
   };
-
-  // Direction is resolved only when a default that could flip is actually in
-  // play — an inline axis with at least one unbound side.
-  const rtl =
-    (isGrid || horizontal) && !(explicit.next && explicit.prev)
-      ? isRtl(root)
-      : false;
 
   // First match wins: one keypress resolves to at most one action, and the
   // table's order is the precedence — explicit over default over fixed.
-  const binding = buildBindings({ explicit, isGrid, horizontal, rtl }).find(
-    ({ combo }) => matchesCombo(e, combo),
-  );
+  const binding = buildBindings({
+    explicit,
+    layout,
+    rtl: () => isRtl(root),
+  }).find(({ combo }) => matchesCombo(e, combo));
 
   if (!binding) return null;
 
-  // The fixed intents only act once focus is genuinely inside an item: they
-  // move *within* a group, they are not a way into one. The directional
-  // intents deliberately are — which is how a group is entered from the
-  // keyboard.
-  if (!focused && !ENTERING_INTENTS.has(binding.intent)) return null;
+  // The fixed keys only act once focus is genuinely inside an item: they move
+  // *within* a group, they are not a way into one. The directional bindings
+  // deliberately are — which is how a group is entered from the keyboard.
+  if (!focused && !binding.enters) return null;
 
   const target = resolveTarget({
     intent: binding.intent,
     elements,
     fromIndex,
-    cols,
+    layout,
     pageLength: parseAttributeInt(root, attributes.pageLength, 10),
-    loop,
     skipAttribute: attributes.skip,
   });
 

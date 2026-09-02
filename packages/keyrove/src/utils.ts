@@ -116,23 +116,36 @@ export const parseAttributeInt = (
 ): number =>
   parseInt(element.getAttribute(attribute) || String(fallback)) || fallback;
 
-/** First navigable element, or the very first one when every element is skipped. */
-export const findFirst = (
+/** First element not carrying `skipAttribute`; undefined when every one does. */
+export const firstNavigable = (
   elements: Element[],
   skipAttribute: string,
 ): Element | undefined =>
-  elements.find((el) => !el.hasAttribute(skipAttribute)) || elements[0];
+  elements.find((el) => !el.hasAttribute(skipAttribute));
 
-/** Last navigable element, or the very last one when every element is skipped. */
-export const findLast = (
+/** Last element not carrying `skipAttribute`; undefined when every one does. */
+export const lastNavigable = (
   elements: Element[],
   skipAttribute: string,
 ): Element | undefined =>
   elements
     .slice()
     .reverse()
-    .find((el) => !el.hasAttribute(skipAttribute)) ||
-  elements[elements.length - 1];
+    .find((el) => !el.hasAttribute(skipAttribute));
+
+/** First navigable element, or the very first one when every element is skipped. */
+export const findFirst = (
+  elements: Element[],
+  skipAttribute: string,
+): Element | undefined =>
+  firstNavigable(elements, skipAttribute) || elements[0];
+
+/** Last navigable element, or the very last one when every element is skipped. */
+export const findLast = (
+  elements: Element[],
+  skipAttribute: string,
+): Element | undefined =>
+  lastNavigable(elements, skipAttribute) || elements[elements.length - 1];
 
 /**
  * Next navigable element after `fromIndex`. Past the end it clamps to the

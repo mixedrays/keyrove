@@ -1,11 +1,12 @@
 /**
  * The intent → target layer: pure stride arithmetic over the item sequence.
  *
- * A group is one DOM-ordered sequence; `cols` folds it into rows. `next`/
- * `prev` step ±1 (flowing across row ends in a grid), the row intents step
- * ±`cols` staying in their column, pages step ±`pageLength` items or rows.
- * Reading direction never reaches this layer — it is a key concern, resolved
- * entirely in the binding table.
+ * A group is one DOM-ordered sequence; the layout's `cols` folds it into rows.
+ * `next`/`prev` step ±1 (flowing across row ends in a grid), the row intents
+ * step ±`cols` staying in their column, pages step ±`pageLength` rows — a list
+ * being one column, that is ±`pageLength` items there. Reading direction never
+ * reaches this layer — it is a key concern, resolved entirely in the binding
+ * table.
  */
 
 import {
@@ -15,6 +16,8 @@ import {
   findNext,
   findPageTarget,
   findPrev,
+  firstNavigable,
+  lastNavigable,
 } from './utils.js';
 import type { ResolveTargetArgs } from './types.js';
 
@@ -24,19 +27,16 @@ import type { ResolveTargetArgs } from './types.js';
  *
  * Entry is handled here: with `fromIndex: -1` a directional intent resolves
  * to the first navigable item — the last, for `prev` on a looping list. The
- * caller gates the non-entering intents before ever asking.
+ * caller gates the bindings that do not enter before ever asking.
  */
 export const resolveTarget = ({
   intent,
   elements,
   fromIndex,
-  cols,
+  layout: { kind, cols, loop },
   pageLength,
-  loop,
   skipAttribute,
 }: ResolveTargetArgs): Element | null | undefined => {
-  const isGrid = cols > 1;
-
   if (fromIndex < 0) {
     return intent === 'prev' && loop
       ? findLast(elements, skipAttribute)
@@ -44,14 +44,15 @@ export const resolveTarget = ({
   }
 
   const bounds = { elements, fromIndex, skipAttribute };
+  const stride = pageLength * cols;
 
   switch (intent) {
     case 'next':
-      return isGrid
+      return kind === 'grid'
         ? findGridNeighbor({ ...bounds, step: 1 })
         : findNext({ ...bounds, loop });
     case 'prev':
-      return isGrid
+      return kind === 'grid'
         ? findGridNeighbor({ ...bounds, step: -1 })
         : findPrev({ ...bounds, loop });
     case 'nextRow':
@@ -64,24 +65,20 @@ export const resolveTarget = ({
       return findLast(elements, skipAttribute);
     case 'homeRow':
     case 'endRow': {
+      // Unlike `home`/`end`, a row end never falls back to a skipped cell: a
+      // row of nothing but skipped cells is a consumed no-op.
       const rowStart = fromIndex - (fromIndex % cols);
       const row = elements.slice(rowStart, rowStart + cols);
 
-      if (intent === 'endRow') row.reverse();
-
-      return row.find((el) => !el.hasAttribute(skipAttribute)) ?? null;
+      return (
+        (intent === 'homeRow'
+          ? firstNavigable(row, skipAttribute)
+          : lastNavigable(row, skipAttribute)) ?? null
+      );
     }
     case 'pageUp':
-      return findPageTarget({
-        ...bounds,
-        direction: -1,
-        stride: pageLength * (isGrid ? cols : 1),
-      });
+      return findPageTarget({ ...bounds, direction: -1, stride });
     case 'pageDown':
-      return findPageTarget({
-        ...bounds,
-        direction: 1,
-        stride: pageLength * (isGrid ? cols : 1),
-      });
+      return findPageTarget({ ...bounds, direction: 1, stride });
   }
 };

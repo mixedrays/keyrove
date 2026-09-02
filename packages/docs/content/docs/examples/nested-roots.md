@@ -44,11 +44,7 @@ inherited across the boundary:
   <div data-keyrove-item tabindex="0">Row</div>
 
   <!-- A grid inside a list: 4 columns and 2-row pages apply in here only. -->
-  <div
-    data-keyrove-root
-    data-keyrove-cols="4"
-    data-keyrove-page-length="2"
-  >
+  <div data-keyrove-root data-keyrove-cols="4" data-keyrove-page-length="2">
     <button data-keyrove-item tabindex="0">1</button>
     <button data-keyrove-item tabindex="0">2</button>
   </div>

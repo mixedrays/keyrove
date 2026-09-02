@@ -57,10 +57,10 @@ Left/Right move a cell; add `data-keyrove-loop` and a list wraps at its ends.
 
 ### <span aria-hidden="true">↔️</span> Horizontal groups read as they should
 
-`data-keyrove-orientation="horizontal"` points the defaults at Left/Right
-without spelling out a combo — and flips the pair under RTL, resolved from the
-nearest `dir`, so a toolbar — and a grid's cell arrows — move "forward" the
-way the text does.
+`data-keyrove-orientation="horizontal"` points a list's defaults at Left/Right
+without spelling out a combo. Any sideways pair — that toolbar's, or a grid's
+cell arrows, sideways by nature — flips under RTL, resolved from the nearest
+`dir`, so it moves "forward" the way the text does.
 
 </div>
 <div class="feature">
