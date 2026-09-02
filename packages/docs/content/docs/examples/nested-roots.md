@@ -6,10 +6,10 @@ order: 15
 ---
 
 Composite widgets nest: a menu with a row of reactions along the top, a settings
-list with a colour grid inside one of its rows. `data-keyrove-root` marks a
-group, and the root keyrove navigates by is the _nearest_ one above the focused
-element — so an inner group can sit inside an outer one and keep its own keys,
-columns, and page size.
+list with a colour-swatch grid between two of its rows. `data-keyrove-root`
+marks a group, and the root keyrove navigates by is the _nearest_ one above the
+focused element — so an inner group can sit inside an outer one and keep its own
+keys, columns, and page size.
 
 <kbd class="kbd">↑</kbd> <kbd class="kbd">↓</kbd> walk the menu, and
 <kbd class="kbd">↑</kbd> from _Reply_ steps into the reaction row. Inside it,
