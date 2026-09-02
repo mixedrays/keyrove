@@ -84,6 +84,31 @@ const wireCopy = (demo: HTMLElement) => {
 };
 
 /**
+ * The item a demo opens on: the first one a key would move away from.
+ *
+ * Items inside a nested root are passed over while the surface has items of
+ * its own, so the nested demo opens on the menu rather than inside the
+ * reaction row — the inner group answers to keys the page has not introduced
+ * yet. Where every item lives in a nested root, as in the responsive grid,
+ * the first of those is the first item.
+ */
+const firstItem = (surface: HTMLElement) => {
+  const items = Array.from(
+    surface.querySelectorAll<HTMLElement>(
+      `[${KEYROVE_ATTR_ITEM}]:not([${KEYROVE_ATTR_SKIP}]):not([disabled])`,
+    ),
+  );
+
+  const isNested = (item: HTMLElement) => {
+    const root = item.closest(`[${KEYROVE_ATTR_ROOT}]`);
+
+    return root !== null && root !== surface;
+  };
+
+  return items.find((item) => !isNested(item)) ?? items[0];
+};
+
+/**
  * Columns decided by CSS.
  *
  * The responsive demo lets a container query choose its column count and
@@ -104,14 +129,16 @@ const syncColumns = (surface: HTMLElement) => {
 
 /** Wires every demo on the current page. */
 export const mountDemos = () => {
-  for (const demo of document.querySelectorAll<HTMLElement>('.demo')) {
+  const demos = Array.from(document.querySelectorAll<HTMLElement>('.demo'));
+
+  demos.forEach((demo, index) => {
     wireCopy(demo);
 
     const surface = demo.querySelector<HTMLElement>(
       ':scope > .demo-preview > .demo-surface',
     );
     const log = demo.querySelector<HTMLElement>('.log');
-    if (!surface || !log) continue;
+    if (!surface || !log) return;
 
     const onMove = reportMoves(log);
     // One listener for the demo, nested roots included: the event bubbles here
@@ -121,5 +148,16 @@ export const mountDemos = () => {
       keyRove(e, { onMove });
     });
     wireGroupExit(surface);
-  }
+
+    // The demo a docs page opens with starts focused, so the keys it documents
+    // work on arrival rather than after a Tab or a click. Only the first one:
+    // focus is single, and a page's opening demo is the one it is about. The
+    // landing page is left alone — its copy invites the Tab, and its demo sits
+    // far enough down the page that taking focus there on load would move the
+    // reader before they have scrolled. `preventScroll` keeps arrival at the
+    // top of the page either way.
+    if (index === 0 && !demo.closest('.landing')) {
+      firstItem(surface)?.focus({ preventScroll: true });
+    }
+  });
 };
