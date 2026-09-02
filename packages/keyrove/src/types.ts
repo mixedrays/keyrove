@@ -67,8 +67,10 @@ export type KeyRoveEvent = {
  * `next`/`prev` are ±1 in DOM order in every layout — a list item, or a grid
  * cell flowing across row ends. The `Row` actions exist only in grids:
  * `nextRow`/`prevRow` move a whole row keeping the column; `homeRow`/`endRow`
- * are the focused row's ends (bare Home/End there), while `home`/`end` are the
- * whole sequence's (bare Home/End in a list, `ctrl+Home`/`ctrl+End` in a grid).
+ * are the focused row's ends (bare Home/End there, by default), while
+ * `home`/`end` are the whole sequence's (bare Home/End in a list,
+ * `ctrl+Home`/`ctrl+End` in a grid, by default). Every move has a `*-key`
+ * attribute that rebinds it.
  */
 export type MoveAction =
   | 'home'
@@ -129,33 +131,23 @@ export type TypeaheadMove = TypeaheadResult & { to: Element };
  * Attribute names keyrove reads from the DOM, keyed by role.
  *
  * `DEFAULT_ATTRIBUTES` is checked against this with `satisfies`, so the map and
- * this type cannot drift apart in either direction.
+ * this type cannot drift apart in either direction. The `*Key` entries are
+ * mapped from {@link MoveAction}, one per move, so a move cannot exist without
+ * the attribute that rebinds it.
  */
 export type Attributes = {
   item: string;
   skip: string;
   root: string;
-  nextKey: string;
-  prevKey: string;
-  nextRowKey: string;
-  prevRowKey: string;
   pageLength: string;
   cols: string;
   rovingTabindex: string;
   loop: string;
   orientation: string;
   typeahead: string;
+} & {
+  [Intent in MoveAction as `${Intent}Key`]: string;
 };
-
-/**
- * The moves with a default arrow key: rebindable from the root's attributes,
- * and the only ones that enter a group from outside. The `Row` pair exists in
- * grids alone.
- */
-export type DirectionalIntent = Extract<
-  MoveAction,
-  'prev' | 'next' | 'prevRow' | 'nextRow'
->;
 
 /**
  * How a group folds its DOM-ordered sequence — read once off the root and
@@ -177,8 +169,8 @@ export type Layout = {
 /**
  * One row of the binding table: a key combo, the move it resolves to, and
  * whether the combo enters a group when pressed with nothing focused inside —
- * true for the directional intents, false for the fixed keys, which move only
- * within a group.
+ * true for the four directional moves, false for every other, which move only
+ * within a group. A property of the move, not of the key it is bound to.
  */
 export type Binding = {
   combo: string;
@@ -187,13 +179,11 @@ export type Binding = {
 };
 
 /**
- * The explicitly bound combos, straight off the root's attributes — `null`
- * or absent where the attribute is unset and the intent falls back to its
+ * The explicitly bound combos, straight off the root's `*-key` attributes —
+ * `null` or absent where the attribute is unset and the move keeps its
  * default key.
  */
-export type ExplicitBindings = Partial<
-  Record<DirectionalIntent, string | null>
->;
+export type ExplicitBindings = Partial<Record<MoveAction, string | null>>;
 
 export type BuildBindingsArgs = {
   explicit: ExplicitBindings;

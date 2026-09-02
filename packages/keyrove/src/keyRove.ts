@@ -30,6 +30,12 @@ const DEFAULT_ATTRIBUTES = {
   prevKey: 'data-keyrove-prev-key',
   nextRowKey: 'data-keyrove-next-row-key',
   prevRowKey: 'data-keyrove-prev-row-key',
+  homeKey: 'data-keyrove-home-key',
+  endKey: 'data-keyrove-end-key',
+  homeRowKey: 'data-keyrove-home-row-key',
+  endRowKey: 'data-keyrove-end-row-key',
+  pageUpKey: 'data-keyrove-page-up-key',
+  pageDownKey: 'data-keyrove-page-down-key',
   pageLength: 'data-keyrove-page-length',
   cols: 'data-keyrove-cols',
   rovingTabindex: 'data-keyrove-roving-tabindex',
@@ -47,6 +53,12 @@ export const KEYROVE_ATTR_NEXT_KEY = DEFAULT_ATTRIBUTES.nextKey;
 export const KEYROVE_ATTR_PREV_KEY = DEFAULT_ATTRIBUTES.prevKey;
 export const KEYROVE_ATTR_NEXT_ROW_KEY = DEFAULT_ATTRIBUTES.nextRowKey;
 export const KEYROVE_ATTR_PREV_ROW_KEY = DEFAULT_ATTRIBUTES.prevRowKey;
+export const KEYROVE_ATTR_HOME_KEY = DEFAULT_ATTRIBUTES.homeKey;
+export const KEYROVE_ATTR_END_KEY = DEFAULT_ATTRIBUTES.endKey;
+export const KEYROVE_ATTR_HOME_ROW_KEY = DEFAULT_ATTRIBUTES.homeRowKey;
+export const KEYROVE_ATTR_END_ROW_KEY = DEFAULT_ATTRIBUTES.endRowKey;
+export const KEYROVE_ATTR_PAGE_UP_KEY = DEFAULT_ATTRIBUTES.pageUpKey;
+export const KEYROVE_ATTR_PAGE_DOWN_KEY = DEFAULT_ATTRIBUTES.pageDownKey;
 export const KEYROVE_ATTR_PAGE_LENGTH = DEFAULT_ATTRIBUTES.pageLength;
 export const KEYROVE_ATTR_COLS = DEFAULT_ATTRIBUTES.cols;
 export const KEYROVE_ATTR_ROVING_TABINDEX = DEFAULT_ATTRIBUTES.rovingTabindex;
@@ -95,6 +107,28 @@ const readLayout = (root: Element, attributes: Attributes): Layout => {
 };
 
 /**
+ * The combos bound on the root, one per move — `null` where the attribute is
+ * unset and the move keeps its default key. Read unfiltered: the binding table
+ * consults only the moves its layout has, so a row key set on a list is never
+ * looked at.
+ */
+const readExplicitBindings = (
+  root: Element,
+  attributes: Attributes,
+): Required<ExplicitBindings> => ({
+  next: root.getAttribute(attributes.nextKey),
+  prev: root.getAttribute(attributes.prevKey),
+  nextRow: root.getAttribute(attributes.nextRowKey),
+  prevRow: root.getAttribute(attributes.prevRowKey),
+  home: root.getAttribute(attributes.homeKey),
+  end: root.getAttribute(attributes.endKey),
+  homeRow: root.getAttribute(attributes.homeRowKey),
+  endRow: root.getAttribute(attributes.endRowKey),
+  pageUp: root.getAttribute(attributes.pageUpKey),
+  pageDown: root.getAttribute(attributes.pageDownKey),
+});
+
+/**
  * Handles keyboard navigation within the provided event's current target.
  * @param e - The keydown event, native or framework-synthetic.
  * @param options.onMove - Fired after focus moved — only when it actually did.
@@ -125,28 +159,20 @@ export const keyRove = (
 
   const layout = readLayout(root, attributes);
 
-  // Straight off the attributes, unfiltered: the binding table consults only
-  // the intents its layout has, so a row key set on a list is never read.
-  const explicit: ExplicitBindings = {
-    next: root.getAttribute(attributes.nextKey),
-    prev: root.getAttribute(attributes.prevKey),
-    nextRow: root.getAttribute(attributes.nextRowKey),
-    prevRow: root.getAttribute(attributes.prevRowKey),
-  };
-
   // First match wins: one keypress resolves to at most one action, and the
-  // table's order is the precedence — explicit over default over fixed.
+  // table's order is the precedence — explicit over default.
   const binding = buildBindings({
-    explicit,
+    explicit: readExplicitBindings(root, attributes),
     layout,
     rtl: () => isRtl(root),
   }).find(({ combo }) => matchesCombo(e, combo));
 
   if (!binding) return null;
 
-  // The fixed keys only act once focus is genuinely inside an item: they move
-  // *within* a group, they are not a way into one. The directional bindings
-  // deliberately are — which is how a group is entered from the keyboard.
+  // Most moves only act once focus is genuinely inside an item, whatever key
+  // they are bound to: they move *within* a group, they are not a way into
+  // one. The directional moves deliberately are — which is how a group is
+  // entered from the keyboard.
   if (!focused && !binding.enters) return null;
 
   const target = resolveTarget({

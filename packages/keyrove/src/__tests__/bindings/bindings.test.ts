@@ -12,6 +12,9 @@ type BuildOverrides = Partial<Omit<BuildBindingsArgs, 'rtl'>> & {
 const build = ({ rtl = false, ...overrides }: BuildOverrides = {}) =>
   buildBindings({ explicit: {}, layout: LIST, rtl: () => rtl, ...overrides });
 
+const combos = (bindings: ReturnType<typeof build>) =>
+  bindings.map(({ combo }) => combo);
+
 describe('buildBindings', () => {
   describe('default tables (the documented keys tables)', () => {
     it('binds a vertical list', () => {
@@ -90,7 +93,7 @@ describe('buildBindings', () => {
         enters: true,
       });
       // the replaced default is gone — ArrowDown is no longer in the table
-      expect(bindings.some(({ combo }) => combo === 'ArrowDown')).toBe(false);
+      expect(combos(bindings)).not.toContain('ArrowDown');
       // the unbound side keeps its default
       expect(bindings).toContainEqual({
         combo: 'ArrowUp',
@@ -111,7 +114,7 @@ describe('buildBindings', () => {
       });
     });
 
-    it('keeps a fixed key reachable by an explicit binding', () => {
+    it("lets an explicit binding take another move's default key", () => {
       const bindings = build({ explicit: { next: 'Home' } });
 
       expect(bindings.find(({ combo }) => combo === 'Home')).toEqual({
@@ -141,14 +144,75 @@ describe('buildBindings', () => {
     });
   });
 
-  describe('layout', () => {
-    it('ignores row keys on a list', () => {
+  describe('rebinding every move', () => {
+    it('rebinds Home, End and the page keys on a list', () => {
       const bindings = build({
-        explicit: { nextRow: 'KeyJ', prevRow: 'KeyK' },
+        explicit: {
+          home: 'KeyG',
+          end: 'shift+KeyG',
+          pageUp: 'ctrl+KeyU',
+          pageDown: 'ctrl+KeyD',
+        },
+      });
+
+      expect(bindings).toEqual([
+        { combo: 'KeyG', intent: 'home', enters: false },
+        { combo: 'shift+KeyG', intent: 'end', enters: false },
+        { combo: 'ctrl+KeyU', intent: 'pageUp', enters: false },
+        { combo: 'ctrl+KeyD', intent: 'pageDown', enters: false },
+        { combo: 'ArrowUp', intent: 'prev', enters: true },
+        { combo: 'ArrowDown', intent: 'next', enters: true },
+      ]);
+    });
+
+    it('rebinds the row ends and the whole-grid ends independently', () => {
+      const bindings = build({
+        layout: GRID,
+        explicit: { homeRow: 'KeyA', endRow: 'KeyE', home: 'Home', end: 'End' },
+      });
+
+      // bare Home now means the grid's first cell; the row end moved to KeyA
+      expect(bindings.find(({ combo }) => combo === 'Home')).toEqual({
+        combo: 'Home',
+        intent: 'home',
+        enters: false,
+      });
+      expect(bindings.find(({ combo }) => combo === 'KeyA')).toEqual({
+        combo: 'KeyA',
+        intent: 'homeRow',
+        enters: false,
+      });
+      // the replaced ctrl+ defaults are gone
+      expect(combos(bindings)).not.toContain('ctrl+Home');
+      expect(combos(bindings)).not.toContain('ctrl+End');
+    });
+
+    it('keeps a rebound move from entering the group', () => {
+      const bindings = build({ explicit: { home: 'ArrowUp' } });
+
+      expect(bindings.find(({ combo }) => combo === 'ArrowUp')).toEqual({
+        combo: 'ArrowUp',
+        intent: 'home',
+        enters: false,
+      });
+    });
+  });
+
+  describe('layout', () => {
+    it('ignores grid-only moves on a list', () => {
+      const bindings = build({
+        explicit: {
+          nextRow: 'KeyJ',
+          prevRow: 'KeyK',
+          homeRow: 'KeyA',
+          endRow: 'KeyE',
+        },
       });
 
       expect(bindings.some(({ intent }) => intent.endsWith('Row'))).toBe(false);
-      expect(bindings.some(({ combo }) => combo.startsWith('Key'))).toBe(false);
+      expect(combos(bindings).some((combo) => combo.startsWith('Key'))).toBe(
+        false,
+      );
     });
 
     it('reads direction only when an unbound horizontal default could flip', () => {

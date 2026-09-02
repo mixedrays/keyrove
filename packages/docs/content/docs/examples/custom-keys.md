@@ -1,6 +1,6 @@
 ---
 title: Custom keys
-description: Arrows are the default, not the rule — rebinding the next and previous keys to any key combo.
+description: Arrows are the default, not the rule — rebinding any move to any key combo.
 group: Examples
 order: 14
 ---
@@ -103,21 +103,45 @@ default, which is what lets custom keys sit alongside
 [native tab navigation](/docs/introduction#tab-still-works) rather than in place
 of it.
 
-### What is not rebindable
+## Home, End and the page keys
 
 <kbd class="kbd">Home</kbd>, <kbd class="kbd">End</kbd>,
-<kbd class="kbd">PageUp</kbd> and <kbd class="kbd">PageDown</kbd> are fixed —
-there is no attribute for them. In a grid that includes the
-<kbd class="kbd">Ctrl</kbd>-modified pair that jumps to the grid's ends.
+<kbd class="kbd">PageUp</kbd> and <kbd class="kbd">PageDown</kbd> are defaults
+too. `data-keyrove-home-key`, `data-keyrove-end-key`,
+`data-keyrove-page-up-key` and `data-keyrove-page-down-key` rebind them by the
+same rules — any combo, exact matching, the replaced default handed back to
+the browser:
+
+```html
+<!-- vim-style, all the way down -->
+<ul
+  data-keyrove-next-key="KeyJ"
+  data-keyrove-prev-key="KeyK"
+  data-keyrove-home-key="KeyG"
+  data-keyrove-end-key="shift+KeyG"
+  data-keyrove-page-down-key="ctrl+KeyD"
+  data-keyrove-page-up-key="ctrl+KeyU"
+>
+  …
+</ul>
+```
+
+Whatever they are bound to, these moves act only once focus is inside an item
+— they move _within_ a group and never enter one. Only the directional keys
+do that.
 
 ## Grids
 
 The attributes keep their meaning in a grid: `data-keyrove-next-key` and
 `data-keyrove-prev-key` move one item — a _cell_ there, flowing across row
 ends — and the row moves have their own pair, `data-keyrove-next-row-key` and
-`data-keyrove-prev-row-key`, defaulting to `ArrowDown`/`ArrowUp`. Each pair
-rebinds independently, and every replaced default arrow goes back to its
-browser behaviour. A full vim-style grid binds all four:
+`data-keyrove-prev-row-key`, defaulting to `ArrowDown`/`ArrowUp`. The ends
+split the same way: `data-keyrove-home-row-key`/`data-keyrove-end-row-key`
+bind the focused row's ends (bare `Home`/`End` by default), while
+`data-keyrove-home-key`/`data-keyrove-end-key` bind the whole grid's
+(`ctrl+Home`/`ctrl+End` by default). Each pair rebinds independently, and
+every replaced default goes back to its browser behaviour. A full vim-style
+grid binds all four arrows:
 
 ```html
 <div

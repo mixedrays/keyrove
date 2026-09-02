@@ -75,7 +75,7 @@ gaining an attribute, and nothing in your JavaScript changes.
 
 ## Which keys move focus
 
-The forward and back keys are configuration, not a fixed part of the library.
+The keys are configuration, not a fixed part of the library.
 `data-keyrove-next-key` and `data-keyrove-prev-key` on the root take any
 [`KeyboardEvent.code`](https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/code),
 and default to `ArrowDown` and `ArrowUp` only because that is what most lists
@@ -99,9 +99,10 @@ page. And because each root is read separately, two groups on one page can
 answer to entirely different keys.
 
 <kbd class="kbd">Home</kbd>, <kbd class="kbd">End</kbd>,
-<kbd class="kbd">PageUp</kbd> and <kbd class="kbd">PageDown</kbd> are fixed;
-they are not rebindable today. [Custom keys](/docs/examples/custom-keys) covers
-the rebinding rules in full, including what happens in a grid.
+<kbd class="kbd">PageUp</kbd> and <kbd class="kbd">PageDown</kbd> are defaults
+in the same way, with `data-keyrove-home-key` and its siblings to rebind them.
+[Custom keys](/docs/examples/custom-keys) covers the rebinding rules in full,
+including what happens in a grid.
 
 ## Tab still works
 

@@ -26,10 +26,9 @@ pnpm add @mixedrays/keyrove
 
 - **Framework-agnostic:** takes DOM events and React, Vue, or Svelte synthetic
   events, with no adapter and no dependencies.
-- **Configurable key bindings:** `data-keyrove-next-key`/`data-keyrove-prev-key`
-  — and the grid's `data-keyrove-next-row-key`/`data-keyrove-prev-row-key` —
-  take any `KeyboardEvent.code`, with exact modifier combos and platform-aware
-  `mod`.
+- **Configurable key bindings:** every move — next/prev, the grid's row moves,
+  Home/End and the page jumps — has a `data-keyrove-*-key` attribute taking any
+  `KeyboardEvent.code`, with exact modifier combos and platform-aware `mod`.
 - **Lists and grids:** arrows, <kbd>Home</kbd>/<kbd>End</kbd> and
   <kbd>PageUp</kbd>/<kbd>PageDown</kbd> out of the box; `data-keyrove-cols`
   folds the items into rows — Up/Down move a whole row, Left/Right move a cell
@@ -127,11 +126,13 @@ default — while `data-keyrove-next-row-key`/`data-keyrove-prev-row-key` move a
 whole row, defaulting to `ArrowDown`/`ArrowUp`.
 
 Anything not bound is left entirely alone, browser defaults included. `Home`,
-`End`, `PageUp` and `PageDown` act only once focus is already inside an item —
-they move within a group, never into one. In a list they are handled when
-pressed without modifiers. In a grid, bare `Home`/`End` jump to the ends of the
-focused row instead and `ctrl+Home`/`ctrl+End` to the grid's first and last
-cell.
+`End`, `PageUp` and `PageDown` are defaults like the arrows —
+`data-keyrove-home-key`, `data-keyrove-end-key`, `data-keyrove-page-up-key` and
+`data-keyrove-page-down-key` rebind them — and whatever they are bound to they
+act only once focus is already inside an item: they move within a group, never
+into one. In a grid, bare `Home`/`End` jump to the ends of the focused row
+(`data-keyrove-home-row-key`/`data-keyrove-end-row-key`) and
+`ctrl+Home`/`ctrl+End` to the grid's first and last cell.
 
 At the ends of a list the bound keys are consumed but focus stays put. Add
 `data-keyrove-loop` on the root and next on the last item wraps to the first,
@@ -192,6 +193,12 @@ contract as `keyRove` — and `onMove` fires after a real move, exactly as
 | `data-keyrove-prev-key`        | root | axis arrow  | Combo for the previous item.                                                          |
 | `data-keyrove-next-row-key`    | root | `ArrowDown` | Combo for the next row, same column. Grids only.                                      |
 | `data-keyrove-prev-row-key`    | root | `ArrowUp`   | Combo for the previous row. Grids only.                                               |
+| `data-keyrove-home-key`        | root | `Home`      | Combo for the first item — the grid's first cell, `ctrl+Home` there by default.       |
+| `data-keyrove-end-key`         | root | `End`       | Combo for the last item — the grid's last cell, `ctrl+End` there by default.          |
+| `data-keyrove-home-row-key`    | root | `Home`      | Combo for the focused row's first cell. Grids only.                                   |
+| `data-keyrove-end-row-key`     | root | `End`       | Combo for the focused row's last cell. Grids only.                                    |
+| `data-keyrove-page-up-key`     | root | `PageUp`    | Combo for the page jump back.                                                         |
+| `data-keyrove-page-down-key`   | root | `PageDown`  | Combo for the page jump forward.                                                      |
 | `data-keyrove-loop`            | root | —           | Next/prev wrap past the ends of a list. Grids never wrap.                             |
 | `data-keyrove-orientation`     | root | —           | `horizontal` maps a list's default keys to `ArrowRight`/`ArrowLeft`, RTL-aware.       |
 | `data-keyrove-typeahead`       | item | text        | Label for type-to-focus, when the item's own text is not it.                          |

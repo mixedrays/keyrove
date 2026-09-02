@@ -7,13 +7,7 @@
  * remapped. Everything downstream (the position model) is direction-blind.
  */
 
-import type {
-  Binding,
-  BuildBindingsArgs,
-  DirectionalIntent,
-  KnownCode,
-  Layout,
-} from './types.js';
+import type { Binding, BuildBindingsArgs, KnownCode, Layout } from './types.js';
 
 // Named so the tables below are checked against `KnownCode` instead of
 // comparing against bare literals that TypeScript cannot vet.
@@ -28,100 +22,75 @@ const KEY = {
   pageDown: 'PageDown',
 } as const satisfies Record<string, KnownCode>;
 
-type FixedKey = Pick<Binding, 'combo' | 'intent'>;
-
-const LIST_INTENTS = [
-  'prev',
-  'next',
-] as const satisfies readonly DirectionalIntent[];
-const ROW_INTENTS = [
-  'prevRow',
-  'nextRow',
-] as const satisfies readonly DirectionalIntent[];
-
 /**
- * What each layout binds, in table order: the directional intents that take a
- * default key when left unbound, then that layout's fixed keys. The page keys
- * are shared and follow both.
+ * The default table for a layout — the documented keys table: every move the
+ * layout has, in table order, with the key it answers to when left unbound and
+ * whether it enters a group from outside. `flip` is the RTL swap of the
+ * `next`/`prev` arrows on a horizontal axis; the row axis never flips.
  */
-const LAYOUT_KEYS: Record<
-  Layout['kind'],
-  { directional: readonly DirectionalIntent[]; fixed: readonly FixedKey[] }
-> = {
-  list: {
-    directional: LIST_INTENTS,
-    fixed: [
-      { combo: KEY.home, intent: 'home' },
-      { combo: KEY.end, intent: 'end' },
-    ],
-  },
-  grid: {
-    directional: [...LIST_INTENTS, ...ROW_INTENTS],
-    fixed: [
-      { combo: KEY.home, intent: 'homeRow' },
-      { combo: KEY.end, intent: 'endRow' },
-      { combo: `ctrl+${KEY.home}`, intent: 'home' },
-      { combo: `ctrl+${KEY.end}`, intent: 'end' },
-    ],
-  },
-};
+const defaultTable = (layout: Layout, flip: boolean): readonly Binding[] => {
+  const [prev, next] = layout.horizontal
+    ? flip
+      ? [KEY.arrowRight, KEY.arrowLeft]
+      : [KEY.arrowLeft, KEY.arrowRight]
+    : [KEY.arrowUp, KEY.arrowDown];
+  const items: Binding[] = [
+    { combo: prev, intent: 'prev', enters: true },
+    { combo: next, intent: 'next', enters: true },
+  ];
+  const pages: Binding[] = [
+    { combo: KEY.pageUp, intent: 'pageUp', enters: false },
+    { combo: KEY.pageDown, intent: 'pageDown', enters: false },
+  ];
 
-const PAGE_KEYS: readonly FixedKey[] = [
-  { combo: KEY.pageUp, intent: 'pageUp' },
-  { combo: KEY.pageDown, intent: 'pageDown' },
-];
+  if (layout.kind === 'grid') {
+    return [
+      ...items,
+      { combo: KEY.arrowUp, intent: 'prevRow', enters: true },
+      { combo: KEY.arrowDown, intent: 'nextRow', enters: true },
+      { combo: KEY.home, intent: 'homeRow', enters: false },
+      { combo: KEY.end, intent: 'endRow', enters: false },
+      { combo: `ctrl+${KEY.home}`, intent: 'home', enters: false },
+      { combo: `ctrl+${KEY.end}`, intent: 'end', enters: false },
+      ...pages,
+    ];
+  }
+
+  return [
+    ...items,
+    { combo: KEY.home, intent: 'home', enters: false },
+    { combo: KEY.end, intent: 'end', enters: false },
+    ...pages,
+  ];
+};
 
 /**
  * Builds the ordered binding table for a group. The first entry that matches
- * a keypress claims it, so order *is* precedence: explicit bindings, then
- * direction-aware defaults for the intents left unbound, then the fixed keys.
+ * a keypress claims it, so order *is* precedence: every explicit binding
+ * first, then the defaults of the moves left unbound.
  *
  * A replaced default is not re-added — the freed key goes back to its browser
- * behaviour — and an explicit combo colliding with a default or fixed key wins
- * by sitting earlier in the table.
+ * behaviour — and an explicit combo colliding with another move's default wins
+ * by sitting earlier in the table. A move the layout lacks (a row move on a
+ * list) is not in its table, so binding it does nothing.
  */
 export const buildBindings = ({
   explicit,
   layout,
   rtl,
 }: BuildBindingsArgs): Binding[] => {
-  const { directional, fixed } = LAYOUT_KEYS[layout.kind];
-  const unbound = directional.filter((intent) => !explicit[intent]);
-
   // Direction is read only when a default that could flip is in play: an
-  // unbound side of a horizontal `next`/`prev` axis. The row axis is vertical
-  // and never flips.
+  // unbound side of a horizontal `next`/`prev` axis.
   const flip = layout.horizontal && !(explicit.next && explicit.prev) && rtl();
-  const defaults: Record<DirectionalIntent, KnownCode> = {
-    next: layout.horizontal
-      ? flip
-        ? KEY.arrowLeft
-        : KEY.arrowRight
-      : KEY.arrowDown,
-    prev: layout.horizontal
-      ? flip
-        ? KEY.arrowRight
-        : KEY.arrowLeft
-      : KEY.arrowUp,
-    nextRow: KEY.arrowDown,
-    prevRow: KEY.arrowUp,
-  };
+  const rebound: Binding[] = [];
+  const defaults: Binding[] = [];
 
-  const bindings: Binding[] = [];
+  for (const row of defaultTable(layout, flip)) {
+    const combo = explicit[row.intent];
 
-  for (const intent of directional) {
-    const combo = explicit[intent];
-
-    if (combo) bindings.push({ combo, intent, enters: true });
+    if (combo) rebound.push({ ...row, combo });
+    else defaults.push(row);
   }
 
-  for (const intent of unbound) {
-    bindings.push({ combo: defaults[intent], intent, enters: true });
-  }
-
-  for (const { combo, intent } of [...fixed, ...PAGE_KEYS]) {
-    bindings.push({ combo, intent, enters: false });
-  }
-
-  return bindings;
+  return [...rebound, ...defaults];
 };

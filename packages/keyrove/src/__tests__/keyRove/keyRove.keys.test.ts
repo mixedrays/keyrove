@@ -1,5 +1,11 @@
 import { describe, it, expect, afterEach, vi } from 'vitest';
-import { KEYROVE_ATTR_NEXT_KEY, KEYROVE_ATTR_PREV_KEY } from '../../keyRove';
+import {
+  KEYROVE_ATTR_NEXT_KEY,
+  KEYROVE_ATTR_PAGE_DOWN_KEY,
+  KEYROVE_ATTR_PAGE_LENGTH,
+  KEYROVE_ATTR_PAGE_UP_KEY,
+  KEYROVE_ATTR_PREV_KEY,
+} from '../../keyRove';
 import {
   activeId,
   createItem,
@@ -104,6 +110,33 @@ describe('keyRove', () => {
       pressKey('ArrowDown');
 
       expect(activeId()).toBe('a');
+    });
+
+    it('pages with the configured page keys and frees the defaults', () => {
+      renderList(
+        ['a', 'b', 'c', 'd', 'e'].map((id) => createItem(id)),
+        {
+          containerAttrs: {
+            [KEYROVE_ATTR_PAGE_LENGTH]: '2',
+            [KEYROVE_ATTR_PAGE_DOWN_KEY]: 'ctrl+KeyD',
+            [KEYROVE_ATTR_PAGE_UP_KEY]: 'ctrl+KeyU',
+          },
+        },
+      );
+      document.getElementById('a')!.focus();
+
+      pressKey('KeyD', undefined, { ctrlKey: true });
+      expect(activeId()).toBe('c');
+
+      pressKey('KeyD', undefined, { ctrlKey: true });
+      expect(activeId()).toBe('e');
+
+      pressKey('KeyU', undefined, { ctrlKey: true });
+      expect(activeId()).toBe('c');
+
+      const pageDown = pressKey('PageDown');
+      expect(activeId()).toBe('c');
+      expect(pageDown.defaultPrevented).toBe(false);
     });
   });
 });
