@@ -40,25 +40,25 @@ Root attributes are read off the group focus is currently in, and nothing is
 inherited across the boundary:
 
 ```html
-<div id="panel" data-keyrove-root data-keyrove-page-length="5">
-  <div data-keyrove-item tabindex="0">Row</div>
+<div id="settings" data-keyrove-root data-keyrove-page-length="5">
+  <div data-keyrove-item tabindex="0">Appearance</div>
 
-  <!-- A grid inside a list: 4 columns and 2-row pages apply in here only. -->
+  <!-- A swatch grid: 4 columns and 2-row pages apply in here only. -->
   <div data-keyrove-root data-keyrove-cols="4" data-keyrove-page-length="2">
-    <button data-keyrove-item tabindex="0">1</button>
-    <button data-keyrove-item tabindex="0">2</button>
+    <button data-keyrove-item tabindex="0">Indigo</button>
+    <button data-keyrove-item tabindex="0">Teal</button>
   </div>
 
-  <div data-keyrove-item tabindex="0">Row</div>
+  <div data-keyrove-item tabindex="0">Notifications</div>
 </div>
 ```
 
-<kbd class="kbd">PageDown</kbd> moves five rows in the panel and two grid rows in
-the grid; <kbd class="kbd">←</kbd> <kbd class="kbd">→</kbd> move a cell inside
-the grid and nothing outside it. <kbd class="kbd">Home</kbd> and
-<kbd class="kbd">End</kbd> follow the same rule: while focus is in the grid they
-land on the ends of its focused row (<kbd class="kbd">Ctrl</kbd>-modified, on
-the grid's first and last cell), never on the panel's.
+<kbd class="kbd">PageDown</kbd> moves five rows in the settings list and two
+grid rows in the swatch grid; <kbd class="kbd">←</kbd> <kbd class="kbd">→</kbd>
+move a cell inside the grid and nothing outside it. <kbd class="kbd">Home</kbd>
+and <kbd class="kbd">End</kbd> follow the same rule: while focus is in the grid
+they land on the ends of its focused row (<kbd class="kbd">Ctrl</kbd>-modified,
+on the grid's first and last cell), never on the list's.
 
 ### The outer group still sees the inner items
 

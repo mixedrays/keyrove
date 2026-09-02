@@ -28,7 +28,9 @@ them and the replaced default arrow goes back to its browser behaviour — see
 <div data-demo="grid" data-demo-class="grid grid-cols-6 gap-1.5"></div>
 
 ```ts
-document.querySelector('#grid').addEventListener('keydown', (e) => keyRove(e));
+document
+  .querySelector('#time-slots')
+  .addEventListener('keydown', (e) => keyRove(e));
 ```
 
 The column count is the one keyrove navigates by. Keep it in step with however

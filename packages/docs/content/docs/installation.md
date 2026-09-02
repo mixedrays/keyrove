@@ -114,9 +114,10 @@ number of independent groups without them seeing each other's items.
     <li data-keyrove-item tabindex="0">Drafts</li>
   </ul>
 
+  <!-- A label picker in the same panel: its own root, its own columns. -->
   <ul data-keyrove-root data-keyrove-cols="4">
-    <li data-keyrove-item tabindex="0">1</li>
-    <li data-keyrove-item tabindex="0">2</li>
+    <li data-keyrove-item tabindex="0">Work</li>
+    <li data-keyrove-item tabindex="0">Travel</li>
   </ul>
 </div>
 ```

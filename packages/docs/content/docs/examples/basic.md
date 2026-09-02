@@ -22,7 +22,9 @@ stop instead.
 ```ts
 import { keyRove } from '@mixedrays/keyrove';
 
-document.querySelector('#menu').addEventListener('keydown', (e) => keyRove(e));
+document
+  .querySelector('#countries')
+  .addEventListener('keydown', (e) => keyRove(e));
 ```
 
 ## The arrows are a default
@@ -32,7 +34,7 @@ to when you have not said otherwise. Two attributes on the root swap them for
 anything else:
 
 ```html
-<ul id="menu" data-keyrove-next-key="KeyJ" data-keyrove-prev-key="KeyK">
+<ul id="countries" data-keyrove-next-key="KeyJ" data-keyrove-prev-key="KeyK">
   …
 </ul>
 ```
