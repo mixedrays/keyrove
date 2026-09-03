@@ -4,6 +4,7 @@ import {
   KEYROVE_ATTR_ITEM,
   KEYROVE_ATTR_SKIP,
   KEYROVE_ATTR_COLS,
+  KEYROVE_ATTR_FOCUS_KEY,
   KEYROVE_ATTR_ROVING_TABINDEX,
 } from '../../keyRove';
 
@@ -14,6 +15,7 @@ export type ItemSpec = {
   disabled?: boolean;
   roving?: boolean;
   tabindex?: string;
+  focusKey?: string;
 };
 
 export const createItem = (id: string, spec: ItemSpec = {}) => {
@@ -25,6 +27,9 @@ export const createItem = (id: string, spec: ItemSpec = {}) => {
   if (spec.skip) el.setAttribute(KEYROVE_ATTR_SKIP, 'true');
   if (spec.disabled) el.setAttribute('disabled', 'true');
   if (spec.roving) el.setAttribute(KEYROVE_ATTR_ROVING_TABINDEX, 'true');
+  if (spec.focusKey !== undefined) {
+    el.setAttribute(KEYROVE_ATTR_FOCUS_KEY, spec.focusKey);
+  }
 
   return el;
 };

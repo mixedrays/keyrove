@@ -163,6 +163,14 @@ _default_ cell arrows follow the
 [reading direction](/docs/api#horizontal-groups-and-rtl), exactly as
 orientation's defaults do for a list.
 
+## An item's own key
+
+Everything above binds a _move_ on the root. An item can also carry a key of
+its own: `data-keyrove-focus-key="ctrl+shift+KeyE"` focuses that item from
+anywhere the keydown reaches the listener, by the same combo grammar. It sits
+ahead of the root's bindings, so it wins a collision with them.
+[Focus keys](/docs/examples/focus-keys) has the rules in full.
+
 ## Editable elements are exempt
 
 A key pressed inside an `input`, `textarea`, `select`, or `[contenteditable]`

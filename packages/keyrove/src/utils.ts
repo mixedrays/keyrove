@@ -62,6 +62,13 @@ export const matchesCombo = (e: KeyRoveEvent, combo: string): boolean => {
   );
 };
 
+/**
+ * Whether Ctrl, Alt or Meta is held: a command rather than typing. Shift on
+ * its own is typing — it is how capitals are entered — so it does not count.
+ */
+export const hasCommandModifier = (e: KeyRoveEvent): boolean =>
+  !!(e.ctrlKey || e.altKey || e.metaKey);
+
 // An editable target owns the keys keyrove binds: arrows and Home/End move
 // the caret there, and printable keys type. `closest` rather than `matches`,
 // so descendants of a `contenteditable` region count as inside it — and the

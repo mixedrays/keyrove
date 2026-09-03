@@ -163,4 +163,26 @@ describe('keyRove', () => {
       expect(activeId()).toBe('b');
     });
   });
+
+  describe('listener placement', () => {
+    it.each([
+      ['document', () => document],
+      ['window', () => window],
+    ])(
+      'navigates under a listener on the %s, with no root in the tree',
+      (_, node) => {
+        const list = document.createElement('div');
+        list.append(createItem('a'), createItem('b'));
+        document.body.appendChild(list);
+        const listen = (e: Event) => keyRove(e as KeyboardEvent);
+        node().addEventListener('keydown', listen);
+
+        document.getElementById('a')!.focus();
+        pressKey('ArrowDown');
+        node().removeEventListener('keydown', listen);
+
+        expect(activeId()).toBe('b');
+      },
+    );
+  });
 });

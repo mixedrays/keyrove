@@ -78,7 +78,7 @@ root.
 Once focus is inside the inner group, no key reaches the outer one. A key the
 inner root does not bind — <kbd class="kbd">↓</kbd> in the reaction row above —
 does nothing at all: keyrove leaves it to the browser rather than passing it on
-to the group outside. Leaving is yours to wire, and there are two ways to do it.
+to the group outside. Leaving is yours to wire, and there are three ways to do it.
 
 <kbd class="kbd">Tab</kbd> is the first, and it needs no code beyond
 [roving tabindex](/docs/examples/roving-tabindex). keyrove never binds
@@ -106,6 +106,11 @@ reactions.addEventListener('keydown', (e) => {
 keyrove never acts on <kbd class="kbd">Escape</kbd>, so nothing collides — the
 same holds for any code the roots involved have not bound. Which also means the
 exit key is yours to choose on the same terms as the navigation keys.
+
+The third is a [focus key](/docs/examples/focus-keys) on an item of the outer
+group. `data-keyrove-focus-key` is heard as far as the listener reaches, nested
+roots included, so one press lands on that item from anywhere inside the inner
+group — no listener on the inner root, and no code.
 
 ## Nesting, or two roots side by side
 

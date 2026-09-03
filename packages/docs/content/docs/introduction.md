@@ -70,6 +70,9 @@ gaining an attribute, and nothing in your JavaScript changes.
 - Horizontal groups, via `data-keyrove-orientation` — and the default forward
   and back keys swap under RTL, so a toolbar, or a grid's cell arrows, move
   the way the text reads.
+- Focus keys, via `data-keyrove-focus-key` on an item: one combo focuses it
+  from anywhere under the listener — another group, a nested root, even a text
+  field.
 - Typeahead, as an opt-in second handler: `createTypeahead()` focuses an item
   as you type its label.
 
