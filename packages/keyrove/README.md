@@ -1,7 +1,7 @@
 # @mixedrays/keyrove
 
 [![npm](https://img.shields.io/npm/v/@mixedrays/keyrove?color=4f46e5)](https://www.npmjs.com/package/@mixedrays/keyrove)
-[![minzipped size](https://img.shields.io/bundlephobia/minzip/@mixedrays/keyrove?color=4f46e5)](https://bundlephobia.com/package/@mixedrays/keyrove)
+[![minzipped size](https://img.shields.io/bundlejs/size/%40mixedrays%2Fkeyrove?color=4f46e5&label=minzipped%20size)](https://bundlejs.com/?q=%40mixedrays%2Fkeyrove)
 [![license](https://img.shields.io/npm/l/@mixedrays/keyrove?color=4f46e5)](https://github.com/mixedrays/keyrove/blob/main/LICENSE)
 
 Framework-agnostic keyboard navigation for lists and grids, driven by `data-*`
