@@ -24,6 +24,7 @@ export const DEFAULT_ATTRIBUTES = {
   endRowKey: 'data-keyrove-end-row-key',
   pageUpKey: 'data-keyrove-page-up-key',
   pageDownKey: 'data-keyrove-page-down-key',
+  focusKey: 'data-keyrove-focus-key',
   pageLength: 'data-keyrove-page-length',
   cols: 'data-keyrove-cols',
   rovingTabindex: 'data-keyrove-roving-tabindex',

@@ -1,11 +1,17 @@
 import { DEFAULT_ATTRIBUTES } from './attributes.js';
 import { buildBindings } from './bindings.js';
-import { moveFocus, readGroup, resolveRoot } from './group.js';
+import { listenerElement, moveFocus, readGroup, resolveRoot } from './group.js';
 import { resolveTarget } from './position.js';
-import { isEditableTarget, matchesCombo, parseAttributeInt } from './utils.js';
+import {
+  hasCommandModifier,
+  isEditableTarget,
+  matchesCombo,
+  parseAttributeInt,
+} from './utils.js';
 import type {
   Attributes,
   ExplicitBindings,
+  FocusKey,
   KeyRoveEvent,
   Layout,
   MoveResult,
@@ -27,6 +33,7 @@ export const KEYROVE_ATTR_HOME_ROW_KEY = DEFAULT_ATTRIBUTES.homeRowKey;
 export const KEYROVE_ATTR_END_ROW_KEY = DEFAULT_ATTRIBUTES.endRowKey;
 export const KEYROVE_ATTR_PAGE_UP_KEY = DEFAULT_ATTRIBUTES.pageUpKey;
 export const KEYROVE_ATTR_PAGE_DOWN_KEY = DEFAULT_ATTRIBUTES.pageDownKey;
+export const KEYROVE_ATTR_FOCUS_KEY = DEFAULT_ATTRIBUTES.focusKey;
 export const KEYROVE_ATTR_PAGE_LENGTH = DEFAULT_ATTRIBUTES.pageLength;
 export const KEYROVE_ATTR_COLS = DEFAULT_ATTRIBUTES.cols;
 export const KEYROVE_ATTR_ROVING_TABINDEX = DEFAULT_ATTRIBUTES.rovingTabindex;
@@ -97,6 +104,22 @@ const readExplicitBindings = (
 });
 
 /**
+ * The focus keys in reach of a keypress: every navigable item under `scope`
+ * that names one, in DOM order. Skipped and disabled items are not
+ * destinations, so theirs are not read — the key falls through as though it
+ * were undeclared.
+ */
+const readFocusKeys = (scope: Element, attributes: Attributes): FocusKey[] =>
+  Array.from(
+    scope.querySelectorAll(
+      `[${attributes.item}][${attributes.focusKey}]:not([disabled]):not([${attributes.skip}])`,
+    ),
+  ).map((target) => ({
+    combo: target.getAttribute(attributes.focusKey) ?? '',
+    target,
+  }));
+
+/**
  * Handles keyboard navigation within the provided event's current target.
  * @param e - The keydown event, native or framework-synthetic.
  * @param options.onMove - Fired after focus moved — only when it actually did.
@@ -111,42 +134,69 @@ export const keyRove = (
 ): MoveResult | null => {
   const attributes = DEFAULT_ATTRIBUTES;
   const eventTarget = e.target as Element | null;
+  const editable = isEditableTarget(eventTarget);
 
-  if (isEditableTarget(eventTarget)) return null;
+  // Typing. An editable target keeps every press that could be text or caret
+  // movement, and nothing keyrove binds fires from one without a command
+  // modifier — so there is nothing to look up.
+  if (editable && !hasCommandModifier(e)) return null;
 
   const root = resolveRoot(eventTarget, e.currentTarget);
 
   if (!root) return null;
 
-  const { items: elements, focused } = readGroup(root);
-  const fromIndex = focused ? elements.indexOf(focused) : -1;
-
+  // A move is relative to the root focus is in; a focus key names its item
+  // outright and is heard as far as the listener reaches — across sibling
+  // groups and out of nested roots — so its lookup spans the listener's
+  // element, not the root.
+  const scope = listenerElement(e.currentTarget) ?? root;
   const layout = readLayout(root, attributes);
 
   // First match wins: one keypress resolves to at most one action, and the
-  // table's order is the precedence — explicit over default.
+  // table's order is the precedence — an item's own key over the root's
+  // explicit bindings over the defaults.
   const binding = buildBindings({
     explicit: readExplicitBindings(root, attributes),
+    focus: readFocusKeys(scope, attributes),
     layout,
     rtl: () => isRtl(root),
   }).find(({ combo }) => matchesCombo(e, combo));
 
   if (!binding) return null;
 
+  // A chorded press from inside a field reaches only a focus key, which points
+  // out of the field. A move keeps the caret's keys however it is bound.
+  if (editable && binding.intent !== 'focus') return null;
+
+  // A focus row's move happens in its target's own group — the nearest root
+  // above the item, else the listener's element — so `from` is the sibling
+  // holding focus, the roving stop stays within one group, and a key pressed
+  // while focus is already inside its item is a consumed no-op. The search
+  // starts at the item's *parent*: a panel is often itself the root of the
+  // list inside it, and its group is the one above.
+  const group =
+    binding.intent === 'focus'
+      ? (resolveRoot(binding.target.parentElement, scope) ?? scope)
+      : root;
+  const { items: elements, focused } = readGroup(group);
+
   // Most moves only act once focus is genuinely inside an item, whatever key
   // they are bound to: they move *within* a group, they are not a way into
   // one. The directional moves deliberately are — which is how a group is
-  // entered from the keyboard.
+  // entered from the keyboard — and so is a focus key, which is the point.
   if (!focused && !binding.enters) return null;
 
-  const target = resolveTarget({
-    intent: binding.intent,
-    elements,
-    fromIndex,
-    layout,
-    pageLength: parseAttributeInt(root, attributes.pageLength, 10),
-    skipAttribute: attributes.skip,
-  });
+  const target =
+    binding.intent === 'focus'
+      ? binding.target
+      : resolveTarget({
+          intent: binding.intent,
+          elements,
+          fromIndex: focused ? elements.indexOf(focused) : -1,
+          layout,
+          pageLength: parseAttributeInt(root, attributes.pageLength, 10),
+          skipAttribute: attributes.skip,
+        });
 
   // With neither a target nor a focused item, keyrove has nothing to move
   // from or to and the key is left with its browser default rather than

@@ -144,6 +144,68 @@ describe('buildBindings', () => {
     });
   });
 
+  describe('focus keys', () => {
+    const item = (id: string) => {
+      const el = document.createElement('div');
+      el.id = id;
+      return el;
+    };
+
+    it('puts focus keys ahead of every explicit binding and default', () => {
+      const target = item('a');
+      const bindings = build({
+        explicit: { next: 'KeyJ' },
+        focus: [{ combo: 'KeyX', target }],
+      });
+
+      expect(bindings[0]).toEqual({
+        combo: 'KeyX',
+        intent: 'focus',
+        enters: true,
+        target,
+      });
+      expect(bindings[1]).toEqual({
+        combo: 'KeyJ',
+        intent: 'next',
+        enters: true,
+      });
+    });
+
+    it('keeps focus keys in the order given, so the first of two on one combo wins', () => {
+      const [a, b] = [item('a'), item('b')];
+      const bindings = build({
+        focus: [
+          { combo: 'KeyX', target: a },
+          { combo: 'KeyX', target: b },
+        ],
+      });
+
+      expect(bindings.slice(0, 2)).toEqual([
+        { combo: 'KeyX', intent: 'focus', enters: true, target: a },
+        { combo: 'KeyX', intent: 'focus', enters: true, target: b },
+      ]);
+    });
+
+    it('lets a focus key claim a key a default answers to, leaving the default behind it', () => {
+      const target = item('a');
+      const bindings = build({ focus: [{ combo: 'Home', target }] });
+
+      expect(bindings.find(({ combo }) => combo === 'Home')).toEqual({
+        combo: 'Home',
+        intent: 'focus',
+        enters: true,
+        target,
+      });
+      expect(bindings.filter(({ combo }) => combo === 'Home')).toHaveLength(2);
+    });
+
+    it('drops a focus key with an empty combo, as for a bare root attribute', () => {
+      expect(build({ focus: [{ combo: '', target: item('a') }] })).toEqual(
+        build(),
+      );
+    });
+  });
+
   describe('rebinding every move', () => {
     it('rebinds Home, End and the page keys on a list', () => {
       const bindings = build({

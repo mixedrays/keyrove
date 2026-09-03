@@ -520,6 +520,13 @@
     @apply hover:bg-transparent;
   }
 
+  /* A field inside an item — the focus-keys demo's text area — so the chorded
+     jump out of a field can be tried where it matters. */
+  .demo :where(textarea) {
+    @apply mt-2 block w-full resize-none rounded-md border border-zinc-200 bg-white px-2 py-1 text-sm text-zinc-800 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200;
+    @apply focus:border-indigo-500 focus:outline-none dark:focus:border-indigo-400;
+  }
+
   /* A nested navigation root, drawn as its own panel inside the one around it
      so the boundary keyrove scopes to is visible rather than implied. Every
      nested list in the docs reads horizontally, which is why the row is here

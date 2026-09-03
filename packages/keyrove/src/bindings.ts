@@ -5,9 +5,21 @@
  * Direction affects nothing but which *default* physical key fills an unset
  * inline-axis binding; explicit bindings are literal — never flipped, never
  * remapped. Everything downstream (the position model) is direction-blind.
+ * Focus keys — an item's own combo — join the table here too, so the whole
+ * precedence of a keypress is one ordered list.
  */
 
-import type { Binding, BuildBindingsArgs, KnownCode, Layout } from './types.js';
+import type {
+  Binding,
+  BuildBindingsArgs,
+  KnownCode,
+  Layout,
+  StrideAction,
+} from './types.js';
+
+// The rows the default table is made of: strides only, so `explicit` — keyed
+// by stride — can be looked up by a row's intent without narrowing at each use.
+type StrideBinding = Extract<Binding, { intent: StrideAction }>;
 
 // Named so the tables below are checked against `KnownCode` instead of
 // comparing against bare literals that TypeScript cannot vet.
@@ -28,17 +40,20 @@ const KEY = {
  * whether it enters a group from outside. `flip` is the RTL swap of the
  * `next`/`prev` arrows on a horizontal axis; the row axis never flips.
  */
-const defaultTable = (layout: Layout, flip: boolean): readonly Binding[] => {
+const defaultTable = (
+  layout: Layout,
+  flip: boolean,
+): readonly StrideBinding[] => {
   const [prev, next] = layout.horizontal
     ? flip
       ? [KEY.arrowRight, KEY.arrowLeft]
       : [KEY.arrowLeft, KEY.arrowRight]
     : [KEY.arrowUp, KEY.arrowDown];
-  const items: Binding[] = [
+  const items: StrideBinding[] = [
     { combo: prev, intent: 'prev', enters: true },
     { combo: next, intent: 'next', enters: true },
   ];
-  const pages: Binding[] = [
+  const pages: StrideBinding[] = [
     { combo: KEY.pageUp, intent: 'pageUp', enters: false },
     { combo: KEY.pageDown, intent: 'pageDown', enters: false },
   ];
@@ -66,8 +81,8 @@ const defaultTable = (layout: Layout, flip: boolean): readonly Binding[] => {
 
 /**
  * Builds the ordered binding table for a group. The first entry that matches
- * a keypress claims it, so order *is* precedence: every explicit binding
- * first, then the defaults of the moves left unbound.
+ * a keypress claims it, so order *is* precedence: the focus keys first, then
+ * every explicit root binding, then the defaults of the moves left unbound.
  *
  * A replaced default is not re-added — the freed key goes back to its browser
  * behaviour — and an explicit combo colliding with another move's default wins
@@ -76,6 +91,7 @@ const defaultTable = (layout: Layout, flip: boolean): readonly Binding[] => {
  */
 export const buildBindings = ({
   explicit,
+  focus = [],
   layout,
   rtl,
 }: BuildBindingsArgs): Binding[] => {
@@ -92,5 +108,19 @@ export const buildBindings = ({
     else defaults.push(row);
   }
 
-  return [...rebound, ...defaults];
+  // An item's own key names one element, where a root's names a group and a
+  // default names nothing in particular: the most specific declaration in the
+  // table, so it sits first — it wins any collision, and two items naming one
+  // combo resolve to the first in DOM order. A bare attribute is unset, as it
+  // is for the root keys.
+  const named: Binding[] = focus
+    .filter(({ combo }) => combo)
+    .map(({ combo, target }) => ({
+      combo,
+      intent: 'focus',
+      enters: true,
+      target,
+    }));
+
+  return [...named, ...rebound, ...defaults];
 };

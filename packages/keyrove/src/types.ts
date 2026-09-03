@@ -62,17 +62,17 @@ export type KeyRoveEvent = {
 };
 
 /**
- * The movements a keypress can resolve to.
+ * The moves defined by a position in the group — a stride from where focus is.
  *
  * `next`/`prev` are ±1 in DOM order in every layout — a list item, or a grid
  * cell flowing across row ends. The `Row` actions exist only in grids:
  * `nextRow`/`prevRow` move a whole row keeping the column; `homeRow`/`endRow`
  * are the focused row's ends (bare Home/End there, by default), while
  * `home`/`end` are the whole sequence's (bare Home/End in a list,
- * `ctrl+Home`/`ctrl+End` in a grid, by default). Every move has a `*-key`
- * attribute that rebinds it.
+ * `ctrl+Home`/`ctrl+End` in a grid, by default). Every stride has a default
+ * key and a root `*-key` attribute that rebinds it.
  */
-export type MoveAction =
+export type StrideAction =
   | 'home'
   | 'end'
   | 'homeRow'
@@ -83,6 +83,14 @@ export type MoveAction =
   | 'prevRow'
   | 'pageUp'
   | 'pageDown';
+
+/**
+ * Everything a keypress can resolve to: the strides, plus `focus` — an item
+ * named outright by its own `data-keyrove-focus-key`, reached from anywhere
+ * under the listener rather than from a position. It is the one move whose
+ * `*-key` attribute sits on the item, and the one with no default.
+ */
+export type MoveAction = StrideAction | 'focus';
 
 /**
  * The shape every handler returns for a consumed keypress, parameterised by
@@ -136,7 +144,8 @@ export type TypeaheadMove = TypeaheadResult & { to: Element };
  * `DEFAULT_ATTRIBUTES` is checked against this with `satisfies`, so the map and
  * this type cannot drift apart in either direction. The `*Key` entries are
  * mapped from {@link MoveAction}, one per move, so a move cannot exist without
- * the attribute that rebinds it.
+ * the attribute that binds it — on the root for the strides, on the item for
+ * `focus`.
  */
 export type Attributes = {
   item: string;
@@ -172,24 +181,35 @@ export type Layout = {
 /**
  * One row of the binding table: a key combo, the move it resolves to, and
  * whether the combo enters a group when pressed with nothing focused inside —
- * true for the four directional moves, false for every other, which move only
- * within a group. A property of the move, not of the key it is bound to.
+ * true for the four directional moves, false for every other stride, which
+ * move only within a group. A property of the move, not of the key it is bound
+ * to. A focus row carries its target outright — the item that declared the
+ * key — and always enters: it names a destination, not a step from a position.
  */
-export type Binding = {
-  combo: string;
-  intent: MoveAction;
-  enters: boolean;
-};
+export type Binding =
+  | { combo: string; intent: StrideAction; enters: boolean }
+  | { combo: string; intent: 'focus'; enters: true; target: Element };
 
 /**
  * The explicitly bound combos, straight off the root's `*-key` attributes —
  * `null` or absent where the attribute is unset and the move keeps its
  * default key.
  */
-export type ExplicitBindings = Partial<Record<MoveAction, string | null>>;
+export type ExplicitBindings = Partial<Record<StrideAction, string | null>>;
+
+/** A focus key as read off an item: its combo, and the item it focuses. */
+export type FocusKey = {
+  combo: string;
+  target: Element;
+};
 
 export type BuildBindingsArgs = {
   explicit: ExplicitBindings;
+  /**
+   * The focus keys in the listener's reach, in DOM order. Head of the table:
+   * an item's own key is the most specific declaration there is.
+   */
+  focus?: readonly FocusKey[];
   layout: Layout;
   /**
    * Reading direction, resolved on demand: called only when an unbound
@@ -199,7 +219,7 @@ export type BuildBindingsArgs = {
 };
 
 export type ResolveTargetArgs = {
-  intent: MoveAction;
+  intent: StrideAction;
   elements: Element[];
   /** Index of the focused item, or -1 when the group is entered from outside. */
   fromIndex: number;
