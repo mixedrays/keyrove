@@ -2,7 +2,7 @@
 title: Skipped items
 description: Keeping headings, separators, and disabled entries in the DOM but out of the navigation order.
 group: Examples
-order: 14
+order: 15
 ---
 
 Lists are rarely a flat run of equivalent items. Section headings, separators,

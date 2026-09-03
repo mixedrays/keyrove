@@ -2,7 +2,7 @@
 title: Roving tabindex
 description: Opt a group into being a single tab stop, so Tab moves past it rather than through it — and what happens if you do not.
 group: Examples
-order: 13
+order: 14
 ---
 
 keyrove never interferes with <kbd class="kbd">Tab</kbd>, so by default a group

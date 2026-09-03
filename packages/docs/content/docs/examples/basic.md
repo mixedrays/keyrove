@@ -53,6 +53,10 @@ A page jump that would land past the end clamps to the last navigable item
 rather than doing nothing, so <kbd class="kbd">PageDown</kbd> always makes
 progress until focus reaches the end.
 
+The ends themselves are where a list stops: next on the last item is claimed
+but moves nothing. See [looping lists](/docs/examples/looping-lists) for
+wrapping round to the other end instead.
+
 ## Reacting to movement
 
 The optional second argument takes `onMove`, fired _after_ focus has moved, and

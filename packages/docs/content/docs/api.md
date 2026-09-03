@@ -141,7 +141,8 @@ instead: forward from the last navigable item lands on the first, and back
 from the first lands on the last. A looping group is also entered as a circle
 — the prev key pressed from outside lands on the _last_ item, matching the
 APG menu-button convention. Wrapping is for lists only; a grid keeps its
-edges, per the APG grid pattern.
+edges, per the APG grid pattern. See
+[looping lists](/docs/examples/looping-lists).
 
 The home, end, row-end and page moves only act once focus is genuinely inside
 an item, whatever keys they are bound to: they move _within_ a group rather
@@ -303,7 +304,7 @@ guarding at the call site.
 | `data-keyrove-page-up-key`     | root | `PageUp`    | Combo for the page jump back.                                                                                                       |
 | `data-keyrove-page-down-key`   | root | `PageDown`  | Combo for the page jump forward.                                                                                                    |
 | `data-keyrove-focus-key`       | item | —           | Combo that focuses this item from anywhere under the listener, e.g. `ctrl+shift+KeyE`. See [focus keys](/docs/examples/focus-keys). |
-| `data-keyrove-loop`            | root | —           | Next/prev wrap past the ends of a list. Grids never wrap.                                                                           |
+| `data-keyrove-loop`            | root | —           | Next/prev wrap past the ends of a list. Grids never wrap. See [looping lists](/docs/examples/looping-lists).                        |
 | `data-keyrove-orientation`     | root | —           | `horizontal` maps a list's default keys to `ArrowRight`/`ArrowLeft`, RTL-aware.                                                     |
 | `data-keyrove-typeahead`       | item | text        | Label for [type-to-focus](#createtypeahead-options), when the item's own text is not it.                                            |
 

@@ -2,7 +2,7 @@
 title: Grid
 description: Declaring a column count folds the items into rows — cell moves and row moves, each on its own rebindable pair.
 group: Examples
-order: 11
+order: 12
 ---
 
 Add `data-keyrove-cols` to the root and the same list navigates as a grid:
@@ -13,9 +13,10 @@ lands on the item directly above or below, and <kbd class="kbd">←</kbd>
 A cell move follows the items in DOM order: arrowing right at the end of a row
 flows on to the first cell of the next row, like a caret in text, and stops
 only at the grid's first and last cell. Row moves keep their column and stop
-at the top and bottom edges. Grids never wrap — `data-keyrove-loop` is
-ignored — and, like a list, a grid is entered from outside by any of its four
-directional keys, landing on the first cell.
+at the top and bottom edges. Grids never wrap —
+[`data-keyrove-loop`](/docs/examples/looping-lists) is ignored — and, like a
+list, a grid is entered from outside by any of its four directional keys,
+landing on the first cell.
 
 The four moves answer to four bindings. `data-keyrove-next-key` and
 `data-keyrove-prev-key` mean exactly what they mean in a list — one item, here
