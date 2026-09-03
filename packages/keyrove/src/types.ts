@@ -85,17 +85,22 @@ export type MoveAction =
   | 'pageDown';
 
 /**
- * What `keyRove` returns for a consumed keypress.
- *
- * `from` is null when the group was entered from outside; `to` is null for a
- * consumed no-op — a bound key pressed at an edge, where the group owns the
- * key but there is nowhere to go.
+ * The shape every handler returns for a consumed keypress, parameterised by
+ * the action it reports. `from` is null when the group was entered from
+ * outside; `to` is null for a consumed no-op — the key is the handler's, but
+ * there is nowhere to go, or the target is the focused item already.
  */
-export type MoveResult = {
-  action: MoveAction;
+export type ActionResult<Action extends string> = {
+  action: Action;
   from: Element | null;
   to: Element | null;
 };
+
+/**
+ * What `keyRove` returns for a consumed keypress. Its no-op is a bound key
+ * pressed at an edge, where the group owns the key but there is nowhere to go.
+ */
+export type MoveResult = ActionResult<MoveAction>;
 
 /** The argument `onMove` receives: a move that actually happened. */
 export type Move = MoveResult & { to: Element };
@@ -115,14 +120,12 @@ export type TypeaheadOptions = {
 /**
  * What a typeahead handler returns for a consumed keypress.
  *
- * {@link MoveResult}'s shape with its own action — derived rather than
+ * The shared {@link ActionResult} with its own action — derived rather than
  * re-spelled, so a field added there reaches both branches of the chain
  * `keyRove(e) || typeahead(e)`. `to` is null for a consumed no-op — the
  * buffer grew but still matches the focused item.
  */
-export type TypeaheadResult = Omit<MoveResult, 'action'> & {
-  action: 'typeahead';
-};
+export type TypeaheadResult = ActionResult<'typeahead'>;
 
 /** The argument a typeahead `onMove` receives: a move that actually happened. */
 export type TypeaheadMove = TypeaheadResult & { to: Element };
@@ -209,6 +212,26 @@ export type ResolveTargetArgs = {
 export type ToggleTabIndexArgs = {
   root: Element | null | undefined;
   isActive: boolean;
+};
+
+/** What a root governs: its navigable items in DOM order, and the item holding focus. */
+export type Group = {
+  items: Element[];
+  focused: Element | null;
+};
+
+/**
+ * What it takes to land a move: the event to claim, the action to report, the
+ * item focus is leaving (`null` from outside the group) and the one it lands
+ * on (nullish when there is nowhere to go). Generic in the action so each
+ * handler's result comes back exactly typed.
+ */
+export type MoveFocusArgs<Action extends string> = {
+  e: Pick<KeyRoveEvent, 'preventDefault'>;
+  action: Action;
+  from: Element | null;
+  to: Element | null | undefined;
+  onMove?: (move: ActionResult<Action> & { to: Element }) => void;
 };
 
 /**

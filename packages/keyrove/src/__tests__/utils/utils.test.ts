@@ -6,6 +6,7 @@ import {
   findNext,
   findPageTarget,
   findPrev,
+  hasCommandModifier,
   matchesCombo,
   parseAttributeInt,
   toggleTabIndex,
@@ -528,6 +529,34 @@ describe('matchesCombo', () => {
     expect(matchesCombo(keyEvent('KeyK', { metaKey: true }), 'mod+KeyK')).toBe(
       false,
     );
+  });
+});
+
+describe('hasCommandModifier', () => {
+  const press = (
+    modifiers: Pick<
+      KeyRoveEvent,
+      'ctrlKey' | 'altKey' | 'shiftKey' | 'metaKey'
+    > = {},
+  ): KeyRoveEvent => ({
+    code: 'KeyE',
+    target: null,
+    currentTarget: null,
+    preventDefault: () => {},
+    ...modifiers,
+  });
+
+  it.each([
+    ['Ctrl', { ctrlKey: true }],
+    ['Alt', { altKey: true }],
+    ['Meta', { metaKey: true }],
+  ])('is true with %s held', (_, modifiers) => {
+    expect(hasCommandModifier(press(modifiers))).toBe(true);
+  });
+
+  it('is false for a bare press, and for Shift alone, which is typing', () => {
+    expect(hasCommandModifier(press())).toBe(false);
+    expect(hasCommandModifier(press({ shiftKey: true }))).toBe(false);
   });
 });
 

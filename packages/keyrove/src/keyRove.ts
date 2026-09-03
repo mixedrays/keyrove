@@ -1,11 +1,8 @@
+import { DEFAULT_ATTRIBUTES } from './attributes.js';
 import { buildBindings } from './bindings.js';
+import { moveFocus, readGroup, resolveRoot } from './group.js';
 import { resolveTarget } from './position.js';
-import {
-  isEditableTarget,
-  matchesCombo,
-  parseAttributeInt,
-  toggleTabIndex,
-} from './utils.js';
+import { isEditableTarget, matchesCombo, parseAttributeInt } from './utils.js';
 import type {
   Attributes,
   ExplicitBindings,
@@ -15,37 +12,8 @@ import type {
   Options,
 } from './types.js';
 
-/**
- * Attribute names keyrove reads from the DOM.
- *
- * Internal on purpose: making these configurable is a deliberate non-goal for
- * now, and exporting the map would freeze its shape before that feature is
- * designed. The individual `KEYROVE_ATTR_*` constants below are the public surface.
- */
-const DEFAULT_ATTRIBUTES = {
-  item: 'data-keyrove-item',
-  skip: 'data-keyrove-skip',
-  root: 'data-keyrove-root',
-  nextKey: 'data-keyrove-next-key',
-  prevKey: 'data-keyrove-prev-key',
-  nextRowKey: 'data-keyrove-next-row-key',
-  prevRowKey: 'data-keyrove-prev-row-key',
-  homeKey: 'data-keyrove-home-key',
-  endKey: 'data-keyrove-end-key',
-  homeRowKey: 'data-keyrove-home-row-key',
-  endRowKey: 'data-keyrove-end-row-key',
-  pageUpKey: 'data-keyrove-page-up-key',
-  pageDownKey: 'data-keyrove-page-down-key',
-  pageLength: 'data-keyrove-page-length',
-  cols: 'data-keyrove-cols',
-  rovingTabindex: 'data-keyrove-roving-tabindex',
-  loop: 'data-keyrove-loop',
-  orientation: 'data-keyrove-orientation',
-  typeahead: 'data-keyrove-typeahead',
-} as const satisfies Attributes;
-
 // Individual constants, so consumers can spread them into markup without
-// reaching into the map.
+// reaching into the map — which stays internal; see `attributes.ts`.
 export const KEYROVE_ATTR_ITEM = DEFAULT_ATTRIBUTES.item;
 export const KEYROVE_ATTR_SKIP = DEFAULT_ATTRIBUTES.skip;
 export const KEYROVE_ATTR_ROOT = DEFAULT_ATTRIBUTES.root;
@@ -146,15 +114,11 @@ export const keyRove = (
 
   if (isEditableTarget(eventTarget)) return null;
 
-  const closestRoot = eventTarget?.closest?.(`[${attributes.root}]`);
-  const root = (closestRoot || e.currentTarget) as Element | null;
+  const root = resolveRoot(eventTarget, e.currentTarget);
 
   if (!root) return null;
 
-  const elements = Array.from(
-    root.querySelectorAll(`[${attributes.item}]:not([disabled])`),
-  );
-  const focused = root.querySelector(`[${attributes.item}]:focus-within`);
+  const { items: elements, focused } = readGroup(root);
   const fromIndex = focused ? elements.indexOf(focused) : -1;
 
   const layout = readLayout(root, attributes);
@@ -186,36 +150,16 @@ export const keyRove = (
 
   // With neither a target nor a focused item, keyrove has nothing to move
   // from or to and the key is left with its browser default rather than
-  // being swallowed.
+  // being swallowed. Past this line the press is ours: it resolves a target,
+  // or focus already sits inside the group and the move has nowhere to go (an
+  // edge) — the group owns its bound keys up to its own boundary.
   if (!target && !focused) return null;
 
-  // Only here is it known that keyrove is actually in a position to act. The
-  // press is ours when it resolves a target, and also when focus already sits
-  // inside the group but the move has nowhere to go (an edge): the group owns
-  // its bound keys up to its own boundary, so the page must not scroll there
-  // instead.
-  e.preventDefault();
-
-  const from = focused ?? null;
-
-  // A missing target (a grid edge) or a target that is the position itself
-  // (the end of a list) is a consumed no-op: focus and the tab stop stay
-  // put, and `onMove` stays quiet because nothing moved.
-  if (!target || target === focused) {
-    return { action: binding.intent, from, to: null };
-  }
-
-  // Presence-based, so the bare `data-keyrove-roving-tabindex` spelling works
-  // — `getAttribute` would read it as "" and silently disable roving.
-  if (focused?.hasAttribute(attributes.rovingTabindex)) {
-    toggleTabIndex({ root: focused, isActive: false });
-    toggleTabIndex({ root: target, isActive: true });
-  }
-
-  (target as HTMLElement).focus();
-
-  const move = { action: binding.intent, from, to: target };
-  onMove?.(move);
-
-  return move;
+  return moveFocus({
+    e,
+    action: binding.intent,
+    from: focused,
+    to: target,
+    onMove,
+  });
 };
