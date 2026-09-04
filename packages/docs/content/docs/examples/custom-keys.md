@@ -2,11 +2,11 @@
 title: Custom keys
 description: Arrows are the default, not the rule — rebinding any move to any key combo.
 group: Examples
-order: 15
+order: 11
 ---
 
 Nothing about keyrove is tied to the arrow keys. The keys that move focus are
-attributes on the root, and `ArrowDown` / `ArrowUp` are simply what they fall
+attributes on the root, and `ArrowDown` / `ArrowUp` are only what they fall
 back to. `data-keyrove-next-key` and `data-keyrove-prev-key` rebind them to any
 [`KeyboardEvent.code`](https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/code),
 with or without [modifiers](#modifiers).
@@ -23,21 +23,31 @@ the up and down arrows are left to scroll the page.
 </div>
 ```
 
-Rebinding is a markup change and nothing else — the `keyRove(e)` call is
-identical whatever the group answers to.
+Rebinding is a markup change and nothing else. The `keyRove(e)` call is
+identical whatever the group answers to, and only the bound keys are acted on:
+with <kbd class="kbd">←</kbd> <kbd class="kbd">→</kbd> bound, the up and down
+arrows go back to scrolling the page, and <kbd class="kbd">Tab</kbd> was never
+bound in the first place.
 
-For exactly this pair there is a more idiomatic spelling:
-`data-keyrove-orientation="horizontal"` maps the defaults to
-`ArrowRight`/`ArrowLeft` and flips them under RTL, so the "forward" arrow
-follows the text direction instead of being hardcoded. Reach for the explicit
-key attributes when the keys are anything other than the reading-direction
-arrows — they win over orientation wherever both are set.
+## Horizontal lists
+
+For this exact pair there is a shorter spelling that also respects the text
+direction:
+
+```html
+<div data-keyrove-orientation="horizontal">…</div>
+```
+
+It makes `ArrowRight` / `ArrowLeft` the defaults and flips them under RTL, so
+the "forward" arrow follows the text. Reach for the explicit key attributes when
+the keys are anything other than the reading-direction arrows; they win over
+orientation wherever both are set.
 
 ## Any key, not a shortlist
 
-The attribute value is a combo — an optional set of modifiers and a
-`KeyboardEvent.code` — matched against the event on every press, so there is no
-set of supported keys to choose from:
+The attribute value is a combo, an optional set of modifiers and a
+`KeyboardEvent.code`, matched against the event on every press. There is no set
+of supported keys to choose from:
 
 ```html
 <!-- vim-style, for a results list in a keyboard-first app -->
@@ -57,12 +67,12 @@ set of supported keys to choose from:
 ```
 
 Each root is read on its own, so two groups on the same page can answer to
-completely different keys with one delegated listener serving both.
+different keys with one delegated listener serving both.
 
 ## Modifiers
 
-Prefix the code with any of `mod+`, `ctrl+`, `alt+`, `shift+`, `meta+` — in any
-order and any case. `mod` resolves to `meta` on Apple platforms and `ctrl`
+Prefix the code with any of `mod+`, `ctrl+`, `alt+`, `shift+`, `meta+`. `mod`
+is <kbd class="kbd">Cmd</kbd> on Apple platforms and <kbd class="kbd">Ctrl</kbd>
 elsewhere:
 
 ```html
@@ -74,16 +84,16 @@ elsewhere:
 </ul>
 ```
 
-Matching is exact in both directions: a declared modifier is required, an
-undeclared one is forbidden. A bare `KeyJ` binding means "J with nothing else
+Matching is exact in both directions. A bare `KeyJ` means "J with nothing else
 held", so <kbd class="kbd">Ctrl</kbd>+<kbd class="kbd">J</kbd> keeps its
-browser default — and a `ctrl+KeyJ` binding never fires on a plain
-<kbd class="kbd">J</kbd>.
+browser default, and a `ctrl+KeyJ` binding never fires on a plain
+<kbd class="kbd">J</kbd>. The full grammar is in the
+[API reference](/docs/api#combos).
 
 ## Codes, not keys
 
-These are `KeyboardEvent.code` values — physical keys — not `KeyboardEvent.key`
-values. `KeyW` rather than `w`, and the code does not change with the keyboard
+These are `KeyboardEvent.code` values, physical keys, not `KeyboardEvent.key`
+values: `KeyW` rather than `w`. The code does not change with the keyboard
 layout, so a binding chosen for QWERTY lands on the same physical key on AZERTY.
 
 That cuts both ways, and it is the thing to weigh when picking a letter: a
@@ -91,26 +101,13 @@ binding is to a _position_ on the keyboard. `KeyJ` and `KeyK` sit under the
 right hand on QWERTY, which is the whole point of the vim bindings; on Dvorak
 those same positions are `c` and `t`.
 
-## Everything else keeps its default
-
-Only bound keys are acted on, and `preventDefault()` is called only for those.
-With `KeyJ` and `KeyK` above, the arrow keys stop moving focus entirely and go
-back to scrolling the page.
-
-<kbd class="kbd">Tab</kbd> and
-<kbd class="kbd">Shift</kbd>+<kbd class="kbd">Tab</kbd> are never bound by
-default, which is what lets custom keys sit alongside
-[native tab navigation](/docs/introduction#tab-still-works) rather than in place
-of it.
-
 ## Home, End and the page keys
 
 <kbd class="kbd">Home</kbd>, <kbd class="kbd">End</kbd>,
 <kbd class="kbd">PageUp</kbd> and <kbd class="kbd">PageDown</kbd> are defaults
 too. `data-keyrove-home-key`, `data-keyrove-end-key`,
 `data-keyrove-page-up-key` and `data-keyrove-page-down-key` rebind them by the
-same rules — any combo, exact matching, the replaced default handed back to
-the browser:
+same [rules](/docs/api#keys):
 
 ```html
 <!-- vim-style, all the way down -->
@@ -126,22 +123,23 @@ the browser:
 </ul>
 ```
 
-Whatever they are bound to, these moves act only once focus is inside an item
-— they move _within_ a group and never enter one. Only the directional keys
-do that.
+Whatever they are bound to, these moves act only once focus is inside an item.
+Only the directional keys
+[enter a group](/docs/api#consumed-and-untouched-keys).
 
 ## Grids
 
-The attributes keep their meaning in a grid: `data-keyrove-next-key` and
-`data-keyrove-prev-key` move one item — a _cell_ there, flowing across row
-ends — and the row moves have their own pair, `data-keyrove-next-row-key` and
-`data-keyrove-prev-row-key`, defaulting to `ArrowDown`/`ArrowUp`. The ends
-split the same way: `data-keyrove-home-row-key`/`data-keyrove-end-row-key`
-bind the focused row's ends (bare `Home`/`End` by default), while
-`data-keyrove-home-key`/`data-keyrove-end-key` bind the whole grid's
-(`ctrl+Home`/`ctrl+End` by default). Each pair rebinds independently, and
-every replaced default goes back to its browser behaviour. A full vim-style
-grid binds all four arrows:
+The attributes keep their meaning in a grid, and the row and grid-wide moves get
+pairs of their own:
+
+| Move                                 | Attribute                                                 | Default (LTR)              |
+| ------------------------------------ | --------------------------------------------------------- | -------------------------- |
+| Next / previous cell                 | `data-keyrove-next-key` / `data-keyrove-prev-key`         | `ArrowRight` / `ArrowLeft` |
+| Next / previous row, same column     | `data-keyrove-next-row-key` / `data-keyrove-prev-row-key` | `ArrowDown` / `ArrowUp`    |
+| First / last cell of the focused row | `data-keyrove-home-row-key` / `data-keyrove-end-row-key`  | `Home` / `End`             |
+| First / last cell of the grid        | `data-keyrove-home-key` / `data-keyrove-end-key`          | `ctrl+Home` / `ctrl+End`   |
+
+Each pair rebinds independently. A full vim-style grid binds all four arrows:
 
 ```html
 <div
@@ -155,37 +153,35 @@ grid binds all four arrows:
 </div>
 ```
 
-One keypress still resolves to at most one action. An explicit binding that
-names a key a default pair answers to — say
-`data-keyrove-next-key="ArrowDown"` — takes the press, and the default row
-move stands down. Explicit bindings are also literal under RTL: only the
-_default_ cell arrows follow the
-[reading direction](/docs/api#horizontal-groups-and-rtl), exactly as
-orientation's defaults do for a list.
+As always, [one keypress resolves to one action](/docs/api#precedence): bind
+`data-keyrove-next-key="ArrowDown"` and the default row move stands down.
+Explicit bindings are literal under RTL, too; only the
+[default arrows follow the reading direction](/docs/api#horizontal-groups-and-rtl).
 
 ## An item's own key
 
-Everything above binds a _move_ on the root. An item can also carry a key of
-its own: `data-keyrove-focus-key="ctrl+shift+KeyE"` focuses that item from
-anywhere the keydown reaches the listener, by the same combo grammar. It sits
-ahead of the root's bindings, so it wins a collision with them.
+Everything above binds a _move_ on the root. An item can also carry a combo of
+its own: `data-keyrove-focus-key="ctrl+shift+KeyE"` focuses it from anywhere
+under the listener and outranks the root's bindings.
 [Focus keys](/docs/examples/focus-keys) has the rules in full.
 
 ## Editable elements are exempt
 
-A key pressed inside an `input`, `textarea`, `select`, or `[contenteditable]`
-element is never handled, whatever it is bound to. Arrows and
+A key pressed inside a text field, `select` or `contenteditable` region is never
+handled, whatever it is bound to. Arrows and
 <kbd class="kbd">Home</kbd>/<kbd class="kbd">End</kbd> keep moving the caret,
-and a letter binding like `KeyJ` does not swallow typing "j" into a field that
-sits inside an item — navigation resumes once focus leaves the field.
+and a `KeyJ` binding does not swallow typing "j" into a field inside an item;
+navigation resumes once focus leaves the field. Which targets count, and the one
+exception for a chorded focus key, are in the
+[API reference](/docs/api#editable-targets).
 
 ## A binding worth avoiding
 
-**`Tab` itself.** Binding `data-keyrove-next-key="Tab"` does work, and it costs
-you the browser's own forward tab navigation for the whole group.
-<kbd class="kbd">Shift</kbd>+<kbd class="kbd">Tab</kbd> is a different combo,
-so it stays native and remains the way out — but a group where the two
+**`Tab` itself.** `data-keyrove-next-key="Tab"` works, and it costs the group
+the browser's own forward tab navigation.
+<kbd class="kbd">Shift</kbd>+<kbd class="kbd">Tab</kbd> is a different combo, so
+it stays native and remains the way out, but a group where the two
 <kbd class="kbd">Tab</kbd> directions behave that differently is confusing. If
-what you want is <kbd class="kbd">Tab</kbd> moving past a group rather than
-through it, [roving tabindex](/docs/examples/roving-tabindex) is the mechanism
-for that, and it leaves the key alone.
+you want <kbd class="kbd">Tab</kbd> to move past a group rather than through it,
+[roving tabindex](/docs/examples/roving-tabindex) does that and leaves the key
+alone.

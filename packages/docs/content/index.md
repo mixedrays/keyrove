@@ -9,10 +9,9 @@ layout: landing
 # Keyboard navigation, driven by data attributes.
 
 Mark your items with `data-keyrove-item`, pass keydown events to `keyRove`, and
-lists and grids become keyboard navigable. Arrows are the default binding, not
-the limit — the keys that move focus are attributes, so any key can drive a
-group, and <kbd class="kbd">Tab</kbd> keeps behaving the way the browser
-intends.
+lists and grids become keyboard navigable. Arrow keys are only the default: the
+keys that move focus are attributes, so any key can drive a group, and
+<kbd class="kbd">Tab</kbd> keeps its native behaviour.
 
 <div class="hero-actions">
 
@@ -24,14 +23,40 @@ intends.
 pnpm add @mixedrays/keyrove
 ```
 
+## Three lines and a list is navigable
+
+Give each navigable element `data-keyrove-item` and a tab stop, then hand the
+container's keydown event to `keyRove`. Try it: <kbd class="kbd">Tab</kbd> to
+an item, then use the arrow keys.
+
+<div data-demo="inbox"></div>
+
+```ts
+import { keyRove } from '@mixedrays/keyrove';
+
+document.querySelector('#menu').addEventListener('keydown', (e) => keyRove(e));
+```
+
+## Or bind the keys you want
+
+The same list, driven by <kbd class="kbd">J</kbd> and <kbd class="kbd">K</kbd>
+instead: one attribute each, and nothing in the JavaScript changes.
+
+```html
+<ul id="menu" data-keyrove-next-key="KeyJ" data-keyrove-prev-key="KeyK">
+  <li data-keyrove-item tabindex="0">Inbox</li>
+  <li data-keyrove-item tabindex="0">Drafts</li>
+</ul>
+```
+
 <div class="feature-grid">
 <div class="feature">
 
 ### <span aria-hidden="true">🧩</span> No framework, no adapter
 
 `keyRove` takes anything shaped like a keydown event, so the same call works
-with a native listener or a React, Vue, or Svelte synthetic event — and the
-package ships no dependencies.
+with a native listener or a React, Vue, or Svelte synthetic event. The package
+ships no dependencies.
 
 </div>
 <div class="feature">
@@ -39,13 +64,14 @@ package ships no dependencies.
 ### <span aria-hidden="true">⌨️</span> Any key, not just arrows
 
 `data-keyrove-next-key` and `data-keyrove-prev-key` take any
-`KeyboardEvent.code`, alone or in a combo like `mod+KeyJ`. `ArrowDown` and
-`ArrowUp` are what you get for free, not what you are stuck with.
+`KeyboardEvent.code`, alone or in a combo like `mod+KeyJ`.
+`data-keyrove-orientation="horizontal"` gives a list Left/Right defaults that
+flip under RTL.
 
 </div>
 <div class="feature">
 
-### <span aria-hidden="true">↕️</span> Lists, grids, and the keys between
+### <span aria-hidden="true">↕️</span> Lists and grids
 
 <kbd class="kbd">Home</kbd> / <kbd class="kbd">End</kbd> and
 <kbd class="kbd">PageUp</kbd> / <kbd class="kbd">PageDown</kbd> come with the
@@ -55,21 +81,11 @@ Left/Right move a cell; add `data-keyrove-loop` and a list wraps at its ends.
 </div>
 <div class="feature">
 
-### <span aria-hidden="true">↔️</span> Horizontal groups read as they should
-
-`data-keyrove-orientation="horizontal"` points a list's defaults at Left/Right
-without spelling out a combo. Any sideways pair — that toolbar's, or a grid's
-cell arrows, sideways by nature — flips under RTL, resolved from the nearest
-`dir`, so it moves "forward" the way the text does.
-
-</div>
-<div class="feature">
-
 ### <span aria-hidden="true">🎯</span> Tab is left alone
 
-Focus moves natively, and `preventDefault()` is called only for keys keyrove is
-bound to — so <kbd class="kbd">Tab</kbd> and
-<kbd class="kbd">Shift</kbd>+<kbd class="kbd">Tab</kbd> keep working beside it.
+Focus moves natively, and `preventDefault()` is called only for the keys
+keyrove is bound to. <kbd class="kbd">Tab</kbd>, <kbd class="kbd">Enter</kbd>,
+<kbd class="kbd">Space</kbd> and typing in a text field all keep working.
 
 </div>
 <div class="feature">
@@ -93,57 +109,21 @@ entries in the DOM and in the reading order, but out of the navigation order.
 
 ### <span aria-hidden="true">🪆</span> Groups inside groups
 
-`data-keyrove-root` scopes a group, and the nearest root wins — so one
+`data-keyrove-root` scopes a group, and the nearest root wins, so one
 delegated listener can serve a list nested in a list, each with its own keys.
 
 </div>
 <div class="feature">
 
-### <span aria-hidden="true">✍️</span> Typing still types
+### <span aria-hidden="true">🔎</span> Jump and type-to-focus
 
-Arrows and <kbd class="kbd">Home</kbd> belong to the caret inside an input,
-textarea, select, or `contenteditable` region, and keyrove leaves them there.
-Inputs those keys do nothing on — a checkbox, a button — keep navigating.
-
-</div>
-<div class="feature">
-
-### <span aria-hidden="true">🔎</span> Type-to-focus
-
-`createTypeahead()` adds case-insensitive typeahead, matching an item by
-`data-keyrove-typeahead` or by its own text.
+`data-keyrove-focus-key` gives an item a shortcut that focuses it from
+anywhere under the listener. `createTypeahead()` adds case-insensitive
+typeahead, matching an item by `data-keyrove-typeahead` or by its own text.
 
 </div>
 </div>
-
-## Three lines and a list is navigable
-
-Give each navigable element `data-keyrove-item` and a tab stop, then hand the
-container's keydown event to `keyRove`. Try it — <kbd class="kbd">Tab</kbd> to
-an item, then use the arrow keys.
-
-<div data-demo="inbox"></div>
-
-```ts
-import { keyRove } from '@mixedrays/keyrove';
-
-document.querySelector('#menu').addEventListener('keydown', (e) => {
-  keyRove(e);
-});
-```
-
-## Or bind the keys you want
-
-The same list, driven by <kbd class="kbd">J</kbd> and <kbd class="kbd">K</kbd>
-instead — one attribute each, and nothing in the JavaScript changes.
-
-```html
-<ul id="menu" data-keyrove-next-key="KeyJ" data-keyrove-prev-key="KeyK">
-  <li data-keyrove-item tabindex="0">Inbox</li>
-  <li data-keyrove-item tabindex="0">Drafts</li>
-</ul>
-```
 
 Read the [introduction](/docs/introduction) for how it fits together, see
-[custom keys](/docs/examples/custom-keys) for the rebinding rules, or jump
-straight to the [API reference](/docs/api).
+[custom keys](/docs/examples/custom-keys) for rebinding at work, or jump
+straight to the [API reference](/docs/api) for the rules.

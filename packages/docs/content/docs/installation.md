@@ -41,15 +41,17 @@ list.addEventListener('keydown', (e) => keyRove(e));
 </ul>
 ```
 
-The `tabindex="0"` is yours to put there — keyrove moves focus but never makes
-an element focusable. It is also what keeps these items reachable by
-<kbd class="kbd">Tab</kbd>, which keyrove leaves alone; if you would rather the
-group were a single tab stop, that is
+You add the `tabindex="0"` yourself: keyrove moves focus but never makes an
+element focusable. That `tabindex` is also what keeps the items reachable with
+<kbd class="kbd">Tab</kbd>, which keyrove leaves alone. If you would rather the
+whole group were a single tab stop, use
 [roving tabindex](/docs/examples/roving-tabindex).
 
 By default the group answers to <kbd class="kbd">↑</kbd> and
-<kbd class="kbd">↓</kbd>. Add `data-keyrove-next-key` / `data-keyrove-prev-key`
-to the root for anything else — see [custom keys](/docs/examples/custom-keys).
+<kbd class="kbd">↓</kbd>. Add `data-keyrove-next-key` and
+`data-keyrove-prev-key` to the root for anything else; see
+[custom keys](/docs/examples/custom-keys). Every attribute name is also
+exported as a [constant](/docs/api#constants), for markup built in JavaScript.
 
 ## React
 
@@ -103,8 +105,8 @@ import { keyRove } from '@mixedrays/keyrove';
 ## Several groups, one listener
 
 The navigation root is the nearest ancestor carrying `data-keyrove-root`,
-falling back to the element the listener is attached to. Marking each group as a
-root lets a single delegated listener — on a panel, or on `document` — serve any
+falling back to the element the listener is attached to. Mark each group as a
+root, and a single delegated listener, on a panel or on `document`, serves any
 number of independent groups without them seeing each other's items.
 
 ```html
@@ -127,20 +129,5 @@ document.querySelector('#panel').addEventListener('keydown', (e) => keyRove(e));
 ```
 
 Roots can also sit inside one another, which is how a group that is part of
-another group's flow keeps its own keys and columns — see
+another group's flow keeps its own keys and columns; see
 [nested roots](/docs/examples/nested-roots).
-
-## Attribute constants
-
-Every attribute name is exported as a constant, so markup built in JavaScript
-does not have to hardcode strings.
-
-```ts
-import { KEYROVE_ATTR_ITEM, KEYROVE_ATTR_SKIP } from '@mixedrays/keyrove';
-
-const item = document.createElement('li');
-item.setAttribute(KEYROVE_ATTR_ITEM, '');
-item.tabIndex = 0;
-```
-
-The full list is in the [API reference](/docs/api#attributes).
