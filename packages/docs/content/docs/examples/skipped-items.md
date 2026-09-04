@@ -2,7 +2,7 @@
 title: Skipped items
 description: Keeping headings, separators, and disabled entries in the DOM but out of the navigation order.
 group: Examples
-order: 15
+order: 16
 ---
 
 `data-keyrove-skip` marks an item as passed over: it keeps its place in the

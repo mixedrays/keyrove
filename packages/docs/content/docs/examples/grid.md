@@ -2,7 +2,7 @@
 title: Grid
 description: Declaring a column count folds the items into rows — cell moves and row moves, each on its own rebindable pair.
 group: Examples
-order: 12
+order: 13
 ---
 
 Add `data-keyrove-cols` to the root and the same list navigates as a grid:
@@ -38,7 +38,8 @@ on screen.
 
 - A cell move follows DOM order, like a caret in text, so the cell pair reaches
   every cell in the grid.
-- Grids never wrap; `data-keyrove-loop` is ignored.
+- Grids never wrap; [`data-keyrove-loop`](/docs/examples/looping-lists) is
+  ignored.
 - A grid is entered from outside by any of its four arrows, landing on the
   first cell.
 - Rebind any move and the replaced default goes back to its browser behaviour;

@@ -2,7 +2,7 @@
 title: Focus keys
 description: Give an item a key of its own, so one press focuses it from anywhere under the listener — another group, a nested root, even a text field.
 group: Examples
-order: 17
+order: 18
 ---
 
 Every move so far is relative: next, previous, a row, a page, an end, each

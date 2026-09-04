@@ -162,7 +162,8 @@ At the ends of a list, next and prev are consumed without moving. Add
 navigable item lands on the first, and back from the first lands on the last.
 A looping list is entered the same way round: the prev key pressed from outside
 lands on the _last_ item, matching the APG menu-button convention. Only lists
-loop; a grid keeps its edges, per the APG grid pattern.
+loop; a grid keeps its edges, per the APG grid pattern. See
+[looping lists](/docs/examples/looping-lists).
 
 A page jump travels as far as it can. One that would overshoot lands on the
 last (or first) navigable item rather than doing nothing; in a grid that is the
@@ -371,23 +372,23 @@ On an item:
 
 On the root, read on every keypress:
 
-| Attribute                    | Default                                                  | Meaning                                                                                    |
-| ---------------------------- | -------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
-| `data-keyrove-root`          | —                                                        | Marks the root explicitly, instead of the listener's element.                              |
-| `data-keyrove-cols`          | `1`                                                      | Column count; above 1 the group navigates as a grid.                                       |
-| `data-keyrove-page-length`   | `10`                                                     | Items per page jump; rows, in a grid.                                                      |
-| `data-keyrove-loop`          | —                                                        | Next and prev wrap past the ends of a list. Grids never wrap.                              |
-| `data-keyrove-orientation`   | —                                                        | `horizontal` re-points a list's next/prev defaults at `ArrowRight`/`ArrowLeft`, RTL-aware. |
-| `data-keyrove-next-key`      | `ArrowDown`; `ArrowRight` in a horizontal list or a grid | Next item; the next cell, in a grid. E.g. `KeyJ` or `ctrl+ArrowRight`.                     |
-| `data-keyrove-prev-key`      | `ArrowUp`; `ArrowLeft` in a horizontal list or a grid    | Previous item.                                                                             |
-| `data-keyrove-next-row-key`  | `ArrowDown`                                              | Next row, same column. Grid only.                                                          |
-| `data-keyrove-prev-row-key`  | `ArrowUp`                                                | Previous row, same column. Grid only.                                                      |
-| `data-keyrove-home-key`      | `Home`; `ctrl+Home` in a grid                            | First item; the grid's first cell.                                                         |
-| `data-keyrove-end-key`       | `End`; `ctrl+End` in a grid                              | Last item; the grid's last cell.                                                           |
-| `data-keyrove-home-row-key`  | `Home`                                                   | First cell of the focused row. Grid only.                                                  |
-| `data-keyrove-end-row-key`   | `End`                                                    | Last cell of the focused row. Grid only.                                                   |
-| `data-keyrove-page-up-key`   | `PageUp`                                                 | Page jump back.                                                                            |
-| `data-keyrove-page-down-key` | `PageDown`                                               | Page jump forward.                                                                         |
+| Attribute                    | Default                                                  | Meaning                                                                                                          |
+| ---------------------------- | -------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| `data-keyrove-root`          | —                                                        | Marks the root explicitly, instead of the listener's element.                                                    |
+| `data-keyrove-cols`          | `1`                                                      | Column count; above 1 the group navigates as a grid.                                                             |
+| `data-keyrove-page-length`   | `10`                                                     | Items per page jump; rows, in a grid.                                                                            |
+| `data-keyrove-loop`          | —                                                        | Next and prev wrap past the ends of a list. Grids never wrap. See [looping lists](/docs/examples/looping-lists). |
+| `data-keyrove-orientation`   | —                                                        | `horizontal` re-points a list's next/prev defaults at `ArrowRight`/`ArrowLeft`, RTL-aware.                       |
+| `data-keyrove-next-key`      | `ArrowDown`; `ArrowRight` in a horizontal list or a grid | Next item; the next cell, in a grid. E.g. `KeyJ` or `ctrl+ArrowRight`.                                           |
+| `data-keyrove-prev-key`      | `ArrowUp`; `ArrowLeft` in a horizontal list or a grid    | Previous item.                                                                                                   |
+| `data-keyrove-next-row-key`  | `ArrowDown`                                              | Next row, same column. Grid only.                                                                                |
+| `data-keyrove-prev-row-key`  | `ArrowUp`                                                | Previous row, same column. Grid only.                                                                            |
+| `data-keyrove-home-key`      | `Home`; `ctrl+Home` in a grid                            | First item; the grid's first cell.                                                                               |
+| `data-keyrove-end-key`       | `End`; `ctrl+End` in a grid                              | Last item; the grid's last cell.                                                                                 |
+| `data-keyrove-home-row-key`  | `Home`                                                   | First cell of the focused row. Grid only.                                                                        |
+| `data-keyrove-end-row-key`   | `End`                                                    | Last cell of the focused row. Grid only.                                                                         |
+| `data-keyrove-page-up-key`   | `PageUp`                                                 | Page jump back.                                                                                                  |
+| `data-keyrove-page-down-key` | `PageDown`                                               | Page jump forward.                                                                                               |
 
 The sideways defaults swap under RTL; see
 [horizontal groups and RTL](#horizontal-groups-and-rtl). The boolean

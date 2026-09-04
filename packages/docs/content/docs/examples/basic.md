@@ -35,6 +35,10 @@ put any key in their place, see [custom keys](/docs/examples/custom-keys).
 the jump is visible in twelve items. A jump past the end lands on the last item
 rather than doing nothing.
 
+The ends themselves are where a list stops: next on the last item is claimed
+but moves nothing. See [looping lists](/docs/examples/looping-lists) for
+wrapping round to the other end instead.
+
 ## Reacting to movement
 
 The optional second argument takes `onMove`, fired _after_ focus has moved, and

@@ -2,7 +2,7 @@
 title: Responsive grid
 description: Let a container query decide the column count and hand it to keyrove before each keypress, so rows fold the way the layout does.
 group: Examples
-order: 13
+order: 14
 ---
 
 A grid rarely keeps one column count. Six across on a desktop becomes three on
