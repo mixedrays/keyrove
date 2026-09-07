@@ -111,9 +111,8 @@ A binding is a combo: zero or more of `mod+` / `ctrl+` / `alt+` / `shift+` /
 exact — declared modifiers are required, undeclared ones are forbidden — so a
 bare `ArrowDown` binding leaves shortcuts like <kbd>Ctrl</kbd>+<kbd>ArrowDown</kbd>
 with their browser defaults. Keys are matched on `e.code`, the physical key, so
-bindings hold across keyboard layouts. No `code` value contains a `+` — the
-plus key itself is `Equal` (or `NumpadAdd`) — so the separator is unambiguous.
-The matcher is exported as `matchesCombo(e, combo)` for your own handlers.
+bindings hold across keyboard layouts. The matcher is exported as
+`matchesCombo(e, combo)` for your own handlers.
 
 ```html
 <div
@@ -203,17 +202,17 @@ const typeahead = createTypeahead(); // { resetMs?, onMove? }
 list.addEventListener('keydown', (e) => keyRove(e) || typeahead(e));
 ```
 
-It is a factory because a buffer is state and `keyRove` itself stays
-stateless — create one handler per listener. Chain it after `keyRove` so
-bound keys win: a `KeyJ` binding keeps navigating and never enters the
-buffer. The label is the item's `data-keyrove-typeahead` attribute, falling
-back to its trimmed text. Matching reads `e.key` — the typed character —
-unlike key bindings, which stay on the physical `e.code`. Typing inside
-editable elements is never captured, modified presses (Ctrl/Alt/Meta) are
-left to their shortcuts, and a space only counts once a match is underway.
-The handler returns `{ action: 'typeahead', from, to }` or `null`, the same
-contract as `keyRove` — and `onMove` fires after a real move, exactly as
-`keyRove`'s does, so both handlers can feed the same follow-focus logic.
+The buffer is state, which `keyRove` itself never holds, so create one handler
+per listener and chain it after `keyRove`: bound keys win, and a `KeyJ` binding
+keeps navigating instead of entering the buffer. The label is the item's
+`data-keyrove-typeahead` attribute, falling back to its trimmed text. Matching
+reads `e.key` — the typed character — unlike key bindings, which stay on the
+physical `e.code`. Typing inside editable elements is never captured, modified
+presses (Ctrl/Alt/Meta) are left to their shortcuts, and a space only counts
+once a match is underway. The handler returns
+`{ action: 'typeahead', from, to }` or `null`, the same contract as `keyRove`,
+and its `onMove` fires after a real move exactly as `keyRove`'s does, so both
+handlers can feed the same follow-focus logic.
 
 ## Attributes
 
@@ -257,11 +256,10 @@ const result = keyRove(e, {
 `onMove` fires after focus has moved, and only when it actually moved: a
 consumed key with nowhere to go — the end of a list, the edge of a grid —
 fires nothing. `action` names the move: `'next' | 'prev' | 'home' | 'end' |
-'pageUp' | 'pageDown'`, plus the grid-only `'nextRow' | 'prevRow' | 'homeRow'
-| 'endRow'` — a row move and a cell move never report the same token — and
-`'focus'` for an item's own focus key. `from`
-is the item focus left (`null` when the group was entered from outside) and
-`to` the item it landed on.
+'pageUp' | 'pageDown'`, the grid-only `'nextRow' | 'prevRow' | 'homeRow' |
+'endRow'`, and `'focus'` for an item's own focus key. `from` is the item focus
+left (`null` when the group was entered from outside) and `to` the item it
+landed on.
 
 `keyRove` returns `null` when it left the key untouched, and `{ action, from,
 to }` when it consumed it — with `to: null` for a consumed no-op at an edge. A
