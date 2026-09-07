@@ -75,6 +75,8 @@ Every `*-key` value is a combo, matched by
   [`KeyboardEvent.code`](https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/code).
   Whitespace around the parts is ignored.
 - `mod` is `meta` on Apple platforms and `ctrl` elsewhere.
+- `control`, `option`, `cmd` and `command` are accepted as the longer
+  spellings of `ctrl`, `alt` and `meta`.
 - The code is the physical key, matched case-sensitively and unaffected by
   keyboard layout: `KeyJ` is the same key on QWERTY and AZERTY. The plus key
   itself is `Equal` or `NumpadAdd`, so `+` is always the separator.

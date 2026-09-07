@@ -71,7 +71,8 @@ different keys with one delegated listener serving both.
 
 ## Modifiers
 
-Prefix the code with any of `mod+`, `ctrl+`, `alt+`, `shift+`, `meta+`. `mod`
+Prefix the code with any of `mod+`, `ctrl+`, `alt+`, `shift+`, `meta+`; the
+longer `control`, `option`, `cmd` and `command` spell the same modifiers. `mod`
 is <kbd class="kbd">Cmd</kbd> on Apple platforms and <kbd class="kbd">Ctrl</kbd>
 elsewhere:
 

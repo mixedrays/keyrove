@@ -472,6 +472,18 @@ describe('matchesCombo', () => {
     );
   });
 
+  it.each([
+    ['control', 'ctrl', { ctrlKey: true }],
+    ['option', 'alt', { altKey: true }],
+    ['cmd', 'meta', { metaKey: true }],
+    ['command', 'meta', { metaKey: true }],
+  ])('accepts %s as the longer spelling of %s', (alias, _, modifiers) => {
+    expect(matchesCombo(keyEvent('KeyA', modifiers), `${alias}+KeyA`)).toBe(
+      true,
+    );
+    expect(matchesCombo(keyEvent('KeyA'), `${alias}+KeyA`)).toBe(false);
+  });
+
   it('matches the code case-sensitively', () => {
     expect(matchesCombo(keyEvent('KeyA'), 'keya')).toBe(false);
   });

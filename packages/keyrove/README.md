@@ -106,7 +106,8 @@ direction: `data-keyrove-orientation="horizontal"` maps the default keys to
 A binding is a combo: zero or more of `mod+` / `ctrl+` / `alt+` / `shift+` /
 `meta+` (any order, any case) followed by a
 [`KeyboardEvent.code`](https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/code).
-`mod` resolves to `meta` on Apple platforms and `ctrl` elsewhere. Matching is
+`mod` resolves to `meta` on Apple platforms and `ctrl` elsewhere, and the longer
+`control`, `option`, `cmd` and `command` spell the same modifiers. Matching is
 exact — declared modifiers are required, undeclared ones are forbidden — so a
 bare `ArrowDown` binding leaves shortcuts like <kbd>Ctrl</kbd>+<kbd>ArrowDown</kbd>
 with their browser defaults. Keys are matched on `e.code`, the physical key, so
