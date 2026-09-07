@@ -42,6 +42,7 @@ It makes `ArrowRight` / `ArrowLeft` the defaults and flips them under RTL, so
 the "forward" arrow follows the text. Reach for the explicit key attributes when
 the keys are anything other than the reading-direction arrows; they win over
 orientation wherever both are set.
+[Horizontal lists](/docs/examples/horizontal-lists) shows both directions.
 
 ## Any key, not a shortlist
 
@@ -174,7 +175,8 @@ handled, whatever it is bound to. Arrows and
 and a `KeyJ` binding does not swallow typing "j" into a field inside an item;
 navigation resumes once focus leaves the field. Which targets count, and the one
 exception for a chorded focus key, are in the
-[API reference](/docs/api#editable-targets).
+[API reference](/docs/api#editable-targets);
+[editable targets](/docs/examples/editable-targets) shows the rule at work.
 
 ## A binding worth avoiding
 

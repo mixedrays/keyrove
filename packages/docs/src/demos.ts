@@ -3,9 +3,10 @@ import {
   KEYROVE_ATTR_ITEM,
   KEYROVE_ATTR_ROOT,
   KEYROVE_ATTR_SKIP,
+  createTypeahead,
   keyRove,
   matchesCombo,
-  type Move,
+  toggleTabIndex,
 } from '@mixedrays/keyrove';
 
 /**
@@ -17,11 +18,22 @@ import {
  * carry: the keydown listener, the log, and the copy button.
  */
 
+/** A keydown handler with keyrove's contract: truthy when it claimed the key. */
+type Handler = (e: KeyboardEvent) => unknown;
+
+/**
+ * An item's name for the log: its text, with whitespace collapsed the way
+ * rendering collapses it, so a row that wraps a control reads as its label
+ * rather than as its markup.
+ */
+const nameOf = (item: Element) =>
+  item.textContent?.replace(/\s+/g, ' ').trim() || '—';
+
 /** Reports each move into the demo's log, so the key that fired is visible. */
 const reportMoves =
   (log: HTMLElement) =>
-  ({ action, to }: Move) => {
-    log.textContent = `${action} → ${to.textContent?.trim() ?? '—'}`;
+  ({ action, to }: { action: string; to: Element }) => {
+    log.textContent = `${action} → ${nameOf(to)}`;
   };
 
 /**
@@ -53,6 +65,69 @@ const wireGroupExit = (surface: HTMLElement) => {
       exit?.focus();
     });
   }
+};
+
+/**
+ * Picking, for the listbox demo.
+ *
+ * Selection is the widget's state rather than keyrove's, so this is the page's
+ * own snippet made live: Space or Enter picks the focused option, a click picks
+ * and carries the roving tab stop with it, and either is reported to the log
+ * beside the moves. Returns the keydown half, to chain after navigation and
+ * typeahead.
+ */
+const wireSelection = (surface: HTMLElement, log: HTMLElement): Handler => {
+  const OPTION = '[role="option"]';
+
+  const select = (option: Element) => {
+    for (const each of surface.querySelectorAll(OPTION)) {
+      each.setAttribute('aria-selected', String(each === option));
+    }
+
+    log.textContent = `selected → ${nameOf(option)}`;
+  };
+
+  surface.addEventListener('click', (e) => {
+    const option = (e.target as Element).closest(OPTION);
+    if (!option) return;
+
+    const stop = surface.querySelector('[tabindex="0"]');
+    toggleTabIndex({ root: stop, isActive: false });
+    toggleTabIndex({ root: option, isActive: true });
+    select(option);
+  });
+
+  return (e) => {
+    if (!matchesCombo(e, 'Space') && !matchesCombo(e, 'Enter')) return null;
+
+    const option = (e.target as Element).closest(OPTION);
+    if (!option) return null;
+
+    e.preventDefault();
+    select(option);
+
+    return option;
+  };
+};
+
+/**
+ * What a demo runs beyond navigation, keyed by its name — the file under
+ * content/_demos, which build/demos.ts stamps onto the wrapper. Each entry
+ * returns the handlers to chain after `keyRove`, in order, so a key one leaves
+ * alone falls through to the next exactly as the pages' own `||` chains do.
+ * A demo not listed runs navigation alone: typeahead on every list would make
+ * letters do something the page they sit on never mentions.
+ */
+const EXTRAS: Record<
+  string,
+  (surface: HTMLElement, log: HTMLElement) => Handler[]
+> = {
+  typeahead: (_surface, log) => [createTypeahead({ onMove: reportMoves(log) })],
+  labels: (_surface, log) => [createTypeahead({ onMove: reportMoves(log) })],
+  listbox: (surface, log) => [
+    createTypeahead({ onMove: reportMoves(log) }),
+    wireSelection(surface, log),
+  ],
 };
 
 /**
@@ -141,11 +216,18 @@ export const mountDemos = () => {
     if (!surface || !log) return;
 
     const onMove = reportMoves(log);
+    const handlers: Handler[] = [
+      (e) => keyRove(e, { onMove }),
+      ...(EXTRAS[demo.dataset.demo ?? '']?.(surface, log) ?? []),
+    ];
+
     // One listener for the demo, nested roots included: the event bubbles here
     // and keyrove resolves the root from its target, not from this element.
+    // The first handler to claim the key ends the chain, which is the `||` of
+    // the pages' own snippets.
     surface.addEventListener('keydown', (e) => {
       syncColumns(surface);
-      keyRove(e, { onMove });
+      handlers.some((handle) => Boolean(handle(e)));
     });
     wireGroupExit(surface);
 

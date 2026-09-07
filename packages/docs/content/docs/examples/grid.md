@@ -2,7 +2,7 @@
 title: Grid
 description: Declaring a column count folds the items into rows — cell moves and row moves, each on its own rebindable pair.
 group: Examples
-order: 13
+order: 14
 ---
 
 Add `data-keyrove-cols` to the root and the same list navigates as a grid:
