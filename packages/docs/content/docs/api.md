@@ -200,6 +200,8 @@ While an input method is composing (`isComposing` on the event), nothing is
 acted on, chord or not: the arrows walk its candidate list and a chord can be
 part of the conversion, so every key stays with the input method.
 
+See [editable targets](/docs/examples/editable-targets) for the rule at work.
+
 ### Horizontal groups and RTL
 
 Reading direction changes only which physical key is a move's _default_. It
@@ -218,7 +220,9 @@ the nearest `dir` attribute and otherwise from the computed direction:
 
 Both rules apply to defaults only. An explicit binding is literal, never
 flipped or remapped, and wins over orientation wherever both are set. The
-default arrows it replaces go back to their browser behaviour.
+default arrows it replaces go back to their browser behaviour. See
+[horizontal lists](/docs/examples/horizontal-lists) for both directions at
+work.
 
 ### Focus keys
 
@@ -280,6 +284,8 @@ one listener without stepping on each other:
 element.addEventListener('keydown', (e) => keyRove(e) || myOwnHandler(e));
 ```
 
+The [listbox](/docs/examples/listbox) chains three handlers this way.
+
 ## createTypeahead(options?)
 
 Builds a keydown handler that focuses items as their labels are typed.
@@ -296,7 +302,8 @@ list.addEventListener('keydown', (e) => keyRove(e) || typeahead(e));
 
 Chain it _after_ `keyRove`, as above, so a printable binding like `KeyJ`
 navigates instead of entering the buffer. Create one handler per listener: the
-buffer lives in the handler, which keeps `keyRove` itself stateless.
+buffer lives in the handler, which keeps `keyRove` itself stateless. See
+[typeahead](/docs/examples/typeahead) for it at work.
 
 | Option    | Default | Meaning                                                                                |
 | --------- | ------- | -------------------------------------------------------------------------------------- |
@@ -362,8 +369,9 @@ toggleTabIndex({ root: firstItem, isActive: true });
 ```
 
 Use it where you manage the tab stop yourself: establishing the first one in a
-[roving group](/docs/examples/roving-tabindex), or restoring it after
-re-rendering a list. Descendant tab stops are left alone; roving tabindex only
+[roving group](/docs/examples/roving-tabindex), restoring it after re-rendering
+a list, or moving it after a click, as the [listbox](/docs/examples/listbox)
+does. Descendant tab stops are left alone; roving tabindex only
 needs the item itself to carry the stop. A nullish `root` is a no-op, so a
 query that found nothing needs no guard.
 
@@ -381,23 +389,23 @@ On an item:
 
 On the root, read on every keypress:
 
-| Attribute                    | Default                                                  | Meaning                                                                                                          |
-| ---------------------------- | -------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
-| `data-keyrove-root`          | —                                                        | Marks the root explicitly, instead of the listener's element.                                                    |
-| `data-keyrove-cols`          | `1`                                                      | Column count; above 1 the group navigates as a grid.                                                             |
-| `data-keyrove-page-length`   | `10`                                                     | Items per page jump; rows, in a grid.                                                                            |
-| `data-keyrove-loop`          | —                                                        | Next and prev wrap past the ends of a list. Grids never wrap. See [looping lists](/docs/examples/looping-lists). |
-| `data-keyrove-orientation`   | —                                                        | `horizontal` re-points a list's next/prev defaults at `ArrowRight`/`ArrowLeft`, RTL-aware.                       |
-| `data-keyrove-next-key`      | `ArrowDown`; `ArrowRight` in a horizontal list or a grid | Next item; the next cell, in a grid. E.g. `KeyJ` or `ctrl+ArrowRight`.                                           |
-| `data-keyrove-prev-key`      | `ArrowUp`; `ArrowLeft` in a horizontal list or a grid    | Previous item.                                                                                                   |
-| `data-keyrove-next-row-key`  | `ArrowDown`                                              | Next row, same column. Grid only.                                                                                |
-| `data-keyrove-prev-row-key`  | `ArrowUp`                                                | Previous row, same column. Grid only.                                                                            |
-| `data-keyrove-home-key`      | `Home`; `ctrl+Home` in a grid                            | First item; the grid's first cell.                                                                               |
-| `data-keyrove-end-key`       | `End`; `ctrl+End` in a grid                              | Last item; the grid's last cell.                                                                                 |
-| `data-keyrove-home-row-key`  | `Home`                                                   | First cell of the focused row. Grid only.                                                                        |
-| `data-keyrove-end-row-key`   | `End`                                                    | Last cell of the focused row. Grid only.                                                                         |
-| `data-keyrove-page-up-key`   | `PageUp`                                                 | Page jump back.                                                                                                  |
-| `data-keyrove-page-down-key` | `PageDown`                                               | Page jump forward.                                                                                               |
+| Attribute                    | Default                                                  | Meaning                                                                                                                                             |
+| ---------------------------- | -------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `data-keyrove-root`          | —                                                        | Marks the root explicitly, instead of the listener's element.                                                                                       |
+| `data-keyrove-cols`          | `1`                                                      | Column count; above 1 the group navigates as a grid.                                                                                                |
+| `data-keyrove-page-length`   | `10`                                                     | Items per page jump; rows, in a grid.                                                                                                               |
+| `data-keyrove-loop`          | —                                                        | Next and prev wrap past the ends of a list. Grids never wrap. See [looping lists](/docs/examples/looping-lists).                                    |
+| `data-keyrove-orientation`   | —                                                        | `horizontal` re-points a list's next/prev defaults at `ArrowRight`/`ArrowLeft`, RTL-aware. See [horizontal lists](/docs/examples/horizontal-lists). |
+| `data-keyrove-next-key`      | `ArrowDown`; `ArrowRight` in a horizontal list or a grid | Next item; the next cell, in a grid. E.g. `KeyJ` or `ctrl+ArrowRight`.                                                                              |
+| `data-keyrove-prev-key`      | `ArrowUp`; `ArrowLeft` in a horizontal list or a grid    | Previous item.                                                                                                                                      |
+| `data-keyrove-next-row-key`  | `ArrowDown`                                              | Next row, same column. Grid only.                                                                                                                   |
+| `data-keyrove-prev-row-key`  | `ArrowUp`                                                | Previous row, same column. Grid only.                                                                                                               |
+| `data-keyrove-home-key`      | `Home`; `ctrl+Home` in a grid                            | First item; the grid's first cell.                                                                                                                  |
+| `data-keyrove-end-key`       | `End`; `ctrl+End` in a grid                              | Last item; the grid's last cell.                                                                                                                    |
+| `data-keyrove-home-row-key`  | `Home`                                                   | First cell of the focused row. Grid only.                                                                                                           |
+| `data-keyrove-end-row-key`   | `End`                                                    | Last cell of the focused row. Grid only.                                                                                                            |
+| `data-keyrove-page-up-key`   | `PageUp`                                                 | Page jump back.                                                                                                                                     |
+| `data-keyrove-page-down-key` | `PageDown`                                               | Page jump forward.                                                                                                                                  |
 
 The sideways defaults swap under RTL; see
 [horizontal groups and RTL](#horizontal-groups-and-rtl). The boolean

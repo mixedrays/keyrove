@@ -2,7 +2,7 @@
 title: Roving tabindex
 description: Opt a group into being a single tab stop, so Tab moves past it rather than through it — and what happens if you do not.
 group: Examples
-order: 15
+order: 16
 ---
 
 keyrove never interferes with <kbd class="kbd">Tab</kbd>, so by default a group
@@ -64,7 +64,8 @@ Neither is more correct; they answer different questions.
 Reach for plain tab stops when the items are few, or when each one is a
 destination a user might reasonably tab to: a row of three toolbar buttons, a
 short menu. Reach for roving tabindex when the group is long, or when it is one
-control conceptually rather than many: a listbox, a grid, a tab list. The
+control conceptually rather than many: a [listbox](/docs/examples/listbox), a
+grid, a tab list. The
 [ARIA authoring practices](https://www.w3.org/WAI/ARIA/apg/practices/keyboard-interface/)
 describe the second arrangement for composite widgets, and it is also what makes
 [nested groups](/docs/examples/nested-roots) escapable:

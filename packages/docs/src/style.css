@@ -536,6 +536,38 @@
     @apply mb-1.5 flex gap-1.5 rounded-lg border border-dashed border-zinc-200 bg-white p-1.5 dark:border-zinc-800 dark:bg-zinc-900;
   }
 
+  /* A control inside an item — the editable-targets demo's rows. The label
+     lays the row out: a checkbox ahead of its text, a field pushed to the far
+     end, and a text area dropping to a line of its own. */
+  .demo :where([data-keyrove-item] > label) {
+    @apply flex flex-wrap items-center gap-x-3 gap-y-2;
+  }
+
+  .demo :where(input[type='text']) {
+    @apply ml-auto w-44 rounded-md border border-zinc-200 bg-white px-2 py-1 text-sm text-zinc-800 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200;
+    @apply focus:border-indigo-500 focus:outline-none dark:focus:border-indigo-400;
+  }
+
+  .demo :where(input[type='range']) {
+    @apply ml-auto w-44 accent-indigo-600 dark:accent-indigo-400;
+  }
+
+  .demo :where(input[type='checkbox']) {
+    @apply size-4 accent-indigo-600 dark:accent-indigo-400;
+  }
+
+  /* The listbox demo's pick, which is the widget's state rather than
+     keyrove's: a check ahead of the selected option, drawn off the ARIA
+     attribute the page's snippet writes so nothing else is kept in step. */
+  .demo :where([role='option']) {
+    @apply relative pl-8;
+  }
+
+  .demo :where([role='option'][aria-selected='true'])::before {
+    content: '✓';
+    @apply absolute left-3 font-semibold text-indigo-600 dark:text-indigo-400;
+  }
+
   .log {
     @apply mt-3 block rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2 font-mono text-xs text-zinc-600 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-400;
   }

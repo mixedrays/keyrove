@@ -2,7 +2,7 @@
 title: Focus keys
 description: Give an item a key of its own, so one press focuses it from anywhere under the listener — another group, a nested root, even a text field.
 group: Examples
-order: 18
+order: 19
 ---
 
 Every move so far is relative: next, previous, a row, a page, an end, each
@@ -52,9 +52,10 @@ rules, including how the roving tab stop follows.
 
 ## From inside a text field
 
-Moves are never handled inside `input`, `textarea`, `select` or
-`contenteditable` targets, whatever they are bound to: arrows and
-<kbd class="kbd">Home</kbd> move the caret there, and letters type. A focus key
+Moves are never handled inside
+[editable targets](/docs/examples/editable-targets), whatever they are bound
+to: arrows and <kbd class="kbd">Home</kbd> move the caret there, and letters
+type. A focus key
 points _out_ of the field, so it gets the line typeahead draws between a command
 and typing:
 

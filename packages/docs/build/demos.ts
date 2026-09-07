@@ -70,12 +70,15 @@ const withClass = (markup: string, className: string) =>
 /**
  * One demo: the live markup, then the same markup as source.
  *
+ * The demo's name rides on the wrapper as `data-demo`, so src/demos.ts can key
+ * the behaviour a page's demo needs beyond navigation off it.
+ *
  * The source is emitted as a fence rather than as pre-highlighted HTML so that
  * it goes through the page's own Shiki pass and is themed like every other
  * block on the site. That is why the wrapper is split around it — markdown-it
  * needs the blank lines either side to see a fence at all.
  */
-const renderUnit = (markup: string, surfaceClass: string) => {
+const renderUnit = (name: string, markup: string, surfaceClass: string) => {
   const live = withClass(
     toLive(markup),
     ['demo-surface', surfaceClass].filter(Boolean).join(' '),
@@ -89,7 +92,7 @@ const renderUnit = (markup: string, surfaceClass: string) => {
     '</button>',
   ].join(' ');
 
-  return `<div class="demo">
+  return `<div class="demo" data-demo="${name}">
 <div class="demo-preview">
 ${live}
 <output class="log">Waiting for a keypress…</output>
@@ -143,6 +146,6 @@ export const expandDemos = (
     }
 
     return target === 'html'
-      ? renderUnit(markup, surfaceClass)
+      ? renderUnit(name, markup, surfaceClass)
       : `${FENCE}html\n${toExcerpt(markup)}\n${FENCE}`;
   });
