@@ -65,10 +65,14 @@ and typing:
 In the demo, `ctrl+shift+Digit1` reaches out of the text area; a bare `Digit1`
 would type a "1" there and focus the panel from everywhere else.
 
-That leaves collisions with the field's own commands to you:
+That leaves collisions with the field's own commands and typing to you:
 <kbd class="kbd">Ctrl</kbd>+<kbd class="kbd">B</kbd> means bold in a rich-text
-editor, and <kbd class="kbd">Alt</kbd>+letter types accented characters on
-macOS. Chords with two modifiers, like the demo's, tend to be free.
+editor, <kbd class="kbd">Alt</kbd>+letter types accented characters on macOS,
+and on Windows <kbd class="kbd">AltGr</kbd> is reported as
+<kbd class="kbd">Ctrl</kbd>+<kbd class="kbd">Alt</kbd>, so a `ctrl+alt+` chord
+fires while a user types € or @ on many European layouts.
+<kbd class="kbd">Ctrl</kbd>+<kbd class="kbd">Shift</kbd> chords, like the
+demo's, tend to be free.
 
 ## Precedence and ties
 

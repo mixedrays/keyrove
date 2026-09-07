@@ -191,7 +191,10 @@ inside an item is not swallowed by a printable-key binding. Editable means:
 One exception: a [focus key](#focus-keys) whose combo holds
 <kbd class="kbd">Ctrl</kbd>, <kbd class="kbd">Alt</kbd> or
 <kbd class="kbd">Meta</kbd> fires from inside a field. That press is a command,
-not typing.
+not typing. The one chord that can be both is
+<kbd class="kbd">Ctrl</kbd>+<kbd class="kbd">Alt</kbd>: on Windows it is how
+<kbd class="kbd">AltGr</kbd> is reported, so a `ctrl+alt+` focus key fires
+while a user types € or @ on many European layouts.
 
 ### Horizontal groups and RTL
 
