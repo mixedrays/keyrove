@@ -90,7 +90,7 @@ export const pressKey = (
   from: Element = document.activeElement as Element,
   modifiers: Pick<
     KeyboardEventInit,
-    'ctrlKey' | 'altKey' | 'shiftKey' | 'metaKey'
+    'ctrlKey' | 'altKey' | 'shiftKey' | 'metaKey' | 'isComposing'
   > = {},
 ) => {
   const event = new KeyboardEvent('keydown', {

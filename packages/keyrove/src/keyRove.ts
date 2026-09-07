@@ -132,6 +132,13 @@ export const keyRove = (
   e: KeyRoveEvent,
   { onMove }: Options = {},
 ): MoveResult | null => {
+  // Mid-composition, every press belongs to the input method: arrows walk its
+  // candidate list and a chord can be part of the conversion. Composition
+  // happens only in an editable host, so past the typing guard below this
+  // reaches just the chorded focus key — which must not tear focus out of a
+  // half-converted word.
+  if (e.isComposing) return null;
+
   const attributes = DEFAULT_ATTRIBUTES;
   const eventTarget = e.target as Element | null;
   const editable = isEditableTarget(eventTarget);

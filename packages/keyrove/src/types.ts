@@ -54,6 +54,9 @@ export type KeyRoveEvent = {
   altKey?: boolean;
   shiftKey?: boolean;
   metaKey?: boolean;
+  // Whether an input method is mid-composition (`KeyboardEvent.isComposing`).
+  // Optional like the flags: absent reads as "not composing".
+  isComposing?: boolean;
   // The produced character (`KeyboardEvent.key`). Only typeahead reads it —
   // matching typed text needs the layout-dependent character, where bindings
   // deliberately stay on the physical `code`. Optional: an event without it

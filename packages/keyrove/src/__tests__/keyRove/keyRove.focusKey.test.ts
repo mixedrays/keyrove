@@ -332,6 +332,19 @@ describe('keyRove', () => {
       expect(event.defaultPrevented).toBe(true);
     });
 
+    it('leaves a chorded press alone while an IME composition is in progress', () => {
+      renderPanels();
+      byId('note').focus();
+
+      const event = pressKey('KeyB', undefined, {
+        ...CHORD,
+        isComposing: true,
+      });
+
+      expect(activeId()).toBe('note');
+      expect(event.defaultPrevented).toBe(false);
+    });
+
     it('leaves a bare or Shift-only combo to the field', () => {
       const host = createItem('host');
       const field = document.createElement('textarea');

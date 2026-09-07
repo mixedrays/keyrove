@@ -196,6 +196,10 @@ not typing. The one chord that can be both is
 <kbd class="kbd">AltGr</kbd> is reported, so a `ctrl+alt+` focus key fires
 while a user types € or @ on many European layouts.
 
+While an input method is composing (`isComposing` on the event), nothing is
+acted on, chord or not: the arrows walk its candidate list and a chord can be
+part of the conversion, so every key stays with the input method.
+
 ### Horizontal groups and RTL
 
 Reading direction changes only which physical key is a move's _default_. It
@@ -446,14 +450,16 @@ type KeyRoveEvent = {
   altKey?: boolean;
   shiftKey?: boolean;
   metaKey?: boolean;
+  isComposing?: boolean;
   key?: string;
 };
 ```
 
-The modifier flags and `key` are optional so a hand-built event object still
-qualifies. A missing flag reads as "not held", so an object of your own that
-bridges events must forward the flags, or every press matches as unmodified.
-Only [typeahead](#createtypeahead-options) reads `key`; an event without it
+The modifier flags, `isComposing` and `key` are optional so a hand-built event
+object still qualifies. A missing flag reads as "not held" and a missing
+`isComposing` as "not composing", so an object of your own that bridges events
+must forward them, or every press matches as unmodified. Only
+[typeahead](#createtypeahead-options) reads `key`; an event without it
 navigates but never typeaheads.
 
 ### KeyRoveCode
