@@ -6,6 +6,7 @@ import {
   findNext,
   findPageTarget,
   findPrev,
+  hasCommandModifier,
   matchesCombo,
   parseAttributeInt,
   toggleTabIndex,
@@ -471,6 +472,18 @@ describe('matchesCombo', () => {
     );
   });
 
+  it.each([
+    ['control', 'ctrl', { ctrlKey: true }],
+    ['option', 'alt', { altKey: true }],
+    ['cmd', 'meta', { metaKey: true }],
+    ['command', 'meta', { metaKey: true }],
+  ])('accepts %s as the longer spelling of %s', (alias, _, modifiers) => {
+    expect(matchesCombo(keyEvent('KeyA', modifiers), `${alias}+KeyA`)).toBe(
+      true,
+    );
+    expect(matchesCombo(keyEvent('KeyA'), `${alias}+KeyA`)).toBe(false);
+  });
+
   it('matches the code case-sensitively', () => {
     expect(matchesCombo(keyEvent('KeyA'), 'keya')).toBe(false);
   });
@@ -528,6 +541,34 @@ describe('matchesCombo', () => {
     expect(matchesCombo(keyEvent('KeyK', { metaKey: true }), 'mod+KeyK')).toBe(
       false,
     );
+  });
+});
+
+describe('hasCommandModifier', () => {
+  const press = (
+    modifiers: Pick<
+      KeyRoveEvent,
+      'ctrlKey' | 'altKey' | 'shiftKey' | 'metaKey'
+    > = {},
+  ): KeyRoveEvent => ({
+    code: 'KeyE',
+    target: null,
+    currentTarget: null,
+    preventDefault: () => {},
+    ...modifiers,
+  });
+
+  it.each([
+    ['Ctrl', { ctrlKey: true }],
+    ['Alt', { altKey: true }],
+    ['Meta', { metaKey: true }],
+  ])('is true with %s held', (_, modifiers) => {
+    expect(hasCommandModifier(press(modifiers))).toBe(true);
+  });
+
+  it('is false for a bare press, and for Shift alone, which is typing', () => {
+    expect(hasCommandModifier(press())).toBe(false);
+    expect(hasCommandModifier(press({ shiftKey: true }))).toBe(false);
   });
 });
 

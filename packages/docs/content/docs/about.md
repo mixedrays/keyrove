@@ -5,14 +5,10 @@ group: Guide
 order: 4
 ---
 
-keyrove is a framework-agnostic library for keyboard navigation in lists and
-grids. You mark the navigable elements with `data-*` attributes and forward
-keydown events to one function; it works out which element should receive focus
-next and moves it there. It renders nothing, owns no state, and has no
-dependencies.
-
-It is developed in the open under the MIT licence, and issues and pull requests
-are welcome.
+keyrove is a framework-agnostic, dependency-free library for keyboard navigation
+in lists and grids; the [introduction](/docs/introduction) explains what it does
+and how it fits together. It is developed in the open under the MIT licence, and
+issues and pull requests are welcome.
 
 ## This site
 

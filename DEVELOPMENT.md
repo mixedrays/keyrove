@@ -73,10 +73,21 @@ leaving a document that stands on its own when fetched in isolation.
 
 ### Live demos
 
-A content file embeds a demo with `<div data-demo="grid"></div>`. The shape of
-each demo lives in [packages/docs/src/demos.ts](packages/docs/src/demos.ts),
-which keeps a 24-item list from costing 24 lines of a file that is also served
+A content file embeds a demo with `<div data-demo="grid"></div>`. The markup
+behind it is one file under
+[packages/docs/content/_demos](packages/docs/content/_demos), named after the
+demo. [packages/docs/build/demos.ts](packages/docs/build/demos.ts) stamps it
+into the page twice, once as live elements and once as the source block under
+them, so the two cannot drift. Repeated items wrapped in `<!-- fold -->` …
+`<!-- /fold -->` still run but collapse to one comment in the source block,
+which keeps a 24-item list from costing 24 lines of a page that is also served
 as markdown.
+
+Layout the demo needs but the library does not teach — the grid's columns, the
+long list's scroll box — goes in `data-demo-class` on the placeholder rather
+than in the fragment, so what a reader copies is markup they can paste as-is.
+[packages/docs/src/demos.ts](packages/docs/src/demos.ts) wires the behaviour
+markup cannot carry: the keydown listener, the move log, and the copy button.
 
 ### Build
 

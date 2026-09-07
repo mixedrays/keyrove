@@ -1,6 +1,10 @@
 import { describe, it, expect, afterEach, vi } from 'vitest';
 import { createTypeahead } from '../../createTypeahead';
-import { KEYROVE_ATTR_NEXT_KEY, KEYROVE_ATTR_ROOT } from '../../keyRove';
+import {
+  KEYROVE_ATTR_FOCUS_KEY,
+  KEYROVE_ATTR_NEXT_KEY,
+  KEYROVE_ATTR_ROOT,
+} from '../../keyRove';
 import {
   activeId,
   createItem,
@@ -344,6 +348,21 @@ describe('createTypeahead', () => {
   });
 
   describe('chaining with keyRove', () => {
+    it('stands down for a printable focus key keyRove claims', () => {
+      const cherry = createItem('c', 'Cherry');
+      cherry.setAttribute(KEYROVE_ATTR_FOCUS_KEY, 'KeyB');
+      renderList(
+        [createItem('a', 'Apple'), createItem('b', 'Banana'), cherry],
+        { chainKeyRove: true },
+      );
+      document.getElementById('a')!.focus();
+
+      // physical B is Cherry's focus key: the jump wins over typing "b"
+      pressKey('b', { code: 'KeyB' });
+
+      expect(activeId()).toBe('c');
+    });
+
     it('stands down for keys keyRove claims, so bindings never enter the buffer', () => {
       const { results } = renderList(
         [

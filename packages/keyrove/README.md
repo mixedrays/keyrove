@@ -1,7 +1,7 @@
 # @mixedrays/keyrove
 
 [![npm](https://img.shields.io/npm/v/@mixedrays/keyrove?color=4f46e5)](https://www.npmjs.com/package/@mixedrays/keyrove)
-[![minzipped size](https://img.shields.io/bundlephobia/minzip/@mixedrays/keyrove?color=4f46e5)](https://bundlephobia.com/package/@mixedrays/keyrove)
+[![minzipped size](https://img.shields.io/bundlejs/size/%40mixedrays%2Fkeyrove?color=4f46e5&label=minzipped%20size)](https://bundlejs.com/?q=%40mixedrays%2Fkeyrove)
 [![license](https://img.shields.io/npm/l/@mixedrays/keyrove?color=4f46e5)](https://github.com/mixedrays/keyrove/blob/main/LICENSE)
 
 Framework-agnostic keyboard navigation for lists and grids, driven by `data-*`
@@ -26,15 +26,20 @@ pnpm add @mixedrays/keyrove
 
 - **Framework-agnostic:** takes DOM events and React, Vue, or Svelte synthetic
   events, with no adapter and no dependencies.
-- **Configurable key bindings:** `data-keyrove-next-key` and
-  `data-keyrove-prev-key` take any `KeyboardEvent.code`, with exact modifier
-  combos and platform-aware `mod`.
+- **Configurable key bindings:** every move — next/prev, the grid's row moves,
+  Home/End and the page jumps — has a `data-keyrove-*-key` attribute taking any
+  `KeyboardEvent.code`, with exact modifier combos and platform-aware `mod`.
+- **Focus keys:** `data-keyrove-focus-key` gives an item a combo of its own —
+  `ctrl+shift+KeyE`, or just `KeyE` — that focuses it from anywhere under the
+  listener: another group, a nested root, even a text field when the combo
+  holds a modifier.
 - **Lists and grids:** arrows, <kbd>Home</kbd>/<kbd>End</kbd> and
-  <kbd>PageUp</kbd>/<kbd>PageDown</kbd> out of the box;
-  `data-keyrove-cols-length` makes Up/Down move a whole row, and
-  `data-keyrove-loop` wraps a list at its ends.
+  <kbd>PageUp</kbd>/<kbd>PageDown</kbd> out of the box; `data-keyrove-cols`
+  folds the items into rows — Up/Down move a whole row, Left/Right move a cell
+  — and `data-keyrove-loop` wraps a list at its ends.
 - **Horizontal and RTL groups:** `data-keyrove-orientation="horizontal"`
-  re-points the defaults at <kbd>←</kbd>/<kbd>→</kbd>, flipped under RTL from
+  re-points a list's defaults at <kbd>←</kbd>/<kbd>→</kbd> — and a grid's
+  default cell arrows follow the reading direction too, flipped under RTL from
   the nearest `dir`.
 - **Native focus behavior:** moves real DOM focus and calls `preventDefault()`
   only on the keys it is bound to, so unbound keys and
@@ -101,13 +106,13 @@ direction: `data-keyrove-orientation="horizontal"` maps the default keys to
 A binding is a combo: zero or more of `mod+` / `ctrl+` / `alt+` / `shift+` /
 `meta+` (any order, any case) followed by a
 [`KeyboardEvent.code`](https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/code).
-`mod` resolves to `meta` on Apple platforms and `ctrl` elsewhere. Matching is
+`mod` resolves to `meta` on Apple platforms and `ctrl` elsewhere, and the longer
+`control`, `option`, `cmd` and `command` spell the same modifiers. Matching is
 exact — declared modifiers are required, undeclared ones are forbidden — so a
 bare `ArrowDown` binding leaves shortcuts like <kbd>Ctrl</kbd>+<kbd>ArrowDown</kbd>
 with their browser defaults. Keys are matched on `e.code`, the physical key, so
-bindings hold across keyboard layouts. No `code` value contains a `+` — the
-plus key itself is `Equal` (or `NumpadAdd`) — so the separator is unambiguous.
-The matcher is exported as `matchesCombo(e, combo)` for your own handlers.
+bindings hold across keyboard layouts. The matcher is exported as
+`matchesCombo(e, combo)` for your own handlers.
 
 ```html
 <div
@@ -118,11 +123,20 @@ The matcher is exported as `matchesCombo(e, combo)` for your own handlers.
 </div>
 ```
 
+Next and prev always mean one item through the DOM order. Declare
+`data-keyrove-cols` and the same items fold into rows: `next-key`/`prev-key`
+keep moving one item — a _cell_ there, on the reading-direction arrows by
+default — while `data-keyrove-next-row-key`/`data-keyrove-prev-row-key` move a
+whole row, defaulting to `ArrowDown`/`ArrowUp`.
+
 Anything not bound is left entirely alone, browser defaults included. `Home`,
-`End`, `PageUp` and `PageDown` are handled when pressed without modifiers and
-focus is already inside an item — they move within a group, never into one; in
-a grid, `ArrowLeft` and `ArrowRight` move one cell unless you have bound them
-to something else.
+`End`, `PageUp` and `PageDown` are defaults like the arrows —
+`data-keyrove-home-key`, `data-keyrove-end-key`, `data-keyrove-page-up-key` and
+`data-keyrove-page-down-key` rebind them — and whatever they are bound to they
+act only once focus is already inside an item: they move within a group, never
+into one. In a grid, bare `Home`/`End` jump to the ends of the focused row
+(`data-keyrove-home-row-key`/`data-keyrove-end-row-key`) and
+`ctrl+Home`/`ctrl+End` to the grid's first and last cell.
 
 At the ends of a list the bound keys are consumed but focus stays put. Add
 `data-keyrove-loop` on the root and next on the last item wraps to the first,
@@ -134,6 +148,37 @@ Keys pressed inside an editable element — `textarea`, `select`,
 keep moving the caret or value, and a letter binding like `KeyJ` does not
 swallow typing into a field that sits within an item. Inputs where those keys
 are inert — a `checkbox`, a `button` — still navigate.
+
+## Focus keys
+
+Every move above is relative to where focus is. `data-keyrove-focus-key` on an
+item is the absolute kind: the combo focuses that item from anywhere the keydown
+reaches the listener — a sibling group, a nested root, or, when the combo holds
+<kbd>Ctrl</kbd>/<kbd>Alt</kbd>/<kbd>Meta</kbd>, a text field.
+
+```html
+<div id="panels">
+  <section
+    data-keyrove-item
+    data-keyrove-focus-key="ctrl+shift+KeyE"
+    tabindex="-1"
+  >
+    …
+  </section>
+  <section
+    data-keyrove-item
+    data-keyrove-focus-key="ctrl+shift+KeyB"
+    tabindex="-1"
+  >
+    …
+  </section>
+</div>
+```
+
+The listener's placement is the reach — on `document`, the keys are page-wide.
+A focus key sits ahead of the root's bindings and the defaults, so it wins any
+collision; two items naming one combo resolve to the first in DOM order; a
+skipped or disabled item's key is inert. The move reports `'focus'`.
 
 ## Tab still works
 
@@ -157,36 +202,48 @@ const typeahead = createTypeahead(); // { resetMs?, onMove? }
 list.addEventListener('keydown', (e) => keyRove(e) || typeahead(e));
 ```
 
-It is a factory because a buffer is state and `keyRove` itself stays
-stateless — create one handler per listener. Chain it after `keyRove` so
-bound keys win: a `KeyJ` binding keeps navigating and never enters the
-buffer. The label is the item's `data-keyrove-typeahead` attribute, falling
-back to its trimmed text. Matching reads `e.key` — the typed character —
-unlike key bindings, which stay on the physical `e.code`. Typing inside
-editable elements is never captured, modified presses (Ctrl/Alt/Meta) are
-left to their shortcuts, and a space only counts once a match is underway.
-The handler returns `{ action: 'typeahead', from, to }` or `null`, the same
-contract as `keyRove` — and `onMove` fires after a real move, exactly as
-`keyRove`'s does, so both handlers can feed the same follow-focus logic.
+The buffer is state, which `keyRove` itself never holds, so create one handler
+per listener and chain it after `keyRove`: bound keys win, and a `KeyJ` binding
+keeps navigating instead of entering the buffer. The label is the item's
+`data-keyrove-typeahead` attribute, falling back to its trimmed text. Matching
+reads `e.key` — the typed character — unlike key bindings, which stay on the
+physical `e.code`. Typing inside editable elements is never captured, modified
+presses (Ctrl/Alt/Meta) are left to their shortcuts, and a space only counts
+once a match is underway. The handler returns
+`{ action: 'typeahead', from, to }` or `null`, the same contract as `keyRove`,
+and its `onMove` fires after a real move exactly as `keyRove`'s does, so both
+handlers can feed the same follow-focus logic.
 
 ## Attributes
 
-| Attribute                      | On   | Default     | Meaning                                                                                     |
-| ------------------------------ | ---- | ----------- | ------------------------------------------------------------------------------------------- |
-| `data-keyrove-item`            | item | —           | Marks an element as navigable.                                                              |
-| `data-keyrove-skip`            | item | —           | Passed over when moving; stays in the DOM order.                                            |
-| `data-keyrove-roving-tabindex` | item | —           | Moves the `tabindex="0"` tab stop with focus.                                               |
-| `data-keyrove-root`            | root | —           | Marks the navigation root explicitly, instead of using the listener's element.              |
-| `data-keyrove-cols-length`     | root | `1`         | A value above 1 switches the group to grid navigation.                                      |
-| `data-keyrove-page-length`     | root | `10`        | Items per page jump — whole rows in a grid.                                                 |
-| `data-keyrove-next-key`        | root | `ArrowDown` | Combo that moves forward, e.g. `KeyJ` or `ctrl+ArrowRight`.                                 |
-| `data-keyrove-prev-key`        | root | `ArrowUp`   | Combo that moves back.                                                                      |
-| `data-keyrove-loop`            | root | —           | Next/prev wrap past the ends of a list. Grids never wrap.                                   |
-| `data-keyrove-orientation`     | root | —           | `horizontal` maps the default keys to `ArrowRight`/`ArrowLeft`, RTL-aware. Grids ignore it. |
-| `data-keyrove-typeahead`       | item | text        | Label for type-to-focus, when the item's own text is not it.                                |
+| Attribute                      | On   | Default     | Meaning                                                                                |
+| ------------------------------ | ---- | ----------- | -------------------------------------------------------------------------------------- |
+| `data-keyrove-item`            | item | —           | Marks an element as navigable.                                                         |
+| `data-keyrove-skip`            | item | —           | Passed over when moving; stays in the DOM order.                                       |
+| `data-keyrove-roving-tabindex` | item | —           | Moves the `tabindex="0"` tab stop with focus.                                          |
+| `data-keyrove-root`            | root | —           | Marks the navigation root explicitly, instead of using the listener's element.         |
+| `data-keyrove-cols`            | root | `1`         | Column count; above 1 the group navigates as a grid.                                   |
+| `data-keyrove-page-length`     | root | `10`        | Items per page jump — whole rows in a grid.                                            |
+| `data-keyrove-next-key`        | root | axis arrow  | Combo for the next item — the next cell, in a grid. E.g. `KeyJ` or `ctrl+ArrowRight`.  |
+| `data-keyrove-prev-key`        | root | axis arrow  | Combo for the previous item.                                                           |
+| `data-keyrove-next-row-key`    | root | `ArrowDown` | Combo for the next row, same column. Grids only.                                       |
+| `data-keyrove-prev-row-key`    | root | `ArrowUp`   | Combo for the previous row. Grids only.                                                |
+| `data-keyrove-home-key`        | root | `Home`      | Combo for the first item — the grid's first cell, `ctrl+Home` there by default.        |
+| `data-keyrove-end-key`         | root | `End`       | Combo for the last item — the grid's last cell, `ctrl+End` there by default.           |
+| `data-keyrove-home-row-key`    | root | `Home`      | Combo for the focused row's first cell. Grids only.                                    |
+| `data-keyrove-end-row-key`     | root | `End`       | Combo for the focused row's last cell. Grids only.                                     |
+| `data-keyrove-page-up-key`     | root | `PageUp`    | Combo for the page jump back.                                                          |
+| `data-keyrove-page-down-key`   | root | `PageDown`  | Combo for the page jump forward.                                                       |
+| `data-keyrove-focus-key`       | item | —           | Combo that focuses this item from anywhere under the listener, e.g. `ctrl+shift+KeyE`. |
+| `data-keyrove-loop`            | root | —           | Next/prev wrap past the ends of a list. Grids never wrap.                              |
+| `data-keyrove-orientation`     | root | —           | `horizontal` maps a list's default keys to `ArrowRight`/`ArrowLeft`, RTL-aware.        |
+| `data-keyrove-typeahead`       | item | text        | Label for type-to-focus, when the item's own text is not it.                           |
+
+The next/prev defaults follow the group's axis: `ArrowDown`/`ArrowUp` in a
+vertical list, the reading-direction arrows in a horizontal list or a grid.
 
 Every attribute name is also exported as a constant (`KEYROVE_ATTR_ITEM`,
-`KEYROVE_ATTR_COLS_LENGTH`, `KEYROVE_ATTR_LOOP`, `KEYROVE_ATTR_ORIENTATION`, …).
+`KEYROVE_ATTR_COLS`, `KEYROVE_ATTR_NEXT_ROW_KEY`, `KEYROVE_ATTR_LOOP`, …).
 
 ## Options and return value
 
@@ -198,9 +255,11 @@ const result = keyRove(e, {
 
 `onMove` fires after focus has moved, and only when it actually moved: a
 consumed key with nowhere to go — the end of a list, the edge of a grid —
-fires nothing. `action` is one of `'next' | 'prev' | 'home' | 'end' |
-'pageUp' | 'pageDown'`; `from` is the item focus left (`null` when the group
-was entered from outside) and `to` the item it landed on.
+fires nothing. `action` names the move: `'next' | 'prev' | 'home' | 'end' |
+'pageUp' | 'pageDown'`, the grid-only `'nextRow' | 'prevRow' | 'homeRow' |
+'endRow'`, and `'focus'` for an item's own focus key. `from` is the item focus
+left (`null` when the group was entered from outside) and `to` the item it
+landed on.
 
 `keyRove` returns `null` when it left the key untouched, and `{ action, from,
 to }` when it consumed it — with `to: null` for a consumed no-op at an edge. A

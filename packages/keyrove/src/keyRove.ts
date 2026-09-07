@@ -1,74 +1,47 @@
+import { DEFAULT_ATTRIBUTES } from './attributes.js';
+import { buildBindings } from './bindings.js';
+import { listenerElement, moveFocus, readGroup, resolveRoot } from './group.js';
+import { resolveTarget } from './position.js';
 import {
-  findFirst,
-  findGridNeighbor,
-  findLast,
-  findNext,
-  findPageTarget,
-  findPrev,
+  hasCommandModifier,
   isEditableTarget,
   matchesCombo,
   parseAttributeInt,
-  toggleTabIndex,
 } from './utils.js';
 import type {
   Attributes,
-  GetNavElementsArgs,
+  ExplicitBindings,
+  FocusKey,
   KeyRoveEvent,
-  KnownCode,
-  MoveAction,
+  Layout,
   MoveResult,
   Options,
 } from './types.js';
 
-/**
- * Attribute names keyrove reads from the DOM.
- *
- * Internal on purpose: making these configurable is a deliberate non-goal for
- * now, and exporting the map would freeze its shape before that feature is
- * designed. The individual `KEYROVE_ATTR_*` constants below are the public surface.
- */
-const DEFAULT_ATTRIBUTES = {
-  item: 'data-keyrove-item',
-  skip: 'data-keyrove-skip',
-  root: 'data-keyrove-root',
-  nextKey: 'data-keyrove-next-key',
-  prevKey: 'data-keyrove-prev-key',
-  pageLength: 'data-keyrove-page-length',
-  colsLength: 'data-keyrove-cols-length',
-  rovingTabindex: 'data-keyrove-roving-tabindex',
-  loop: 'data-keyrove-loop',
-  orientation: 'data-keyrove-orientation',
-  typeahead: 'data-keyrove-typeahead',
-} as const satisfies Attributes;
-
 // Individual constants, so consumers can spread them into markup without
-// reaching into the map.
+// reaching into the map — which stays internal; see `attributes.ts`.
 export const KEYROVE_ATTR_ITEM = DEFAULT_ATTRIBUTES.item;
 export const KEYROVE_ATTR_SKIP = DEFAULT_ATTRIBUTES.skip;
 export const KEYROVE_ATTR_ROOT = DEFAULT_ATTRIBUTES.root;
 export const KEYROVE_ATTR_NEXT_KEY = DEFAULT_ATTRIBUTES.nextKey;
 export const KEYROVE_ATTR_PREV_KEY = DEFAULT_ATTRIBUTES.prevKey;
+export const KEYROVE_ATTR_NEXT_ROW_KEY = DEFAULT_ATTRIBUTES.nextRowKey;
+export const KEYROVE_ATTR_PREV_ROW_KEY = DEFAULT_ATTRIBUTES.prevRowKey;
+export const KEYROVE_ATTR_HOME_KEY = DEFAULT_ATTRIBUTES.homeKey;
+export const KEYROVE_ATTR_END_KEY = DEFAULT_ATTRIBUTES.endKey;
+export const KEYROVE_ATTR_HOME_ROW_KEY = DEFAULT_ATTRIBUTES.homeRowKey;
+export const KEYROVE_ATTR_END_ROW_KEY = DEFAULT_ATTRIBUTES.endRowKey;
+export const KEYROVE_ATTR_PAGE_UP_KEY = DEFAULT_ATTRIBUTES.pageUpKey;
+export const KEYROVE_ATTR_PAGE_DOWN_KEY = DEFAULT_ATTRIBUTES.pageDownKey;
+export const KEYROVE_ATTR_FOCUS_KEY = DEFAULT_ATTRIBUTES.focusKey;
 export const KEYROVE_ATTR_PAGE_LENGTH = DEFAULT_ATTRIBUTES.pageLength;
-export const KEYROVE_ATTR_COLS_LENGTH = DEFAULT_ATTRIBUTES.colsLength;
+export const KEYROVE_ATTR_COLS = DEFAULT_ATTRIBUTES.cols;
 export const KEYROVE_ATTR_ROVING_TABINDEX = DEFAULT_ATTRIBUTES.rovingTabindex;
 export const KEYROVE_ATTR_LOOP = DEFAULT_ATTRIBUTES.loop;
 export const KEYROVE_ATTR_ORIENTATION = DEFAULT_ATTRIBUTES.orientation;
 export const KEYROVE_ATTR_TYPEAHEAD = DEFAULT_ATTRIBUTES.typeahead;
 
-// Named so the dispatch below is checked against `KnownCode` instead of
-// comparing against bare literals that TypeScript cannot vet.
-const KEY = {
-  arrowUp: 'ArrowUp',
-  arrowDown: 'ArrowDown',
-  arrowLeft: 'ArrowLeft',
-  arrowRight: 'ArrowRight',
-  home: 'Home',
-  end: 'End',
-  pageUp: 'PageUp',
-  pageDown: 'PageDown',
-} as const satisfies Record<string, KnownCode>;
-
-// Reading direction for a horizontal group. The nearest `dir` attribute
+// Reading direction for an inline axis. The nearest `dir` attribute
 // decides, mirroring how the DOM resolves direction (and working in jsdom,
 // which has no layout); `dir="auto"` — content-dependent, so only the
 // browser can resolve it — and a missing attribute fall through to the
@@ -84,54 +57,67 @@ const isRtl = (root: Element): boolean => {
   );
 };
 
-const getNavElements = ({
-  root,
-  elementsSelector,
-  focusedSelector,
-  attributes = DEFAULT_ATTRIBUTES,
-}: GetNavElementsArgs) => {
-  if (!root) return {};
+/**
+ * Reads the group's layout off its root. A list is one column; `cols` above 1
+ * makes a grid, which has no orientation of its own — its `next`/`prev` axis is
+ * sideways by nature — and never wraps, per the APG grid pattern.
+ */
+const readLayout = (root: Element, attributes: Attributes): Layout => {
+  const cols = parseAttributeInt(root, attributes.cols, 1);
 
-  const elements = root.querySelectorAll(elementsSelector);
-  const elementsArray = Array.from(elements);
-  const focused = root.querySelector(focusedSelector);
-  const fromIndex = focused ? elementsArray.indexOf(focused) : -1;
-  const skipAttribute = attributes.skip;
-  const bounds = { elements: elementsArray, fromIndex, skipAttribute };
-
-  // When the nav root declares a column count, arrow keys navigate the list as
-  // a grid: Up/Down jump a whole row so focus lands on the item directly
-  // above/below, while Left/Right move by a single cell.
-  const colsLength = parseAttributeInt(root, attributes.colsLength, 1);
-  const isGrid = colsLength > 1;
-
-  // Wrapping is linear-only — a grid keeps its edges, per the APG grid
-  // pattern. Presence-based (`hasAttribute`), so the bare `data-keyrove-loop`
-  // spelling works; `getAttribute` truthiness would read it as "" and
-  // silently disable it.
-  const loop = !isGrid && root.hasAttribute(attributes.loop);
-
-  // A page is `pageLength` items in a list, and `pageLength` whole rows in a
-  // grid — stepping by whole rows keeps focus in the column it started in.
-  const pageLength = parseAttributeInt(root, attributes.pageLength, 10);
-  const stride = pageLength * (isGrid ? colsLength : 1);
+  if (cols > 1) return { kind: 'grid', cols, horizontal: true, loop: false };
 
   return {
-    elements,
-    focused,
-    next: findNext({ ...bounds, loop }),
-    prev: findPrev({ ...bounds, loop }),
-    first: findFirst(elementsArray, skipAttribute),
-    last: findLast(elementsArray, skipAttribute),
-    isGrid,
-    up: isGrid ? findGridNeighbor({ ...bounds, step: -colsLength }) : null,
-    down: isGrid ? findGridNeighbor({ ...bounds, step: colsLength }) : null,
-    left: isGrid ? findGridNeighbor({ ...bounds, step: -1 }) : null,
-    right: isGrid ? findGridNeighbor({ ...bounds, step: 1 }) : null,
-    pageUp: findPageTarget({ ...bounds, direction: -1, stride }),
-    pageDown: findPageTarget({ ...bounds, direction: 1, stride }),
+    kind: 'list',
+    cols: 1,
+    // `orientation="horizontal"` redirects only the *default* keys — an
+    // explicit binding still wins in the table. Nothing but the literal value
+    // "horizontal" switches anything.
+    horizontal: root.getAttribute(attributes.orientation) === 'horizontal',
+    // Presence-based (`hasAttribute`), so the bare `data-keyrove-loop`
+    // spelling works; `getAttribute` truthiness would read it as "" and
+    // silently disable it.
+    loop: root.hasAttribute(attributes.loop),
   };
 };
+
+/**
+ * The combos bound on the root, one per move — `null` where the attribute is
+ * unset and the move keeps its default key. Read unfiltered: the binding table
+ * consults only the moves its layout has, so a row key set on a list is never
+ * looked at.
+ */
+const readExplicitBindings = (
+  root: Element,
+  attributes: Attributes,
+): Required<ExplicitBindings> => ({
+  next: root.getAttribute(attributes.nextKey),
+  prev: root.getAttribute(attributes.prevKey),
+  nextRow: root.getAttribute(attributes.nextRowKey),
+  prevRow: root.getAttribute(attributes.prevRowKey),
+  home: root.getAttribute(attributes.homeKey),
+  end: root.getAttribute(attributes.endKey),
+  homeRow: root.getAttribute(attributes.homeRowKey),
+  endRow: root.getAttribute(attributes.endRowKey),
+  pageUp: root.getAttribute(attributes.pageUpKey),
+  pageDown: root.getAttribute(attributes.pageDownKey),
+});
+
+/**
+ * The focus keys in reach of a keypress: every navigable item under `scope`
+ * that names one, in DOM order. Skipped and disabled items are not
+ * destinations, so theirs are not read — the key falls through as though it
+ * were undeclared.
+ */
+const readFocusKeys = (scope: Element, attributes: Attributes): FocusKey[] =>
+  Array.from(
+    scope.querySelectorAll(
+      `[${attributes.item}][${attributes.focusKey}]:not([disabled]):not([${attributes.skip}])`,
+    ),
+  ).map((target) => ({
+    combo: target.getAttribute(attributes.focusKey) ?? '',
+    target,
+  }));
 
 /**
  * Handles keyboard navigation within the provided event's current target.
@@ -146,142 +132,91 @@ export const keyRove = (
   e: KeyRoveEvent,
   { onMove }: Options = {},
 ): MoveResult | null => {
+  // Mid-composition, every press belongs to the input method: arrows walk its
+  // candidate list and a chord can be part of the conversion. Composition
+  // happens only in an editable host, so past the typing guard below this
+  // reaches just the chorded focus key — which must not tear focus out of a
+  // half-converted word.
+  if (e.isComposing) return null;
+
   const attributes = DEFAULT_ATTRIBUTES;
   const eventTarget = e.target as Element | null;
+  const editable = isEditableTarget(eventTarget);
 
-  if (isEditableTarget(eventTarget)) return null;
+  // Typing. An editable target keeps every press that could be text or caret
+  // movement, and nothing keyrove binds fires from one without a command
+  // modifier — so there is nothing to look up.
+  if (editable && !hasCommandModifier(e)) return null;
 
-  const closestRoot = eventTarget?.closest?.(`[${attributes.root}]`);
-  const root = (closestRoot || e.currentTarget) as Element | null;
+  const root = resolveRoot(eventTarget, e.currentTarget);
 
-  const {
-    focused,
-    next,
-    prev,
-    first,
-    last,
-    isGrid,
-    up,
-    down,
-    left,
-    right,
-    pageUp,
-    pageDown,
-  } = getNavElements({
-    root,
-    elementsSelector: `[${attributes.item}]:not([disabled])`,
-    focusedSelector: `[${attributes.item}]:focus-within`,
-    attributes,
+  if (!root) return null;
+
+  // A move is relative to the root focus is in; a focus key names its item
+  // outright and is heard as far as the listener reaches — across sibling
+  // groups and out of nested roots — so its lookup spans the listener's
+  // element, not the root.
+  const scope = listenerElement(e.currentTarget) ?? root;
+  const layout = readLayout(root, attributes);
+
+  // First match wins: one keypress resolves to at most one action, and the
+  // table's order is the precedence — an item's own key over the root's
+  // explicit bindings over the defaults.
+  const binding = buildBindings({
+    explicit: readExplicitBindings(root, attributes),
+    focus: readFocusKeys(scope, attributes),
+    layout,
+    rtl: () => isRtl(root),
+  }).find(({ combo }) => matchesCombo(e, combo));
+
+  if (!binding) return null;
+
+  // A chorded press from inside a field reaches only a focus key, which points
+  // out of the field. A move keeps the caret's keys however it is bound.
+  if (editable && binding.intent !== 'focus') return null;
+
+  // A focus row's move happens in its target's own group — the nearest root
+  // above the item, else the listener's element — so `from` is the sibling
+  // holding focus, the roving stop stays within one group, and a key pressed
+  // while focus is already inside its item is a consumed no-op. The search
+  // starts at the item's *parent*: a panel is often itself the root of the
+  // list inside it, and its group is the one above.
+  const group =
+    binding.intent === 'focus'
+      ? (resolveRoot(binding.target.parentElement, scope) ?? scope)
+      : root;
+  const { items: elements, focused } = readGroup(group);
+
+  // Most moves only act once focus is genuinely inside an item, whatever key
+  // they are bound to: they move *within* a group, they are not a way into
+  // one. The directional moves deliberately are — which is how a group is
+  // entered from the keyboard — and so is a focus key, which is the point.
+  if (!focused && !binding.enters) return null;
+
+  const target =
+    binding.intent === 'focus'
+      ? binding.target
+      : resolveTarget({
+          intent: binding.intent,
+          elements,
+          fromIndex: focused ? elements.indexOf(focused) : -1,
+          layout,
+          pageLength: parseAttributeInt(root, attributes.pageLength, 10),
+          skipAttribute: attributes.skip,
+        });
+
+  // With neither a target nor a focused item, keyrove has nothing to move
+  // from or to and the key is left with its browser default rather than
+  // being swallowed. Past this line the press is ours: it resolves a target,
+  // or focus already sits inside the group and the move has nowhere to go (an
+  // edge) — the group owns its bound keys up to its own boundary.
+  if (!target && !focused) return null;
+
+  return moveFocus({
+    e,
+    action: binding.intent,
+    from: focused,
+    to: target,
+    onMove,
   });
-
-  // `orientation="horizontal"` redirects only the *default* keys — an
-  // explicit binding still wins below. "Next" follows the reading direction,
-  // so RTL flips the pair; the direction is resolved only when it can matter.
-  // Nothing but the literal value "horizontal" switches anything, and a grid
-  // ignores the attribute outright: its cell moves already cover the
-  // horizontal axis, and re-pointing the row keys at the arrows would break
-  // both.
-  const horizontal =
-    !isGrid && root?.getAttribute(attributes.orientation) === 'horizontal';
-  const rtl = horizontal && root ? isRtl(root) : false;
-  const defaultNext = horizontal
-    ? rtl
-      ? KEY.arrowLeft
-      : KEY.arrowRight
-    : KEY.arrowDown;
-  const defaultPrev = horizontal
-    ? rtl
-      ? KEY.arrowRight
-      : KEY.arrowLeft
-    : KEY.arrowUp;
-
-  const nextCode = root?.getAttribute(attributes.nextKey) || defaultNext;
-  const prevCode = root?.getAttribute(attributes.prevKey) || defaultPrev;
-  // Presence-based, so the bare `data-keyrove-roving-tabindex` spelling works
-  // — `getAttribute` would read it as "" and silently disable roving.
-  const useRovingTabindex = focused?.hasAttribute(attributes.rovingTabindex);
-
-  // Focus a resolved target, moving the roving tab stop with it when enabled.
-  //
-  // This is also where `preventDefault()` lives, because only here is it known
-  // that keyrove is actually in a position to act. The press is ours when it
-  // resolves a target, and also when focus already sits inside the group but
-  // the move has nowhere to go (an edge): the group owns its bound keys up to
-  // its own boundary, so the page must not scroll there instead. With neither,
-  // keyrove has nothing to move from or to and the key is left with its
-  // browser default rather than being swallowed.
-  const moveFocus = (
-    target: Element | null | undefined,
-    action: MoveAction,
-  ): MoveResult | null => {
-    if (!target && !focused) return null;
-
-    e.preventDefault();
-
-    const from = focused ?? null;
-
-    // A missing target (a grid edge) or a target that is the position itself
-    // (the end of a list) is a consumed no-op: focus and the tab stop stay
-    // put, and `onMove` stays quiet because nothing moved.
-    if (!target || target === focused) return { action, from, to: null };
-
-    if (useRovingTabindex) {
-      toggleTabIndex({ root: focused, isActive: false });
-      toggleTabIndex({ root: target, isActive: true });
-    }
-
-    (target as HTMLElement).focus();
-
-    const move = { action, from, to: target };
-    onMove?.(move);
-
-    return move;
-  };
-
-  // First match wins: one keypress resolves to at most one action, so a
-  // custom binding that collides with a fixed key takes the press over it.
-  if (matchesCombo(e, prevCode)) {
-    // In a grid, Up moves a whole row; otherwise to the previous item.
-    return moveFocus(isGrid ? up : prev, 'prev');
-  }
-
-  if (matchesCombo(e, nextCode)) {
-    // In a grid, Down moves a whole row; otherwise to the next item.
-    return moveFocus(isGrid ? down : next, 'next');
-  }
-
-  // Cell moves within a grid row. A prev/next binding to the same key never
-  // reaches here — the returns above already claimed it.
-  if (isGrid && matchesCombo(e, KEY.arrowLeft)) {
-    return moveFocus(left, 'prev');
-  }
-
-  if (isGrid && matchesCombo(e, KEY.arrowRight)) {
-    return moveFocus(right, 'next');
-  }
-
-  // Home/End/PageUp/PageDown only act once focus is genuinely inside an item:
-  // they move *within* a group, they are not a way into one. Without this gate
-  // Home and End would resolve the first/last item from outside the group and
-  // pull focus in — which is what the arrows deliberately do, and what these
-  // four deliberately do not.
-  if (!focused) return null;
-
-  if (matchesCombo(e, KEY.home)) {
-    return moveFocus(first, 'home');
-  }
-
-  if (matchesCombo(e, KEY.end)) {
-    return moveFocus(last, 'end');
-  }
-
-  if (matchesCombo(e, KEY.pageUp)) {
-    return moveFocus(pageUp, 'pageUp');
-  }
-
-  if (matchesCombo(e, KEY.pageDown)) {
-    return moveFocus(pageDown, 'pageDown');
-  }
-
-  return null;
 };

@@ -27,12 +27,23 @@ type Modifier = (typeof MODIFIERS)[number];
 const isModifier = (name: string): name is Modifier =>
   (MODIFIERS as readonly string[]).includes(name);
 
+// The longer spellings of the same flags — what the keys are called on their
+// caps and in most shortcut notations. A `Map` rather than an object so a
+// lookup can never land on an inherited property name.
+const MODIFIER_ALIASES = new Map<string, Modifier>([
+  ['control', 'ctrl'],
+  ['option', 'alt'],
+  ['cmd', 'meta'],
+  ['command', 'meta'],
+]);
+
 /**
  * Whether the event matches a key combo like `"ctrl+ArrowDown"` or `"KeyJ"`.
  *
  * Grammar: zero or more of `mod+` / `ctrl+` / `alt+` / `shift+` / `meta+`
  * (any order, any case) followed by a `KeyboardEvent.code`. `mod` resolves to
- * `meta` on Apple platforms and `ctrl` elsewhere.
+ * `meta` on Apple platforms and `ctrl` elsewhere; `control`, `option`, `cmd`
+ * and `command` are the longer spellings of `ctrl`, `alt` and `meta`.
  *
  * Matching is exact: every declared modifier must be held and every undeclared
  * one must not be, so a bare `"ArrowDown"` means "ArrowDown with no modifiers"
@@ -46,7 +57,12 @@ export const matchesCombo = (e: KeyRoveEvent, combo: string): boolean => {
 
   for (const part of parts) {
     const name = part.trim().toLowerCase();
-    const modifier = name === 'mod' ? (isMacLike() ? 'meta' : 'ctrl') : name;
+    const modifier =
+      name === 'mod'
+        ? isMacLike()
+          ? 'meta'
+          : 'ctrl'
+        : (MODIFIER_ALIASES.get(name) ?? name);
 
     if (!isModifier(modifier)) return false;
 
@@ -61,6 +77,13 @@ export const matchesCombo = (e: KeyRoveEvent, combo: string): boolean => {
     !!e.metaKey === declared.meta
   );
 };
+
+/**
+ * Whether Ctrl, Alt or Meta is held: a command rather than typing. Shift on
+ * its own is typing — it is how capitals are entered — so it does not count.
+ */
+export const hasCommandModifier = (e: KeyRoveEvent): boolean =>
+  !!(e.ctrlKey || e.altKey || e.metaKey);
 
 // An editable target owns the keys keyrove binds: arrows and Home/End move
 // the caret there, and printable keys type. `closest` rather than `matches`,
@@ -116,23 +139,36 @@ export const parseAttributeInt = (
 ): number =>
   parseInt(element.getAttribute(attribute) || String(fallback)) || fallback;
 
-/** First navigable element, or the very first one when every element is skipped. */
-export const findFirst = (
+/** First element not carrying `skipAttribute`; undefined when every one does. */
+export const firstNavigable = (
   elements: Element[],
   skipAttribute: string,
 ): Element | undefined =>
-  elements.find((el) => !el.hasAttribute(skipAttribute)) || elements[0];
+  elements.find((el) => !el.hasAttribute(skipAttribute));
 
-/** Last navigable element, or the very last one when every element is skipped. */
-export const findLast = (
+/** Last element not carrying `skipAttribute`; undefined when every one does. */
+export const lastNavigable = (
   elements: Element[],
   skipAttribute: string,
 ): Element | undefined =>
   elements
     .slice()
     .reverse()
-    .find((el) => !el.hasAttribute(skipAttribute)) ||
-  elements[elements.length - 1];
+    .find((el) => !el.hasAttribute(skipAttribute));
+
+/** First navigable element, or the very first one when every element is skipped. */
+export const findFirst = (
+  elements: Element[],
+  skipAttribute: string,
+): Element | undefined =>
+  firstNavigable(elements, skipAttribute) || elements[0];
+
+/** Last navigable element, or the very last one when every element is skipped. */
+export const findLast = (
+  elements: Element[],
+  skipAttribute: string,
+): Element | undefined =>
+  lastNavigable(elements, skipAttribute) || elements[elements.length - 1];
 
 /**
  * Next navigable element after `fromIndex`. Past the end it clamps to the

@@ -1,0 +1,49 @@
+<div id="month-picker">
+  <style>
+    #month-picker {
+      container-type: inline-size;
+    }
+
+    #months {
+      --cols: 2;
+      display: grid;
+      grid-template-columns: repeat(var(--cols), minmax(0, 1fr));
+      gap: 0.375rem;
+    }
+
+    @container (min-width: 20rem) {
+      #months {
+        --cols: 3;
+      }
+    }
+
+    @container (min-width: 28rem) {
+      #months {
+        --cols: 4;
+      }
+    }
+
+    @container (min-width: 36rem) {
+      #months {
+        --cols: 6;
+      }
+    }
+  </style>
+
+  <div id="months" data-keyrove-root data-keyrove-cols="2">
+    <button data-keyrove-item tabindex="0">January</button>
+    <button data-keyrove-item tabindex="0">February</button>
+    <button data-keyrove-item tabindex="0">March</button>
+    <!-- fold -->
+    <button data-keyrove-item tabindex="0">April</button>
+    <button data-keyrove-item tabindex="0">May</button>
+    <button data-keyrove-item tabindex="0">June</button>
+    <button data-keyrove-item tabindex="0">July</button>
+    <button data-keyrove-item tabindex="0">August</button>
+    <button data-keyrove-item tabindex="0">September</button>
+    <button data-keyrove-item tabindex="0">October</button>
+    <button data-keyrove-item tabindex="0">November</button>
+    <!-- /fold -->
+    <button data-keyrove-item tabindex="0">December</button>
+  </div>
+</div>

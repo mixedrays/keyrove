@@ -3,7 +3,8 @@ import {
   keyRove,
   KEYROVE_ATTR_ITEM,
   KEYROVE_ATTR_SKIP,
-  KEYROVE_ATTR_COLS_LENGTH,
+  KEYROVE_ATTR_COLS,
+  KEYROVE_ATTR_FOCUS_KEY,
   KEYROVE_ATTR_ROVING_TABINDEX,
 } from '../../keyRove';
 
@@ -14,6 +15,7 @@ export type ItemSpec = {
   disabled?: boolean;
   roving?: boolean;
   tabindex?: string;
+  focusKey?: string;
 };
 
 export const createItem = (id: string, spec: ItemSpec = {}) => {
@@ -25,6 +27,9 @@ export const createItem = (id: string, spec: ItemSpec = {}) => {
   if (spec.skip) el.setAttribute(KEYROVE_ATTR_SKIP, 'true');
   if (spec.disabled) el.setAttribute('disabled', 'true');
   if (spec.roving) el.setAttribute(KEYROVE_ATTR_ROVING_TABINDEX, 'true');
+  if (spec.focusKey !== undefined) {
+    el.setAttribute(KEYROVE_ATTR_FOCUS_KEY, spec.focusKey);
+  }
 
   return el;
 };
@@ -72,7 +77,7 @@ export const renderGrid = (
     Array.from({ length: count }, (_, i) => createItem(`${i}`)),
     {
       containerAttrs: {
-        [KEYROVE_ATTR_COLS_LENGTH]: String(columns),
+        [KEYROVE_ATTR_COLS]: String(columns),
         ...containerAttrs,
       },
       ...renderOptions,
@@ -85,7 +90,7 @@ export const pressKey = (
   from: Element = document.activeElement as Element,
   modifiers: Pick<
     KeyboardEventInit,
-    'ctrlKey' | 'altKey' | 'shiftKey' | 'metaKey'
+    'ctrlKey' | 'altKey' | 'shiftKey' | 'metaKey' | 'isComposing'
   > = {},
 ) => {
   const event = new KeyboardEvent('keydown', {

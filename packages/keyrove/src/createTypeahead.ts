@@ -8,14 +8,9 @@
  * of running a timer, so the handler owns no lifecycle to clean up.
  */
 
-import { isEditableTarget, toggleTabIndex } from './utils.js';
-import {
-  KEYROVE_ATTR_ITEM,
-  KEYROVE_ATTR_ROOT,
-  KEYROVE_ATTR_ROVING_TABINDEX,
-  KEYROVE_ATTR_SKIP,
-  KEYROVE_ATTR_TYPEAHEAD,
-} from './keyRove.js';
+import { DEFAULT_ATTRIBUTES } from './attributes.js';
+import { moveFocus, readGroup, resolveRoot } from './group.js';
+import { hasCommandModifier, isEditableTarget } from './utils.js';
 import type {
   KeyRoveEvent,
   TypeaheadOptions,
@@ -28,7 +23,7 @@ import type {
 // collapses interior whitespace the way rendering does, so a label split
 // across source lines still matches the single spaces a user types.
 const getLabel = (item: Element) =>
-  item.getAttribute(KEYROVE_ATTR_TYPEAHEAD) ||
+  item.getAttribute(DEFAULT_ATTRIBUTES.typeahead) ||
   item.textContent?.replace(/\s+/g, ' ').trim() ||
   '';
 
@@ -59,17 +54,16 @@ export const createTypeahead = ({
   return (e: KeyRoveEvent): TypeaheadResult | null => {
     // A single-character `key` is the produced character itself — exactly the
     // printable keys. Navigation and function keys ("ArrowDown", "F6") are
-    // longer names, and an event without `key` cannot typeahead at all.
-    // Ctrl/Alt/Meta presses are shortcuts, not typing (Shift stays: it is how
-    // capitals are typed).
-    if (e.key?.length !== 1 || e.ctrlKey || e.altKey || e.metaKey) return null;
+    // longer names, and an event without `key` cannot typeahead at all. A
+    // command modifier makes a press a shortcut, not typing (Shift stays: it
+    // is how capitals are typed).
+    if (e.key?.length !== 1 || hasCommandModifier(e)) return null;
 
     const eventTarget = e.target as Element | null;
 
     if (isEditableTarget(eventTarget)) return null;
 
-    const closestRoot = eventTarget?.closest?.(`[${KEYROVE_ATTR_ROOT}]`);
-    const root = (closestRoot || e.currentTarget) as Element | null;
+    const root = resolveRoot(eventTarget, e.currentTarget);
 
     if (!root) return null;
 
@@ -90,12 +84,10 @@ export const createTypeahead = ({
     lastPressTime = now;
     buffer += e.key.toLowerCase();
 
-    const items = Array.from(
-      root.querySelectorAll(`[${KEYROVE_ATTR_ITEM}]:not([disabled])`),
-    );
+    const { items, focused } = readGroup(root);
     const target = items.find(
       (item) =>
-        !item.hasAttribute(KEYROVE_ATTR_SKIP) &&
+        !item.hasAttribute(DEFAULT_ATTRIBUTES.skip) &&
         getLabel(item).toLowerCase().startsWith(buffer),
     );
 
@@ -103,26 +95,14 @@ export const createTypeahead = ({
     // buffer, so a mistyped prefix goes quiet until the reset clears it.
     if (!target) return null;
 
-    e.preventDefault();
-
-    const focused = root.querySelector(`[${KEYROVE_ATTR_ITEM}]:focus-within`);
-
-    // The buffer grew but still names the focused item: consumed, no move,
-    // matching keyRove's edge no-ops.
-    if (target === focused) {
-      return { action: 'typeahead', from: focused, to: null };
-    }
-
-    if (focused?.hasAttribute(KEYROVE_ATTR_ROVING_TABINDEX)) {
-      toggleTabIndex({ root: focused, isActive: false });
-      toggleTabIndex({ root: target, isActive: true });
-    }
-
-    (target as HTMLElement).focus();
-
-    const move = { action: 'typeahead' as const, from: focused, to: target };
-    onMove?.(move);
-
-    return move;
+    // A match that is the focused item already is a consumed no-op, matching
+    // keyRove's edge no-ops; otherwise the roving stop moves with focus.
+    return moveFocus({
+      e,
+      action: 'typeahead',
+      from: focused,
+      to: target,
+      onMove,
+    });
   };
 };

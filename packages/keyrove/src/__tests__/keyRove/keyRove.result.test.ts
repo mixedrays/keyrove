@@ -152,7 +152,7 @@ describe('keyRove', () => {
       expect(results).toEqual([null]);
     });
 
-    it('resolves a custom binding over a colliding fixed key', () => {
+    it("resolves a custom binding over another move's default key", () => {
       const results = renderCapturing(
         [createItem('a'), createItem('b'), createItem('c')],
         { containerAttrs: { [KEYROVE_ATTR_NEXT_KEY]: 'Home' } },
@@ -161,7 +161,7 @@ describe('keyRove', () => {
 
       pressKey('Home');
 
-      // one keypress, one action: the binding wins and the fixed key stands down
+      // one keypress, one action: the binding wins and the default stands down
       expect(activeId()).toBe('b');
       expect(results).toEqual([
         {

@@ -1,55 +1,60 @@
 ---
 title: Grid
-description: Declaring a column count switches Up and Down to whole-row moves and brings Left and Right into play.
+description: Declaring a column count folds the items into rows — cell moves and row moves, each on its own rebindable pair.
 group: Examples
-order: 11
+order: 13
 ---
 
-Add `data-keyrove-cols-length` to the root and the same list navigates as a
-grid: <kbd class="kbd">↑</kbd> <kbd class="kbd">↓</kbd> move a whole row, so
-focus lands on the item directly above or below, and <kbd class="kbd">←</kbd>
+Add `data-keyrove-cols` to the root and the same list navigates as a grid:
+<kbd class="kbd">↑</kbd> <kbd class="kbd">↓</kbd> move a whole row, so focus
+lands on the item directly above or below, and <kbd class="kbd">←</kbd>
 <kbd class="kbd">→</kbd> move one cell.
-
-Focus stops at the edges instead of wrapping — arrowing left from the first
-column stays put rather than jumping to the end of the row above.
-
-The row moves follow whatever the root's next and previous keys are, so a grid
-bound to `KeyJ` / `KeyK` moves a row on those and still moves a cell on
-<kbd class="kbd">←</kbd> <kbd class="kbd">→</kbd>. Bind one of the horizontal
-arrows instead and it takes over the row move, giving up the cell move — see
-[custom keys](/docs/examples/custom-keys#interaction-with-grids).
 
 <div data-demo="grid" data-demo-class="grid grid-cols-6 gap-1.5"></div>
 
 ```ts
-document.querySelector('#grid').addEventListener('keydown', (e) => keyRove(e));
+document
+  .querySelector('#time-slots')
+  .addEventListener('keydown', (e) => keyRove(e));
 ```
 
-The column count is the one keyrove navigates by. Keep it in step with however
-the grid is laid out — a CSS `grid-template-columns` of six and a
-`data-keyrove-cols-length` of four will move focus in a way that does not match
-what is on screen.
+The demo sets `data-keyrove-cols="6"` and `data-keyrove-page-length="2"`, so a
+page is two rows. The column count is the one keyrove navigates by, so keep it
+in step with the layout: a CSS `grid-template-columns` of six and a
+`data-keyrove-cols` of four will move focus in a way that does not match what is
+on screen.
 
-## Paging in a grid
+## Moves in a grid
 
-`data-keyrove-page-length` counts _rows_ once a column count is set, so
-<kbd class="kbd">PageDown</kbd> moves the same number of rows regardless of how
-wide the grid is — and focus keeps the column it started in. The demo above uses
-`2`, so a page is two rows of six.
+| Move             | Default key                                                                                                      | Attribute                                                 | At the edge                                                                                   |
+| ---------------- | ---------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
+| Next cell        | <kbd class="kbd">→</kbd>                                                                                         | `data-keyrove-next-key`                                   | Flows on to the next row's first cell; stops at the grid's last cell                          |
+| Previous cell    | <kbd class="kbd">←</kbd>                                                                                         | `data-keyrove-prev-key`                                   | Flows back to the previous row's last cell; stops at the first cell                           |
+| Next row         | <kbd class="kbd">↓</kbd>                                                                                         | `data-keyrove-next-row-key`                               | Same column; stops at the bottom                                                              |
+| Previous row     | <kbd class="kbd">↑</kbd>                                                                                         | `data-keyrove-prev-row-key`                               | Same column; stops at the top                                                                 |
+| Row start / end  | <kbd class="kbd">Home</kbd> / <kbd class="kbd">End</kbd>                                                         | `data-keyrove-home-row-key` / `data-keyrove-end-row-key`  | First / last navigable cell of the focused row                                                |
+| Grid start / end | <kbd class="kbd">Ctrl</kbd>+<kbd class="kbd">Home</kbd> / <kbd class="kbd">Ctrl</kbd>+<kbd class="kbd">End</kbd> | `data-keyrove-home-key` / `data-keyrove-end-key`          | First / last navigable cell of the grid                                                       |
+| Page             | <kbd class="kbd">PageDown</kbd> / <kbd class="kbd">PageUp</kbd>                                                  | `data-keyrove-page-down-key` / `data-keyrove-page-up-key` | `page-length` rows, same column; an overshoot lands on the grid's last / first navigable cell |
+
+- A cell move follows DOM order, like a caret in text, so the cell pair reaches
+  every cell in the grid.
+- Grids never wrap; [`data-keyrove-loop`](/docs/examples/looping-lists) is
+  ignored.
+- A grid is entered from outside by any of its four arrows, landing on the
+  first cell.
+- Rebind any move and the replaced default goes back to its browser behaviour;
+  see [custom keys](/docs/examples/custom-keys#grids).
+
+## Right-to-left grids
+
+Under `dir="rtl"` the default cell arrows flip: <kbd class="kbd">←</kbd> is the
+next cell and <kbd class="kbd">→</kbd> the previous, each still moving the way
+it points on screen. The row arrows and any explicit binding stay put. See
+[horizontal groups and RTL](/docs/api#horizontal-groups-and-rtl) for how the
+direction is resolved.
 
 ## Responsive grids
 
-The column count is read from the attribute on every keypress, not cached, so
-updating it when a breakpoint changes is enough to keep navigation matching the
-layout.
-
-```ts
-const media = window.matchMedia('(min-width: 768px)');
-
-const syncColumns = () => {
-  grid.setAttribute('data-keyrove-cols-length', media.matches ? '6' : '3');
-};
-
-media.addEventListener('change', syncColumns);
-syncColumns();
-```
+The column count is read from the attribute on every keypress, not cached, so a
+grid whose layout changes only needs the attribute kept current.
+[Responsive grid](/docs/examples/responsive-grid) lets the stylesheet decide it.
