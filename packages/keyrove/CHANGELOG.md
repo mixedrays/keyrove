@@ -1,5 +1,29 @@
 # Changelog
 
+## [2.0.0](https://github.com/mixedrays/keyrove/compare/v1.0.0...v2.0.0) (2026-09-07)
+
+### ⚠ BREAKING CHANGES
+
+* data-keyrove-cols-length is renamed to data-keyrove-cols
+  (KEYROVE_ATTR_COLS_LENGTH → KEYROVE_ATTR_COLS). In a grid, next-key/prev-key
+  now move one cell instead of one row — bind next-row-key/prev-row-key for
+  row moves. MoveAction gains nextRow, prevRow, homeRow and endRow; grid row
+  moves report nextRow/prevRow instead of next/prev. Default cell arrows flip
+  under RTL, and bare Home/End in a grid are row-relative.
+
+### Features
+
+* accept control, option, cmd and command as modifier names ([e2f741b](https://github.com/mixedrays/keyrove/commit/e2f741b8d45bd9f53535b9ee6574846a6d7dea2c))
+* focus an item from anywhere with its own data-keyrove-focus-key ([607c54d](https://github.com/mixedrays/keyrove/commit/607c54d58fb957f751f19203efa3e5d79e6ace3b))
+* implement logic to focus the first item in demos on page load ([f9f0a3d](https://github.com/mixedrays/keyrove/commit/f9f0a3d2761a35806d9dd63b3f852ce2c2e82e39))
+* leave a press alone while an IME composition is in progress ([8ac90ad](https://github.com/mixedrays/keyrove/commit/8ac90ad0956368741f6bb24768f344eee5064776))
+* make every move rebindable through its own *-key attribute ([7becd56](https://github.com/mixedrays/keyrove/commit/7becd56ef3c35e32ed21c8d8fce3af16f7f27494))
+* unify list and grid navigation on a folded-sequence model ([657e09c](https://github.com/mixedrays/keyrove/commit/657e09ce006b8113cc881cd93c1a2334c58ab874))
+
+### Bug Fixes
+
+* share the group layer across handlers and survive a document-level listener ([c05a0d1](https://github.com/mixedrays/keyrove/commit/c05a0d1a7e3a8b195f4e3fe20294daeb6aca1cd9))
+
 ## [1.0.0](https://github.com/mixedrays/keyrove/compare/v0.1.0...v1.0.0) (2026-08-30)
 
 ### ⚠ BREAKING CHANGES
