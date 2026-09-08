@@ -46,3 +46,17 @@ jobs:
       - run: pnpm release --ci
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # release-it only warns when its push is rejected (a branch ruleset, say)
+      # and still exits 0, which lets a version reach npm while main keeps the
+      # old one — the next run then recomputes that same version and npm
+      # refuses it. Fail here instead so the desync surfaces on the run itself.
+      - name: Verify the release commit reached ${{ github.ref_name }}
+        run: |
+          git fetch origin ${{ github.ref_name }}
+          local_head=$(git rev-parse HEAD)
+          remote_head=$(git rev-parse FETCH_HEAD)
+          if [ "$local_head" != "$remote_head" ]; then
+            echo "::error::release-it committed $local_head but origin/${{ github.ref_name }} is still $remote_head — the push was rejected. The package may already be on npm; reconcile the branch before rerunning."
+            exit 1
+          fi
