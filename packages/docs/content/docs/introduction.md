@@ -1,6 +1,7 @@
 ---
 title: Introduction
 description: What keyrove does, which keys it moves focus with, how it sits beside native Tab navigation, and what it deliberately leaves to you.
+titleTag: Introduction to keyboard navigation — keyrove
 group: Guide
 order: 1
 ---

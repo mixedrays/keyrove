@@ -1,6 +1,7 @@
 ---
 title: Looping lists
 description: Wrapping a list at its ends, so next past the last item lands on the first — and why a grid, and most long lists, should keep their edges.
+titleTag: Wrapping list navigation at the ends — keyrove
 group: Examples
 order: 11
 ---

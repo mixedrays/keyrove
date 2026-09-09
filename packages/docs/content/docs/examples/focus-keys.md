@@ -1,6 +1,7 @@
 ---
 title: Focus keys
 description: Give an item a key of its own, so one press focuses it from anywhere under the listener — another group, a nested root, even a text field.
+titleTag: Keyboard shortcuts that focus an item — keyrove
 group: Examples
 order: 19
 ---

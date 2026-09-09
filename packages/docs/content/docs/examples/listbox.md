@@ -1,6 +1,7 @@
 ---
 title: Listbox
 description: A complete widget — a single-select listbox with roving tabindex, typeahead, Space and Enter to pick, a click that keeps the tab stop honest, and the ARIA keyrove leaves to you.
+titleTag: Accessible listbox with keyboard navigation — keyrove
 group: Examples
 order: 22
 ---

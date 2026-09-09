@@ -1,6 +1,7 @@
 ---
 title: Editable targets
 description: Fields inside items keep their keys — arrows move the caret, letters type, a slider slides — and navigation resumes the moment focus leaves them.
+titleTag: Keyboard navigation with input fields — keyrove
 group: Examples
 order: 21
 ---

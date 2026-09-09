@@ -1,6 +1,7 @@
 ---
 title: Basic list
 description: The default behaviour — arrows step one item, Home and End jump to the ends, PageUp and PageDown move in blocks, and Tab still does what Tab does.
+titleTag: Arrow key navigation for lists — keyrove
 group: Examples
 order: 10
 ---

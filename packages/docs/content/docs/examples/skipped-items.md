@@ -1,6 +1,7 @@
 ---
 title: Skipped items
 description: Keeping headings, separators, and disabled entries in the DOM but out of the navigation order.
+titleTag: Skipping disabled items and headings — keyrove
 group: Examples
 order: 17
 ---

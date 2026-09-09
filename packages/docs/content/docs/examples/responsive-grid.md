@@ -1,6 +1,7 @@
 ---
 title: Responsive grid
 description: Let a container query decide the column count and hand it to keyrove before each keypress, so rows fold the way the layout does.
+titleTag: Keyboard navigation for a responsive grid — keyrove
 group: Examples
 order: 15
 ---

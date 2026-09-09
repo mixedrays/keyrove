@@ -1,6 +1,7 @@
 ---
 title: Installation
 description: Installing the package, wiring the first keydown handler in any framework, and what the markup has to carry.
+titleTag: Installation for React, Vue and Svelte — keyrove
 group: Guide
 order: 2
 ---
