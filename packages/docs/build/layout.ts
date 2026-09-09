@@ -2,6 +2,7 @@ import type { NavGroup, Page } from './content.ts';
 import { faviconDataUri, icon } from './icons.ts';
 import type { Heading } from './markdown.ts';
 import { META } from './meta.ts';
+import { renderStructuredData } from './structured-data.ts';
 
 /**
  * The HTML around a rendered markdown body: header, sidebar, "On this page"
@@ -306,12 +307,14 @@ const meta = (attribute: 'name' | 'property', key: string, content: string) =>
  * dead URL, so it has no canonical URL of its own to claim.
  */
 const renderIndexingTags = (
-  { page, resolveHref }: PageRender,
+  { page, nav, resolveHref }: PageRender,
   title: string,
 ) => {
   if (page.noindex) return [meta('name', 'robots', 'noindex, follow')];
 
-  const url = `${META.siteUrl}${resolveHref(routeToPath(page.route))}`;
+  const toUrl = (route: string) =>
+    `${META.siteUrl}${resolveHref(routeToPath(route))}`;
+  const url = toUrl(page.route);
   const image = `${META.siteUrl}${resolveHref(OG_IMAGE.path)}`;
 
   return [
@@ -333,6 +336,7 @@ const renderIndexingTags = (
     meta('name', 'twitter:title', title),
     meta('name', 'twitter:description', page.description),
     meta('name', 'twitter:image', image),
+    renderStructuredData({ page, nav, toUrl, imageUrl: image }),
   ];
 };
 

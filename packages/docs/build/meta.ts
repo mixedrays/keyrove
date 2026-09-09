@@ -59,8 +59,15 @@ const repoUrl = toBrowserUrl(workspace.repository?.url ?? '');
 const author = toAuthorName(workspace.author ?? '');
 const version = docs.version ?? '';
 const packageName = library.name ?? '';
+const packageVersion = library.version ?? '';
 
-if (repoUrl === '' || author === '' || version === '' || packageName === '') {
+if (
+  repoUrl === '' ||
+  author === '' ||
+  version === '' ||
+  packageName === '' ||
+  packageVersion === ''
+) {
   throw new Error(
     '[docs] a package.json is missing its name, version, repository or author.',
   );
@@ -75,6 +82,12 @@ export const META = {
   author,
   authorUrl: `https://github.com/${author}`,
   packageName,
+  /**
+   * The published library's version, which is not `version` above — that one
+   * is the docs package's, and the two move independently. Only the structured
+   * data names a version, and the version it means is the library's.
+   */
+  packageVersion,
   npmUrl: `https://www.npmjs.com/package/${packageName}`,
 } as const;
 
