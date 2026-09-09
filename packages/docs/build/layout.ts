@@ -350,12 +350,15 @@ export const renderPage = (template: string, render: PageRender) => {
       ? renderLandingBody(render)
       : renderDocsBody(render);
 
-  // The landing page's title is the wordmark on its own; every other page
-  // hangs its own name off it.
+  // Every page hangs its own name off the wordmark, except the landing page,
+  // whose name is the wordmark — leaving it to describe itself at a length no
+  // search result or link unfurl will show. `titleTag` in frontmatter is how
+  // either falls back to a line written for the slot.
   const title =
-    page.layout === 'landing'
+    page.titleTag ??
+    (page.layout === 'landing'
       ? `keyrove — ${page.description}`
-      : `${page.title} — keyrove`;
+      : `${page.title} — keyrove`);
 
   const head = [
     `<title>${escapeHtml(title)}</title>`,

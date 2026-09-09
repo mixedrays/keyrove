@@ -1,6 +1,7 @@
 ---
 title: keyrove
 description: Framework-agnostic keyboard navigation for lists and grids, driven by data-* attributes. Any key can move focus, and native Tab navigation keeps working.
+titleTag: keyrove — Keyboard navigation for lists and grids
 layout: landing
 ---
 

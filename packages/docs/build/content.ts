@@ -30,6 +30,17 @@ export type Page = {
   file: string;
   title: string;
   description: string;
+  /**
+   * The `<title>` text, written out for pages the default composition serves
+   * badly.
+   *
+   * Every page otherwise hangs its own name off the wordmark, which the
+   * landing page cannot do — its name is the wordmark, so it falls back to
+   * describing itself, and a description is far longer than a search result or
+   * a link unfurl will show. Used verbatim for `<title>`, `og:title` and
+   * `twitter:title`.
+   */
+  titleTag: string | null;
   /** Markdown body with the frontmatter block already stripped. */
   body: string;
   layout: Layout;
@@ -113,6 +124,7 @@ const loadPage = async (relativePath: string): Promise<Page> => {
     file,
     title,
     description: readString(data, 'description') ?? '',
+    titleTag: readString(data, 'titleTag') ?? null,
     body: content.trim(),
     layout,
     group: readString(data, 'group') ?? null,
