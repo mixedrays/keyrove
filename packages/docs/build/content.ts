@@ -4,6 +4,8 @@ import { fileURLToPath } from 'node:url';
 
 import matter from 'gray-matter';
 
+import { loadLastModified } from './git.ts';
+
 /**
  * The content model: every page on the site is one markdown file.
  *
@@ -54,6 +56,12 @@ export type Page = {
    * not destinations — the 404 body, which is served at every dead URL.
    */
   noindex: boolean;
+  /**
+   * When the source file was last committed, ISO 8601, for the sitemap's
+   * `lastmod` — or `null` when git cannot say, in which case the page's entry
+   * goes without one. See `git.ts` for why the filesystem is no help here.
+   */
+  lastModified: string | null;
 };
 
 /** A sidebar entry with no page behind it — see EXTRA_LINKS. */
@@ -108,7 +116,10 @@ const listMarkdown = async (dir: string, prefix = ''): Promise<string[]> => {
   return nested.flat();
 };
 
-const loadPage = async (relativePath: string): Promise<Page> => {
+const loadPage = async (
+  relativePath: string,
+  lastModified: Map<string, string>,
+): Promise<Page> => {
   const file = path.join(CONTENT_DIR, relativePath);
   const { data, content } = matter(await readFile(file, 'utf8'));
 
@@ -131,12 +142,18 @@ const loadPage = async (relativePath: string): Promise<Page> => {
     order:
       typeof data.order === 'number' ? data.order : Number.MAX_SAFE_INTEGER,
     noindex: data.noindex === true,
+    lastModified: lastModified.get(file) ?? null,
   };
 };
 
 export const loadPages = async (): Promise<Page[]> => {
-  const files = await listMarkdown(CONTENT_DIR);
-  const pages = await Promise.all(files.map(loadPage));
+  const [files, lastModified] = await Promise.all([
+    listMarkdown(CONTENT_DIR),
+    loadLastModified(CONTENT_DIR),
+  ]);
+  const pages = await Promise.all(
+    files.map((file) => loadPage(file, lastModified)),
+  );
 
   const seen = new Map<string, string>();
   for (const page of pages) {

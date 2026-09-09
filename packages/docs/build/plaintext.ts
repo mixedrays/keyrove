@@ -81,6 +81,10 @@ export const markdownHref = (page: Page) => `${routeToPath(page.route)}.md`;
  * sibling path, and it is the HTML that should rank. `_headers` serves them
  * `noindex` to settle it — a sitemap only offers URLs, it does not withdraw
  * the ones it omits.
+ *
+ * `lastmod` comes from the commit that last touched the page's source, and is
+ * dropped for a page git cannot date: the field is worth having only while
+ * every date in it is true.
  */
 export const toSitemap = (pages: Page[], base: string) => {
   const urls = pages
@@ -90,7 +94,12 @@ export const toSitemap = (pages: Page[], base: string) => {
     .sort((a, b) => Number(a.route !== '') - Number(b.route !== ''))
     .map((page) => {
       const path = `${base}${routeToPath(page.route).replace(/^\//, '')}`;
-      return `  <url><loc>${META.siteUrl}${path}</loc></url>`;
+      const lastmod =
+        page.lastModified === null
+          ? ''
+          : `<lastmod>${page.lastModified}</lastmod>`;
+
+      return `  <url><loc>${META.siteUrl}${path}</loc>${lastmod}</url>`;
     })
     .join('\n');
 
