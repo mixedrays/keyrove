@@ -78,7 +78,9 @@ export const markdownHref = (page: Page) => `${routeToPath(page.route)}.md`;
  * sitemap.xml — every indexable page, as an absolute URL.
  *
  * The `.md` twins are left out on purpose: they are the same document at a
- * sibling path, and each page's canonical tag already points at the HTML.
+ * sibling path, and it is the HTML that should rank. `_headers` serves them
+ * `noindex` to settle it — a sitemap only offers URLs, it does not withdraw
+ * the ones it omits.
  */
 export const toSitemap = (pages: Page[], base: string) => {
   const urls = pages
@@ -102,8 +104,11 @@ ${urls}
 /**
  * robots.txt — everything is crawlable, and here is the sitemap.
  *
- * The `.md` twins are not disallowed: they are worth reading as text, and the
- * canonical tag on each page is what settles which of the pair is indexed.
+ * The `.md` twins are not disallowed: they are worth reading as text, and a
+ * `Disallow` would stop the fetch rather than the indexing. `_headers` sends
+ * them `X-Robots-Tag: noindex` instead, which keeps them readable and keeps
+ * them out of the index — a `text/plain` response cannot carry the canonical
+ * tag that would otherwise pair each twin with its page.
  */
 export const toRobotsTxt = (base: string) =>
   `User-agent: *
