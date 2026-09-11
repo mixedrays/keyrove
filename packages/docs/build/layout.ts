@@ -2,6 +2,7 @@ import type { NavGroup, Page } from './content.ts';
 import { faviconDataUri, icon } from './icons.ts';
 import type { Heading } from './markdown.ts';
 import { META } from './meta.ts';
+import { renderStructuredData } from './structured-data.ts';
 
 /**
  * The HTML around a rendered markdown body: header, sidebar, "On this page"
@@ -306,12 +307,14 @@ const meta = (attribute: 'name' | 'property', key: string, content: string) =>
  * dead URL, so it has no canonical URL of its own to claim.
  */
 const renderIndexingTags = (
-  { page, resolveHref }: PageRender,
+  { page, nav, resolveHref }: PageRender,
   title: string,
 ) => {
   if (page.noindex) return [meta('name', 'robots', 'noindex, follow')];
 
-  const url = `${META.siteUrl}${resolveHref(routeToPath(page.route))}`;
+  const toUrl = (route: string) =>
+    `${META.siteUrl}${resolveHref(routeToPath(route))}`;
+  const url = toUrl(page.route);
   const image = `${META.siteUrl}${resolveHref(OG_IMAGE.path)}`;
 
   return [
@@ -322,6 +325,9 @@ const renderIndexingTags = (
       page.layout === 'landing' ? 'website' : 'article',
     ),
     meta('property', 'og:site_name', 'keyrove'),
+    // The prose is British — "licence", "colour", "behaviour" — and an
+    // absent og:locale is taken to mean en_US.
+    meta('property', 'og:locale', 'en_GB'),
     meta('property', 'og:title', title),
     meta('property', 'og:description', page.description),
     meta('property', 'og:url', url),
@@ -333,6 +339,7 @@ const renderIndexingTags = (
     meta('name', 'twitter:title', title),
     meta('name', 'twitter:description', page.description),
     meta('name', 'twitter:image', image),
+    renderStructuredData({ page, nav, toUrl, imageUrl: image }),
   ];
 };
 
@@ -350,12 +357,15 @@ export const renderPage = (template: string, render: PageRender) => {
       ? renderLandingBody(render)
       : renderDocsBody(render);
 
-  // The landing page's title is the wordmark on its own; every other page
-  // hangs its own name off it.
+  // Every page hangs its own name off the wordmark, except the landing page,
+  // whose name is the wordmark — leaving it to describe itself at a length no
+  // search result or link unfurl will show. `titleTag` in frontmatter is how
+  // either falls back to a line written for the slot.
   const title =
-    page.layout === 'landing'
+    page.titleTag ??
+    (page.layout === 'landing'
       ? `keyrove — ${page.description}`
-      : `${page.title} — keyrove`;
+      : `${page.title} — keyrove`);
 
   const head = [
     `<title>${escapeHtml(title)}</title>`,

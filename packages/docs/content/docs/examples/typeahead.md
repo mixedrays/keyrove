@@ -1,6 +1,7 @@
 ---
 title: Typeahead
 description: Type-to-focus as a second handler chained after keyRove — letters accumulate, and focus jumps to the first item whose label starts with them.
+titleTag: Type-to-focus typeahead for lists — keyrove
 group: Examples
 order: 20
 ---

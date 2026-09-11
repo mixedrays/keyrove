@@ -4,8 +4,17 @@
 # Every route has a `.md` twin, and the site advertises them as readable in a
 # browser. Served as `text/markdown` they download instead, so serve them as
 # plain text.
+#
+# `noindex` because a twin is the same document as the page beside it, and a
+# `text/plain` response has nowhere to carry the canonical tag that would say
+# so. Every page links to its twin, so they are crawled and would otherwise be
+# indexed as duplicates of the pages meant to rank. A robots.txt `Disallow`
+# would be the wrong tool: it stops the fetch, so this header would never be
+# read, and it would shut out the readers the twins exist for. Nothing is lost
+# to search — the same content stays indexed as HTML at the route itself.
 /*.md
   Content-Type: text/plain; charset=utf-8
+  X-Robots-Tag: noindex
 
 # Vite fingerprints everything under `assets/`, so a given URL's bytes never
 # change and it can be cached indefinitely.

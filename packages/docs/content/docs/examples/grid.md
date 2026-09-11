@@ -1,6 +1,7 @@
 ---
 title: Grid
 description: Declaring a column count folds the items into rows — cell moves and row moves, each on its own rebindable pair.
+titleTag: Arrow key navigation for grids — keyrove
 group: Examples
 order: 14
 ---

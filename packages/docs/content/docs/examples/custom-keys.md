@@ -1,6 +1,7 @@
 ---
 title: Custom keys
 description: Arrows are the default, not the rule — rebinding any move to any key combo.
+titleTag: Custom key bindings for navigation — keyrove
 group: Examples
 order: 12
 ---

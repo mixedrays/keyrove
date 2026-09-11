@@ -1,6 +1,7 @@
 ---
 title: Horizontal lists
 description: One attribute turns a list sideways — Left and Right become the default keys, and they flip with the reading direction so forward follows the text.
+titleTag: Horizontal list keyboard navigation — keyrove
 group: Examples
 order: 13
 ---
