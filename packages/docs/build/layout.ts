@@ -325,6 +325,9 @@ const renderIndexingTags = (
       page.layout === 'landing' ? 'website' : 'article',
     ),
     meta('property', 'og:site_name', 'keyrove'),
+    // The prose is British — "licence", "colour", "behaviour" — and an
+    // absent og:locale is taken to mean en_US.
+    meta('property', 'og:locale', 'en_GB'),
     meta('property', 'og:title', title),
     meta('property', 'og:description', page.description),
     meta('property', 'og:url', url),
