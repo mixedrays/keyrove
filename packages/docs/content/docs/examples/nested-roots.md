@@ -74,8 +74,10 @@ group's keys should not reach a group, place that group outside the outer root.
 Once focus is inside the inner group, no key reaches the outer one. A key the
 inner root does not bind, <kbd class="kbd">↓</kbd> in the reaction row above,
 does nothing at all: keyrove leaves it to the browser rather than passing it on
-to the group outside. Leaving is yours to wire, and there are three ways to do
-it:
+to the group outside. The log tells that apart from the other way a key can
+come to nothing: <kbd class="kbd">↓</kbd> is grey, never bound here, while
+<kbd class="kbd">←</kbd> on the first reaction is amber — bound, claimed, and
+out of room. Leaving is yours to wire, and there are three ways to do it:
 
 1. **<kbd class="kbd">Tab</kbd>.** keyrove never binds it, so the browser's
    focus order is always a way out. With

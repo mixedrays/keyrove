@@ -62,7 +62,41 @@ const FENCE = '```';
  * what a keypress comes back with. The log is the same markup whichever demo
  * opts in; adding a name here is all it takes.
  */
-const HISTORY = new Set(['list', 'loop', 'roving', 'inbox', 'skip', 'listbox']);
+const HISTORY = new Set([
+  'list',
+  'loop',
+  'roving',
+  'inbox',
+  'skip',
+  'listbox',
+  'typeahead',
+  'labels',
+  'nested',
+  'keys',
+  'orientation',
+  'rtl',
+]);
+
+/**
+ * The demos whose log runs across the foot of the preview rather than up its
+ * right-hand side.
+ *
+ * A history costs the stage half its width. A vertical list can spare it — it
+ * was never using the space to the right of its longest item — but a
+ * horizontal one is spending that width on the thing it is demonstrating: a
+ * toolbar given half a preview wraps its buttons onto a second row, and a
+ * filter bar that wraps has stopped being the shape the page is about. Those
+ * demos keep the band across the foot, which is the layout the narrow screens
+ * already use, at every width instead.
+ *
+ * This is a list of names rather than something read off the fragment because
+ * both spellings of "horizontal" are in use — an orientation on the filter
+ * bars, an explicit ArrowRight on the toolbar — and a layout that turned on
+ * which one a fragment happened to choose would be a trap for whoever edited
+ * it next. What the CSS keys off is the attribute stamped below, so the
+ * stylesheet stays free of demo names.
+ */
+const BAND = new Set(['keys', 'orientation', 'rtl']);
 
 /**
  * The log under — or beside — a demo's preview.
@@ -147,7 +181,12 @@ const renderUnit = (name: string, markup: string, surfaceClass: string) => {
     '</button>',
   ].join(' ');
 
-  return `<div class="demo" data-demo="${name}">
+  // The band demos say so on the wrapper: the layout is a property of the
+  // demo, and keying the stylesheet off a name would put the list in two
+  // places at once.
+  const layout = BAND.has(name) ? ' data-demo-log="band"' : '';
+
+  return `<div class="demo" data-demo="${name}"${layout}>
 <div class="demo-preview">
 ${live}
 ${renderLog(name)}

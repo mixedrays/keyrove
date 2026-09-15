@@ -870,6 +870,273 @@
   }
 
   /*
+   * The command palette the language list is the open half of: a panel of
+   * results with the hint bar a palette carries at its foot.
+   *
+   * There is no search field, and that absence is the dressing's whole point.
+   * The letters typed on this page go to the list itself — that is what
+   * typeahead is — so a field drawn above the panel would say they went
+   * somewhere else, which is the one thing the reader must not come away
+   * with. The bar carries the hint a field would have implied instead.
+   *
+   * It sits under the panel rather than inside it because here the panel *is*
+   * the scroll box: the page caps the list's height, and a foot drawn within
+   * would scroll away with the items. Sharing a border is enough for the two
+   * to read as one control.
+   */
+  .demo[data-demo='typeahead'] .demo-preview {
+    --panel: 19rem;
+
+    /* The bar is the panel's own foot rather than a second panel beside it, so
+       it takes a tint off whatever the items sit on — a shade greyer in the
+       light theme, a shade lighter in the dark one. */
+    --field-bg: var(--color-zinc-50);
+
+    @variant dark {
+      --field-bg: var(--color-zinc-800);
+    }
+  }
+
+  /* Open results float over the page, and give up the rounding on the edge the
+     hint bar is joined to. */
+  .demo[data-demo='typeahead'] .demo-surface {
+    @apply col-start-1 row-start-1 w-full rounded-b-none border-zinc-200 bg-white shadow-lg shadow-zinc-950/5;
+    @apply dark:border-zinc-700 dark:bg-zinc-900;
+  }
+
+  .demo[data-demo='typeahead'] .demo-preview::after {
+    content: '↑↓ move · A–Z jump' / '';
+    @apply col-start-1 row-start-2 flex w-full items-center justify-self-center rounded-b-xl border border-t-0 px-3 py-1.5 font-mono text-[0.65rem];
+    border-color: var(--field-border);
+    background-color: var(--field-bg);
+    color: var(--field-muted);
+    max-width: var(--panel);
+  }
+
+  /*
+   * The profile card the statuses are set from: an avatar and a name in a
+   * strip joined to the head of the list, sharing a border so the two read as
+   * one card rather than as a caption and a box.
+   *
+   * Nothing opens here — no trigger, no chevron — because what the page is
+   * about is the labels the items carry, and a control that revealed the list
+   * would be a second thing to explain. The presence glyphs are the fragment's
+   * own, which is why this is the one dressed demo with no icons added: they
+   * are the very text `data-keyrove-typeahead` exists to talk past.
+   *
+   * The initials are drawn from the preview rather than from the strip, so the
+   * two share one grid cell: the strip's text is inset far enough to clear the
+   * circle, and the circle is walked back off the cell's edge the way the file
+   * finder's magnifier is.
+   */
+  .demo[data-demo='labels'] .demo-preview {
+    @apply gap-y-0;
+    --panel: 16rem;
+
+    /* A name rather than a prompt, so it takes the weight of one. */
+    --field-text: var(--color-zinc-900);
+
+    @variant dark {
+      --field-text: var(--color-zinc-100);
+    }
+  }
+
+  .demo[data-demo='labels'] .demo-preview::before {
+    content: 'Ada Lovelace' / '';
+    @apply col-start-1 row-start-1 flex w-full items-center justify-self-center rounded-t-xl border border-b-0 py-2.5 pr-3 pl-[3.125rem] text-sm font-semibold;
+    border-color: var(--field-border);
+    background-color: var(--field-bg);
+    color: var(--field-text);
+    max-width: var(--panel);
+  }
+
+  .demo[data-demo='labels'] .demo-preview::after {
+    content: 'AL' / '';
+    @apply col-start-1 row-start-1 grid size-7 place-items-center self-center justify-self-start rounded-full bg-current/15 text-[0.6rem] font-semibold;
+    margin-left: calc(0.75rem + (100% - min(100%, var(--panel))) / 2);
+    color: var(--field-text);
+  }
+
+  .demo[data-demo='labels'] .demo-surface {
+    @apply col-start-1 row-start-2 w-full rounded-t-none border-zinc-200 bg-white dark:border-zinc-700 dark:bg-zinc-900;
+  }
+
+  /*
+   * The message menu the actions belong to: a context menu floating over the
+   * conversation, with the reaction row along its top the way a chat app puts
+   * it. Nothing here is a trigger — the menu is the demo — so what makes it
+   * read as a menu rather than as a list is what a menu does with the two
+   * items a list treats alike.
+   *
+   * The reactions become round buttons, because that is what a reaction bar
+   * is; the destructive action is set off by a rule and carries the colour
+   * every context menu gives it. Both are drawn from here for the reason the
+   * other dressings are: the block under the demo is what a reader pastes,
+   * and neither is part of what the page teaches.
+   *
+   * The dashed border around the reaction row is left exactly as it is. It
+   * comes from the rule every nested root on the site shares, and on this page
+   * it is not decoration — the boundary it draws is the page's whole subject.
+   */
+  .demo[data-demo='nested'] .demo-preview {
+    --panel: 17rem;
+  }
+
+  .demo[data-demo='nested'] .demo-surface {
+    @apply w-full border-zinc-200 bg-white shadow-lg shadow-zinc-950/5;
+    @apply dark:border-zinc-700 dark:bg-zinc-900;
+  }
+
+  /* The row keeps its dashed border and gives up its fill: against a panel
+     this is now the same white as, a tint is what says the inner group sits
+     in a well of its own rather than on the menu's own ground. */
+  .demo[data-demo='nested'] [data-keyrove-root] {
+    @apply bg-zinc-50 dark:bg-zinc-950;
+  }
+
+  /*
+   * A reaction, as a chat app draws one: a round button sized to its glyph
+   * rather than a row sized to the menu.
+   *
+   * The resting fill is restated here at a specificity that clears the shared
+   * item rule, which means the hover and focus fills have to be restated with
+   * it — they live on that rule, and would otherwise lose to this one and
+   * take the focused reaction's highlight with them. The border is left
+   * alone: it is transparent until focus colours it, and that rule still
+   * wins on its own.
+   */
+  .demo[data-demo='nested'] [data-keyrove-root] > [data-keyrove-item] {
+    @apply grid size-8 place-items-center rounded-full p-0 text-base;
+    @apply bg-white dark:bg-zinc-800;
+    @apply hover:bg-indigo-500/10;
+    @apply focus:bg-indigo-50 dark:focus:bg-indigo-500/15;
+  }
+
+  /*
+   * Delete message: the one action that cannot be undone, so it is set off by
+   * a rule and takes the colour a menu reserves for that. The line is the
+   * item's own top border — already there, and transparent — brought into
+   * view, which is why it is inset with the item rather than running the
+   * panel's full width. The icon follows the text: it is painted in
+   * `currentColor`.
+   */
+  .demo[data-demo='nested'] .demo-surface > :last-child {
+    @apply text-rose-600 dark:border-t-zinc-800 dark:text-rose-400;
+  }
+
+  /*
+   * The floating formatting toolbar the buttons come from: one strip, lifted
+   * off the stage the way a toolbar that follows a selection sits over the
+   * text it acts on.
+   *
+   * It is sized to the buttons it holds rather than to the width it was given.
+   * `justify-self` is already centring it, which makes a grid item take its
+   * content's width, so declaring no width is what hugs the strip to its
+   * buttons — a toolbar as wide as the preview is not a toolbar. The variable
+   * below is the ceiling that stops it, not the width it is drawn at.
+   *
+   * This is the demo that keeps its log as a band rather than a rail: half a
+   * preview is not enough for five buttons carrying labels, and a toolbar
+   * wrapped onto a second row is no longer the shape being shown. The band
+   * hands the stage its full width back. See the BAND set in build/demos.ts.
+   */
+  .demo[data-demo='keys'] .demo-preview {
+    --panel: 32rem;
+  }
+
+  .demo[data-demo='keys'] .demo-surface {
+    @apply border-zinc-200 bg-white shadow-lg shadow-zinc-950/5;
+    @apply dark:border-zinc-700 dark:bg-zinc-900;
+  }
+
+  /*
+   * The filter bar over a message list: a funnel, then the filters as chips.
+   * It is the same mail app the inbox demo takes its sidebar from — these are
+   * the filters that sit above the list that sidebar picks a folder for.
+   *
+   * Both bars on the page are dressed by these rules, because they are one
+   * component and the page's whole point is that the difference between them
+   * is the reading direction and nothing else. Writing the dressing twice
+   * would have been the way to let them drift apart.
+   *
+   * A track rather than a raised strip, which is what keeps it apart from the
+   * toolbar on the custom-keys page: what is lifted here is the chips, sitting
+   * in a well the way a filter row does, rather than the whole bar floating
+   * over the stage.
+   *
+   * The funnel belongs to the bar rather than to any chip, which is also why
+   * the filters themselves stay plain — the products these are drawn from
+   * leave filter chips without icons. Nothing below mentions a side: the
+   * funnel is a flex child and the chip padding is logical, so the right-to-
+   * left bar mirrors the whole dressing on its own, which is the same thing
+   * the arrow keys do a line further down.
+   */
+  .demo:is([data-demo='orientation'], [data-demo='rtl']) .demo-preview {
+    /* A ceiling rather than a width: the bar hugs the chips it holds. */
+    --panel: 30rem;
+  }
+
+  .demo:is([data-demo='orientation'], [data-demo='rtl']) .demo-surface {
+    @apply items-center p-2;
+  }
+
+  .demo:is([data-demo='orientation'], [data-demo='rtl']) .demo-surface::before {
+    content: '';
+    @apply mx-1 size-4 shrink-0;
+    background-color: var(--field-muted);
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%20fill='none'%20stroke='%23000'%20stroke-width='1.75'%20stroke-linecap='round'%20stroke-linejoin='round'%3E%3Cpath%20d='M10%2020a1%201%200%200%200%20.553.895l2%201A1%201%200%200%200%2014%2021v-7a2%202%200%200%201%20.517-1.341L21.74%204.67A1%201%200%200%200%2021%203H3a1%201%200%200%200-.742%201.67l7.225%207.989A2%202%200%200%201%2010%2014z'/%3E%3C/svg%3E");
+    mask-position: center;
+    mask-size: contain;
+    mask-repeat: no-repeat;
+  }
+
+  /*
+   * A filter as a chip: rounded to its full height and lifted off the track.
+   *
+   * The resting fill is restated here at a specificity that clears the shared
+   * item rule, which means the hover and focus fills have to be restated with
+   * it — they live on that rule, and would otherwise lose to this one and take
+   * the focused chip's highlight with them. The border is left alone: it is
+   * transparent until focus colours it, and that rule still wins on its own.
+   */
+  .demo:is([data-demo='orientation'], [data-demo='rtl'])
+    .demo-surface
+    > [data-keyrove-item] {
+    @apply rounded-full px-3.5 py-1.5;
+    @apply bg-white dark:bg-zinc-800;
+    @apply hover:bg-indigo-500/10;
+    @apply focus:bg-indigo-50 dark:focus:bg-indigo-500/15;
+  }
+
+  /*
+   * The rule between the text styles and the things that get inserted, which
+   * is the grouping every formatting toolbar draws.
+   *
+   * It is the toolbar's own `::after`, ordered into place rather than hung off
+   * one of the buttons. A border on the fourth button would have been one rule
+   * instead of three, but it would also have been part of that button: the
+   * shared item rule turns every border indigo on focus, and a separator
+   * declared here at a higher specificity would have held its grey through the
+   * focus ring and broken it. Nothing about the buttons is touched this way.
+   * The orders below run in DOM order, so what is read matches what is
+   * focused.
+   */
+  .demo[data-demo='keys'] .demo-surface > :nth-child(-n + 3) {
+    order: 1;
+  }
+
+  .demo[data-demo='keys'] .demo-surface::after {
+    content: '';
+    @apply my-1 w-px self-stretch;
+    order: 2;
+    background-color: var(--field-border);
+  }
+
+  .demo[data-demo='keys'] .demo-surface > :nth-child(n + 4) {
+    order: 3;
+  }
+
+  /*
    * Icons, on the demos whose items are the kind a real app labels with one:
    * the mail folders, the account menu, the message actions, the toolbar, the
    * file list and the statuses. The rest stay plain, because the products they
@@ -1096,14 +1363,28 @@
    */
   /*
    * A demo with a history is laid out as two parts of one widget: the control
-   * on a stage to the left, the account of what its keys did on a rail to the
-   * right, with half the width each. The layout is keyed off the log itself
-   * rather than off a list of demo names, so a demo gains it by gaining a log
-   * — which is one name in the HISTORY set in build/demos.ts.
+   * on a stage, and the account of what its keys did.
+   *
+   * Where that account goes is the one thing the two layouts differ over. A
+   * vertical demo gives it a rail up the right-hand side, half the width each;
+   * a horizontal one keeps it as a band across the foot, because the width a
+   * rail would take is the width its toolbar or filter bar is made of. The
+   * band is the base here and the rail is the promotion, which is also the
+   * order the screen sizes ask for them in: there is no room beside a stage
+   * below `sm`, so every demo is a band there.
+   *
+   * Neither layout is keyed off a demo's name. The stage-and-log shape comes
+   * from `:has(.demo-log)`, so a demo gains it by gaining a log — one name in
+   * the HISTORY set in build/demos.ts — and the choice between rail and band
+   * comes from the attribute that file stamps for its BAND set.
    */
   .demo:has(.demo-log) .demo-preview {
-    @apply grid justify-normal gap-x-4 sm:relative;
-    @apply grid-cols-[minmax(0,1fr)] sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)];
+    @apply grid justify-normal gap-x-4;
+    @apply grid-cols-[minmax(0,1fr)];
+  }
+
+  .demo:has(.demo-log):not([data-demo-log='band']) .demo-preview {
+    @apply sm:relative sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)];
   }
 
   /* The control stands at the width its own dressing gives it, centred on the
@@ -1122,25 +1403,44 @@
    * edges, and is divided from the stage by a single hairline — the one the
    * source block is divided by.
    *
-   * Below `sm` there is no room beside the stage, so the same rail runs across
-   * the foot of the preview with the hairline above it instead of beside it.
-   * The negative margins are the preview's padding, handed back. Its column is
-   * pinned so it lands under the stage rather than next to it, and its row is
-   * left to the grid, which puts it after however many rows the stage is drawn
-   * from — one for a plain list, two for a dropdown and its trigger.
+   * As a band it runs across the foot of the preview with the hairline above
+   * it instead of beside it. The negative margins are the preview's padding,
+   * handed back. Its column is pinned so it lands under the stage rather than
+   * next to it, and its row is left to the grid, which puts it after however
+   * many rows the stage is drawn from — one for a plain list, two for a
+   * dropdown and its trigger, or for a toolbar and the document under it.
    */
   .demo-log {
     @apply flex max-h-72 min-h-0 w-auto flex-col overflow-hidden bg-zinc-50 dark:bg-zinc-900;
     @apply col-start-1 -mr-4 -mb-4 -ml-4 border-t border-zinc-200 dark:border-zinc-800;
+  }
 
-    /* From `sm` it is the frame's right-hand half, taken out of the flow: the
-       stage sets the rail's height rather than the other way about. In the
-       grid, a row grows to its items' content, and twenty rows of history
-       would have stretched the preview taller on every keypress. Placement
-       goes back to auto so the box it is positioned against is the preview's
-       padding box rather than the cell it would have sat in, and the insets
-       reach into that padding, which is the bleed the band asks its negative
-       margins for. */
+  /* A band demo's stage is a single strip — a toolbar, a filter bar — and a
+     strip pinned between the frame's top edge and the band above which it
+     sits reads as cramped. Room on both sides of it: the top is the preview's
+     own padding, raised, and the bottom is the grid's row gap, which the band
+     cannot take from its negative margin. */
+  .demo[data-demo-log='band'] .demo-preview {
+    @apply gap-y-6 pt-6;
+  }
+
+  /* A band that keeps its band past `sm` is beside a short stage — a toolbar
+     and the document under it, not a list of twelve folders — and the cap it
+     wears on a phone would leave it half again as tall as the thing it is
+     reporting on. Fewer rows there; the rest scroll as they already do. */
+  .demo[data-demo-log='band'] .demo-log {
+    @apply sm:max-h-56;
+  }
+
+  /* Promoted to the frame's right-hand half from `sm`, and taken out of the
+     flow with it: the stage sets the rail's height rather than the other way
+     about. In the grid, a row grows to its items' content, and twenty rows of
+     history would have stretched the preview taller on every keypress.
+     Placement goes back to auto so the box it is positioned against is the
+     preview's padding box rather than the cell it would have sat in, and the
+     insets reach into that padding, which is the bleed the band asks its
+     negative margins for. */
+  .demo:not([data-demo-log='band']) .demo-log {
     @apply sm:col-auto sm:row-auto sm:absolute sm:inset-y-0 sm:right-0 sm:left-1/2;
     @apply sm:m-0 sm:border-t-0 sm:border-l;
 
@@ -1163,8 +1463,19 @@
     @apply hover:text-zinc-900 dark:hover:text-zinc-100;
   }
 
+  /*
+   * Four rows of floor, so that a log with nothing in it yet has the shape it
+   * will have once it fills rather than reading as a collapsed strip under the
+   * stage. It is the band that needs this: the rail is stretched to the
+   * stage's height already, and a floor there would push it past the frame on
+   * a short one, which is why the promotion below hands `min-h-0` back.
+   */
   .demo-log-list {
-    @apply min-h-0 flex-1 overflow-y-auto overscroll-contain px-3 py-2;
+    @apply min-h-36 flex-1 overflow-y-auto overscroll-contain px-3 py-2;
+  }
+
+  .demo:not([data-demo-log='band']) .demo-log-list {
+    @apply sm:min-h-0;
   }
 
   .demo-log-empty {

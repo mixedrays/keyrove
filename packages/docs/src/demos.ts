@@ -252,7 +252,7 @@ const createHistory = (demo: HTMLElement): Log | null => {
           outcome: 'passed',
           key,
           action: '',
-          phrase: 'is not bound here — the browser keeps it',
+          phrase: 'is not bound here -> the browser keeps it',
           target: '',
         });
       }
