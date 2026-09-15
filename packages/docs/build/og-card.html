@@ -9,8 +9,15 @@
       --headless --disable-gpu --hide-scrollbars --force-device-scale-factor=1 \
       --window-size=1200,630 --screenshot=public/og.png build/og-card.html
 
+    npx oxipng -o 4 --strip safe public/og.png
+
   The window size is the card size: 1200x630 is what Open Graph asks for and
   what Twitter's summary_large_image crops from.
+
+  Chrome writes the screenshot in 34 IDAT chunks at its default filtering,
+  about a quarter larger than the same pixels need. oxipng recompresses it
+  losslessly — identical image, one chunk — and stays an `npx` call rather than
+  a dependency, since this runs once a redesign and never in CI.
 -->
 <!doctype html>
 <meta charset="utf-8" />

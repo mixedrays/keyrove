@@ -62,7 +62,8 @@ export const readGroup = (root: Element): Group => ({
   focused:
     Array.from(
       root.querySelectorAll(`[${DEFAULT_ATTRIBUTES.item}]:focus-within`),
-    ).find((item) => hasEnabledAttribute(item, DEFAULT_ATTRIBUTES.item)) ?? null,
+    ).find((item) => hasEnabledAttribute(item, DEFAULT_ATTRIBUTES.item)) ??
+    null,
 });
 
 /**
@@ -87,10 +88,7 @@ export const moveFocus = <Action extends string>({
 
   if (!to || to === from) return { action, from, to: null };
 
-  if (
-    from &&
-    hasEnabledAttribute(from, DEFAULT_ATTRIBUTES.rovingTabindex)
-  ) {
+  if (from && hasEnabledAttribute(from, DEFAULT_ATTRIBUTES.rovingTabindex)) {
     toggleTabIndex({ root: from, isActive: false });
     toggleTabIndex({ root: to, isActive: true });
   }

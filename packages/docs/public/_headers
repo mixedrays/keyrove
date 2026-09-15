@@ -20,3 +20,10 @@
 # change and it can be cached indefinitely.
 /assets/*
   Cache-Control: public, max-age=31536000, immutable
+
+# The social card cannot be fingerprinted: its URL is written into every page's
+# `og:image`, so it has to stay `/og.png`. A year of immutability would leave a
+# stale card in every unfurler's cache for a year after a redesign, and no
+# header at all means each crawl revalidates. A week splits the difference.
+/og.png
+  Cache-Control: public, max-age=604800
