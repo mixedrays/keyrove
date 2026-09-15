@@ -77,6 +77,8 @@ const HISTORY = new Set([
   'rtl',
   'editable',
   'panes',
+  'grid',
+  'responsive',
 ]);
 
 /**
@@ -87,7 +89,13 @@ const HISTORY = new Set([
  * was never using the space to the right of its longest item — but a
  * horizontal one is spending that width on the thing it is demonstrating: a
  * toolbar given half a preview wraps its buttons onto a second row, and a
- * filter bar that wraps has stopped being the shape the page is about. Those
+ * filter bar that wraps has stopped being the shape the page is about. A grid
+ * is the same argument with a second axis: its columns are the thing being
+ * navigated, and six of them squeezed into half a preview read as a column of
+ * crushed cells rather than as rows worth pressing an arrow across. The
+ * responsive grid puts it strongest: the reader drags that panel to change its
+ * column count, so its width is not the room the demo needs but the demo
+ * itself, and a rail would have spent half of it before they started. Those
  * demos keep the band across the foot, which is the layout the narrow screens
  * already use, at every width instead.
  *
@@ -98,7 +106,14 @@ const HISTORY = new Set([
  * it next. What the CSS keys off is the attribute stamped below, so the
  * stylesheet stays free of demo names.
  */
-const BAND = new Set(['keys', 'orientation', 'rtl', 'panes']);
+const BAND = new Set([
+  'keys',
+  'orientation',
+  'rtl',
+  'panes',
+  'grid',
+  'responsive',
+]);
 
 /**
  * The log under — or beside — a demo's preview.

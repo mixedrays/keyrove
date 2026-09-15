@@ -1255,6 +1255,149 @@
   }
 
   /*
+   * The availability sheet the times are a day's worth of: a date along the
+   * top, the slots as chips under it. A booking page is where a reader
+   * actually meets a grid of buttons that answers to four arrows, and a bare
+   * block of times says nothing about which one.
+   *
+   * The card is lifted off the stage rather than inset into it, and nothing
+   * here opens: a sheet like this is a step in a flow, met by arriving at it.
+   *
+   * The six columns stay in the placeholder's `data-demo-class` rather than
+   * moving here, because they are the one piece of layout this demo needs to
+   * work: `grid-cols-6` and `data-keyrove-cols="6"` have to say the same
+   * number, and the page says so in as many words. Splitting them across two
+   * files would put the pair a page-length apart.
+   */
+  .demo[data-demo='grid'] .demo-preview {
+    --panel: 25rem;
+
+    /* A date rather than a prompt: it is the sheet's content, so it takes the
+       weight of content. */
+    --field-text: var(--color-zinc-900);
+
+    @variant dark {
+      --field-text: var(--color-zinc-100);
+    }
+  }
+
+  /* `relative` is for the calendar mark below, which is the one piece of this
+     dressing that cannot be a grid item — see the note on it. */
+  .demo[data-demo='grid'] .demo-surface {
+    @apply relative w-full border-zinc-200 bg-white dark:border-zinc-700 dark:bg-zinc-900;
+  }
+
+  /*
+   * The sheet's date, inside the card. It is a grid item like the slots are,
+   * so it says which cells it wants: spanning every column puts it on a row of
+   * its own and leaves the slots to flow from the second row down. The
+   * negative margins give back the padding the slots sit in, so the rule under
+   * it runs the card's full width, and the row gap below it is the grid's own
+   * — a margin here would be added to that gap rather than replacing it.
+   */
+  .demo[data-demo='grid'] .demo-surface::before {
+    content: 'Thursday 17 September' / '';
+    @apply -mx-1.5 -mt-1.5 border-b py-2 pr-3 pl-9 text-sm font-semibold;
+    grid-column: 1 / -1;
+    border-color: var(--field-border);
+    color: var(--field-text);
+  }
+
+  /*
+   * The calendar mark, at the date's left.
+   *
+   * Taken out of the flow rather than placed in a cell beside the date: a
+   * pseudo-element cannot hold a child, so the mark and the text cannot share
+   * one box, and two grid items would have split the header at a column
+   * boundary six slots wide. Positioned, it is measured from the card's
+   * padding box — which is where the header starts, the negative margins above
+   * having given that padding back — so `top` and `left` are the header's own
+   * padding, written again. The box is the line's height rather than the
+   * icon's, so `contain` centres the mark on the text without a third number.
+   */
+  .demo[data-demo='grid'] .demo-surface::after {
+    content: '';
+    @apply absolute top-2 left-3 h-5 w-4;
+    background-color: var(--field-muted);
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%20fill='none'%20stroke='%23000'%20stroke-width='1.75'%20stroke-linecap='round'%20stroke-linejoin='round'%3E%3Cpath%20d='M8%202v3'/%3E%3Cpath%20d='M16%202v3'/%3E%3Crect%20x='3'%20y='3'%20width='18'%20height='18'%20rx='2'/%3E%3Cpath%20d='M3%209h18'/%3E%3C/svg%3E");
+    mask-position: center;
+    mask-size: contain;
+    mask-repeat: no-repeat;
+  }
+
+  /*
+   * A slot as a chip: outlined at rest, which is how a booking sheet draws a
+   * time that can still be taken. The times are set in tabular figures so the
+   * digits stack down the columns rather than shuffling by a hair per row.
+   *
+   * The resting border is restated at a specificity that clears the shared
+   * item rule, so the focused one has to be restated with it — that rule turns
+   * every border indigo on focus and would otherwise lose to this one. The
+   * fills are left alone: nothing here shadows them, so hover and focus still
+   * come from where every other demo's do.
+   */
+  .demo[data-demo='grid'] .demo-surface > [data-keyrove-item] {
+    @apply px-2 py-1.5 tabular-nums;
+    border-color: var(--field-border);
+    @apply focus:border-indigo-500 dark:focus:border-indigo-400;
+  }
+
+  /*
+   * The month pane a date picker opens when its title is clicked and the
+   * calendar zooms out to a year. The panel is drawn as the card that pane
+   * sits in; nothing else is added.
+   *
+   * No title strip, though a year would have been the obvious thing to put in
+   * one. The grid page one link back has just been dressed as a card with a
+   * header, and a second of them on the page after it would read as one
+   * dressing used twice rather than as two components. What says "picker" here
+   * instead is the mark below.
+   *
+   * The card is never given a `--panel`, and its width is stated outright
+   * rather than left to `auto`. Both are the same hazard: the fragment makes
+   * this panel a query container, which is `contain: inline-size`, and an
+   * element with inline-size containment may not be sized by its contents. The
+   * log's own rule centres every surface it is given, and a centred grid item
+   * with an `auto` width is shrink-to-fit — which, for a box forbidden from
+   * looking at its contents, collapses to its padding and takes the demo with
+   * it. `w-full` takes the width from the column instead, so the query has
+   * something to measure; centring a box that already fills its column does
+   * nothing, and the inline width the reader's drag writes beats both.
+   *
+   * Overriding the centring instead would not have worked: that rule carries
+   * the same specificity as this one and is written further down.
+   */
+  .demo[data-demo='responsive'] .demo-surface {
+    @apply w-full border-zinc-200 bg-white dark:border-zinc-700 dark:bg-zinc-900;
+  }
+
+  /*
+   * The dot a calendar puts under a date with something on it, on September —
+   * the month the picker was opened from. Positional, like every other
+   * per-item mark in this file, so a month that moves in the fragment wants
+   * the dot moved with it.
+   *
+   * It is what makes twelve names read as a picker rather than as a list of
+   * words, at one rule. A ring or a fill would have said the same thing louder
+   * and then had to be told apart from the focus ring two lines away — which
+   * is the one piece of these demos that is the documentation rather than the
+   * dressing. A dot under the name is a mark no focus ring is shaped like.
+   *
+   * The months are grandchildren of the surface: the fragment nests them in
+   * their own root so the container has something to query, so this reaches
+   * past one level rather than using the `>` every other demo's items take.
+   */
+  .demo[data-demo='responsive'] [data-keyrove-item]:nth-child(9) {
+    @apply relative;
+  }
+
+  .demo[data-demo='responsive'] [data-keyrove-item]:nth-child(9)::after {
+    content: '';
+    @apply absolute bottom-0.5 left-1/2 size-1.5 -translate-x-1/2 rounded-full;
+    background-color: var(--field-accent);
+  }
+
+  /*
    * The rule between the text styles and the things that get inserted, which
    * is the grouping every formatting toolbar draws.
    *
