@@ -52,6 +52,61 @@ const FOLD_MARKER = /^[ \t]*<!--[ \t]*\/?fold[ \t]*-->[ \t]*\n/gm;
 
 const FENCE = '```';
 
+/**
+ * The demos whose log is a history rather than one line.
+ *
+ * One line shows the last move and nothing else, which leaves the two answers
+ * that are not a move invisible: a key keyrove claimed but could not act on,
+ * and a key that was never its own. A history shows all three, and costs the
+ * preview a third of its width, so it is worth it only where the page is about
+ * what a keypress comes back with. The log is the same markup whichever demo
+ * opts in; adding a name here is all it takes.
+ */
+const HISTORY = new Set(['list']);
+
+/**
+ * The log under — or beside — a demo's preview.
+ *
+ * The history's row is stamped here as a <template> rather than assembled in
+ * the browser, so this file stays the one place a demo's markup is written:
+ * src/demos.ts clones the row and fills its slots. The list is `aria-hidden`
+ * and the <output> beside it carries one line, which splits the two jobs the
+ * single-line log used to do at once — what is read, and what is announced.
+ * Announcing every row of a history would talk over the reader.
+ */
+const renderLog = (name: string) => {
+  if (!HISTORY.has(name)) {
+    return '<output class="log">Waiting for a keypress…</output>';
+  }
+
+  return [
+    '<div class="demo-log">',
+    '<div class="demo-log-bar">',
+    '<span class="demo-log-title">What happened</span>',
+    '<button type="button" class="demo-log-clear" data-clear-log>Clear</button>',
+    '</div>',
+    '<ol class="demo-log-list" data-log aria-hidden="true">',
+    '<li class="demo-log-empty" data-log-empty>Waiting for a keypress…</li>',
+    '</ol>',
+    '<template data-log-row>',
+    '<li class="log-row">',
+    '<span class="log-dot"></span>',
+    '<kbd class="kbd log-key" data-key></kbd>',
+    '<span class="log-line">',
+    // The spaces are the ones between the words of the finished sentence: an
+    // empty slot is hidden, and the space beside it collapses with it.
+    '<span class="log-action" data-action></span> ',
+    '<span class="log-phrase" data-phrase></span> ',
+    '<b class="log-target" data-target></b>',
+    '</span>',
+    '<span class="log-repeat" data-repeat hidden></span>',
+    '</li>',
+    '</template>',
+    '<output class="demo-log-live" aria-live="polite"></output>',
+    '</div>',
+  ].join('');
+};
+
 /** The excerpt a reader sees: each folded region collapses to one comment. */
 const toExcerpt = (markup: string) => markup.replace(FOLD, '$1<!-- … -->\n');
 
@@ -95,7 +150,7 @@ const renderUnit = (name: string, markup: string, surfaceClass: string) => {
   return `<div class="demo" data-demo="${name}">
 <div class="demo-preview">
 ${live}
-<output class="log">Waiting for a keypress…</output>
+${renderLog(name)}
 </div>
 <div class="demo-code">
 ${copy}

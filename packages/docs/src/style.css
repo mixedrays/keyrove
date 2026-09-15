@@ -267,8 +267,8 @@
    * `.markdown` class alone, so the landing page's own classes below — and the
    * demo markup, which is a list inside this prose — override without
    * escalating. The demo exclusions are explicit for the same reason: a
-   * `.demo-surface` is a `<ul>` whose items are `<li>`, and neither should
-   * pick up list styling.
+   * `.demo-surface` is a `<ul>` whose items are `<li>`, a `.demo-log-list` is
+   * an `<ol>` of the same, and none of them should pick up list styling.
    */
   .markdown {
     @apply text-zinc-700 dark:text-zinc-300;
@@ -321,7 +321,7 @@
     @apply mt-4 list-disc space-y-2 pl-6;
   }
 
-  .markdown :where(ol) {
+  .markdown :where(ol:not(.demo-log-list)) {
     @apply mt-4 list-decimal space-y-2 pl-6;
   }
 
@@ -636,6 +636,32 @@
     content: 'Select a country' / '';
   }
 
+  /*
+   * The basic list is the page about what a keypress comes back with, so its
+   * preview carries the history beside it: two parts panel to one part log.
+   *
+   * Every placement below is stated twice because the log has two homes. Below
+   * `sm` there is no room for two columns and it drops under the panel, which
+   * puts it in a third row of the single column the dropdown rule above sets
+   * up; from `sm` it takes a column of its own and spans both of theirs. The
+   * panel has to be placed explicitly either way — the trigger and its chevron
+   * are pseudo-elements pinned to the first cell, so auto-placement would put
+   * the panel beside them rather than under them.
+   */
+  .demo[data-demo='list'] .demo-preview {
+    @apply justify-normal gap-x-4;
+    @apply grid-cols-[minmax(0,1fr)] sm:grid-cols-[minmax(0,2fr)_minmax(0,1fr)];
+  }
+
+  .demo[data-demo='list'] .demo-surface {
+    @apply col-start-1 row-start-2;
+  }
+
+  .demo[data-demo='list'] .demo-log {
+    @apply col-start-1 row-start-3;
+    @apply sm:col-start-2 sm:row-span-2 sm:row-start-1;
+  }
+
   /* A menu button rather than a select: its label is the account the menu
      belongs to, which is text the page means rather than a prompt, so it takes
      the weight of one. */
@@ -824,7 +850,126 @@
     mask-image: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%20fill='none'%20stroke='%23000'%20stroke-width='1.75'%20stroke-linecap='round'%20stroke-linejoin='round'%3E%3Cpath%20d='M6%2022a2%202%200%200%201-2-2V4a2%202%200%200%201%202-2h8a2.4%202.4%200%200%201%201.704.706l3.588%203.588A2.4%202.4%200%200%201%2020%208v12a2%202%200%200%201-2%202z'/%3E%3Cpath%20d='M14%202v5a1%201%200%200%200%201%201h5'/%3E%3Cpath%20d='M10%209H8'/%3E%3Cpath%20d='M16%2013H8'/%3E%3Cpath%20d='M16%2017H8'/%3E%3C/svg%3E");
   }
 
+  /* ---------- demo logs ---------- */
+
+  /* One line, overwritten by the next move: every demo but those named in
+     build/demos.ts, which carry the history below instead. */
   .log {
     @apply mt-3 block rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2 font-mono text-xs text-zinc-600 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-400;
+  }
+
+  /*
+   * The history: a row per keypress, newest on top, threaded so a run of them
+   * reads as one session at the keyboard rather than as a stack of unrelated
+   * lines. `onMove` fills only the green rows; the amber and grey ones are
+   * what `keyRove` returned, which is the half a single line cannot show.
+   */
+  .demo-log {
+    @apply flex max-h-72 min-h-0 flex-col overflow-hidden rounded-xl border border-zinc-200 bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-950;
+  }
+
+  .demo-log-bar {
+    @apply flex items-center gap-2 border-b border-zinc-200 px-3 py-2 dark:border-zinc-800;
+  }
+
+  .demo-log-title {
+    @apply font-mono text-[0.65rem] font-medium tracking-[0.14em] text-zinc-500 uppercase dark:text-zinc-400;
+  }
+
+  .demo-log-clear {
+    @apply ml-auto cursor-pointer rounded-md border border-zinc-200 bg-white px-2 py-0.5 font-mono text-[0.65rem] text-zinc-500 transition-colors dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-400;
+    @apply hover:text-zinc-900 dark:hover:text-zinc-100;
+  }
+
+  .demo-log-list {
+    @apply min-h-0 flex-1 overflow-y-auto overscroll-contain px-3 py-2;
+  }
+
+  .demo-log-empty {
+    @apply py-1.5 text-[0.8rem] leading-6 text-zinc-500 dark:text-zinc-400;
+  }
+
+  /*
+   * The thread is drawn down the row rather than between rows, so it never has
+   * to know how tall the row beside it is, and the dot wears a ring in the
+   * log's own background: it reads as sitting on the line rather than beside
+   * it, and the line is cut for it without a second element to place.
+   */
+  .log-row {
+    @apply relative my-0 grid grid-cols-[0.375rem_minmax(2.75rem,auto)_minmax(0,1fr)_auto] items-start gap-x-2 py-1.5;
+
+    /* The thread's two palettes live on the row rather than on the
+       pseudo-element that wears them, for the reason the dropdown trigger
+       above carries its own: a `dark:` utility ends in a `:where()` clause,
+       which a pseudo-element cannot be followed by. */
+    --thread: var(--color-zinc-200);
+
+    @variant dark {
+      --thread: var(--color-zinc-800);
+    }
+  }
+
+  .log-row::before {
+    content: '';
+    @apply absolute inset-y-0 left-[0.1875rem] w-px -translate-x-1/2;
+    background-color: var(--thread);
+  }
+
+  .log-dot {
+    @apply relative mt-[0.6rem] size-1.5 rounded-full ring-4 ring-zinc-50 dark:ring-zinc-950;
+  }
+
+  /* Focus moved, which is the only case `onMove` fires in. */
+  .log-row[data-outcome='moved'] .log-dot {
+    @apply bg-emerald-500;
+  }
+
+  /* keyrove's key, claimed, with nowhere to go: the end of the list. */
+  .log-row[data-outcome='noop'] .log-dot {
+    @apply bg-amber-500;
+  }
+
+  /* Never keyrove's key. `keyRove` returned null and the browser kept it. */
+  .log-row[data-outcome='passed'] .log-dot {
+    @apply bg-zinc-300 dark:bg-zinc-600;
+  }
+
+  /* Each row is its own grid, so the key column is given a floor rather than
+     left to size itself: the caps fill it and every sentence starts at the
+     same place. A chord too long for it widens that row alone. */
+  .log-key {
+    @apply self-start;
+  }
+
+  .log-line {
+    @apply min-w-0 text-[0.8rem] leading-6 text-zinc-600 dark:text-zinc-400;
+  }
+
+  .log-action {
+    @apply font-mono text-[0.75rem] text-sky-700 dark:text-sky-300;
+  }
+
+  .log-target {
+    @apply font-semibold text-zinc-900 dark:text-zinc-100;
+  }
+
+  /* A row with no action or no target leaves that slot out of its sentence,
+     and the space beside it collapses with it. */
+  .log-action:empty,
+  .log-target:empty {
+    @apply hidden;
+  }
+
+  /* A key held down counts up here rather than filling the log with copies.
+     It sits in a cell of its own — at the end of the sentence it would be the
+     part that wrapped, and a lone ×3 on a second line reads as a new row. The
+     cell costs nothing on the rows without one: it collapses to no width. */
+  .log-repeat {
+    @apply mt-1 self-start rounded bg-zinc-200/70 px-1 font-mono text-[0.6rem] text-zinc-600 tabular-nums dark:bg-zinc-800 dark:text-zinc-400;
+  }
+
+  /* Announced rather than read: the list itself is `aria-hidden`. */
+  .demo-log-live {
+    @apply absolute size-px overflow-hidden whitespace-nowrap [clip-path:inset(50%)];
   }
 }

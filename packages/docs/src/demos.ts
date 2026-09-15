@@ -3,6 +3,7 @@ import {
   KEYROVE_ATTR_ITEM,
   KEYROVE_ATTR_ROOT,
   KEYROVE_ATTR_SKIP,
+  type MoveResult,
   createTypeahead,
   keyRove,
   matchesCombo,
@@ -35,6 +36,185 @@ const reportMoves =
   ({ action, to }: { action: string; to: Element }) => {
     log.textContent = `${action} → ${nameOf(to)}`;
   };
+
+/**
+ * The history log, for the demos build/demos.ts stamps one into.
+ *
+ * A single line can only report moves, because `onMove` only fires on one.
+ * The rows below are keyed off what the whole keydown came back with, so the
+ * two answers that are not a move get a line of their own: a key keyrove
+ * claimed and could not act on, and a key it never had a binding for.
+ */
+
+/** The glyphs the docs write for keys, so a row reads as the page does. */
+const KEY_GLYPHS: Record<string, string> = {
+  ArrowUp: '↑',
+  ArrowDown: '↓',
+  ArrowLeft: '←',
+  ArrowRight: '→',
+  PageUp: 'PgUp',
+  PageDown: 'PgDn',
+  ' ': 'Space',
+};
+
+/** Held on their own, these are not yet a keypress — and not yet a row. */
+const MODIFIER_KEYS = new Set(['Shift', 'Control', 'Alt', 'Meta']);
+
+/** How many rows are kept. Older ones have scrolled out of sight anyway. */
+const HISTORY_LENGTH = 20;
+
+/** A keypress as a row: what was pressed, and what keyrove made of it. */
+type Entry = {
+  outcome: 'moved' | 'noop' | 'passed';
+  key: string;
+  action: string;
+  phrase: string;
+  target: string;
+};
+
+/**
+ * The key as the log labels it: the chord, ending in the key's own glyph.
+ *
+ * `key` rather than `code`, because this is read rather than bound — what the
+ * reader pressed is what their layout produced, and the bindings keyrove
+ * matches are documented on the pages themselves.
+ */
+const keyLabel = (e: KeyboardEvent) => {
+  const held = [
+    e.ctrlKey && 'Ctrl',
+    e.altKey && 'Alt',
+    e.shiftKey && 'Shift',
+    e.metaKey && 'Meta',
+  ].filter((part): part is string => Boolean(part));
+
+  const key =
+    KEY_GLYPHS[e.key] ?? (e.key.length === 1 ? e.key.toUpperCase() : e.key);
+
+  return [...held, key].join('+');
+};
+
+/** Whether a handler in the chain answered with a move rather than an element. */
+const isMoveResult = (value: unknown): value is MoveResult =>
+  typeof value === 'object' && value !== null && 'action' in value;
+
+/**
+ * Wires a demo's history, or answers null for the demos that keep one line.
+ *
+ * Rows are cloned from the <template> stamped in beside the list rather than
+ * written here, so every class a demo wears still lives in one file.
+ */
+const createHistory = (demo: HTMLElement) => {
+  const list = demo.querySelector<HTMLElement>('[data-log]');
+  const template = demo.querySelector<HTMLTemplateElement>(
+    'template[data-log-row]',
+  );
+
+  if (!list || !template) return null;
+
+  const live = demo.querySelector<HTMLElement>('.demo-log-live');
+  const empty = list.querySelector<HTMLElement>('[data-log-empty]');
+
+  // The newest row, so a key held down counts up on the row it already has.
+  let last: { signature: string; row: HTMLElement; count: number } | null =
+    null;
+
+  const fill = (row: HTMLElement, slot: string, text: string) => {
+    const cell = row.querySelector(`[data-${slot}]`);
+    if (cell) cell.textContent = text;
+  };
+
+  const push = (entry: Entry) => {
+    const signature = Object.values(entry).join('|');
+
+    // Auto-repeat, or an arrow leant on at an end: a row each would push
+    // everything that led there off the top, so the row counts instead.
+    if (last && last.signature === signature) {
+      last.count += 1;
+
+      const badge = last.row.querySelector<HTMLElement>('[data-repeat]');
+      if (badge) {
+        badge.textContent = `×${last.count}`;
+        badge.hidden = false;
+      }
+
+      return;
+    }
+
+    const row = template.content.firstElementChild?.cloneNode(true);
+    if (!(row instanceof HTMLElement)) return;
+
+    row.dataset.outcome = entry.outcome;
+    fill(row, 'key', entry.key);
+    fill(row, 'action', entry.action);
+    fill(row, 'phrase', entry.phrase);
+    fill(row, 'target', entry.target);
+
+    empty?.remove();
+    list.prepend(row);
+    list.scrollTop = 0;
+
+    while (list.children.length > HISTORY_LENGTH) {
+      list.lastElementChild?.remove();
+    }
+
+    last = { signature, row, count: 1 };
+
+    // The list is `aria-hidden`; this is what is actually announced, and it is
+    // the line the demos have always announced. A key keyrove passed on is
+    // left out: the browser is acting on it as this runs — moving focus, for
+    // Tab — and an announcement here would arrive over the top of that one.
+    if (live && entry.outcome !== 'passed') {
+      live.textContent = `${entry.action} → ${entry.target || 'nothing'}`;
+    }
+  };
+
+  demo.querySelector('[data-clear-log]')?.addEventListener('click', () => {
+    list.replaceChildren(...(empty ? [empty] : []));
+    last = null;
+    if (live) live.textContent = '';
+  });
+
+  /** Turns a finished keydown into its row. `claimed` is what the chain returned. */
+  const record = (e: KeyboardEvent, claimed: unknown) => {
+    const key = keyLabel(e);
+
+    if (isMoveResult(claimed)) {
+      push(
+        claimed.to
+          ? {
+              outcome: 'moved',
+              key,
+              action: claimed.action,
+              phrase: 'moved to',
+              target: nameOf(claimed.to),
+            }
+          : {
+              outcome: 'noop',
+              key,
+              action: claimed.action,
+              phrase: 'moved nothing',
+              target: '',
+            },
+      );
+
+      return;
+    }
+
+    // Nothing is bound to it, so `keyRove` returned null and the browser still
+    // has the key — which is the whole reason Tab keeps working in here.
+    if (!MODIFIER_KEYS.has(e.key)) {
+      push({
+        outcome: 'passed',
+        key,
+        action: '',
+        phrase: 'is not bound here — the browser keeps it',
+        target: '',
+      });
+    }
+  };
+
+  return { record };
+};
 
 /**
  * Escape, out of a nested group.
@@ -212,13 +392,18 @@ export const mountDemos = () => {
     const surface = demo.querySelector<HTMLElement>(
       ':scope > .demo-preview > .demo-surface',
     );
-    const log = demo.querySelector<HTMLElement>('.log');
-    if (!surface || !log) return;
 
-    const onMove = reportMoves(log);
+    // A demo draws one log or the other. The line is written by `onMove`, as
+    // its page's snippet says; the history is written from what the keydown
+    // returned, which is where the answers that are not a move come from.
+    const log = demo.querySelector<HTMLElement>('.log');
+    const history = createHistory(demo);
+    if (!surface || !(log || history)) return;
+
+    const onMove = log ? reportMoves(log) : undefined;
     const handlers: Handler[] = [
       (e) => keyRove(e, { onMove }),
-      ...(EXTRAS[demo.dataset.demo ?? '']?.(surface, log) ?? []),
+      ...(log ? (EXTRAS[demo.dataset.demo ?? '']?.(surface, log) ?? []) : []),
     ];
 
     // One listener for the demo, nested roots included: the event bubbles here
@@ -227,7 +412,17 @@ export const mountDemos = () => {
     // the pages' own snippets.
     surface.addEventListener('keydown', (e) => {
       syncColumns(surface);
-      handlers.some((handle) => Boolean(handle(e)));
+
+      // The first handler to claim the key ends the chain, which is the `||`
+      // of the pages' own snippets — kept rather than discarded, because what
+      // it answered with is what the history has to report.
+      let claimed: unknown = null;
+      for (const handle of handlers) {
+        claimed = handle(e);
+        if (claimed) break;
+      }
+
+      history?.record(e, claimed);
     });
     wireGroupExit(surface);
 
