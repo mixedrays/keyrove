@@ -38,6 +38,17 @@ describe('keyRove', () => {
       expect(activeId()).toBe('a');
     });
 
+    it('does not wrap when its attribute is false', () => {
+      renderList([createItem('a'), createItem('b')], {
+        containerAttrs: { [KEYROVE_ATTR_LOOP]: 'false' },
+      });
+      document.getElementById('b')!.focus();
+
+      pressKey('ArrowDown');
+
+      expect(activeId()).toBe('b');
+    });
+
     it('wraps to the first and last non-skipped item', () => {
       renderList(
         [

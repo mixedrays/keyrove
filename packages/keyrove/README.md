@@ -239,6 +239,10 @@ handlers can feed the same follow-focus logic.
 | `data-keyrove-orientation`     | root | —           | `horizontal` maps a list's default keys to `ArrowRight`/`ArrowLeft`, RTL-aware.        |
 | `data-keyrove-typeahead`       | item | text        | Label for type-to-focus, when the item's own text is not it.                           |
 
+The boolean attributes — `data-keyrove-item`, `data-keyrove-skip`,
+`data-keyrove-roving-tabindex`, `data-keyrove-root`, and `data-keyrove-loop` —
+are enabled when bare or set to `"true"`; set one to `"false"` to disable it.
+
 The next/prev defaults follow the group's axis: `ArrowDown`/`ArrowUp` in a
 vertical list, the reading-direction arrows in a horizontal list or a grid.
 

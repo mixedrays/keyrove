@@ -39,5 +39,20 @@ describe('keyRove', () => {
       expect(first.getAttribute('tabindex')).toBe('-1');
       expect(second.getAttribute('tabindex')).toBe('0');
     });
+
+    it('does not move the tab stop when the attribute is false', () => {
+      const first = createItem('a', { tabindex: '0' });
+      const second = createItem('b', { tabindex: '-1' });
+      first.setAttribute(KEYROVE_ATTR_ROVING_TABINDEX, 'false');
+      second.setAttribute(KEYROVE_ATTR_ROVING_TABINDEX, 'false');
+      renderList([first, second]);
+      first.focus();
+
+      pressKey('ArrowDown');
+
+      expect(activeId()).toBe('b');
+      expect(first.getAttribute('tabindex')).toBe('0');
+      expect(second.getAttribute('tabindex')).toBe('-1');
+    });
   });
 });

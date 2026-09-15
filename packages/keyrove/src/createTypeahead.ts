@@ -10,7 +10,11 @@
 
 import { DEFAULT_ATTRIBUTES } from './attributes.js';
 import { moveFocus, readGroup, resolveRoot } from './group.js';
-import { hasCommandModifier, isEditableTarget } from './utils.js';
+import {
+  hasCommandModifier,
+  hasEnabledAttribute,
+  isEditableTarget,
+} from './utils.js';
 import type {
   KeyRoveEvent,
   TypeaheadOptions,
@@ -87,7 +91,7 @@ export const createTypeahead = ({
     const { items, focused } = readGroup(root);
     const target = items.find(
       (item) =>
-        !item.hasAttribute(DEFAULT_ATTRIBUTES.skip) &&
+        !hasEnabledAttribute(item, DEFAULT_ATTRIBUTES.skip) &&
         getLabel(item).toLowerCase().startsWith(buffer),
     );
 

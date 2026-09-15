@@ -27,22 +27,17 @@ The call is the one every other page makes. Wrapping is a property of the
 group, read off the root on each keypress like every other attribute, so a list
 can start or stop looping between two presses with nothing to re-initialise.
 
-## Presence, not a value
+## Boolean value
 
-The attribute is read with `hasAttribute`, so the bare spelling above is the
-intended one and _any_ value means the same thing: `data-keyrove-loop=""` loops,
-and so does `data-keyrove-loop="false"`. Removing the attribute is what turns
-wrapping off.
+The bare spelling above enables looping, as does `data-keyrove-loop="true"`.
+Set it to `"false"` to turn wrapping off; this works for every boolean keyrove
+attribute, including `data-keyrove-item`, `data-keyrove-root`,
+`data-keyrove-skip`, and `data-keyrove-roving-tabindex`.
 
-That is worth a second look wherever the markup is generated, because a boolean
-tends to be stringified rather than dropped:
+This makes generated markup direct and predictable:
 
 ```tsx
-// `false` becomes the string "false" — the attribute is present, so it loops.
 <ul data-keyrove-loop={loop}>…</ul>
-
-// `undefined` leaves the attribute out, which is what turns wrapping off.
-<ul data-keyrove-loop={loop ? '' : undefined}>…</ul>
 ```
 
 ## Entering at either end

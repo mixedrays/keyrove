@@ -139,12 +139,17 @@ export const parseAttributeInt = (
 ): number =>
   parseInt(element.getAttribute(attribute) || String(fallback)) || fallback;
 
+/** Whether a presence-style attribute is enabled, including its bare form. */
+export const hasEnabledAttribute = (element: Element, attribute: string) =>
+  element.hasAttribute(attribute) &&
+  element.getAttribute(attribute)?.trim().toLowerCase() !== 'false';
+
 /** First element not carrying `skipAttribute`; undefined when every one does. */
 export const firstNavigable = (
   elements: Element[],
   skipAttribute: string,
 ): Element | undefined =>
-  elements.find((el) => !el.hasAttribute(skipAttribute));
+  elements.find((el) => !hasEnabledAttribute(el, skipAttribute));
 
 /** Last element not carrying `skipAttribute`; undefined when every one does. */
 export const lastNavigable = (
@@ -154,7 +159,7 @@ export const lastNavigable = (
   elements
     .slice()
     .reverse()
-    .find((el) => !el.hasAttribute(skipAttribute));
+    .find((el) => !hasEnabledAttribute(el, skipAttribute));
 
 /** First navigable element, or the very first one when every element is skipped. */
 export const findFirst = (
@@ -181,7 +186,7 @@ export const findNext = ({
   loop,
 }: LinearMoveArgs): Element | undefined => {
   for (let i = fromIndex + 1; i < elements.length; i++) {
-    if (!elements[i].hasAttribute(skipAttribute)) return elements[i];
+    if (!hasEnabledAttribute(elements[i], skipAttribute)) return elements[i];
   }
 
   return loop
@@ -200,7 +205,7 @@ export const findPrev = ({
   loop,
 }: LinearMoveArgs): Element | undefined => {
   for (let i = fromIndex - 1; i >= 0; i--) {
-    if (!elements[i].hasAttribute(skipAttribute)) return elements[i];
+    if (!hasEnabledAttribute(elements[i], skipAttribute)) return elements[i];
   }
 
   return loop
@@ -221,7 +226,7 @@ export const findGridNeighbor = ({
   if (fromIndex < 0) return null;
 
   for (let i = fromIndex + step; i >= 0 && i < elements.length; i += step) {
-    if (!elements[i].hasAttribute(skipAttribute)) return elements[i];
+    if (!hasEnabledAttribute(elements[i], skipAttribute)) return elements[i];
   }
 
   return null;
@@ -252,7 +257,7 @@ export const findPageTarget = ({
   if (targetIndex < 0 || targetIndex >= elements.length) return edge;
 
   for (let i = targetIndex; i >= 0 && i < elements.length; i += direction) {
-    if (!elements[i].hasAttribute(skipAttribute)) return elements[i];
+    if (!hasEnabledAttribute(elements[i], skipAttribute)) return elements[i];
   }
 
   return edge;
