@@ -1109,6 +1109,152 @@
   }
 
   /*
+   * The preferences sheet the rows come from: a titled card, which is what a
+   * stack of controls is held in wherever one is actually met. The controls
+   * themselves are already styled off their types by the shared rules above —
+   * this only builds the sheet around them.
+   *
+   * No shadow, and no trigger. Nothing here opens: a settings sheet is a
+   * region of a page, and the reader meets these rows by scrolling to them
+   * rather than by opening anything.
+   *
+   * A hairline between each row was tried and taken back out. Drawn from the
+   * row's own top border it followed the rounded corner and curled up at both
+   * ends; moved into the row as a pseudo-element it landed on that row's focus
+   * ring; floated in a gap between rows it worked, but by then it was three
+   * rules and a variable buying a line the sheet reads perfectly well without.
+   */
+  .demo[data-demo='editable'] .demo-preview {
+    --panel: 21rem;
+  }
+
+  .demo[data-demo='editable'] .demo-surface {
+    @apply w-full border-zinc-200 bg-white dark:border-zinc-700 dark:bg-zinc-900;
+  }
+
+  /* The sheet's title, inside the card: the negative margins give back the
+     padding the rows sit in, so the rule under it runs the card's full width. */
+  .demo[data-demo='editable'] .demo-surface::before {
+    content: 'Settings' / '';
+    @apply -mx-1.5 -mt-1.5 mb-1.5 block border-b px-3 py-2 text-sm font-semibold;
+    border-color: var(--field-border);
+    color: var(--field-text);
+  }
+
+  /*
+   * The workspace laid out as an editor really lays one out: a sidebar down
+   * the left, the file above the terminal on the right.
+   *
+   * This is the demo that makes the case for a focus key, which the stacked
+   * one above it cannot. Stacked, the panels have a next and a previous, and
+   * an arrow would have served; arranged like this they have neither — there
+   * is no "down" from a sidebar that spans both rows — and the only way to a
+   * panel is a key that names it.
+   *
+   * It is a band demo for the same reason: a workspace given half a preview
+   * is a column of boxes, which is the shape the demo exists to not be.
+   */
+  .demo[data-demo='panes'] .demo-preview {
+    --panel: 34rem;
+  }
+
+  /* The grid is declared here rather than in the placeholder's
+     `data-demo-class`, because it is not layout the demo needs to work — the
+     three panels navigate the same stacked — but the dressing itself. */
+  .demo[data-demo='panes'] .demo-surface {
+    @apply grid gap-1.5 border-zinc-200 bg-white dark:border-zinc-700 dark:bg-zinc-900;
+    grid-template-columns: 12rem minmax(0, 1fr);
+  }
+
+  /* Placed rather than flowed, so the sidebar's span is stated once and the
+     two panels beside it cannot drift into the wrong cells. */
+  .demo[data-demo='panes'] .demo-surface > :nth-child(1) {
+    grid-area: 1 / 1 / span 2 / 1;
+  }
+
+  .demo[data-demo='panes'] .demo-surface > :nth-child(2) {
+    grid-area: 1 / 2;
+  }
+
+  .demo[data-demo='panes'] .demo-surface > :nth-child(3) {
+    grid-area: 2 / 2;
+  }
+
+  /*
+   * A panel: its own bordered region, with the name along the top in the small
+   * caps an editor writes a panel header in. The name is the section's whole
+   * text, so the header style is the panel's — and the text area has to say
+   * otherwise, since case and tracking are inherited.
+   *
+   * The resting border is restated at a specificity that clears the shared
+   * item rule, so the focused one has to be restated with it: that rule turns
+   * every border indigo on focus, and it would lose to this one.
+   */
+  .demo[data-demo='panes'] .demo-surface > [data-keyrove-item] {
+    @apply min-h-20 flex-wrap content-start rounded-lg border px-2.5 py-2;
+    @apply text-[0.65rem] font-semibold tracking-widest uppercase;
+    @apply border-zinc-200 text-zinc-500 dark:border-zinc-700 dark:text-zinc-400;
+    @apply focus:border-indigo-500 dark:focus:border-indigo-400;
+  }
+
+  .demo[data-demo='panes'] .demo-surface > [data-keyrove-item] > textarea {
+    @apply font-normal normal-case tracking-normal;
+    order: 1;
+  }
+
+  /*
+   * The chord, beside the panel's name in the header.
+   *
+   * It is what the layout costs: a stack of panels can be walked, and a
+   * reader who mistakes which chord goes where finds out with one arrow
+   * press. Here there is nothing to walk, so a panel that does not say its
+   * own key leaves the reader guessing at DOM order — and DOM order is not
+   * visible in a sidebar that spans two rows.
+   *
+   * The cap is the item's `::after` and the icon its `::before`, which puts
+   * the text area between them in source order, a pseudo-element coming after
+   * every child. The header wraps and the text area is ordered last, so the
+   * line reads icon, name, chord with the field dropping underneath. Nothing
+   * a reader would tab through is reordered: the field is the panel's only
+   * focusable child either way.
+   *
+   * `Ctrl` rather than a Mac glyph, because the attribute spells `ctrl+` and
+   * not `mod+` — it is Ctrl on every platform, which is what the page says.
+   */
+  .demo[data-demo='panes'] .demo-surface > [data-keyrove-item]::after {
+    @apply rounded border px-1.5 py-0.5 font-mono text-[0.6rem] font-normal tracking-normal whitespace-nowrap normal-case;
+    border-color: var(--field-border);
+    color: var(--field-muted);
+  }
+
+  .demo[data-demo='panes'] .demo-surface > :nth-child(1)::after {
+    content: 'Ctrl+Shift+1' / '';
+  }
+
+  .demo[data-demo='panes'] .demo-surface > :nth-child(2)::after {
+    content: 'Ctrl+Shift+2' / '';
+  }
+
+  .demo[data-demo='panes'] .demo-surface > :nth-child(3)::after {
+    content: 'Ctrl+Shift+3' / '';
+  }
+
+  /* Explorer */
+  .demo[data-demo='panes'] .demo-surface > :nth-child(1)::before {
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%20fill='none'%20stroke='%23000'%20stroke-width='1.75'%20stroke-linecap='round'%20stroke-linejoin='round'%3E%3Cpath%20d='M15%202h-4a2%202%200%200%200-2%202v11a2%202%200%200%200%202%202h8a2%202%200%200%200%202-2V8'/%3E%3Cpath%20d='M16.706%202.706A2.4%202.4%200%200%200%2015%202v5a1%201%200%200%200%201%201h5a2.4%202.4%200%200%200-.706-1.706z'/%3E%3Cpath%20d='M5%207a2%202%200%200%200-2%202v11a2%202%200%200%200%202%202h8a2%202%200%200%200%201.732-1'/%3E%3C/svg%3E");
+  }
+
+  /* Editor */
+  .demo[data-demo='panes'] .demo-surface > :nth-child(2)::before {
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%20fill='none'%20stroke='%23000'%20stroke-width='1.75'%20stroke-linecap='round'%20stroke-linejoin='round'%3E%3Cpath%20d='M6%2022a2%202%200%200%201-2-2V4a2%202%200%200%201%202-2h8a2.4%202.4%200%200%201%201.704.706l3.588%203.588A2.4%202.4%200%200%201%2020%208v12a2%202%200%200%201-2%202z'/%3E%3Cpath%20d='M14%202v5a1%201%200%200%200%201%201h5'/%3E%3Cpath%20d='M10%2012.5%208%2015l2%202.5'/%3E%3Cpath%20d='m14%2012.5%202%202.5-2%202.5'/%3E%3C/svg%3E");
+  }
+
+  /* Terminal */
+  .demo[data-demo='panes'] .demo-surface > :nth-child(3)::before {
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%20fill='none'%20stroke='%23000'%20stroke-width='1.75'%20stroke-linecap='round'%20stroke-linejoin='round'%3E%3Cpath%20d='m7%2011%202-2-2-2'/%3E%3Cpath%20d='M11%2013h4'/%3E%3Crect%20width='18'%20height='18'%20x='3'%20y='3'%20rx='2'%20ry='2'/%3E%3C/svg%3E");
+  }
+
+  /*
    * The rule between the text styles and the things that get inserted, which
    * is the grouping every formatting toolbar draws.
    *
@@ -1168,7 +1314,8 @@
       [data-demo='loop'],
       [data-demo='nested'],
       [data-demo='keys'],
-      [data-demo='skip']
+      [data-demo='skip'],
+      [data-demo='panes']
     )
     .demo-surface
     > [data-keyrove-item]:not([data-keyrove-skip]) {
@@ -1181,7 +1328,8 @@
       [data-demo='loop'],
       [data-demo='nested'],
       [data-demo='keys'],
-      [data-demo='skip']
+      [data-demo='skip'],
+      [data-demo='panes']
     )
     .demo-surface
     > [data-keyrove-item]:not([data-keyrove-skip])::before {
@@ -1522,7 +1670,8 @@
     @apply bg-amber-500;
   }
 
-  /* Never keyrove's key. `keyRove` returned null and the browser kept it. */
+  /* `keyRove` returned null and the browser kept the key — either because
+     nothing was bound to it, or because the press landed in a field. */
   .log-row[data-outcome='passed'] .log-dot {
     @apply bg-zinc-300 dark:bg-zinc-600;
   }

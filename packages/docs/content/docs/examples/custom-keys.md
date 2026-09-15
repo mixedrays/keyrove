@@ -29,8 +29,8 @@ identical whatever the group answers to, and only the bound keys are acted on:
 with <kbd class="kbd">←</kbd> <kbd class="kbd">→</kbd> bound, the up and down
 arrows go back to scrolling the page, and <kbd class="kbd">Tab</kbd> was never
 bound in the first place. The log is where to check that: press
-<kbd class="kbd">↓</kbd> in the toolbar and it is recorded as a key this group
-never had, handed straight back to the browser.
+<kbd class="kbd">↓</kbd> in the toolbar and it goes down as a key keyrove did
+not handle, left to the browser to scroll with.
 
 ## Horizontal lists
 

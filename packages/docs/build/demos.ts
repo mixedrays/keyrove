@@ -75,6 +75,8 @@ const HISTORY = new Set([
   'keys',
   'orientation',
   'rtl',
+  'editable',
+  'panes',
 ]);
 
 /**
@@ -96,7 +98,7 @@ const HISTORY = new Set([
  * it next. What the CSS keys off is the attribute stamped below, so the
  * stylesheet stays free of demo names.
  */
-const BAND = new Set(['keys', 'orientation', 'rtl']);
+const BAND = new Set(['keys', 'orientation', 'rtl', 'panes']);
 
 /**
  * The log under — or beside — a demo's preview.

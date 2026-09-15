@@ -14,17 +14,24 @@ should be able to jump to rather than walk to: the panels of an editor-like
 layout, the tabs of a strip, the tools of a palette.
 
 <kbd class="kbd">Ctrl</kbd>+<kbd class="kbd">Shift</kbd>+<kbd class="kbd">1</kbd>,
-<kbd class="kbd">2</kbd> and <kbd class="kbd">3</kbd> pick a panel here. Click
-into the text area first and press one anyway: the chord still lands, because a
-press holding <kbd class="kbd">Ctrl</kbd> is a command, not typing.
+<kbd class="kbd">2</kbd> and <kbd class="kbd">3</kbd> pick a panel here, each
+panel carrying its own. Click into the text area first and press one anyway:
+the chord still lands, because a press holding <kbd class="kbd">Ctrl</kbd> is a
+command, not typing.
 
-<div data-demo="focus"></div>
+<div data-demo="panes"></div>
 
 ```ts
 document
-  .querySelector('#workspace')
+  .querySelector('#editor-panes')
   .addEventListener('keydown', (e) => keyRove(e));
 ```
+
+The panels are laid out the way an editor lays them out, which is the case a
+focus key is for. There is no "down" from a sidebar that spans both rows, and
+nothing an arrow could call next that a reader would predict: a relative move
+needs an order to be relative to, and this layout does not have one. Naming
+the panel is all that is left.
 
 The call is the one every other page makes. The value is a
 [combo](/docs/api#combos) like any `*-key` attribute's, and a bare code works

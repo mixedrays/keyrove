@@ -245,14 +245,22 @@ const createHistory = (demo: HTMLElement): Log | null => {
         return;
       }
 
-      // Nothing is bound to it, so `keyRove` returned null and the browser
-      // still has the key — which is the whole reason Tab keeps working here.
+      // `keyRove` returned null, so the browser still has the key — which is
+      // the whole reason Tab keeps working here.
+      //
+      // "not handled" rather than "not bound", because null is two answers at
+      // once: no binding for the key, or a binding that stood down because the
+      // press landed in a field. The editable-targets demo is all the second
+      // kind, and a row there claiming the arrow was unbound would contradict
+      // the page it sits on. Telling them apart would mean asking the same
+      // question keyrove asks, and `isEditableTarget` is not part of its
+      // public surface.
       if (!MODIFIER_KEYS.has(e.key)) {
         push({
           outcome: 'passed',
           key,
           action: '',
-          phrase: 'is not bound here -> the browser keeps it',
+          phrase: 'is not handled here -> the browser keeps it',
           target: '',
         });
       }

@@ -16,7 +16,9 @@ does not swallow a typed "j".
 Arrow down the rows, then <kbd class="kbd">Tab</kbd> into the control on one.
 In _Display name_ and _Signature_, <kbd class="kbd">↓</kbd> moves the caret; on
 _Font size_ it nudges the slider; on a checkbox it moves rows again, because
-there it does nothing natively.
+there it does nothing natively. The log beside the sheet tells the two apart:
+green while the row has focus and the arrow is a move, grey the moment the
+press lands in a field and keyrove stands down.
 
 <div data-demo="editable"></div>
 
