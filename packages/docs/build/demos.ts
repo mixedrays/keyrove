@@ -62,7 +62,7 @@ const FENCE = '```';
  * what a keypress comes back with. The log is the same markup whichever demo
  * opts in; adding a name here is all it takes.
  */
-const HISTORY = new Set(['list']);
+const HISTORY = new Set(['list', 'loop', 'roving', 'inbox', 'skip', 'listbox']);
 
 /**
  * The log under — or beside — a demo's preview.
