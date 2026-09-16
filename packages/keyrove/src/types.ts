@@ -124,7 +124,11 @@ export type Options = {
 export type TypeaheadOptions = {
   /** Milliseconds of typing silence after which the buffer resets. Defaults to 500. */
   resetMs?: number;
-  /** Repeated characters cycle matching items instead of extending the prefix. */
+  /**
+   * How repeated characters match. `'prefix'` extends the prefix; `'cycle'`
+   * moves each single-character press to the next item after the focused one
+   * starting with it, wrapping, so repeats cycle. Defaults to `'prefix'`.
+   */
   matchMode?: 'prefix' | 'cycle';
   /** Fired after focus has moved — and only when it actually moved. */
   onMove?: (move: TypeaheadMove) => void;
@@ -136,7 +140,7 @@ export type TypeaheadOptions = {
  * The shared {@link ActionResult} with its own action — derived rather than
  * re-spelled, so a field added there reaches both branches of the chain
  * `keyRove(e) || typeahead(e)`. `to` is null for a consumed no-op — the
- * buffer grew but still matches the focused item.
+ * match is the focused item already.
  */
 export type TypeaheadResult = ActionResult<'typeahead'>;
 

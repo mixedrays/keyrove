@@ -203,12 +203,28 @@ describe('createTypeahead', () => {
       expect(activeId()).toBe('b');
     });
 
-    it('wraps to the first match when cycling past the last one', () => {
-      const now = vi.spyOn(Date, 'now');
+    it('moves past the focused match on the first press', () => {
       renderList(
-        [createItem('a', 'Spanish'), createItem('b', 'Swedish')],
+        [
+          createItem('a', 'Spanish'),
+          createItem('b', 'Swedish'),
+          createItem('c', 'Serbian'),
+          createItem('d', 'Thai'),
+        ],
         { options: { matchMode: 'cycle' } },
       );
+      document.getElementById('b')!.focus();
+
+      pressKey('s');
+
+      expect(activeId()).toBe('c');
+    });
+
+    it('wraps to the first match when cycling past the last one', () => {
+      const now = vi.spyOn(Date, 'now');
+      renderList([createItem('a', 'Spanish'), createItem('b', 'Swedish')], {
+        options: { matchMode: 'cycle' },
+      });
       document.getElementById('b')!.focus();
 
       now.mockReturnValue(1000);
@@ -224,13 +240,17 @@ describe('createTypeahead', () => {
       expect(activeId()).toBe('a');
     });
 
-    it('starts a new prefix after the reset period', () => {
+    it('keeps cycling when repeated presses are slower than the reset', () => {
       const now = vi.spyOn(Date, 'now');
       renderList(
-        [createItem('a', 'Spanish'), createItem('b', 'Swedish')],
+        [
+          createItem('a', 'Spanish'),
+          createItem('b', 'Swedish'),
+          createItem('c', 'Thai'),
+        ],
         { options: { matchMode: 'cycle' } },
       );
-      document.getElementById('b')!.focus();
+      document.getElementById('c')!.focus();
 
       now.mockReturnValue(1000);
       pressKey('s');
@@ -238,6 +258,163 @@ describe('createTypeahead', () => {
 
       now.mockReturnValue(2000);
       pressKey('s');
+      expect(activeId()).toBe('b');
+
+      now.mockReturnValue(3000);
+      pressKey('s');
+      expect(activeId()).toBe('a');
+    });
+
+    it('starts a new prefix after the reset period', () => {
+      const now = vi.spyOn(Date, 'now');
+      renderList(
+        [
+          createItem('a', 'Spanish'),
+          createItem('b', 'Swedish'),
+          createItem('c', 'Welsh'),
+          createItem('d', 'Thai'),
+        ],
+        { options: { matchMode: 'cycle' } },
+      );
+      document.getElementById('d')!.focus();
+
+      now.mockReturnValue(1000);
+      pressKey('s');
+      expect(activeId()).toBe('a');
+
+      // "sw" would name Swedish; after the silence "w" stands alone
+      now.mockReturnValue(2000);
+      pressKey('w');
+      expect(activeId()).toBe('c');
+    });
+
+    it('counts from the focused item even when it does not match', () => {
+      const now = vi.spyOn(Date, 'now');
+      renderList(
+        [
+          createItem('a', 'Spanish'),
+          createItem('b', 'Thai'),
+          createItem('c', 'Swedish'),
+        ],
+        { options: { matchMode: 'cycle' }, chainKeyRove: true },
+      );
+      document.getElementById('a')!.focus();
+
+      now.mockReturnValue(1000);
+      pressKey('s');
+      expect(activeId()).toBe('c');
+
+      // keyRove moves focus off the matches without touching the buffer
+      now.mockReturnValue(1100);
+      pressKey('ArrowUp', { code: 'ArrowUp' });
+      expect(activeId()).toBe('b');
+
+      now.mockReturnValue(1200);
+      pressKey('s');
+      expect(activeId()).toBe('c');
+    });
+
+    it('passes over skipped and disabled items while cycling', () => {
+      const now = vi.spyOn(Date, 'now');
+      renderList(
+        [
+          createItem('a', 'Spanish'),
+          createItem('b', 'Swedish', { skip: true }),
+          createItem('c', 'Serbian', { disabled: true }),
+          createItem('d', 'Slovak'),
+          createItem('e', 'Thai'),
+        ],
+        { options: { matchMode: 'cycle' } },
+      );
+      document.getElementById('e')!.focus();
+
+      now.mockReturnValue(1000);
+      pressKey('s');
+      expect(activeId()).toBe('a');
+
+      now.mockReturnValue(1100);
+      pressKey('s');
+      expect(activeId()).toBe('d');
+
+      now.mockReturnValue(1200);
+      pressKey('s');
+      expect(activeId()).toBe('a');
+    });
+
+    it('reports every cycle move and fires onMove for each', () => {
+      const now = vi.spyOn(Date, 'now');
+      const onMove = vi.fn();
+      const { results } = renderList(
+        [
+          createItem('a', 'Spanish'),
+          createItem('b', 'Swedish'),
+          createItem('c', 'Thai'),
+        ],
+        { options: { matchMode: 'cycle', onMove } },
+      );
+      const [spanish, swedish, thai] = ['a', 'b', 'c'].map((id) =>
+        document.getElementById(id)!,
+      );
+      thai.focus();
+
+      now.mockReturnValue(1000);
+      pressKey('s');
+      now.mockReturnValue(1100);
+      pressKey('s');
+
+      const moves = [
+        { action: 'typeahead', from: thai, to: spanish },
+        { action: 'typeahead', from: spanish, to: swedish },
+      ];
+      expect(results).toEqual(moves);
+      expect(onMove.mock.calls).toEqual(moves.map((move) => [move]));
+    });
+
+    it('is a consumed no-op when the focused item is the only match', () => {
+      const now = vi.spyOn(Date, 'now');
+      const onMove = vi.fn();
+      const { results } = renderList(
+        [createItem('a', 'Spanish'), createItem('b', 'Thai')],
+        { options: { matchMode: 'cycle', onMove } },
+      );
+      const spanish = document.getElementById('a')!;
+      spanish.focus();
+
+      now.mockReturnValue(1000);
+      pressKey('s');
+      now.mockReturnValue(1100);
+      const event = pressKey('s');
+
+      expect(activeId()).toBe('a');
+      expect(event.defaultPrevented).toBe(true);
+      expect(onMove).not.toHaveBeenCalled();
+      expect(results).toEqual([
+        { action: 'typeahead', from: spanish, to: null },
+        { action: 'typeahead', from: spanish, to: null },
+      ]);
+    });
+
+    it('refines the one-character prefix after cycling', () => {
+      const now = vi.spyOn(Date, 'now');
+      renderList(
+        [
+          createItem('a', 'Spanish'),
+          createItem('b', 'Swedish'),
+          createItem('c', 'Thai'),
+        ],
+        { options: { matchMode: 'cycle' } },
+      );
+      document.getElementById('c')!.focus();
+
+      now.mockReturnValue(1000);
+      pressKey('s');
+      now.mockReturnValue(1100);
+      pressKey('s');
+      expect(activeId()).toBe('b');
+
+      // the buffer is "sp", not "ssp"
+      now.mockReturnValue(1200);
+      pressKey('p');
       expect(activeId()).toBe('a');
     });
 

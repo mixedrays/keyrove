@@ -39,10 +39,12 @@ const getLabel = (item: Element) =>
  * `data-keyrove-typeahead` attribute, falling back to trimmed `textContent`
  * — starts with it, case-insensitively. Typing inside editable elements is
  * never captured, and modified presses (Ctrl/Alt/Meta) are left to their
- * shortcuts. In `cycle` mode, repeating a character advances through the
- * items matching that one-character prefix.
+ * shortcuts. In `cycle` mode a single character moves to the next match after
+ * the focused item instead, wrapping, and repeating it cycles through those
+ * matches rather than growing the buffer.
  * @param options.resetMs - Buffer lifetime between keystrokes. Default 500.
- * @param options.matchMode - Whether repeated characters extend or cycle the prefix.
+ * @param options.matchMode - Whether repeated characters extend the prefix
+ * (`'prefix'`) or cycle through its matches (`'cycle'`). Default `'prefix'`.
  * @param options.onMove - Fired after focus moved — only when it actually did.
  * @returns A handler with the `keyRove` contract: `null` when the key was
  * left untouched; `{ action: 'typeahead', from, to }` when it was consumed,
@@ -90,19 +92,26 @@ export const createTypeahead = ({
 
     lastPressTime = now;
     const character = e.key.toLowerCase();
-    const cycles = matchMode === 'cycle' && buffer === character;
 
-    buffer = cycles ? character : buffer + character;
+    // Cycling keeps a repeated character a one-character prefix instead of
+    // growing the buffer, so "s", "s" goes on naming the S items.
+    if (matchMode !== 'cycle' || buffer !== character) buffer += character;
 
     const { items, focused } = readGroup(root);
-    const matches = items.filter(
+
+    // A one-character prefix in cycle mode searches from just past the focused
+    // item and wraps, so every press — fresh or repeated, quick or slow — lands
+    // on the next match, counted in DOM order even when focus sits on an item
+    // that does not match. Longer prefixes, and prefix mode, match from the top.
+    const start =
+      matchMode === 'cycle' && buffer.length === 1 && focused
+        ? items.indexOf(focused) + 1
+        : 0;
+    const target = [...items.slice(start), ...items.slice(0, start)].find(
       (item) =>
         !hasEnabledAttribute(item, DEFAULT_ATTRIBUTES.skip) &&
         getLabel(item).toLowerCase().startsWith(buffer),
     );
-    const target = cycles
-      ? matches[(matches.indexOf(focused!) + 1) % matches.length]
-      : matches[0];
 
     // No match leaves the key untouched — the character still joined the
     // buffer, so a mistyped prefix goes quiet until the reset clears it.

@@ -305,11 +305,11 @@ navigates instead of entering the buffer. Create one handler per listener: the
 buffer lives in the handler, which keeps `keyRove` itself stateless. See
 [typeahead](/docs/examples/typeahead) for it at work.
 
-| Option      | Default  | Meaning                                                                                                         |
-| ----------- | -------- | --------------------------------------------------------------------------------------------------------------- |
-| `resetMs`   | `500`    | Milliseconds of typing silence after which the buffer clears.                                                   |
-| `matchMode` | `'prefix'` | `'cycle'` makes repeated characters cycle items with that one-character prefix; other characters still refine it. |
-| `onMove`    | —        | Fired after focus has moved, and only then; see [`keyRove`'s option](#options-onmove).                          |
+| Option      | Default    | Meaning                                                                                                                                  |
+| ----------- | ---------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| `resetMs`   | `500`      | Milliseconds of typing silence after which the buffer clears.                                                                            |
+| `matchMode` | `'prefix'` | `'cycle'` moves each single-character press to the next matching item after focus, wrapping, so repeats cycle; [see below](#cycle-mode). |
+| `onMove`    | —          | Fired after focus has moved, and only then; see [`keyRove`'s option](#options-onmove).                                                   |
 
 The label is the item's `data-keyrove-typeahead` attribute, falling back to its
 `textContent`, trimmed and with runs of whitespace collapsed, when the attribute
@@ -337,10 +337,21 @@ it.
 
 The handler follows the `keyRove` contract: `null` when the key was left
 untouched, `{ action: 'typeahead', from, to }` when it was consumed, with
-`to: null` when the buffer grew but still names the already-focused item.
+`to: null` when the match is the item already focused.
 `onMove` fires after focus has moved and only when it actually moved, so both
 handlers can feed the same follow-focus logic. The roving tab stop moves with
 the match, as for an arrow move.
+
+### Cycle mode
+
+With `matchMode: 'cycle'`, a buffer holding a single character searches from
+the item after the focused one, in DOM order, and wraps past the last item.
+Pressing that character again does not grow the buffer, so each press moves on
+to the next item starting with it, whether or not the reset has passed in
+between. A different character typed before the reset still refines the
+prefix, and prefixes longer than one character match from the top as usual.
+The trade-off is that a label opening with a doubled letter, such as _Aaron_,
+cannot be found by typing "aa".
 
 ## matchesCombo(event, combo)
 
@@ -531,13 +542,14 @@ returns. The result has `MoveResult`'s shape with its own action.
 ```ts
 type TypeaheadOptions = {
   resetMs?: number; // buffer lifetime, default 500
+  matchMode?: 'prefix' | 'cycle'; // how repeated characters match, default 'prefix'
   onMove?: (move: TypeaheadMove) => void;
 };
 
 type TypeaheadResult = {
   action: 'typeahead';
   from: Element | null;
-  to: Element | null; // null: the buffer grew but still names the focused item
+  to: Element | null; // null: the match is the item already focused
 };
 
 // what onMove receives: a move that actually happened
