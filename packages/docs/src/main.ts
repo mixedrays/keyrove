@@ -17,7 +17,7 @@ import { mountThemeToggle } from './theme.ts';
  *
  * Icons are inlined into the HTML at build time, so none of them wait on this.
  *
- * style.css is linked from the shell rather than imported here, so that it
+ * The stylesheet is linked from the page rather than imported here, so that it
  * blocks the first paint in dev as well as in the build.
  */
 

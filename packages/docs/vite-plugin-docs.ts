@@ -12,7 +12,7 @@ import {
   type NavGroup,
   type Page,
 } from './build/content.ts';
-import { expandDemos, loadDemos, type Demos } from './build/demos.ts';
+import { expandDemos, hasDemos, loadDemos, type Demos } from './build/demos.ts';
 import { renderMarkdown } from './build/markdown.ts';
 import { createHrefResolver, renderPage, routeToPath } from './build/layout.ts';
 import { expandMeta } from './build/meta.ts';
@@ -43,6 +43,27 @@ import {
  * and the same content indexed under every wrong address.
  */
 const NOT_FOUND_ROUTE = '404';
+
+/**
+ * The two stylesheets a page can link, relative to the root.
+ *
+ * Each is a build entry of its own rather than a `<link>` in index.html,
+ * because which one a page gets depends on the page: the demo styles are most
+ * of the site's CSS, and a page without a demo has no use for them. See
+ * src/style-with-demos.css for why that is two whole sheets rather than one
+ * and an add-on.
+ */
+const STYLESHEETS = {
+  site: 'src/style.css',
+  withDemos: 'src/style-with-demos.css',
+} as const;
+
+type Stylesheets = Record<keyof typeof STYLESHEETS, string>;
+
+const toStylesheets = (toUrl: (file: string) => string): Stylesheets => ({
+  site: toUrl(STYLESHEETS.site),
+  withDemos: toUrl(STYLESHEETS.withDemos),
+});
 
 type Site = {
   pages: Page[];
@@ -101,11 +122,17 @@ export const keyroveDocs = (): Plugin => {
   let root = '';
   let outDir = '';
   let site: Promise<Site> | undefined;
+  /** Served from source in dev; read off the bundle once a build is written. */
+  let stylesheets: Stylesheets | undefined;
 
   const getSite = () => (site ??= loadSite());
 
   /** Renders one page into the shell, which Vite has already processed. */
   const render = async (page: Page, template: string) => {
+    if (!stylesheets) {
+      throw new Error('[docs] a page was rendered before its stylesheets.');
+    }
+
     const resolveHref = createHrefResolver(base);
     const { nav, readingOrder, demos } = await getSite();
     const { html, headings } = await renderMarkdown(
@@ -120,6 +147,9 @@ export const keyroveDocs = (): Plugin => {
       nav,
       readingOrder,
       resolveHref,
+      stylesheet: hasDemos(page.body)
+        ? stylesheets.withDemos
+        : stylesheets.site,
     });
   };
 
@@ -169,10 +199,33 @@ export const keyroveDocs = (): Plugin => {
   return {
     name: 'keyrove-docs',
 
+    /**
+     * Setting `input` replaces Vite's default of index.html alone, so the
+     * shell is listed again beside the stylesheets. An entry is named after
+     * its file, which is where `style-with-demos-[hash].css` comes from.
+     */
+    config(config) {
+      const configRoot = path.resolve(config.root ?? '');
+
+      return {
+        build: {
+          rolldownOptions: {
+            input: ['index.html', ...Object.values(STYLESHEETS)].map((file) =>
+              path.join(configRoot, file),
+            ),
+          },
+        },
+      };
+    },
+
     configResolved(config) {
       base = config.base;
       root = config.root;
       outDir = path.resolve(config.root, config.build.outDir);
+
+      if (config.command === 'serve') {
+        stylesheets = toStylesheets((file) => `${base}${file}`);
+      }
     },
 
     configureServer(server) {
@@ -224,9 +277,30 @@ export const keyroveDocs = (): Plugin => {
     },
 
     /**
-     * Vite builds `index.html` alone: one bundle, one stylesheet, one set of
-     * hashed URLs. Every page is stamped out of the result here, so the asset
-     * names never have to be threaded through the renderer.
+     * The stylesheets' hashed names, which only exist once the bundle does.
+     * Each is found by the source file it was built from.
+     */
+    writeBundle(_options, bundle) {
+      const emitted = Object.values(bundle);
+
+      stylesheets = toStylesheets((file) => {
+        const asset = emitted.find(
+          (output) =>
+            output.type === 'asset' && output.originalFileNames.includes(file),
+        );
+        if (!asset) {
+          throw new Error(`[docs] the build emitted nothing for ${file}.`);
+        }
+
+        return `${base}${asset.fileName}`;
+      });
+    },
+
+    /**
+     * Vite builds `index.html` once: one bundle, one set of hashed URLs. Every
+     * page is stamped out of the result here, so the script's name never has
+     * to be threaded through the renderer; the stylesheet's is, because it
+     * varies by page.
      */
     async closeBundle() {
       const shellPath = path.join(outDir, 'index.html');

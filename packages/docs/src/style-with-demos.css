@@ -1,0 +1,15 @@
+/*
+ * The stylesheet for a page that embeds a demo: the site and its demos,
+ * compiled together. Pages without one link style.css alone.
+ *
+ * One file rather than demos.css linked beside style.css. Compiled on its own,
+ * demos.css has to `@reference` the site, and Tailwind then spells out a
+ * fallback for every theme variable it reads and registers its custom
+ * properties a second time; with the two files compressed apart as well, a
+ * demo page came to more than it had cost as one file. This way a demo page
+ * costs what it always did and every other page costs less. The price is one
+ * extra download the first time a reader crosses from one kind of page to the
+ * other.
+ */
+@import './style.css';
+@import './demos.css';
