@@ -181,6 +181,104 @@ describe('createTypeahead', () => {
     });
   });
 
+  describe('cycle matching', () => {
+    it('cycles repeated characters through matching items', () => {
+      const now = vi.spyOn(Date, 'now');
+      renderList(
+        [
+          createItem('a', 'Spanish'),
+          createItem('b', 'Swedish'),
+          createItem('c', 'Thai'),
+        ],
+        { options: { matchMode: 'cycle' } },
+      );
+      document.getElementById('c')!.focus();
+
+      now.mockReturnValue(1000);
+      pressKey('s');
+      expect(activeId()).toBe('a');
+
+      now.mockReturnValue(1100);
+      pressKey('s');
+      expect(activeId()).toBe('b');
+    });
+
+    it('wraps to the first match when cycling past the last one', () => {
+      const now = vi.spyOn(Date, 'now');
+      renderList(
+        [createItem('a', 'Spanish'), createItem('b', 'Swedish')],
+        { options: { matchMode: 'cycle' } },
+      );
+      document.getElementById('b')!.focus();
+
+      now.mockReturnValue(1000);
+      pressKey('s');
+      expect(activeId()).toBe('a');
+
+      now.mockReturnValue(1100);
+      pressKey('s');
+      expect(activeId()).toBe('b');
+
+      now.mockReturnValue(1200);
+      pressKey('s');
+      expect(activeId()).toBe('a');
+    });
+
+    it('starts a new prefix after the reset period', () => {
+      const now = vi.spyOn(Date, 'now');
+      renderList(
+        [createItem('a', 'Spanish'), createItem('b', 'Swedish')],
+        { options: { matchMode: 'cycle' } },
+      );
+      document.getElementById('b')!.focus();
+
+      now.mockReturnValue(1000);
+      pressKey('s');
+      expect(activeId()).toBe('a');
+
+      now.mockReturnValue(2000);
+      pressKey('s');
+      expect(activeId()).toBe('a');
+    });
+
+    it('continues to refine a prefix with different characters', () => {
+      const now = vi.spyOn(Date, 'now');
+      renderList(
+        [
+          createItem('a', 'Spanish'),
+          createItem('b', 'Swedish'),
+          createItem('c', 'Thai'),
+        ],
+        { options: { matchMode: 'cycle' } },
+      );
+      document.getElementById('c')!.focus();
+
+      now.mockReturnValue(1000);
+      pressKey('s');
+      expect(activeId()).toBe('a');
+
+      now.mockReturnValue(1100);
+      pressKey('w');
+      expect(activeId()).toBe('b');
+    });
+
+    it('keeps repeated characters as a prefix by default', () => {
+      const now = vi.spyOn(Date, 'now');
+      renderList([createItem('a', 'Spanish'), createItem('b', 'Swedish')]);
+      document.getElementById('b')!.focus();
+
+      now.mockReturnValue(1000);
+      pressKey('s');
+      expect(activeId()).toBe('a');
+
+      now.mockReturnValue(1100);
+      const event = pressKey('s');
+
+      expect(activeId()).toBe('a');
+      expect(event.defaultPrevented).toBe(false);
+    });
+  });
+
   describe('labels', () => {
     it('prefers the typeahead attribute over the text', () => {
       renderList([

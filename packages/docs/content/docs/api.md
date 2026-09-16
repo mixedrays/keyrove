@@ -305,10 +305,11 @@ navigates instead of entering the buffer. Create one handler per listener: the
 buffer lives in the handler, which keeps `keyRove` itself stateless. See
 [typeahead](/docs/examples/typeahead) for it at work.
 
-| Option    | Default | Meaning                                                                                |
-| --------- | ------- | -------------------------------------------------------------------------------------- |
-| `resetMs` | `500`   | Milliseconds of typing silence after which the buffer clears.                          |
-| `onMove`  | —       | Fired after focus has moved, and only then; see [`keyRove`'s option](#options-onmove). |
+| Option      | Default  | Meaning                                                                                                         |
+| ----------- | -------- | --------------------------------------------------------------------------------------------------------------- |
+| `resetMs`   | `500`    | Milliseconds of typing silence after which the buffer clears.                                                   |
+| `matchMode` | `'prefix'` | `'cycle'` makes repeated characters cycle items with that one-character prefix; other characters still refine it. |
+| `onMove`    | —        | Fired after focus has moved, and only then; see [`keyRove`'s option](#options-onmove).                          |
 
 The label is the item's `data-keyrove-typeahead` attribute, falling back to its
 `textContent`, trimmed and with runs of whitespace collapsed, when the attribute

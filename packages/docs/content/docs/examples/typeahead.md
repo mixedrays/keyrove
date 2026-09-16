@@ -43,6 +43,21 @@ silence ends a word:
 const typeahead = createTypeahead({ resetMs: 800 });
 ```
 
+## Cycling repeated characters
+
+Prefix matching is the default: pressing <kbd class="kbd">S</kbd> twice looks
+for a label starting with `ss`. A menu can instead cycle through items sharing
+one initial character:
+
+```ts
+const typeahead = createTypeahead({ matchMode: 'cycle' });
+```
+
+With that mode, each <kbd class="kbd">S</kbd> pressed before the reset moves to
+the next item beginning with _S_, wrapping after the last. A different next
+character still refines the prefix, so <kbd class="kbd">S</kbd>
+<kbd class="kbd">W</kbd> matches _Swedish_.
+
 ## What counts as typing
 
 Bindings match the physical key, `e.code`. Typeahead reads `e.key`, the

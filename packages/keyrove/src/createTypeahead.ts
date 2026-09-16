@@ -39,8 +39,10 @@ const getLabel = (item: Element) =>
  * `data-keyrove-typeahead` attribute, falling back to trimmed `textContent`
  * — starts with it, case-insensitively. Typing inside editable elements is
  * never captured, and modified presses (Ctrl/Alt/Meta) are left to their
- * shortcuts.
+ * shortcuts. In `cycle` mode, repeating a character advances through the
+ * items matching that one-character prefix.
  * @param options.resetMs - Buffer lifetime between keystrokes. Default 500.
+ * @param options.matchMode - Whether repeated characters extend or cycle the prefix.
  * @param options.onMove - Fired after focus moved — only when it actually did.
  * @returns A handler with the `keyRove` contract: `null` when the key was
  * left untouched; `{ action: 'typeahead', from, to }` when it was consumed,
@@ -49,6 +51,7 @@ const getLabel = (item: Element) =>
  */
 export const createTypeahead = ({
   resetMs = 500,
+  matchMode = 'prefix',
   onMove,
 }: TypeaheadOptions = {}) => {
   let buffer = '';
@@ -86,14 +89,20 @@ export const createTypeahead = ({
     if (e.key === ' ' && !buffer) return null;
 
     lastPressTime = now;
-    buffer += e.key.toLowerCase();
+    const character = e.key.toLowerCase();
+    const cycles = matchMode === 'cycle' && buffer === character;
+
+    buffer = cycles ? character : buffer + character;
 
     const { items, focused } = readGroup(root);
-    const target = items.find(
+    const matches = items.filter(
       (item) =>
         !hasEnabledAttribute(item, DEFAULT_ATTRIBUTES.skip) &&
         getLabel(item).toLowerCase().startsWith(buffer),
     );
+    const target = cycles
+      ? matches[(matches.indexOf(focused!) + 1) % matches.length]
+      : matches[0];
 
     // No match leaves the key untouched — the character still joined the
     // buffer, so a mistyped prefix goes quiet until the reset clears it.

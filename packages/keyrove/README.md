@@ -214,6 +214,12 @@ once a match is underway. The handler returns
 and its `onMove` fires after a real move exactly as `keyRove`'s does, so both
 handlers can feed the same follow-focus logic.
 
+Repeated characters normally extend the prefix: `S`, then `S`, looks for an
+item starting with `ss`. For menus that cycle through same-letter items, pass
+`{ matchMode: 'cycle' }`; repeated `S` presses before the buffer resets move
+through items starting with `S`, while different characters still refine the
+prefix.
+
 ## Attributes
 
 | Attribute                      | On   | Default     | Meaning                                                                                |

@@ -124,6 +124,8 @@ export type Options = {
 export type TypeaheadOptions = {
   /** Milliseconds of typing silence after which the buffer resets. Defaults to 500. */
   resetMs?: number;
+  /** Repeated characters cycle matching items instead of extending the prefix. */
+  matchMode?: 'prefix' | 'cycle';
   /** Fired after focus has moved — and only when it actually moved. */
   onMove?: (move: TypeaheadMove) => void;
 };
