@@ -238,6 +238,9 @@ export const loadDemos = async (): Promise<Demos> => {
   return new Map(entries);
 };
 
+/** Whether a markdown body embeds a demo, and so needs the demo styles. */
+export const hasDemos = (body: string) => body.search(PLACEHOLDER) !== -1;
+
 /**
  * Replaces every placeholder in a markdown body with the demo it names.
  *

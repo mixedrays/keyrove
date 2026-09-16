@@ -8,11 +8,6 @@
          content/ is then stamped out of the result, so all of them share one
          set of asset URLs. -->
     <!--page-head-->
-    <!-- Linked here rather than imported from main.ts so that the stylesheet is
-         render-blocking in dev too. Imported from JS, Vite injects it at runtime
-         and every navigation paints unstyled markup first; the production build
-         hoists it to a <link> either way, so only dev showed the flash. -->
-    <link rel="stylesheet" href="/src/style.css" />
     <!-- Restores an explicit theme choice before the first paint. Inline and
          render-blocking on purpose: deferring to main.ts would show a frame of
          the system theme first. No stored value means "follow the system", which
@@ -52,6 +47,16 @@
         ]
       }
     </script>
+    <!-- The page's stylesheet, filled in per page by vite-plugin-docs.ts:
+         style-with-demos.css if the page embeds a demo, style.css if not.
+
+         Linked from the markup rather than imported from main.ts so that it is
+         render-blocking in dev too — imported from JS, Vite injects it at
+         runtime and every navigation paints unstyled markup first.
+
+         Last in the head, after the inline scripts: a script behind a pending
+         stylesheet waits for it to download before it runs. -->
+    <!--page-styles-->
   </head>
   <body>
     <!--page-body-->

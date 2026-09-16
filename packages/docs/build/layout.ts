@@ -21,11 +21,13 @@ const SOURCE_BASE = `${META.repoUrl}/blob/main/packages/docs/content`;
  *
  * Vite builds that file once — bundling the entry, hashing the assets, and
  * leaving these untouched — and every page is then stamped out of the result,
- * so all pages share one set of asset URLs without this module having to know
- * what those URLs turned out to be.
+ * so all pages share one script URL without this module having to know what
+ * it turned out to be. The stylesheet is the exception: which one a page links
+ * depends on the page, so its URL is passed in rather than read off the shell.
  */
 const SLOTS = {
   head: '<!--page-head-->',
+  styles: '<!--page-styles-->',
   body: '<!--page-body-->',
 } as const;
 
@@ -234,7 +236,28 @@ export type PageRender = {
   /** Sidebar order, flattened — the pager's prev/next come off this. */
   readingOrder: Page[];
   resolveHref: HrefResolver;
+  /** The stylesheet's final URL — hashed in a build. */
+  stylesheet: string;
 };
+
+/**
+ * The stylesheet twice: a preload, then the link that applies it.
+ *
+ * The preload is for Cloudflare Pages rather than for the browser, which finds
+ * the link on its own. Pages turns a page's `<link rel="preload">` tags into
+ * `Link` headers and sends them as a 103 Early Hint, so the stylesheet is
+ * already downloading while the HTML is still on its way.
+ *
+ * Neither tag carries `crossorigin`, which Vite puts on the tags it injects.
+ * Pages skips any `<link>` with an attribute beyond `rel`, `href` and `as`, and
+ * a preload only serves a request made in the same CORS mode, so the link has
+ * to match it. The sheet is same-origin, so the attribute bought nothing.
+ */
+const renderStylesheet = (href: string) =>
+  [
+    `<link rel="preload" as="style" href="${escapeHtml(href)}" />`,
+    `<link rel="stylesheet" href="${escapeHtml(href)}" />`,
+  ].join('\n    ');
 
 const renderDocsBody = ({
   page,
@@ -362,10 +385,10 @@ const stripComments = (html: string) =>
 
 /** Stamps one page out of the built shell. */
 export const renderPage = (template: string, render: PageRender) => {
-  if (!template.includes(SLOTS.body)) {
-    throw new Error(
-      `[docs] index.html is missing the ${SLOTS.body} placeholder.`,
-    );
+  for (const slot of [SLOTS.styles, SLOTS.body]) {
+    if (!template.includes(slot)) {
+      throw new Error(`[docs] index.html is missing the ${slot} placeholder.`);
+    }
   }
 
   const { page } = render;
@@ -392,6 +415,9 @@ export const renderPage = (template: string, render: PageRender) => {
   ].join('\n    ');
 
   return stripComments(
-    template.replace(SLOTS.head, head).replace(SLOTS.body, body),
+    template
+      .replace(SLOTS.head, head)
+      .replace(SLOTS.styles, renderStylesheet(render.stylesheet))
+      .replace(SLOTS.body, body),
   );
 };
