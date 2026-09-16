@@ -39,6 +39,12 @@ arrow still moving focus the way it points on screen.
 
 <div data-demo="rtl" data-demo-class="flex flex-wrap gap-1.5"></div>
 
+Both bars keep a log, and putting one against the other is the shortest way to
+see the flip: <kbd class="kbd">→</kbd> is reported as `next` on the bar above
+and as `prev` on this one. A row names the move keyrove made rather than the
+key that asked for it, and which of the two a key means is what the direction
+decides.
+
 The direction comes from the nearest `dir` attribute at or above the root, and
 otherwise from the computed style, so a `dir` on `<html>` is enough for every
 group on the page. Like every other attribute it is read on the keypress, so a

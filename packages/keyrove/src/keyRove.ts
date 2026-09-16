@@ -4,6 +4,7 @@ import { listenerElement, moveFocus, readGroup, resolveRoot } from './group.js';
 import { resolveTarget } from './position.js';
 import {
   hasCommandModifier,
+  hasEnabledAttribute,
   isEditableTarget,
   matchesCombo,
   parseAttributeInt,
@@ -74,10 +75,7 @@ const readLayout = (root: Element, attributes: Attributes): Layout => {
     // explicit binding still wins in the table. Nothing but the literal value
     // "horizontal" switches anything.
     horizontal: root.getAttribute(attributes.orientation) === 'horizontal',
-    // Presence-based (`hasAttribute`), so the bare `data-keyrove-loop`
-    // spelling works; `getAttribute` truthiness would read it as "" and
-    // silently disable it.
-    loop: root.hasAttribute(attributes.loop),
+    loop: hasEnabledAttribute(root, attributes.loop),
   };
 };
 
@@ -112,12 +110,15 @@ const readExplicitBindings = (
 const readFocusKeys = (scope: Element, attributes: Attributes): FocusKey[] =>
   Array.from(
     scope.querySelectorAll(
-      `[${attributes.item}][${attributes.focusKey}]:not([disabled]):not([${attributes.skip}])`,
+      `[${attributes.item}][${attributes.focusKey}]:not([disabled])`,
     ),
-  ).map((target) => ({
-    combo: target.getAttribute(attributes.focusKey) ?? '',
-    target,
-  }));
+  )
+    .filter((target) => hasEnabledAttribute(target, attributes.item))
+    .filter((target) => !hasEnabledAttribute(target, attributes.skip))
+    .map((target) => ({
+      combo: target.getAttribute(attributes.focusKey) ?? '',
+      target,
+    }));
 
 /**
  * Handles keyboard navigation within the provided event's current target.

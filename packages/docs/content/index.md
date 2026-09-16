@@ -27,8 +27,9 @@ pnpm add @mixedrays/keyrove
 ## Three lines and a list is navigable
 
 Give each navigable element `data-keyrove-item` and a tab stop, then hand the
-container's keydown event to `keyRove`. Try it: <kbd class="kbd">Tab</kbd> to
-an item, then use the arrow keys.
+container's keydown event to `keyRove`. Try
+it now: <kbd class="kbd">↑</kbd> <kbd class="kbd">↓</kbd> to move,
+<kbd class="kbd">Tab</kbd> to leave.
 
 <div data-demo="inbox"></div>
 

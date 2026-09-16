@@ -343,6 +343,23 @@ const renderIndexingTags = (
   ];
 };
 
+/**
+ * Comments explain the templates to whoever edits them; the browser has no use
+ * for them. The shell in index.html and the header above carry ~1.5 KB of
+ * rationale between them, and it would otherwise be sent 20 times over — once
+ * per page — for about a tenth of each page's compressed weight.
+ *
+ * A regex is enough because nothing that reaches here opens a comment it does
+ * not close: a code block showing markup arrives from shiki with its `<`
+ * already escaped (`&#x3C;!--`), so an example that documents a comment keeps
+ * it. Leading indentation and the trailing newline go too, so a comment that
+ * had a line to itself does not leave a blank one behind.
+ *
+ * Runs after the slots are filled — they are comments themselves.
+ */
+const stripComments = (html: string) =>
+  html.replace(/[ \t]*<!--[\s\S]*?-->\n?/g, '');
+
 /** Stamps one page out of the built shell. */
 export const renderPage = (template: string, render: PageRender) => {
   if (!template.includes(SLOTS.body)) {
@@ -374,5 +391,7 @@ export const renderPage = (template: string, render: PageRender) => {
     ...renderIndexingTags(render, title),
   ].join('\n    ');
 
-  return template.replace(SLOTS.head, head).replace(SLOTS.body, body);
+  return stripComments(
+    template.replace(SLOTS.head, head).replace(SLOTS.body, body),
+  );
 };

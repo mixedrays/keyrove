@@ -27,6 +27,31 @@
         // Storage can be unavailable (Safari private mode); the system theme stands.
       }
     </script>
+    <!-- Every navigation is a full page load, and the sidebar invites a lot of
+         them. This prerenders a page once the pointer settles on its link, so
+         the click lands on a document that is already parsed and painted.
+         `moderate` is the hover trigger; Chrome caps how many run at once, and
+         a browser with no speculation rules ignores the block.
+
+         The .md twins and llms.txt are excluded. Both are served as text/plain
+         to be read rather than navigated to, so prerendering one would spend
+         the budget on a page nobody lands on. -->
+    <script type="speculationrules">
+      {
+        "prerender": [
+          {
+            "where": {
+              "and": [
+                { "href_matches": "/*" },
+                { "not": { "href_matches": "/*.md" } },
+                { "not": { "href_matches": "/*.txt" } }
+              ]
+            },
+            "eagerness": "moderate"
+          }
+        ]
+      }
+    </script>
   </head>
   <body>
     <!--page-body-->

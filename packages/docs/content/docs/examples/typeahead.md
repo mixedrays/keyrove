@@ -84,9 +84,19 @@ conditionally.
 The handler returns `null` when it left the key alone and
 `{ action: 'typeahead', from, to }` when it consumed it, with `to: null` when
 the buffer grew but still names the item already focused. `onMove` fires after
-focus has moved and only then, which is what writes `typeahead → Swedish` to
-the log above. Both handlers can feed one follow-focus callback, a preview
-pane for one:
+focus has moved and only then.
+
+Those are three answers, and the log beside the list gives each a row of its
+own. Type "swez" in one go to see all of them: <kbd class="kbd">S</kbd> and
+<kbd class="kbd">W</kbd> are green, having landed on _Spanish_ and _Swedish_;
+<kbd class="kbd">E</kbd> is amber, because "swe" still names the item already
+focused and there is nowhere to go, which is what `to: null` says;
+<kbd class="kbd">Z</kbd> is grey, because "swez" matches nothing, so the
+handler returned `null` and the browser kept the key. The letter joined the
+buffer all the same — the next press is still typing "swez", and it takes the
+half-second of silence to get back to a prefix that matches.
+
+Both handlers can feed one follow-focus callback, a preview pane for one:
 
 ```ts
 const onMove = ({ to }) => showPreview(to);

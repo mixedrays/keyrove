@@ -16,7 +16,7 @@ A toolbar, for one, navigates left-to-right rather than up-and-down.
 <kbd class="kbd">←</kbd> <kbd class="kbd">→</kbd> move between the buttons here;
 the up and down arrows are left to scroll the page.
 
-<div data-demo="keys" data-demo-class="flex flex-wrap gap-1.5"></div>
+<div data-demo="keys" data-demo-class="flex flex-wrap gap-1"></div>
 
 ```html
 <div data-keyrove-next-key="ArrowRight" data-keyrove-prev-key="ArrowLeft">
@@ -28,7 +28,9 @@ Rebinding is a markup change and nothing else. The `keyRove(e)` call is
 identical whatever the group answers to, and only the bound keys are acted on:
 with <kbd class="kbd">←</kbd> <kbd class="kbd">→</kbd> bound, the up and down
 arrows go back to scrolling the page, and <kbd class="kbd">Tab</kbd> was never
-bound in the first place.
+bound in the first place. The log is where to check that: press
+<kbd class="kbd">↓</kbd> in the toolbar and it goes down as a key keyrove did
+not handle, left to the browser to scroll with.
 
 ## Horizontal lists
 

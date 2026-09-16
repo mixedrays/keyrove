@@ -38,6 +38,11 @@ export default defineConfig({
   },
   build: {
     outDir: 'dist',
-    sourcemap: true,
+    // Nothing in the deploy reads a source map. The bundle is glue over a
+    // library whose source is on GitHub, and the map is five times the size of
+    // the code it explains — 76 kB uploaded on every deploy for a file a
+    // browser only fetches with devtools open. `pnpm dev` serves maps either
+    // way; this is the build's setting alone.
+    sourcemap: false,
   },
 });

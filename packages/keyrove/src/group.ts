@@ -9,7 +9,7 @@
  */
 
 import { DEFAULT_ATTRIBUTES } from './attributes.js';
-import { toggleTabIndex } from './utils.js';
+import { hasEnabledAttribute, toggleTabIndex } from './utils.js';
 import type { ActionResult, Group, MoveFocusArgs } from './types.js';
 
 /**
@@ -41,9 +41,13 @@ export const listenerElement = (
 export const resolveRoot = (
   target: Element | null | undefined,
   listener: EventTarget | null | undefined,
-): Element | null =>
-  target?.closest?.(`[${DEFAULT_ATTRIBUTES.root}]`) ||
-  listenerElement(listener);
+): Element | null => {
+  for (let element = target; element; element = element.parentElement) {
+    if (hasEnabledAttribute(element, DEFAULT_ATTRIBUTES.root)) return element;
+  }
+
+  return listenerElement(listener);
+};
 
 /**
  * What a root governs: its navigable items in DOM order, and the one holding
@@ -54,8 +58,12 @@ export const resolveRoot = (
 export const readGroup = (root: Element): Group => ({
   items: Array.from(
     root.querySelectorAll(`[${DEFAULT_ATTRIBUTES.item}]:not([disabled])`),
-  ),
-  focused: root.querySelector(`[${DEFAULT_ATTRIBUTES.item}]:focus-within`),
+  ).filter((item) => hasEnabledAttribute(item, DEFAULT_ATTRIBUTES.item)),
+  focused:
+    Array.from(
+      root.querySelectorAll(`[${DEFAULT_ATTRIBUTES.item}]:focus-within`),
+    ).find((item) => hasEnabledAttribute(item, DEFAULT_ATTRIBUTES.item)) ??
+    null,
 });
 
 /**
@@ -80,9 +88,7 @@ export const moveFocus = <Action extends string>({
 
   if (!to || to === from) return { action, from, to: null };
 
-  // Presence-based, so the bare `data-keyrove-roving-tabindex` spelling works
-  // — `getAttribute` would read it as "" and silently disable roving.
-  if (from?.hasAttribute(DEFAULT_ATTRIBUTES.rovingTabindex)) {
+  if (from && hasEnabledAttribute(from, DEFAULT_ATTRIBUTES.rovingTabindex)) {
     toggleTabIndex({ root: from, isActive: false });
     toggleTabIndex({ root: to, isActive: true });
   }

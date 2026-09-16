@@ -1,5 +1,10 @@
 import { describe, it, expect, afterEach } from 'vitest';
-import { keyRove, KEYROVE_ATTR_ROOT } from '../../keyRove';
+import {
+  keyRove,
+  KEYROVE_ATTR_ITEM,
+  KEYROVE_ATTR_ROOT,
+  KEYROVE_ATTR_SKIP,
+} from '../../keyRove';
 import {
   activeId,
   createItem,
@@ -129,6 +134,17 @@ describe('keyRove', () => {
 
       expect(activeId()).toBe('a');
     });
+
+    it('keeps an item navigable when its skip attribute is false', () => {
+      const skipped = createItem('b');
+      skipped.setAttribute(KEYROVE_ATTR_SKIP, 'false');
+      renderList([createItem('a'), skipped, createItem('c')]);
+      document.getElementById('a')!.focus();
+
+      pressKey('ArrowDown');
+
+      expect(activeId()).toBe('b');
+    });
   });
 
   describe('disabled items', () => {
@@ -161,6 +177,34 @@ describe('keyRove', () => {
       pressKey('ArrowDown');
 
       expect(activeId()).toBe('b');
+    });
+
+    it('ignores an inner root whose attribute is false', () => {
+      const inner = document.createElement('div');
+      inner.setAttribute(KEYROVE_ATTR_ROOT, 'false');
+      inner.append(createItem('a'), createItem('b'));
+
+      const outer = document.createElement('div');
+      outer.setAttribute(KEYROVE_ATTR_ROOT, 'true');
+      outer.append(inner, createItem('c'));
+      document.body.appendChild(outer);
+      outer.addEventListener('keydown', (e) => keyRove(e));
+
+      document.getElementById('b')!.focus();
+      pressKey('ArrowDown');
+
+      expect(activeId()).toBe('c');
+    });
+
+    it('ignores items whose item attribute is false', () => {
+      const ignored = createItem('b');
+      ignored.setAttribute(KEYROVE_ATTR_ITEM, 'false');
+      renderList([createItem('a'), ignored, createItem('c')]);
+      document.getElementById('a')!.focus();
+
+      pressKey('ArrowDown');
+
+      expect(activeId()).toBe('c');
     });
   });
 

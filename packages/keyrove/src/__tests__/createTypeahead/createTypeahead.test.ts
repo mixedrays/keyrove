@@ -4,6 +4,7 @@ import {
   KEYROVE_ATTR_FOCUS_KEY,
   KEYROVE_ATTR_NEXT_KEY,
   KEYROVE_ATTR_ROOT,
+  KEYROVE_ATTR_SKIP,
 } from '../../keyRove';
 import {
   activeId,
@@ -289,6 +290,17 @@ describe('createTypeahead', () => {
       pressKey('d');
 
       expect(activeId()).toBe('b');
+    });
+
+    it('matches an item whose skip attribute is false', () => {
+      const drafts = createItem('a', 'Drafts');
+      drafts.setAttribute(KEYROVE_ATTR_SKIP, 'false');
+      renderList([drafts, createItem('b', 'Sent')]);
+      document.getElementById('b')!.focus();
+
+      pressKey('d');
+
+      expect(activeId()).toBe('a');
     });
 
     it('excludes disabled items', () => {

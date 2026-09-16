@@ -407,6 +407,10 @@ On the root, read on every keypress:
 | `data-keyrove-page-up-key`   | `PageUp`                                                 | Page jump back.                                                                                                                                     |
 | `data-keyrove-page-down-key` | `PageDown`                                               | Page jump forward.                                                                                                                                  |
 
+The boolean attributes — `data-keyrove-item`, `data-keyrove-skip`,
+`data-keyrove-roving-tabindex`, `data-keyrove-root`, and `data-keyrove-loop` —
+are enabled when bare or set to `"true"`; set one to `"false"` to disable it.
+
 The sideways defaults swap under RTL; see
 [horizontal groups and RTL](#horizontal-groups-and-rtl). The boolean
 attributes (`item`, `skip`, `root`, `loop`, `roving-tabindex`) work by

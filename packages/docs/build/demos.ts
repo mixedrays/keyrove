@@ -52,6 +52,112 @@ const FOLD_MARKER = /^[ \t]*<!--[ \t]*\/?fold[ \t]*-->[ \t]*\n/gm;
 
 const FENCE = '```';
 
+/**
+ * The demos whose log is a history rather than one line.
+ *
+ * One line shows the last move and nothing else, which leaves the two answers
+ * that are not a move invisible: a key keyrove claimed but could not act on,
+ * and a key that was never its own. A history shows all three, and costs the
+ * preview a third of its width, so it is worth it only where the page is about
+ * what a keypress comes back with. The log is the same markup whichever demo
+ * opts in; adding a name here is all it takes.
+ */
+const HISTORY = new Set([
+  'list',
+  'loop',
+  'roving',
+  'inbox',
+  'skip',
+  'listbox',
+  'typeahead',
+  'labels',
+  'nested',
+  'keys',
+  'orientation',
+  'rtl',
+  'editable',
+  'panes',
+  'grid',
+  'responsive',
+]);
+
+/**
+ * The demos whose log runs across the foot of the preview rather than up its
+ * right-hand side.
+ *
+ * A history costs the stage half its width. A vertical list can spare it — it
+ * was never using the space to the right of its longest item — but a
+ * horizontal one is spending that width on the thing it is demonstrating: a
+ * toolbar given half a preview wraps its buttons onto a second row, and a
+ * filter bar that wraps has stopped being the shape the page is about. A grid
+ * is the same argument with a second axis: its columns are the thing being
+ * navigated, and six of them squeezed into half a preview read as a column of
+ * crushed cells rather than as rows worth pressing an arrow across. The
+ * responsive grid puts it strongest: the reader drags that panel to change its
+ * column count, so its width is not the room the demo needs but the demo
+ * itself, and a rail would have spent half of it before they started. Those
+ * demos keep the band across the foot, which is the layout the narrow screens
+ * already use, at every width instead.
+ *
+ * This is a list of names rather than something read off the fragment because
+ * both spellings of "horizontal" are in use — an orientation on the filter
+ * bars, an explicit ArrowRight on the toolbar — and a layout that turned on
+ * which one a fragment happened to choose would be a trap for whoever edited
+ * it next. What the CSS keys off is the attribute stamped below, so the
+ * stylesheet stays free of demo names.
+ */
+const BAND = new Set([
+  'keys',
+  'orientation',
+  'rtl',
+  'panes',
+  'grid',
+  'responsive',
+]);
+
+/**
+ * The log under — or beside — a demo's preview.
+ *
+ * The history's row is stamped here as a <template> rather than assembled in
+ * the browser, so this file stays the one place a demo's markup is written:
+ * src/demos.ts clones the row and fills its slots. The list is `aria-hidden`
+ * and the <output> beside it carries one line, which splits the two jobs the
+ * single-line log used to do at once — what is read, and what is announced.
+ * Announcing every row of a history would talk over the reader.
+ */
+const renderLog = (name: string) => {
+  if (!HISTORY.has(name)) {
+    return '<output class="log">Waiting for a keypress…</output>';
+  }
+
+  return [
+    '<div class="demo-log">',
+    '<div class="demo-log-bar">',
+    '<span class="demo-log-title">What happened</span>',
+    '<button type="button" class="demo-log-clear" data-clear-log>Clear</button>',
+    '</div>',
+    '<ol class="demo-log-list" data-log aria-hidden="true">',
+    '<li class="demo-log-empty" data-log-empty>Waiting for a keypress…</li>',
+    '</ol>',
+    '<template data-log-row>',
+    '<li class="log-row">',
+    '<span class="log-dot"></span>',
+    '<kbd class="kbd log-key" data-key></kbd>',
+    '<span class="log-line">',
+    // The spaces are the ones between the words of the finished sentence: an
+    // empty slot is hidden, and the space beside it collapses with it.
+    '<span class="log-action" data-action></span> ',
+    '<span class="log-phrase" data-phrase></span> ',
+    '<b class="log-target" data-target></b>',
+    '</span>',
+    '<span class="log-repeat" data-repeat hidden></span>',
+    '</li>',
+    '</template>',
+    '<output class="demo-log-live" aria-live="polite"></output>',
+    '</div>',
+  ].join('');
+};
+
 /** The excerpt a reader sees: each folded region collapses to one comment. */
 const toExcerpt = (markup: string) => markup.replace(FOLD, '$1<!-- … -->\n');
 
@@ -92,10 +198,15 @@ const renderUnit = (name: string, markup: string, surfaceClass: string) => {
     '</button>',
   ].join(' ');
 
-  return `<div class="demo" data-demo="${name}">
+  // The band demos say so on the wrapper: the layout is a property of the
+  // demo, and keying the stylesheet off a name would put the list in two
+  // places at once.
+  const layout = BAND.has(name) ? ' data-demo-log="band"' : '';
+
+  return `<div class="demo" data-demo="${name}"${layout}>
 <div class="demo-preview">
 ${live}
-<output class="log">Waiting for a keypress…</output>
+${renderLog(name)}
 </div>
 <div class="demo-code">
 ${copy}

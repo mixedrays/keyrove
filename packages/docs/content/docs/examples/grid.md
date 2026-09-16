@@ -46,6 +46,12 @@ on screen.
 - Rebind any move and the replaced default goes back to its browser behaviour;
   see [custom keys](/docs/examples/custom-keys#grids).
 
+The log under the demo is where the table's last column shows itself. A move
+that runs into an edge is still keyrove's — it comes back claimed, with nowhere
+to go, which is the amber row — and that is why holding <kbd class="kbd">↓</kbd>
+at the foot of the grid does not fall through to the browser and scroll the page
+instead.
+
 ## Right-to-left grids
 
 Under `dir="rtl"` the default cell arrows flip: <kbd class="kbd">←</kbd> is the

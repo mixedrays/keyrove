@@ -53,6 +53,9 @@ list.addEventListener('keydown', (e) => {
 });
 ```
 
-The log under each demo on this site is wired up that way. `keyRove` also
-[returns what it did](/docs/api#return-value), so handlers sharing a listener
-can chain on it.
+Every demo on this site reports its moves that way. The log beside the list
+above shows the rest of the picture too: its green rows are the `onMove` calls,
+while the amber and grey ones are what `keyRove`
+[returned](/docs/api#return-value) — a key it claimed but could not act on at
+the end of the list, and a key that was never its own, left to the browser.
+Handlers sharing a listener chain on that same return value.

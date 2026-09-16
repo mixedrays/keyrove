@@ -17,7 +17,10 @@ stylesheet own them and read the result back. A
 [container query](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_containment/Container_queries)
 sets one custom property, `--cols`, and both the grid's layout and keyrove
 follow it. Drag the corner of the panel to narrow it, or narrow the window, then
-arrow around: the rows fold as the columns do.
+arrow around: the rows fold as the columns do. The log names the month focus
+landed on, so the count is readable without counting cells — six columns across,
+<kbd class="kbd">↓</kbd> takes January to July; two columns across, the same key
+takes it to March.
 
 <div data-demo="responsive" data-demo-class="resize-x overflow-hidden min-w-64 max-w-full"></div>
 
