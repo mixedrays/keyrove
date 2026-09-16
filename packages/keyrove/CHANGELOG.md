@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.1.0](https://github.com/mixedrays/keyrove/compare/v2.0.0...v2.1.0) (2026-09-16)
+
+### Features
+
+* add support for explicit false values for boolean attributes ([d6bb99e](https://github.com/mixedrays/keyrove/commit/d6bb99e9369a3f9931850b2a51c6fc8a94bea564))
+* optimize Open Graph card generation and caching strategy ([df3b3e5](https://github.com/mixedrays/keyrove/commit/df3b3e5e588cf305033bd94d26b8b99dfc86ffee))
+
 ## [2.0.0](https://github.com/mixedrays/keyrove/compare/v1.0.0...v2.0.0) (2026-09-07)
 
 ### ⚠ BREAKING CHANGES
