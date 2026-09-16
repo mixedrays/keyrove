@@ -37,8 +37,20 @@ describe('parseAttributeInt', () => {
     expect(parseAttributeInt(withAttribute('abc'), 'data-n', 4)).toBe(4);
   });
 
+  it('falls back when the attribute is empty', () => {
+    expect(parseAttributeInt(withAttribute(''), 'data-n', 2)).toBe(2);
+  });
+
   it('falls back when the attribute parses to zero', () => {
     expect(parseAttributeInt(withAttribute('0'), 'data-n', 5)).toBe(5);
+  });
+
+  it('falls back when the attribute is negative', () => {
+    expect(parseAttributeInt(withAttribute('-2'), 'data-n', 6)).toBe(6);
+  });
+
+  it('reads a value with leading whitespace', () => {
+    expect(parseAttributeInt(withAttribute(' 3'), 'data-n', 1)).toBe(3);
   });
 });
 

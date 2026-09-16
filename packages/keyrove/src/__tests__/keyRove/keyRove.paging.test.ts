@@ -42,6 +42,19 @@ describe('keyRove', () => {
       expect(activeId()).toBe('i10');
     });
 
+    it('falls back to a page length of 10 when the attribute is below 1', () => {
+      // a negative page length used as-is would send PageDown backwards
+      renderList(
+        Array.from({ length: 15 }, (_, i) => createItem(`i${i}`)),
+        { containerAttrs: { [KEYROVE_ATTR_PAGE_LENGTH]: '-2' } },
+      );
+      document.getElementById('i3')!.focus();
+
+      pressKey('PageDown');
+
+      expect(activeId()).toBe('i13');
+    });
+
     it('clamps to the last item when the jump overshoots the end', () => {
       renderList(
         [createItem('a'), createItem('b'), createItem('c'), createItem('d')],

@@ -131,13 +131,20 @@ export const toggleTabIndex = ({ root, isActive }: ToggleTabIndexArgs) => {
   root.setAttribute('tabindex', isActive ? '0' : '-1');
 };
 
-/** Reads an integer attribute off an element, falling back when absent or unparseable. */
+/**
+ * Reads a positive integer attribute off an element, falling back when absent,
+ * unparseable, or below 1 — a count of columns or items is never zero or
+ * negative, and a negative page length would flip the direction of a jump.
+ */
 export const parseAttributeInt = (
   element: Element,
   attribute: string,
   fallback: number,
-): number =>
-  parseInt(element.getAttribute(attribute) || String(fallback)) || fallback;
+): number => {
+  const value = parseInt(element.getAttribute(attribute) ?? '');
+
+  return value >= 1 ? value : fallback;
+};
 
 /** Whether a presence-style attribute is enabled, including its bare form. */
 export const hasEnabledAttribute = (element: Element, attribute: string) =>
