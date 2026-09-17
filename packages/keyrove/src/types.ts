@@ -218,7 +218,6 @@ export type ResolveTargetArgs = {
   layout: Layout;
   /** Rows per page jump — items, in a list. */
   pageLength: number;
-  skipAttribute: string;
 };
 
 export type ToggleTabIndexArgs = {
@@ -244,31 +243,4 @@ export type MoveFocusArgs<Action extends string> = {
   from: Element | null;
   to: Element | null | undefined;
   onMove?: (move: ActionResult<Action> & { to: Element }) => void;
-};
-
-/**
- * The element list a lookup walks, and where in it the walk starts.
- *
- * `skipAttribute` is passed in rather than imported from `attributes.ts`, so
- * the helpers in `utils.ts` stay independent of keyrove's own concepts.
- */
-export type NavBounds = {
-  elements: Element[];
-  fromIndex: number;
-  skipAttribute: string;
-};
-
-export type LinearMoveArgs = NavBounds & {
-  /** Wrap past the ends instead of clamping to them. */
-  loop?: boolean;
-};
-
-export type GridNeighborArgs = NavBounds & {
-  /** Signed offset to the neighbour: ±1 within a row, ±`cols` across rows. */
-  step: number;
-};
-
-export type PageTargetArgs = NavBounds & {
-  direction: 1 | -1;
-  stride: number;
 };

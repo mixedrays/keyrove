@@ -183,7 +183,6 @@ export const keyRove = (
           fromIndex: focused ? elements.indexOf(focused) : -1,
           layout,
           pageLength: parseAttributeInt(root, KEYROVE_ATTR_PAGE_LENGTH, 10),
-          skipAttribute: KEYROVE_ATTR_SKIP,
         });
 
   // With neither a target nor a focused item, keyrove has nothing to move
