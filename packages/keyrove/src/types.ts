@@ -177,11 +177,13 @@ export type Binding =
   | { combo: string; intent: 'focus'; enters: true; target: Element };
 
 /**
- * The explicitly bound combos, straight off the root's `*-key` attributes —
- * `null` or absent where the attribute is unset and the move keeps its
- * default key.
+ * Looks up the combo explicitly bound to a move, straight off the root's
+ * `*-key` attribute — nullish where the attribute is unset and the move keeps
+ * its default key.
  */
-export type ExplicitBindings = Partial<Record<StrideAction, string | null>>;
+export type ExplicitBinding = (
+  intent: StrideAction,
+) => string | null | undefined;
 
 /** A focus key as read off an item: its combo, and the item it focuses. */
 export type FocusKey = {
@@ -190,7 +192,11 @@ export type FocusKey = {
 };
 
 export type BuildBindingsArgs = {
-  explicit: ExplicitBindings;
+  /**
+   * Asked only about the moves in the layout's default table, so a move the
+   * layout lacks is never looked up.
+   */
+  explicit: ExplicitBinding;
   /**
    * The focus keys in the listener's reach, in DOM order. Head of the table:
    * an item's own key is the most specific declaration there is.

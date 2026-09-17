@@ -1,20 +1,10 @@
 import {
   KEYROVE_ATTR_COLS,
-  KEYROVE_ATTR_END_KEY,
-  KEYROVE_ATTR_END_ROW_KEY,
   KEYROVE_ATTR_FOCUS_KEY,
-  KEYROVE_ATTR_HOME_KEY,
-  KEYROVE_ATTR_HOME_ROW_KEY,
   KEYROVE_ATTR_ITEM,
   KEYROVE_ATTR_LOOP,
-  KEYROVE_ATTR_NEXT_KEY,
-  KEYROVE_ATTR_NEXT_ROW_KEY,
   KEYROVE_ATTR_ORIENTATION,
-  KEYROVE_ATTR_PAGE_DOWN_KEY,
   KEYROVE_ATTR_PAGE_LENGTH,
-  KEYROVE_ATTR_PAGE_UP_KEY,
-  KEYROVE_ATTR_PREV_KEY,
-  KEYROVE_ATTR_PREV_ROW_KEY,
   KEYROVE_ATTR_SKIP,
 } from './attributes.js';
 import { buildBindings } from './bindings.js';
@@ -28,7 +18,7 @@ import {
   parseAttributeInt,
 } from './utils.js';
 import type {
-  ExplicitBindings,
+  ExplicitBinding,
   FocusKey,
   KeyRoveEvent,
   Layout,
@@ -78,23 +68,19 @@ const readLayout = (root: Element): Layout => {
 };
 
 /**
- * The combos bound on the root, one per move — `null` where the attribute is
- * unset and the move keeps its default key. Read unfiltered: the binding table
- * consults only the moves its layout has, so a row key set on a list is never
- * looked at.
+ * The combo bound on the root for a move — `null` where the attribute is unset
+ * and the move keeps its default key. Every move's attribute is named after
+ * it, so the name is derived rather than listed: `nextRow` reads
+ * `data-keyrove-next-row-key`, the value of `KEYROVE_ATTR_NEXT_ROW_KEY`. Read
+ * on demand: the binding table asks only for the moves its layout has, so a
+ * row key set on a list is never looked at.
  */
-const readExplicitBindings = (root: Element): Required<ExplicitBindings> => ({
-  next: root.getAttribute(KEYROVE_ATTR_NEXT_KEY),
-  prev: root.getAttribute(KEYROVE_ATTR_PREV_KEY),
-  nextRow: root.getAttribute(KEYROVE_ATTR_NEXT_ROW_KEY),
-  prevRow: root.getAttribute(KEYROVE_ATTR_PREV_ROW_KEY),
-  home: root.getAttribute(KEYROVE_ATTR_HOME_KEY),
-  end: root.getAttribute(KEYROVE_ATTR_END_KEY),
-  homeRow: root.getAttribute(KEYROVE_ATTR_HOME_ROW_KEY),
-  endRow: root.getAttribute(KEYROVE_ATTR_END_ROW_KEY),
-  pageUp: root.getAttribute(KEYROVE_ATTR_PAGE_UP_KEY),
-  pageDown: root.getAttribute(KEYROVE_ATTR_PAGE_DOWN_KEY),
-});
+const readExplicitBinding =
+  (root: Element): ExplicitBinding =>
+  (intent) =>
+    root.getAttribute(
+      `data-keyrove-${intent.replace(/[A-Z]/g, '-$&').toLowerCase()}-key`,
+    );
 
 /**
  * The focus keys in reach of a keypress: every navigable item under `scope`
@@ -158,7 +144,7 @@ export const keyRove = (
   // table's order is the precedence — an item's own key over the root's
   // explicit bindings over the defaults.
   const binding = buildBindings({
-    explicit: readExplicitBindings(root),
+    explicit: readExplicitBinding(root),
     focus: readFocusKeys(scope),
     layout,
     rtl: () => isRtl(root),

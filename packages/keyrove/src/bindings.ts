@@ -17,67 +17,49 @@ import type {
   StrideAction,
 } from './types.js';
 
-// The rows the default table is made of: strides only, so `explicit` — keyed
-// by stride — can be looked up by a row's intent without narrowing at each use.
-type StrideBinding = Extract<Binding, { intent: StrideAction }>;
+// A row of the default table: a move, and the key it answers to when left
+// unbound. A tuple rather than an object, so the table minifies to its values;
+// the combo is still typed, so a misspelt key is a compile error.
+type DefaultRow = [
+  intent: StrideAction,
+  combo: KnownCode | `ctrl+${KnownCode}`,
+];
 
-// Named so the tables below are checked against `KnownCode` instead of
-// comparing against bare literals that TypeScript cannot vet.
-const KEY = {
-  arrowUp: 'ArrowUp',
-  arrowDown: 'ArrowDown',
-  arrowLeft: 'ArrowLeft',
-  arrowRight: 'ArrowRight',
-  home: 'Home',
-  end: 'End',
-  pageUp: 'PageUp',
-  pageDown: 'PageDown',
-} as const satisfies Record<string, KnownCode>;
+// The strides that enter a group from outside: the four directional moves,
+// `next`/`prev` and their row forms. Every other stride moves only within one.
+const ENTERING = /^(next|prev)/;
+
+// The rows between the item and page moves: a grid adds its row moves and
+// takes bare Home/End for the row ends, leaving ctrl+ for the whole grid's.
+const GRID_ROWS: DefaultRow[] = [
+  ['prevRow', 'ArrowUp'],
+  ['nextRow', 'ArrowDown'],
+  ['homeRow', 'Home'],
+  ['endRow', 'End'],
+  ['home', 'ctrl+Home'],
+  ['end', 'ctrl+End'],
+];
+const LIST_ROWS: DefaultRow[] = [
+  ['home', 'Home'],
+  ['end', 'End'],
+];
 
 /**
  * The default table for a layout — the documented keys table: every move the
- * layout has, in table order, with the key it answers to when left unbound and
- * whether it enters a group from outside. `flip` is the RTL swap of the
- * `next`/`prev` arrows on a horizontal axis; the row axis never flips.
+ * layout has, in table order, with the key it answers to when left unbound.
+ * `flip` is the RTL swap of the `next`/`prev` arrows on a horizontal axis; the
+ * row axis never flips.
  */
 const defaultTable = (
-  layout: Layout,
+  { kind, horizontal }: Layout,
   flip: boolean,
-): readonly StrideBinding[] => {
-  const [prev, next] = layout.horizontal
-    ? flip
-      ? [KEY.arrowRight, KEY.arrowLeft]
-      : [KEY.arrowLeft, KEY.arrowRight]
-    : [KEY.arrowUp, KEY.arrowDown];
-  const items: StrideBinding[] = [
-    { combo: prev, intent: 'prev', enters: true },
-    { combo: next, intent: 'next', enters: true },
-  ];
-  const pages: StrideBinding[] = [
-    { combo: KEY.pageUp, intent: 'pageUp', enters: false },
-    { combo: KEY.pageDown, intent: 'pageDown', enters: false },
-  ];
-
-  if (layout.kind === 'grid') {
-    return [
-      ...items,
-      { combo: KEY.arrowUp, intent: 'prevRow', enters: true },
-      { combo: KEY.arrowDown, intent: 'nextRow', enters: true },
-      { combo: KEY.home, intent: 'homeRow', enters: false },
-      { combo: KEY.end, intent: 'endRow', enters: false },
-      { combo: `ctrl+${KEY.home}`, intent: 'home', enters: false },
-      { combo: `ctrl+${KEY.end}`, intent: 'end', enters: false },
-      ...pages,
-    ];
-  }
-
-  return [
-    ...items,
-    { combo: KEY.home, intent: 'home', enters: false },
-    { combo: KEY.end, intent: 'end', enters: false },
-    ...pages,
-  ];
-};
+): DefaultRow[] => [
+  ['prev', horizontal ? (flip ? 'ArrowRight' : 'ArrowLeft') : 'ArrowUp'],
+  ['next', horizontal ? (flip ? 'ArrowLeft' : 'ArrowRight') : 'ArrowDown'],
+  ...(kind === 'grid' ? GRID_ROWS : LIST_ROWS),
+  ['pageUp', 'PageUp'],
+  ['pageDown', 'PageDown'],
+];
 
 /**
  * Builds the ordered binding table for a group. The first entry that matches
@@ -97,15 +79,17 @@ export const buildBindings = ({
 }: BuildBindingsArgs): Binding[] => {
   // Direction is read only when a default that could flip is in play: an
   // unbound side of a horizontal `next`/`prev` axis.
-  const flip = layout.horizontal && !(explicit.next && explicit.prev) && rtl();
+  const flip =
+    layout.horizontal && !(explicit('next') && explicit('prev')) && rtl();
   const rebound: Binding[] = [];
   const defaults: Binding[] = [];
 
-  for (const row of defaultTable(layout, flip)) {
-    const combo = explicit[row.intent];
+  for (const [intent, fallback] of defaultTable(layout, flip)) {
+    const combo = explicit(intent);
+    const enters = ENTERING.test(intent);
 
-    if (combo) rebound.push({ ...row, combo });
-    else defaults.push(row);
+    if (combo) rebound.push({ combo, intent, enters });
+    else defaults.push({ combo: fallback, intent, enters });
   }
 
   // An item's own key names one element, where a root's names a group and a
