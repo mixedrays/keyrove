@@ -8,7 +8,7 @@
  * of running a timer, so the handler owns no lifecycle to clean up.
  */
 
-import { DEFAULT_ATTRIBUTES } from './attributes.js';
+import { KEYROVE_ATTR_SKIP, KEYROVE_ATTR_TYPEAHEAD } from './attributes.js';
 import { moveFocus, readGroup, resolveRoot } from './group.js';
 import {
   hasCommandModifier,
@@ -27,7 +27,7 @@ import type {
 // collapses interior whitespace the way rendering does, so a label split
 // across source lines still matches the single spaces a user types.
 const getLabel = (item: Element) =>
-  item.getAttribute(DEFAULT_ATTRIBUTES.typeahead) ||
+  item.getAttribute(KEYROVE_ATTR_TYPEAHEAD) ||
   item.textContent?.replace(/\s+/g, ' ').trim() ||
   '';
 
@@ -39,8 +39,12 @@ const getLabel = (item: Element) =>
  * `data-keyrove-typeahead` attribute, falling back to trimmed `textContent`
  * — starts with it, case-insensitively. Typing inside editable elements is
  * never captured, and modified presses (Ctrl/Alt/Meta) are left to their
- * shortcuts.
+ * shortcuts. In `cycle` mode a single character moves to the next match after
+ * the focused item instead, wrapping, and repeating it cycles through those
+ * matches rather than growing the buffer.
  * @param options.resetMs - Buffer lifetime between keystrokes. Default 500.
+ * @param options.matchMode - Whether repeated characters extend the prefix
+ * (`'prefix'`) or cycle through its matches (`'cycle'`). Default `'prefix'`.
  * @param options.onMove - Fired after focus moved — only when it actually did.
  * @returns A handler with the `keyRove` contract: `null` when the key was
  * left untouched; `{ action: 'typeahead', from, to }` when it was consumed,
@@ -49,6 +53,7 @@ const getLabel = (item: Element) =>
  */
 export const createTypeahead = ({
   resetMs = 500,
+  matchMode = 'prefix',
   onMove,
 }: TypeaheadOptions = {}) => {
   let buffer = '';
@@ -86,12 +91,25 @@ export const createTypeahead = ({
     if (e.key === ' ' && !buffer) return null;
 
     lastPressTime = now;
-    buffer += e.key.toLowerCase();
+    const character = e.key.toLowerCase();
+
+    // Cycling keeps a repeated character a one-character prefix instead of
+    // growing the buffer, so "s", "s" goes on naming the S items.
+    if (matchMode !== 'cycle' || buffer !== character) buffer += character;
 
     const { items, focused } = readGroup(root);
-    const target = items.find(
+
+    // A one-character prefix in cycle mode searches from just past the focused
+    // item and wraps, so every press — fresh or repeated, quick or slow — lands
+    // on the next match, counted in DOM order even when focus sits on an item
+    // that does not match. Longer prefixes, and prefix mode, match from the top.
+    const start =
+      matchMode === 'cycle' && buffer.length === 1 && focused
+        ? items.indexOf(focused) + 1
+        : 0;
+    const target = [...items.slice(start), ...items.slice(0, start)].find(
       (item) =>
-        !hasEnabledAttribute(item, DEFAULT_ATTRIBUTES.skip) &&
+        !hasEnabledAttribute(item, KEYROVE_ATTR_SKIP) &&
         getLabel(item).toLowerCase().startsWith(buffer),
     );
 

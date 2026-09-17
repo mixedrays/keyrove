@@ -9,17 +9,27 @@
  * table.
  */
 
-import {
-  findFirst,
-  findGridNeighbor,
-  findLast,
-  findNext,
-  findPageTarget,
-  findPrev,
-  firstNavigable,
-  lastNavigable,
-} from './utils.js';
+import { KEYROVE_ATTR_SKIP } from './attributes.js';
+import { hasEnabledAttribute } from './utils.js';
 import type { ResolveTargetArgs } from './types.js';
+
+/**
+ * The first element not skipped, walking `elements` from index `i` in steps
+ * of `step`; `undefined` once the walk leaves either end. Every move is this
+ * walk — from a different start, by a different stride, with a different
+ * fallback when it comes back empty.
+ */
+const scan = (
+  elements: Element[],
+  i: number,
+  step: number,
+): Element | undefined => {
+  for (; i >= 0 && i < elements.length; i += step) {
+    if (!hasEnabledAttribute(elements[i], KEYROVE_ATTR_SKIP)) {
+      return elements[i];
+    }
+  }
+};
 
 /**
  * Resolves the element an intent lands on, or `null`/`undefined` when there
@@ -35,34 +45,37 @@ export const resolveTarget = ({
   fromIndex,
   layout: { kind, cols, loop },
   pageLength,
-  skipAttribute,
 }: ResolveTargetArgs): Element | null | undefined => {
-  if (fromIndex < 0) {
-    return intent === 'prev' && loop
-      ? findLast(elements, skipAttribute)
-      : findFirst(elements, skipAttribute);
-  }
+  const lastIndex = elements.length - 1;
+  // The group's ends. When every item is skipped they fall back to the very
+  // first and last, so a move still lands somewhere.
+  const first = () => scan(elements, 0, 1) || elements[0];
+  const last = () => scan(elements, lastIndex, -1) || elements[lastIndex];
 
-  const bounds = { elements, fromIndex, skipAttribute };
-  const stride = pageLength * cols;
+  if (fromIndex < 0) return intent === 'prev' && loop ? last() : first();
 
   switch (intent) {
+    // Past its end a list clamps, or wraps when it loops; a grid stops at its
+    // edge and never wraps, per the APG grid pattern.
     case 'next':
-      return kind === 'grid'
-        ? findGridNeighbor({ ...bounds, step: 1 })
-        : findNext({ ...bounds, loop });
+      return (
+        scan(elements, fromIndex + 1, 1) ||
+        (kind === 'grid' ? null : loop ? first() : last())
+      );
     case 'prev':
-      return kind === 'grid'
-        ? findGridNeighbor({ ...bounds, step: -1 })
-        : findPrev({ ...bounds, loop });
+      return (
+        scan(elements, fromIndex - 1, -1) ||
+        (kind === 'grid' ? null : loop ? last() : first())
+      );
+    // A row move keeps its column, stepping a further row over a skipped cell.
     case 'nextRow':
-      return findGridNeighbor({ ...bounds, step: cols });
+      return scan(elements, fromIndex + cols, cols) || null;
     case 'prevRow':
-      return findGridNeighbor({ ...bounds, step: -cols });
+      return scan(elements, fromIndex - cols, -cols) || null;
     case 'home':
-      return findFirst(elements, skipAttribute);
+      return first();
     case 'end':
-      return findLast(elements, skipAttribute);
+      return last();
     case 'homeRow':
     case 'endRow': {
       // Unlike `home`/`end`, a row end never falls back to a skipped cell: a
@@ -72,13 +85,24 @@ export const resolveTarget = ({
 
       return (
         (intent === 'homeRow'
-          ? firstNavigable(row, skipAttribute)
-          : lastNavigable(row, skipAttribute)) ?? null
+          ? scan(row, 0, 1)
+          : scan(row, row.length - 1, -1)) || null
       );
     }
+    // A page jump is a request to travel as far as possible: overshooting an
+    // end, or finding only skipped items from where it lands onward, clamps to
+    // that end rather than doing nothing.
     case 'pageUp':
-      return findPageTarget({ ...bounds, direction: -1, stride });
-    case 'pageDown':
-      return findPageTarget({ ...bounds, direction: 1, stride });
+    case 'pageDown': {
+      const direction = intent === 'pageUp' ? -1 : 1;
+      const landing = fromIndex + pageLength * cols * direction;
+
+      return (
+        (landing >= 0 &&
+          landing <= lastIndex &&
+          scan(elements, landing, direction)) ||
+        (direction < 0 ? first() : last())
+      );
+    }
   }
 };

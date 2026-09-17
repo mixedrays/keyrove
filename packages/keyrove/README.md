@@ -197,7 +197,7 @@ whose label starts with what was typed, case-insensitively.
 ```ts
 import { keyRove, createTypeahead } from '@mixedrays/keyrove';
 
-const typeahead = createTypeahead(); // { resetMs?, onMove? }
+const typeahead = createTypeahead(); // { resetMs?, matchMode?, onMove? }
 
 list.addEventListener('keydown', (e) => keyRove(e) || typeahead(e));
 ```
@@ -213,6 +213,13 @@ once a match is underway. The handler returns
 `{ action: 'typeahead', from, to }` or `null`, the same contract as `keyRove`,
 and its `onMove` fires after a real move exactly as `keyRove`'s does, so both
 handlers can feed the same follow-focus logic.
+
+Repeated characters normally extend the prefix: `S`, then `S`, looks for an
+item starting with `ss`. For menus that cycle through same-letter items, pass
+`{ matchMode: 'cycle' }`: a single character moves to the next item after the
+focused one that starts with it, wrapping, so repeated `S` presses step through
+the `S` items at any pace. A different character typed before the buffer
+resets still refines the prefix.
 
 ## Attributes
 

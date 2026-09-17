@@ -1,18 +1,27 @@
 import { describe, it, expect, afterEach, vi } from 'vitest';
 import {
+  KEYROVE_ATTR_END_KEY,
+  KEYROVE_ATTR_END_ROW_KEY,
+  KEYROVE_ATTR_HOME_KEY,
+  KEYROVE_ATTR_HOME_ROW_KEY,
   KEYROVE_ATTR_NEXT_KEY,
+  KEYROVE_ATTR_NEXT_ROW_KEY,
   KEYROVE_ATTR_PAGE_DOWN_KEY,
   KEYROVE_ATTR_PAGE_LENGTH,
   KEYROVE_ATTR_PAGE_UP_KEY,
   KEYROVE_ATTR_PREV_KEY,
+  KEYROVE_ATTR_PREV_ROW_KEY,
 } from '../../keyRove';
+import type { StrideAction } from '../../types';
 import {
   activeId,
   createItem,
   pressKey,
+  renderGrid,
   renderList,
   resetTestState,
 } from './testUtils';
+import type { RoveResult } from './testUtils';
 
 afterEach(resetTestState);
 
@@ -79,6 +88,42 @@ describe('keyRove', () => {
       pressKey('ArrowDown', undefined, { ctrlKey: true });
       expect(activeId()).toBe('b');
     });
+  });
+
+  describe('key attributes', () => {
+    // Every stride with the constant that rebinds it. keyRove derives the
+    // attribute name from the move instead of listing it, so this pins the two
+    // spellings together; `satisfies` fails here when a move is added without
+    // one.
+    const KEY_ATTRIBUTES = {
+      next: KEYROVE_ATTR_NEXT_KEY,
+      prev: KEYROVE_ATTR_PREV_KEY,
+      nextRow: KEYROVE_ATTR_NEXT_ROW_KEY,
+      prevRow: KEYROVE_ATTR_PREV_ROW_KEY,
+      home: KEYROVE_ATTR_HOME_KEY,
+      end: KEYROVE_ATTR_END_KEY,
+      homeRow: KEYROVE_ATTR_HOME_ROW_KEY,
+      endRow: KEYROVE_ATTR_END_ROW_KEY,
+      pageUp: KEYROVE_ATTR_PAGE_UP_KEY,
+      pageDown: KEYROVE_ATTR_PAGE_DOWN_KEY,
+    } satisfies Record<StrideAction, string>;
+
+    it.each(Object.entries(KEY_ATTRIBUTES))(
+      'binds %s through %s',
+      (intent, attribute) => {
+        let result: RoveResult = null;
+        // a grid has every stride; the middle cell can move in any direction
+        renderGrid(9, 3, {
+          containerAttrs: { [attribute]: 'KeyJ' },
+          onResult: (r) => (result = r),
+        });
+        document.getElementById('4')!.focus();
+
+        pressKey('KeyJ');
+
+        expect(result).toMatchObject({ action: intent });
+      },
+    );
   });
 
   describe('custom navigation keys', () => {

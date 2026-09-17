@@ -1,16 +1,33 @@
 import { describe, it, expect, vi } from 'vitest';
 import { buildBindings } from '../../bindings';
-import type { BuildBindingsArgs, Layout } from '../../types';
+import type { BuildBindingsArgs, Layout, StrideAction } from '../../types';
 
 const LIST: Layout = { kind: 'list', cols: 1, horizontal: false, loop: false };
 const GRID: Layout = { kind: 'grid', cols: 3, horizontal: true, loop: false };
 
-type BuildOverrides = Partial<Omit<BuildBindingsArgs, 'rtl'>> & {
+type Explicit = Partial<Record<StrideAction, string>>;
+
+// The root's `*-key` attributes as a plain object, looked up per move the way
+// `keyRove` reads them off the root.
+const lookup = (explicit: Explicit) => (intent: StrideAction) =>
+  explicit[intent];
+
+type BuildOverrides = Partial<Omit<BuildBindingsArgs, 'explicit' | 'rtl'>> & {
+  explicit?: Explicit;
   rtl?: boolean;
 };
 
-const build = ({ rtl = false, ...overrides }: BuildOverrides = {}) =>
-  buildBindings({ explicit: {}, layout: LIST, rtl: () => rtl, ...overrides });
+const build = ({
+  explicit = {},
+  rtl = false,
+  ...overrides
+}: BuildOverrides = {}) =>
+  buildBindings({
+    explicit: lookup(explicit),
+    layout: LIST,
+    rtl: () => rtl,
+    ...overrides,
+  });
 
 const combos = (bindings: ReturnType<typeof build>) =>
   bindings.map(({ combo }) => combo);
@@ -280,16 +297,26 @@ describe('buildBindings', () => {
     it('reads direction only when an unbound horizontal default could flip', () => {
       const rtl = vi.fn(() => true);
 
-      buildBindings({ explicit: {}, layout: LIST, rtl });
+      buildBindings({ explicit: lookup({}), layout: LIST, rtl });
       buildBindings({
-        explicit: { next: 'KeyL', prev: 'KeyH' },
+        explicit: lookup({ next: 'KeyL', prev: 'KeyH' }),
         layout: GRID,
         rtl,
       });
       expect(rtl).not.toHaveBeenCalled();
 
-      buildBindings({ explicit: { next: 'KeyL' }, layout: GRID, rtl });
+      buildBindings({ explicit: lookup({ next: 'KeyL' }), layout: GRID, rtl });
       expect(rtl).toHaveBeenCalledTimes(1);
+    });
+
+    it('looks up only the moves the layout has', () => {
+      const explicit = vi.fn(lookup({}));
+
+      buildBindings({ explicit, layout: LIST, rtl: () => false });
+
+      expect(explicit.mock.calls.map(([intent]) => intent).sort()).toEqual(
+        ['end', 'home', 'next', 'pageDown', 'pageUp', 'prev'].sort(),
+      );
     });
   });
 });

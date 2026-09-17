@@ -124,6 +124,12 @@ export type Options = {
 export type TypeaheadOptions = {
   /** Milliseconds of typing silence after which the buffer resets. Defaults to 500. */
   resetMs?: number;
+  /**
+   * How repeated characters match. `'prefix'` extends the prefix; `'cycle'`
+   * moves each single-character press to the next item after the focused one
+   * starting with it, wrapping, so repeats cycle. Defaults to `'prefix'`.
+   */
+  matchMode?: 'prefix' | 'cycle';
   /** Fired after focus has moved — and only when it actually moved. */
   onMove?: (move: TypeaheadMove) => void;
 };
@@ -134,35 +140,12 @@ export type TypeaheadOptions = {
  * The shared {@link ActionResult} with its own action — derived rather than
  * re-spelled, so a field added there reaches both branches of the chain
  * `keyRove(e) || typeahead(e)`. `to` is null for a consumed no-op — the
- * buffer grew but still matches the focused item.
+ * match is the focused item already.
  */
 export type TypeaheadResult = ActionResult<'typeahead'>;
 
 /** The argument a typeahead `onMove` receives: a move that actually happened. */
 export type TypeaheadMove = TypeaheadResult & { to: Element };
-
-/**
- * Attribute names keyrove reads from the DOM, keyed by role.
- *
- * `DEFAULT_ATTRIBUTES` is checked against this with `satisfies`, so the map and
- * this type cannot drift apart in either direction. The `*Key` entries are
- * mapped from {@link MoveAction}, one per move, so a move cannot exist without
- * the attribute that binds it — on the root for the strides, on the item for
- * `focus`.
- */
-export type Attributes = {
-  item: string;
-  skip: string;
-  root: string;
-  pageLength: string;
-  cols: string;
-  rovingTabindex: string;
-  loop: string;
-  orientation: string;
-  typeahead: string;
-} & {
-  [Intent in MoveAction as `${Intent}Key`]: string;
-};
 
 /**
  * How a group folds its DOM-ordered sequence — read once off the root and
@@ -194,11 +177,13 @@ export type Binding =
   | { combo: string; intent: 'focus'; enters: true; target: Element };
 
 /**
- * The explicitly bound combos, straight off the root's `*-key` attributes —
- * `null` or absent where the attribute is unset and the move keeps its
- * default key.
+ * Looks up the combo explicitly bound to a move, straight off the root's
+ * `*-key` attribute — nullish where the attribute is unset and the move keeps
+ * its default key.
  */
-export type ExplicitBindings = Partial<Record<StrideAction, string | null>>;
+export type ExplicitBinding = (
+  intent: StrideAction,
+) => string | null | undefined;
 
 /** A focus key as read off an item: its combo, and the item it focuses. */
 export type FocusKey = {
@@ -207,7 +192,11 @@ export type FocusKey = {
 };
 
 export type BuildBindingsArgs = {
-  explicit: ExplicitBindings;
+  /**
+   * Asked only about the moves in the layout's default table, so a move the
+   * layout lacks is never looked up.
+   */
+  explicit: ExplicitBinding;
   /**
    * The focus keys in the listener's reach, in DOM order. Head of the table:
    * an item's own key is the most specific declaration there is.
@@ -229,7 +218,6 @@ export type ResolveTargetArgs = {
   layout: Layout;
   /** Rows per page jump — items, in a list. */
   pageLength: number;
-  skipAttribute: string;
 };
 
 export type ToggleTabIndexArgs = {
@@ -255,31 +243,4 @@ export type MoveFocusArgs<Action extends string> = {
   from: Element | null;
   to: Element | null | undefined;
   onMove?: (move: ActionResult<Action> & { to: Element }) => void;
-};
-
-/**
- * The element list a lookup walks, and where in it the walk starts.
- *
- * `skipAttribute` is the attribute *name* rather than the attribute map, so the
- * helpers in `utils.ts` stay independent of keyrove's own concepts.
- */
-export type NavBounds = {
-  elements: Element[];
-  fromIndex: number;
-  skipAttribute: string;
-};
-
-export type LinearMoveArgs = NavBounds & {
-  /** Wrap past the ends instead of clamping to them. */
-  loop?: boolean;
-};
-
-export type GridNeighborArgs = NavBounds & {
-  /** Signed offset to the neighbour: ±1 within a row, ±`cols` across rows. */
-  step: number;
-};
-
-export type PageTargetArgs = NavBounds & {
-  direction: 1 | -1;
-  stride: number;
 };

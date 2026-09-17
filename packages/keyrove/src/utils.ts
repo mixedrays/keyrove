@@ -2,17 +2,12 @@
  * Standalone helpers behind keyRove's navigation.
  *
  * Everything here is pure with respect to keyrove's own concepts: helpers take
- * a plain element list and an attribute *name*, never the attribute map, so
- * they can be reasoned about and tested without a DOM tree wired to a nav root.
+ * an event, an element or an attribute *name*, never keyrove's own constants,
+ * so they can be reasoned about and tested without a DOM tree wired to a nav
+ * root.
  */
 
-import type {
-  GridNeighborArgs,
-  KeyRoveEvent,
-  LinearMoveArgs,
-  PageTargetArgs,
-  ToggleTabIndexArgs,
-} from './types.js';
+import type { KeyRoveEvent, ToggleTabIndexArgs } from './types.js';
 
 const isMacLike = () =>
   typeof navigator !== 'undefined' &&
@@ -131,134 +126,22 @@ export const toggleTabIndex = ({ root, isActive }: ToggleTabIndexArgs) => {
   root.setAttribute('tabindex', isActive ? '0' : '-1');
 };
 
-/** Reads an integer attribute off an element, falling back when absent or unparseable. */
+/**
+ * Reads a positive integer attribute off an element, falling back when absent,
+ * unparseable, or below 1 — a count of columns or items is never zero or
+ * negative, and a negative page length would flip the direction of a jump.
+ */
 export const parseAttributeInt = (
   element: Element,
   attribute: string,
   fallback: number,
-): number =>
-  parseInt(element.getAttribute(attribute) || String(fallback)) || fallback;
+): number => {
+  const value = parseInt(element.getAttribute(attribute) ?? '');
+
+  return value >= 1 ? value : fallback;
+};
 
 /** Whether a presence-style attribute is enabled, including its bare form. */
 export const hasEnabledAttribute = (element: Element, attribute: string) =>
   element.hasAttribute(attribute) &&
   element.getAttribute(attribute)?.trim().toLowerCase() !== 'false';
-
-/** First element not carrying `skipAttribute`; undefined when every one does. */
-export const firstNavigable = (
-  elements: Element[],
-  skipAttribute: string,
-): Element | undefined =>
-  elements.find((el) => !hasEnabledAttribute(el, skipAttribute));
-
-/** Last element not carrying `skipAttribute`; undefined when every one does. */
-export const lastNavigable = (
-  elements: Element[],
-  skipAttribute: string,
-): Element | undefined =>
-  elements
-    .slice()
-    .reverse()
-    .find((el) => !hasEnabledAttribute(el, skipAttribute));
-
-/** First navigable element, or the very first one when every element is skipped. */
-export const findFirst = (
-  elements: Element[],
-  skipAttribute: string,
-): Element | undefined =>
-  firstNavigable(elements, skipAttribute) || elements[0];
-
-/** Last navigable element, or the very last one when every element is skipped. */
-export const findLast = (
-  elements: Element[],
-  skipAttribute: string,
-): Element | undefined =>
-  lastNavigable(elements, skipAttribute) || elements[elements.length - 1];
-
-/**
- * Next navigable element after `fromIndex`. Past the end it clamps to the
- * last one, or wraps to the first when `loop` is set.
- */
-export const findNext = ({
-  elements,
-  fromIndex,
-  skipAttribute,
-  loop,
-}: LinearMoveArgs): Element | undefined => {
-  for (let i = fromIndex + 1; i < elements.length; i++) {
-    if (!hasEnabledAttribute(elements[i], skipAttribute)) return elements[i];
-  }
-
-  return loop
-    ? findFirst(elements, skipAttribute)
-    : findLast(elements, skipAttribute);
-};
-
-/**
- * Previous navigable element before `fromIndex`. Past the start it clamps to
- * the first one, or wraps to the last when `loop` is set.
- */
-export const findPrev = ({
-  elements,
-  fromIndex,
-  skipAttribute,
-  loop,
-}: LinearMoveArgs): Element | undefined => {
-  for (let i = fromIndex - 1; i >= 0; i--) {
-    if (!hasEnabledAttribute(elements[i], skipAttribute)) return elements[i];
-  }
-
-  return loop
-    ? findLast(elements, skipAttribute)
-    : findFirst(elements, skipAttribute);
-};
-
-/**
- * Resolves the neighbour `step` positions away, stepping further in the same
- * direction over skipped cells. Returns null at the grid edge (no wrapping).
- */
-export const findGridNeighbor = ({
-  elements,
-  fromIndex,
-  step,
-  skipAttribute,
-}: GridNeighborArgs): Element | null => {
-  if (fromIndex < 0) return null;
-
-  for (let i = fromIndex + step; i >= 0 && i < elements.length; i += step) {
-    if (!hasEnabledAttribute(elements[i], skipAttribute)) return elements[i];
-  }
-
-  return null;
-};
-
-/**
- * Resolves the target of a page jump: `stride` positions away in `direction`.
- *
- * Unlike arrow movement, a page jump is a request to travel as far as possible,
- * so overshooting either end clamps to the first/last element rather than
- * doing nothing.
- */
-export const findPageTarget = ({
-  elements,
-  fromIndex,
-  direction,
-  stride,
-  skipAttribute,
-}: PageTargetArgs): Element | null | undefined => {
-  if (fromIndex < 0) return null;
-
-  const targetIndex = fromIndex + stride * direction;
-  const edge =
-    direction < 0
-      ? findFirst(elements, skipAttribute)
-      : findLast(elements, skipAttribute);
-
-  if (targetIndex < 0 || targetIndex >= elements.length) return edge;
-
-  for (let i = targetIndex; i >= 0 && i < elements.length; i += direction) {
-    if (!hasEnabledAttribute(elements[i], skipAttribute)) return elements[i];
-  }
-
-  return edge;
-};

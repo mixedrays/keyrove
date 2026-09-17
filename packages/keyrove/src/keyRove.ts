@@ -1,4 +1,12 @@
-import { DEFAULT_ATTRIBUTES } from './attributes.js';
+import {
+  KEYROVE_ATTR_COLS,
+  KEYROVE_ATTR_FOCUS_KEY,
+  KEYROVE_ATTR_ITEM,
+  KEYROVE_ATTR_LOOP,
+  KEYROVE_ATTR_ORIENTATION,
+  KEYROVE_ATTR_PAGE_LENGTH,
+  KEYROVE_ATTR_SKIP,
+} from './attributes.js';
 import { buildBindings } from './bindings.js';
 import { listenerElement, moveFocus, readGroup, resolveRoot } from './group.js';
 import { resolveTarget } from './position.js';
@@ -10,8 +18,7 @@ import {
   parseAttributeInt,
 } from './utils.js';
 import type {
-  Attributes,
-  ExplicitBindings,
+  ExplicitBinding,
   FocusKey,
   KeyRoveEvent,
   Layout,
@@ -19,28 +26,9 @@ import type {
   Options,
 } from './types.js';
 
-// Individual constants, so consumers can spread them into markup without
-// reaching into the map — which stays internal; see `attributes.ts`.
-export const KEYROVE_ATTR_ITEM = DEFAULT_ATTRIBUTES.item;
-export const KEYROVE_ATTR_SKIP = DEFAULT_ATTRIBUTES.skip;
-export const KEYROVE_ATTR_ROOT = DEFAULT_ATTRIBUTES.root;
-export const KEYROVE_ATTR_NEXT_KEY = DEFAULT_ATTRIBUTES.nextKey;
-export const KEYROVE_ATTR_PREV_KEY = DEFAULT_ATTRIBUTES.prevKey;
-export const KEYROVE_ATTR_NEXT_ROW_KEY = DEFAULT_ATTRIBUTES.nextRowKey;
-export const KEYROVE_ATTR_PREV_ROW_KEY = DEFAULT_ATTRIBUTES.prevRowKey;
-export const KEYROVE_ATTR_HOME_KEY = DEFAULT_ATTRIBUTES.homeKey;
-export const KEYROVE_ATTR_END_KEY = DEFAULT_ATTRIBUTES.endKey;
-export const KEYROVE_ATTR_HOME_ROW_KEY = DEFAULT_ATTRIBUTES.homeRowKey;
-export const KEYROVE_ATTR_END_ROW_KEY = DEFAULT_ATTRIBUTES.endRowKey;
-export const KEYROVE_ATTR_PAGE_UP_KEY = DEFAULT_ATTRIBUTES.pageUpKey;
-export const KEYROVE_ATTR_PAGE_DOWN_KEY = DEFAULT_ATTRIBUTES.pageDownKey;
-export const KEYROVE_ATTR_FOCUS_KEY = DEFAULT_ATTRIBUTES.focusKey;
-export const KEYROVE_ATTR_PAGE_LENGTH = DEFAULT_ATTRIBUTES.pageLength;
-export const KEYROVE_ATTR_COLS = DEFAULT_ATTRIBUTES.cols;
-export const KEYROVE_ATTR_ROVING_TABINDEX = DEFAULT_ATTRIBUTES.rovingTabindex;
-export const KEYROVE_ATTR_LOOP = DEFAULT_ATTRIBUTES.loop;
-export const KEYROVE_ATTR_ORIENTATION = DEFAULT_ATTRIBUTES.orientation;
-export const KEYROVE_ATTR_TYPEAHEAD = DEFAULT_ATTRIBUTES.typeahead;
+// The attribute constants ship alongside the handler that reads them, so
+// consumers can spread them into markup; see `attributes.ts`.
+export * from './attributes.js';
 
 // Reading direction for an inline axis. The nearest `dir` attribute
 // decides, mirroring how the DOM resolves direction (and working in jsdom,
@@ -63,8 +51,8 @@ const isRtl = (root: Element): boolean => {
  * makes a grid, which has no orientation of its own — its `next`/`prev` axis is
  * sideways by nature — and never wraps, per the APG grid pattern.
  */
-const readLayout = (root: Element, attributes: Attributes): Layout => {
-  const cols = parseAttributeInt(root, attributes.cols, 1);
+const readLayout = (root: Element): Layout => {
+  const cols = parseAttributeInt(root, KEYROVE_ATTR_COLS, 1);
 
   if (cols > 1) return { kind: 'grid', cols, horizontal: true, loop: false };
 
@@ -74,32 +62,25 @@ const readLayout = (root: Element, attributes: Attributes): Layout => {
     // `orientation="horizontal"` redirects only the *default* keys — an
     // explicit binding still wins in the table. Nothing but the literal value
     // "horizontal" switches anything.
-    horizontal: root.getAttribute(attributes.orientation) === 'horizontal',
-    loop: hasEnabledAttribute(root, attributes.loop),
+    horizontal: root.getAttribute(KEYROVE_ATTR_ORIENTATION) === 'horizontal',
+    loop: hasEnabledAttribute(root, KEYROVE_ATTR_LOOP),
   };
 };
 
 /**
- * The combos bound on the root, one per move — `null` where the attribute is
- * unset and the move keeps its default key. Read unfiltered: the binding table
- * consults only the moves its layout has, so a row key set on a list is never
- * looked at.
+ * The combo bound on the root for a move — `null` where the attribute is unset
+ * and the move keeps its default key. Every move's attribute is named after
+ * it, so the name is derived rather than listed: `nextRow` reads
+ * `data-keyrove-next-row-key`, the value of `KEYROVE_ATTR_NEXT_ROW_KEY`. Read
+ * on demand: the binding table asks only for the moves its layout has, so a
+ * row key set on a list is never looked at.
  */
-const readExplicitBindings = (
-  root: Element,
-  attributes: Attributes,
-): Required<ExplicitBindings> => ({
-  next: root.getAttribute(attributes.nextKey),
-  prev: root.getAttribute(attributes.prevKey),
-  nextRow: root.getAttribute(attributes.nextRowKey),
-  prevRow: root.getAttribute(attributes.prevRowKey),
-  home: root.getAttribute(attributes.homeKey),
-  end: root.getAttribute(attributes.endKey),
-  homeRow: root.getAttribute(attributes.homeRowKey),
-  endRow: root.getAttribute(attributes.endRowKey),
-  pageUp: root.getAttribute(attributes.pageUpKey),
-  pageDown: root.getAttribute(attributes.pageDownKey),
-});
+const readExplicitBinding =
+  (root: Element): ExplicitBinding =>
+  (intent) =>
+    root.getAttribute(
+      `data-keyrove-${intent.replace(/[A-Z]/g, '-$&').toLowerCase()}-key`,
+    );
 
 /**
  * The focus keys in reach of a keypress: every navigable item under `scope`
@@ -107,16 +88,16 @@ const readExplicitBindings = (
  * destinations, so theirs are not read — the key falls through as though it
  * were undeclared.
  */
-const readFocusKeys = (scope: Element, attributes: Attributes): FocusKey[] =>
+const readFocusKeys = (scope: Element): FocusKey[] =>
   Array.from(
     scope.querySelectorAll(
-      `[${attributes.item}][${attributes.focusKey}]:not([disabled])`,
+      `[${KEYROVE_ATTR_ITEM}][${KEYROVE_ATTR_FOCUS_KEY}]:not([disabled])`,
     ),
   )
-    .filter((target) => hasEnabledAttribute(target, attributes.item))
-    .filter((target) => !hasEnabledAttribute(target, attributes.skip))
+    .filter((target) => hasEnabledAttribute(target, KEYROVE_ATTR_ITEM))
+    .filter((target) => !hasEnabledAttribute(target, KEYROVE_ATTR_SKIP))
     .map((target) => ({
-      combo: target.getAttribute(attributes.focusKey) ?? '',
+      combo: target.getAttribute(KEYROVE_ATTR_FOCUS_KEY) ?? '',
       target,
     }));
 
@@ -140,7 +121,6 @@ export const keyRove = (
   // half-converted word.
   if (e.isComposing) return null;
 
-  const attributes = DEFAULT_ATTRIBUTES;
   const eventTarget = e.target as Element | null;
   const editable = isEditableTarget(eventTarget);
 
@@ -158,14 +138,14 @@ export const keyRove = (
   // groups and out of nested roots — so its lookup spans the listener's
   // element, not the root.
   const scope = listenerElement(e.currentTarget) ?? root;
-  const layout = readLayout(root, attributes);
+  const layout = readLayout(root);
 
   // First match wins: one keypress resolves to at most one action, and the
   // table's order is the precedence — an item's own key over the root's
   // explicit bindings over the defaults.
   const binding = buildBindings({
-    explicit: readExplicitBindings(root, attributes),
-    focus: readFocusKeys(scope, attributes),
+    explicit: readExplicitBinding(root),
+    focus: readFocusKeys(scope),
     layout,
     rtl: () => isRtl(root),
   }).find(({ combo }) => matchesCombo(e, combo));
@@ -202,8 +182,7 @@ export const keyRove = (
           elements,
           fromIndex: focused ? elements.indexOf(focused) : -1,
           layout,
-          pageLength: parseAttributeInt(root, attributes.pageLength, 10),
-          skipAttribute: attributes.skip,
+          pageLength: parseAttributeInt(root, KEYROVE_ATTR_PAGE_LENGTH, 10),
         });
 
   // With neither a target nor a focused item, keyrove has nothing to move

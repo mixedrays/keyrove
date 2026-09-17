@@ -43,6 +43,27 @@ silence ends a word:
 const typeahead = createTypeahead({ resetMs: 800 });
 ```
 
+## Cycling repeated characters
+
+Prefix matching is the default: pressing <kbd class="kbd">S</kbd> twice looks
+for a label starting with `ss`, and every prefix matches from the top of the
+list. A menu can instead cycle through the items sharing one initial character,
+the way a native `<select>` does:
+
+```ts
+const typeahead = createTypeahead({ matchMode: 'cycle' });
+```
+
+With that mode, a single character moves focus to the next item after the
+focused one that begins with it, wrapping after the last. Pressing it again
+moves on rather than growing the buffer, however slowly it is pressed, so
+repeated <kbd class="kbd">S</kbd> presses alternate between _Spanish_ and
+_Swedish_. A different character typed before the reset still refines the
+prefix, so <kbd class="kbd">S</kbd> <kbd class="kbd">W</kbd> matches _Swedish_.
+The one thing the mode gives up is a label that opens with a doubled letter:
+<kbd class="kbd">A</kbd> <kbd class="kbd">A</kbd> cycles the _A_ items and
+never looks for "aa".
+
 ## What counts as typing
 
 Bindings match the physical key, `e.code`. Typeahead reads `e.key`, the
@@ -83,8 +104,8 @@ conditionally.
 
 The handler returns `null` when it left the key alone and
 `{ action: 'typeahead', from, to }` when it consumed it, with `to: null` when
-the buffer grew but still names the item already focused. `onMove` fires after
-focus has moved and only then.
+the match is the item already focused. `onMove` fires after focus has moved
+and only then.
 
 Those are three answers, and the log beside the list gives each a row of its
 own. Type "swez" in one go to see all of them: <kbd class="kbd">S</kbd> and

@@ -224,6 +224,20 @@ describe('keyRove', () => {
 
       expect(activeId()).toBe('b');
     });
+
+    it.each(['0', '-3'])(
+      'falls back to linear navigation when columns is %s',
+      (cols) => {
+        renderList([createItem('a'), createItem('b'), createItem('c')], {
+          containerAttrs: { [KEYROVE_ATTR_COLS]: cols },
+        });
+        document.getElementById('a')!.focus();
+
+        pressKey('ArrowDown');
+
+        expect(activeId()).toBe('b');
+      },
+    );
   });
 
   describe('grid key bindings', () => {
