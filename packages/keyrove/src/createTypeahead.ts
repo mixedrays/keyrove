@@ -8,7 +8,7 @@
  * of running a timer, so the handler owns no lifecycle to clean up.
  */
 
-import { DEFAULT_ATTRIBUTES } from './attributes.js';
+import { KEYROVE_ATTR_SKIP, KEYROVE_ATTR_TYPEAHEAD } from './attributes.js';
 import { moveFocus, readGroup, resolveRoot } from './group.js';
 import {
   hasCommandModifier,
@@ -27,7 +27,7 @@ import type {
 // collapses interior whitespace the way rendering does, so a label split
 // across source lines still matches the single spaces a user types.
 const getLabel = (item: Element) =>
-  item.getAttribute(DEFAULT_ATTRIBUTES.typeahead) ||
+  item.getAttribute(KEYROVE_ATTR_TYPEAHEAD) ||
   item.textContent?.replace(/\s+/g, ' ').trim() ||
   '';
 
@@ -109,7 +109,7 @@ export const createTypeahead = ({
         : 0;
     const target = [...items.slice(start), ...items.slice(0, start)].find(
       (item) =>
-        !hasEnabledAttribute(item, DEFAULT_ATTRIBUTES.skip) &&
+        !hasEnabledAttribute(item, KEYROVE_ATTR_SKIP) &&
         getLabel(item).toLowerCase().startsWith(buffer),
     );
 

@@ -8,7 +8,11 @@
  * handlers' promises identical and leaves a third one nothing to re-derive.
  */
 
-import { DEFAULT_ATTRIBUTES } from './attributes.js';
+import {
+  KEYROVE_ATTR_ITEM,
+  KEYROVE_ATTR_ROOT,
+  KEYROVE_ATTR_ROVING_TABINDEX,
+} from './attributes.js';
 import { hasEnabledAttribute, toggleTabIndex } from './utils.js';
 import type { ActionResult, Group, MoveFocusArgs } from './types.js';
 
@@ -43,7 +47,7 @@ export const resolveRoot = (
   listener: EventTarget | null | undefined,
 ): Element | null => {
   for (let element = target; element; element = element.parentElement) {
-    if (hasEnabledAttribute(element, DEFAULT_ATTRIBUTES.root)) return element;
+    if (hasEnabledAttribute(element, KEYROVE_ATTR_ROOT)) return element;
   }
 
   return listenerElement(listener);
@@ -57,13 +61,12 @@ export const resolveRoot = (
  */
 export const readGroup = (root: Element): Group => ({
   items: Array.from(
-    root.querySelectorAll(`[${DEFAULT_ATTRIBUTES.item}]:not([disabled])`),
-  ).filter((item) => hasEnabledAttribute(item, DEFAULT_ATTRIBUTES.item)),
+    root.querySelectorAll(`[${KEYROVE_ATTR_ITEM}]:not([disabled])`),
+  ).filter((item) => hasEnabledAttribute(item, KEYROVE_ATTR_ITEM)),
   focused:
     Array.from(
-      root.querySelectorAll(`[${DEFAULT_ATTRIBUTES.item}]:focus-within`),
-    ).find((item) => hasEnabledAttribute(item, DEFAULT_ATTRIBUTES.item)) ??
-    null,
+      root.querySelectorAll(`[${KEYROVE_ATTR_ITEM}]:focus-within`),
+    ).find((item) => hasEnabledAttribute(item, KEYROVE_ATTR_ITEM)) ?? null,
 });
 
 /**
@@ -88,7 +91,7 @@ export const moveFocus = <Action extends string>({
 
   if (!to || to === from) return { action, from, to: null };
 
-  if (from && hasEnabledAttribute(from, DEFAULT_ATTRIBUTES.rovingTabindex)) {
+  if (from && hasEnabledAttribute(from, KEYROVE_ATTR_ROVING_TABINDEX)) {
     toggleTabIndex({ root: from, isActive: false });
     toggleTabIndex({ root: to, isActive: true });
   }

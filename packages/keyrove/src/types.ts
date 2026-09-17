@@ -148,29 +148,6 @@ export type TypeaheadResult = ActionResult<'typeahead'>;
 export type TypeaheadMove = TypeaheadResult & { to: Element };
 
 /**
- * Attribute names keyrove reads from the DOM, keyed by role.
- *
- * `DEFAULT_ATTRIBUTES` is checked against this with `satisfies`, so the map and
- * this type cannot drift apart in either direction. The `*Key` entries are
- * mapped from {@link MoveAction}, one per move, so a move cannot exist without
- * the attribute that binds it — on the root for the strides, on the item for
- * `focus`.
- */
-export type Attributes = {
-  item: string;
-  skip: string;
-  root: string;
-  pageLength: string;
-  cols: string;
-  rovingTabindex: string;
-  loop: string;
-  orientation: string;
-  typeahead: string;
-} & {
-  [Intent in MoveAction as `${Intent}Key`]: string;
-};
-
-/**
  * How a group folds its DOM-ordered sequence — read once off the root and
  * handed to both pure layers, so neither re-derives it.
  *
@@ -266,8 +243,8 @@ export type MoveFocusArgs<Action extends string> = {
 /**
  * The element list a lookup walks, and where in it the walk starts.
  *
- * `skipAttribute` is the attribute *name* rather than the attribute map, so the
- * helpers in `utils.ts` stay independent of keyrove's own concepts.
+ * `skipAttribute` is passed in rather than imported from `attributes.ts`, so
+ * the helpers in `utils.ts` stay independent of keyrove's own concepts.
  */
 export type NavBounds = {
   elements: Element[];

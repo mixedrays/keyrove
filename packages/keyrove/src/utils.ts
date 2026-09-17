@@ -2,8 +2,9 @@
  * Standalone helpers behind keyRove's navigation.
  *
  * Everything here is pure with respect to keyrove's own concepts: helpers take
- * a plain element list and an attribute *name*, never the attribute map, so
- * they can be reasoned about and tested without a DOM tree wired to a nav root.
+ * a plain element list and an attribute *name*, never keyrove's own constants,
+ * so they can be reasoned about and tested without a DOM tree wired to a nav
+ * root.
  */
 
 import type {
