@@ -1,16 +1,16 @@
 ---
 title: Focus keys
-description: Give an item a key of its own, so one press focuses it from anywhere under the listener — another group, a nested root, even a text field.
-titleTag: Keyboard shortcuts that focus an item — keyrove
+description: Give an element a key of its own, so one press focuses it from anywhere under the listener — another group, a nested root, even a text field.
+titleTag: Keyboard shortcuts that focus an element — keyrove
 group: Examples
 order: 19
 ---
 
 Every move so far is relative: next, previous, a row, a page, an end, each
 starts from wherever focus is. A focus key is absolute. Put
-`data-keyrove-focus-key` with a combo on an item, and one press focuses that
-item from anywhere the keydown reaches the listener. Use it for anything a user
-should be able to jump to rather than walk to: the panels of an editor-like
+`data-keyrove-focus-key` with a combo on an element, and one press focuses that
+element from anywhere the keydown reaches the listener. Use it for anything a
+user should be able to jump to, not only walk to: the panels of an editor-like
 layout, the tabs of a strip, the tools of a palette.
 
 <kbd class="kbd">Ctrl</kbd>+<kbd class="kbd">Shift</kbd>+<kbd class="kbd">1</kbd>,
@@ -31,32 +31,101 @@ The panels are laid out the way an editor lays them out, which is the case a
 focus key is for. There is no "down" from a sidebar that spans both rows, and
 nothing an arrow could call next that a reader would predict: a relative move
 needs an order to be relative to, and this layout does not have one. Naming
-the panel is all that is left.
+the panel is all that is left, so the panels are not items at all, and no arrow
+walks between them.
 
 The call is the one every other page makes. The value is a
 [combo](/docs/api#combos) like any `*-key` attribute's, and a bare code works
 too: `data-keyrove-focus-key="KeyE"` makes <kbd class="kbd">E</kbd> pick the
-item wherever the letter would not be typing. The move reports `'focus'` to
+element wherever the letter would not be typing. The move reports `'focus'` to
 `onMove` and in the [return value](/docs/api#return-value), so a consumer can
 tell a jump from a step.
 
 ## As far as the listener hears
 
-keyrove looks for focus keys on every item under the listener's element, not
-just in the nearest root, so where you attach the listener is the only scope
-control:
+keyrove looks for focus keys on every element under the listener's element,
+not just in the nearest root, so where you attach the listener is the only
+scope control:
 
 - On a panel, the keys work inside that panel.
 - On `document`, they work page-wide.
-- From inside a [nested root](/docs/examples/nested-roots), a focus key on an
-  item of the group around it still fires. Focus keys are the third way out of
-  a nested group, after <kbd class="kbd">Tab</kbd> and a key of your own.
+- From inside a [nested root](/docs/examples/nested-roots), a focus key
+  outside it still fires. Focus keys are the third way out of a nested group,
+  after <kbd class="kbd">Tab</kbd> and a key of your own.
 
-The move is reported in the target's group: `from` is the panel focus left, or
-`null` when focus was outside the group. Pressing a panel's key while focus is
-already inside that panel is a consumed no-op: the key is claimed, and focus
-stays where it is. The [API reference](/docs/api#focus-keys) has the exact
-rules, including how the roving tab stop follows.
+## A key and an order
+
+The panels have no order worth walking, so they are not items. A tool palette
+has both: an order, top to bottom, and a key for every tool that anyone who has
+used a design app already knows. So each tool is an item _and_ carries a focus
+key.
+
+<div data-demo="tools"></div>
+
+```ts
+document.querySelector('#tools').addEventListener('keydown', (e) => keyRove(e));
+```
+
+Press <kbd class="kbd">P</kbd> for the pen, then <kbd class="kbd">↓</kbd>: the
+arrow steps on from wherever the key landed, because the pen is a stop in the
+same order the arrows walk. The log tells the two apart, `focus` for the jump
+and `next` for the step. Then <kbd class="kbd">Tab</kbd> out of the palette and
+<kbd class="kbd">Shift</kbd>+<kbd class="kbd">Tab</kbd> back: focus returns to
+the tool you last reached, whichever way you reached it, because the
+[roving tab stop](/docs/examples/roving-tabindex) follows a jump as it follows
+an arrow.
+
+The keys are the ones design tools use, not the tools' initials: Move is
+<kbd class="kbd">V</kbd>, Ellipse is <kbd class="kbd">O</kbd>, and the
+eyedropper is <kbd class="kbd">I</kbd>. That is the line between a focus key
+and [typeahead](/docs/examples/typeahead): typeahead finds an item by how its
+label is spelled, while a focus key binds whatever key you choose to one
+element. Each tool also carries `aria-keyshortcuts`, and the cap beside its
+name is drawn from that attribute rather than written a second time, so what
+the palette shows is what a screen reader announces; see
+[telling users about it](#telling-users-about-it).
+
+The key only moves focus. A real palette would pick the tool as well, and that
+is the app's own business: `onMove` reports the jump as `'focus'`, with the
+tool as `to`, which is the place to do it.
+
+## Item or not
+
+A focus key needs no `data-keyrove-item`, and whether its element has one
+decides what else reaches it:
+
+- **An item**, like a tool in the palette, stays in its group's order, so the
+  arrows reach it too, and the key is a shortcut to a place they already go.
+  The jump is a move in that group: `from` is the item focus left, or `null`
+  from outside the group, and a
+  [roving tab stop](/docs/examples/roving-tabindex) follows it as it follows an
+  arrow.
+- **Any other element**, like the panels, is reached by its key alone. No arrow
+  lands on it, and the jump belongs to no group: `from` is `null`, and no tab
+  stop moves.
+
+Either way, pressing the key while focus is already inside its element is a
+consumed no-op: the key is claimed, and focus stays where it is. The
+[API reference](/docs/api#focus-keys) has the exact rules.
+
+A panel with a list inside is best made that list's root: put
+`data-keyrove-root` on the panel itself. The jump leaves focus on the panel,
+and an arrow pressed there then enters the panel's own list. Without the root,
+the arrow belongs to the group around the panels and lands on the first item
+under the listener, whichever panel that is in.
+
+```html
+<section
+  data-keyrove-root
+  data-keyrove-focus-key="ctrl+shift+Digit1"
+  tabindex="-1"
+>
+  <ul>
+    <li data-keyrove-item tabindex="-1">index.ts</li>
+    <li data-keyrove-item tabindex="-1">README.md</li>
+  </ul>
+</section>
+```
 
 ## From inside a text field
 
@@ -94,10 +163,10 @@ of the same combo won instead, the outer item's key would have failed only while
 focus was inside that root, and silently; fixed precedence makes a collision
 show up every time.
 
-Two items naming the same combo resolve to the first in DOM order; the second is
-unreachable by that key. Items carrying `data-keyrove-skip` or `disabled` are
-not destinations, so a focus key on one is inert and the key keeps its browser
-default. As with every binding, the wider the listener, the more a bare-letter
+Two elements naming the same combo resolve to the first in DOM order; the second
+is unreachable by that key. Elements carrying `data-keyrove-skip` or `disabled`
+are not destinations, so a focus key on one is inert and the key keeps its
+browser default. As with every binding, the wider the listener, the more a bare-letter
 key can shadow; a chord is the safer choice on a `document` listener.
 
 ## Telling users about it

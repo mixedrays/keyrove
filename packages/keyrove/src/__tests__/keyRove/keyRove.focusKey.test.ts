@@ -6,6 +6,7 @@ import {
   KEYROVE_ATTR_NEXT_KEY,
   KEYROVE_ATTR_ROOT,
   KEYROVE_ATTR_ROVING_TABINDEX,
+  KEYROVE_ATTR_SKIP,
 } from '../../keyRove';
 import {
   activeId,
@@ -52,6 +53,38 @@ const renderPanels = (
 
   const node =
     listener === 'document' ? document : document.getElementById('panels')!;
+  const listen = (e: Event) => {
+    results.push(keyRove(e as KeyboardEvent, options));
+  };
+  node.addEventListener('keydown', listen);
+  detach = () => node.removeEventListener('keydown', listen);
+
+  return results;
+};
+
+/**
+ * The same panels reached by their keys alone: each section is a root rather
+ * than an item, so no arrow walks from one panel to the other, and an arrow
+ * pressed on a panel stays inside it. The list carries a roving tab stop, to
+ * show that a jump out of it leaves the stop where it was.
+ */
+const renderPanelRoots = (options?: Parameters<typeof keyRove>[1]) => {
+  const results: RoveResult[] = [];
+
+  document.body.innerHTML = `
+    <div id="panels">
+      <section id="left" ${KEYROVE_ATTR_ROOT} ${KEYROVE_ATTR_FOCUS_KEY}="ctrl+shift+KeyE" tabindex="-1">
+        <textarea id="note"></textarea>
+      </section>
+      <section id="right" ${KEYROVE_ATTR_ROOT} ${KEYROVE_ATTR_FOCUS_KEY}="ctrl+shift+KeyB" tabindex="-1">
+        <ul id="mail">
+          <li id="inbox" ${KEYROVE_ATTR_ITEM} ${KEYROVE_ATTR_ROVING_TABINDEX} tabindex="0">Inbox</li>
+          <li id="drafts" ${KEYROVE_ATTR_ITEM} ${KEYROVE_ATTR_ROVING_TABINDEX} tabindex="-1">Drafts</li>
+        </ul>
+      </section>
+    </div>`;
+
+  const node = document.getElementById('panels')!;
   const listen = (e: Event) => {
     results.push(keyRove(e as KeyboardEvent, options));
   };
@@ -228,21 +261,6 @@ describe('keyRove', () => {
       expect(disabled.defaultPrevented).toBe(false);
     });
 
-    it('ignores a focus key on an element that is not an item', () => {
-      const container = renderList([createItem('a')]);
-      const stray = document.createElement('div');
-      stray.id = 'stray';
-      stray.setAttribute(KEYROVE_ATTR_FOCUS_KEY, 'KeyX');
-      stray.setAttribute('tabindex', '0');
-      container.appendChild(stray);
-      byId('a').focus();
-
-      const event = pressKey('KeyX');
-
-      expect(activeId()).toBe('a');
-      expect(event.defaultPrevented).toBe(false);
-    });
-
     it('ignores a bare attribute without a combo', () => {
       const results: RoveResult[] = [];
       renderList([createItem('a'), createItem('b', { focusKey: '' })], {
@@ -318,6 +336,104 @@ describe('keyRove', () => {
       // the nested list keeps its own stop where it was
       expect(byId('inbox').getAttribute('tabindex')).toBe('0');
       expect(byId('drafts').getAttribute('tabindex')).toBe('-1');
+    });
+  });
+
+  describe('focus keys on elements that are not items', () => {
+    it('focuses the element from outside any group, reporting from as null', () => {
+      const onMove = vi.fn();
+      const results = renderPanelRoots({ onMove });
+      byId('note').focus();
+
+      const event = pressKey('KeyB', undefined, CHORD);
+
+      const move = { action: 'focus', from: null, to: byId('right') };
+      expect(activeId()).toBe('right');
+      expect(event.defaultPrevented).toBe(true);
+      expect(results).toEqual([move]);
+      expect(onMove).toHaveBeenCalledWith(move);
+    });
+
+    it('keeps the element out of every arrow order', () => {
+      const results = renderPanelRoots();
+      byId('left').focus();
+
+      const down = pressKey('ArrowDown');
+
+      // nothing to walk to from a panel with no items of its own
+      expect(activeId()).toBe('left');
+      expect(down.defaultPrevented).toBe(false);
+
+      byId('right').focus();
+      pressKey('ArrowDown');
+      pressKey('ArrowDown');
+      pressKey('ArrowDown');
+
+      // into the panel's own list, and no further than its end
+      expect(activeId()).toBe('drafts');
+      expect(results[results.length - 1]).toEqual({
+        action: 'next',
+        from: byId('drafts'),
+        to: null,
+      });
+    });
+
+    it('is a consumed no-op while focus is inside the element', () => {
+      const onMove = vi.fn();
+      const results = renderPanelRoots({ onMove });
+      byId('inbox').focus();
+
+      const event = pressKey('KeyB', undefined, CHORD);
+
+      expect(activeId()).toBe('inbox');
+      expect(event.defaultPrevented).toBe(true);
+      expect(results).toEqual([
+        { action: 'focus', from: byId('right'), to: null },
+      ]);
+      expect(onMove).not.toHaveBeenCalled();
+    });
+
+    it('leaves the roving stop where it was in the group focus left', () => {
+      const results = renderPanelRoots();
+      byId('inbox').focus();
+
+      pressKey('KeyE', undefined, CHORD);
+
+      expect(activeId()).toBe('left');
+      expect(results).toEqual([
+        { action: 'focus', from: null, to: byId('left') },
+      ]);
+      expect(byId('inbox').getAttribute('tabindex')).toBe('0');
+      expect(byId('left').getAttribute('tabindex')).toBe('-1');
+    });
+
+    it('leaves the key untouched for a skipped or disabled element', () => {
+      renderPanelRoots();
+      byId('left').setAttribute(KEYROVE_ATTR_SKIP, '');
+      byId('right').setAttribute('disabled', '');
+      byId('note').focus();
+
+      const skipped = pressKey('KeyE', undefined, CHORD);
+      const disabled = pressKey('KeyB', undefined, CHORD);
+
+      expect(activeId()).toBe('note');
+      expect(skipped.defaultPrevented).toBe(false);
+      expect(disabled.defaultPrevented).toBe(false);
+    });
+
+    it('treats an element whose item attribute is "false" as no item', () => {
+      const container = renderList([createItem('a')]);
+      const stray = createItem('stray', { roving: true, focusKey: 'KeyX' });
+      stray.setAttribute(KEYROVE_ATTR_ITEM, 'false');
+      container.appendChild(stray);
+      byId('a').setAttribute(KEYROVE_ATTR_ROVING_TABINDEX, '');
+      byId('a').focus();
+
+      pressKey('KeyX');
+
+      expect(activeId()).toBe('stray');
+      // a move in no group: the stop stays on the item focus left
+      expect(byId('a').getAttribute('tabindex')).toBe('0');
     });
   });
 

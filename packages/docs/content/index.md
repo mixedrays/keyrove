@@ -119,8 +119,8 @@ delegated listener can serve a list nested in a list, each with its own keys.
 
 ### <span aria-hidden="true">🔎</span> Jump and type-to-focus
 
-`data-keyrove-focus-key` gives an item a shortcut that focuses it from
-anywhere under the listener. `createTypeahead()` adds case-insensitive
+`data-keyrove-focus-key` gives an item, or a panel, a shortcut that focuses it
+from anywhere under the listener. `createTypeahead()` adds case-insensitive
 typeahead, matching an item by `data-keyrove-typeahead` or by its own text.
 
 </div>

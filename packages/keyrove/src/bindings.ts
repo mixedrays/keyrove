@@ -5,7 +5,7 @@
  * Direction affects nothing but which *default* physical key fills an unset
  * inline-axis binding; explicit bindings are literal — never flipped, never
  * remapped. Everything downstream (the position model) is direction-blind.
- * Focus keys — an item's own combo — join the table here too, so the whole
+ * Focus keys — an element's own combo — join the table here too, so the whole
  * precedence of a keypress is one ordered list.
  */
 
@@ -92,10 +92,10 @@ export const buildBindings = ({
     else defaults.push({ combo: fallback, intent, enters });
   }
 
-  // An item's own key names one element, where a root's names a group and a
-  // default names nothing in particular: the most specific declaration in the
-  // table, so it sits first — it wins any collision, and two items naming one
-  // combo resolve to the first in DOM order. A bare attribute is unset, as it
+  // An element's own key names one element, where a root's names a group and
+  // a default names nothing in particular: the most specific declaration in
+  // the table, so it sits first — it wins any collision, and two elements
+  // naming one combo resolve to the first in DOM order. A bare attribute is unset, as it
   // is for the root keys.
   const named: Binding[] = focus
     .filter(({ combo }) => combo)

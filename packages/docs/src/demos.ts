@@ -1,5 +1,6 @@
 import {
   KEYROVE_ATTR_COLS,
+  KEYROVE_ATTR_FOCUS_KEY,
   KEYROVE_ATTR_ITEM,
   KEYROVE_ATTR_ROOT,
   KEYROVE_ATTR_SKIP,
@@ -396,7 +397,8 @@ const wireCopy = (demo: HTMLElement) => {
  * its own, so the nested demo opens on the menu rather than inside the
  * reaction row — the inner group answers to keys the page has not introduced
  * yet. Where every item lives in a nested root, as in the responsive grid,
- * the first of those is the first item.
+ * the first of those is the first item. A demo with no items at all, like the
+ * focus-keys panels, opens on the first element a focus key names.
  */
 const firstItem = (surface: HTMLElement) => {
   const items = Array.from(
@@ -411,7 +413,11 @@ const firstItem = (surface: HTMLElement) => {
     return root !== null && root !== surface;
   };
 
-  return items.find((item) => !isNested(item)) ?? items[0];
+  return (
+    items.find((item) => !isNested(item)) ??
+    items[0] ??
+    surface.querySelector<HTMLElement>(`[${KEYROVE_ATTR_FOCUS_KEY}]`)
+  );
 };
 
 /**

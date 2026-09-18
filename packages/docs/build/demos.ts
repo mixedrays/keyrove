@@ -77,6 +77,7 @@ const HISTORY = new Set([
   'rtl',
   'editable',
   'panes',
+  'tools',
   'grid',
   'responsive',
 ]);
