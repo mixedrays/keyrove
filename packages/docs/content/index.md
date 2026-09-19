@@ -6,8 +6,7 @@ layout: landing
 ---
 
 <ul class="hero-tags">
-<li data-npm="version"></li>
-<li data-npm="size"></li>
+<li>under 3 kB gzipped</li>
 <li>zero deps</li>
 <li>framework-agnostic</li>
 <li>TypeScript</li>
