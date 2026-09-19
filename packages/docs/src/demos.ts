@@ -363,17 +363,23 @@ const EXTRAS: Record<string, (surface: HTMLElement, log: Log) => Handler[]> = {
 };
 
 /**
- * "Copy markup" — the source block's own text, rather than a second copy of it
+ * "Copy code" — the source block's own text, rather than a second copy of it
  * held in an attribute, so what lands on the clipboard is what is on screen.
+ * Where the markup shares its panel with the script, that is whichever of the
+ * two tabs is showing, so it is looked up on the click rather than once.
  */
 const wireCopy = (demo: HTMLElement) => {
   const button = demo.querySelector<HTMLButtonElement>('[data-copy-code]');
-  const code = demo.querySelector('.demo-code pre');
-  if (!button || !code) return;
+  if (!button) return;
 
   let resetTimer: ReturnType<typeof setTimeout> | undefined;
 
   button.addEventListener('click', async () => {
+    const code = Array.from(demo.querySelectorAll('.demo-code pre')).find(
+      (pre) => !pre.closest('[hidden]'),
+    );
+    if (!code) return;
+
     try {
       await navigator.clipboard.writeText(code.textContent ?? '');
     } catch {

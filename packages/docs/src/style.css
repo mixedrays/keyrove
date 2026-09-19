@@ -436,6 +436,39 @@
   }
 
   /*
+   * Blocks written back to back share one panel, a tab per block (see
+   * build/markdown.ts). The panel takes over the frame each block carries on
+   * its own, and the tabs sit in a strip across its top, ruled off from the
+   * code; the selected one is lifted onto a chip of the kind the copy buttons
+   * use.
+   */
+  .code-tabs {
+    @apply mt-4 overflow-hidden rounded-xl border border-zinc-200 bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900;
+  }
+
+  .code-tabs-bar {
+    @apply flex h-10 items-center gap-1 overflow-x-auto border-b border-zinc-200 px-2 dark:border-zinc-800;
+  }
+
+  .code-tab {
+    @apply shrink-0 cursor-pointer rounded-md border border-transparent p-1 text-xs font-medium text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100;
+  }
+
+  .code-tab[aria-selected='true'] {
+    @apply bg-zinc-200 text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100;
+  }
+
+  .code-tabs .code-block {
+    @apply mt-0 rounded-none border-0;
+  }
+
+  /* The block is the panel's tab stop — Shiki makes it focusable — and the
+     panel clips what overflows it, so its focus ring is drawn inside. */
+  .code-tabs .code-block:focus-visible {
+    @apply -outline-offset-2;
+  }
+
+  /*
    * Token colours for the blocks the markdown pipeline highlights. Shiki builds
    * both themes at once and writes each token's two colours as CSS variables,
    * so the swap below is all that picks between them — no second stylesheet,

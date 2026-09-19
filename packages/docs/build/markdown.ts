@@ -44,6 +44,32 @@ export type RenderedMarkdown = {
   headings: Heading[];
 };
 
+/** What a tab calls a block when its fence gives no `title="…"`. */
+const LANGUAGE_NAMES: Record<string, string> = {
+  html: 'HTML',
+  css: 'CSS',
+  js: 'JavaScript',
+  ts: 'TypeScript',
+  jsx: 'JSX',
+  tsx: 'TSX',
+  vue: 'Vue',
+  svelte: 'Svelte',
+  sh: 'Shell',
+};
+
+/**
+ * A block's tab label: the fence's `title="…"` when it has one — the way to
+ * tell apart two blocks in the same language, like the install commands — and
+ * the name of its language otherwise.
+ */
+const tabLabel = (info: string) => {
+  const title = /\btitle="([^"]*)"/.exec(info)?.[1];
+  if (title) return title;
+
+  const lang = info.trim().split(/\s+/)[0];
+  return LANGUAGE_NAMES[lang] ?? lang;
+};
+
 /** The visible text of a heading, with the markdown syntax dropped. */
 const plainText = (token: Token): string =>
   (token.children ?? [])
@@ -146,6 +172,60 @@ const createRenderer = async () => {
       ],
     }),
   );
+
+  /*
+   * Blocks written back to back are one panel with a tab per block: the
+   * markup and the script that drives it, or the same command for three
+   * package managers. Nothing marks a group but the adjacency itself — any
+   * prose between two blocks keeps them apart.
+   *
+   * The tabs are stamped here, the first one selected, so the panel arrives
+   * finished and src/code-tabs.ts only has to switch it. Ids are numbered per
+   * page through `env`, which a render gets fresh.
+   */
+  const renderFence = md.renderer.rules.fence!;
+  const isFence = (token: Token | undefined) => token?.type === 'fence';
+
+  md.renderer.rules.fence = (tokens, index, options, env, self) => {
+    const block = renderFence(tokens, index, options, env, self);
+    const isFirst = !isFence(tokens[index - 1]);
+    const isLast = !isFence(tokens[index + 1]);
+    if (isFirst && isLast) return block;
+
+    let start = index;
+    while (isFence(tokens[start - 1])) start--;
+    const position = index - start;
+
+    // renderMarkdown always passes one; the fallback only satisfies the type.
+    const page = (env ?? {}) as { codeTabs?: number };
+    if (isFirst) page.codeTabs = (page.codeTabs ?? 0) + 1;
+    const id = `code-tabs-${page.codeTabs}`;
+
+    let open = '';
+    if (isFirst) {
+      const tabs: string[] = [];
+      for (let i = index; isFence(tokens[i]); i++) {
+        const selected = i === index;
+        tabs.push(
+          `<button type="button" role="tab" class="code-tab" id="${id}-tab-${i - index}"` +
+            ` aria-controls="${id}-panel-${i - index}" aria-selected="${selected}"` +
+            ` tabindex="${selected ? 0 : -1}" data-keyrove-item>` +
+            `${md.utils.escapeHtml(tabLabel(tokens[i].info))}</button>`,
+        );
+      }
+
+      open =
+        '<div class="code-tabs" data-code-tabs>' +
+        `<div class="code-tabs-bar" role="tablist" data-keyrove-orientation="horizontal">${tabs.join('')}</div>`;
+    }
+
+    const panel =
+      `<div class="code-tabs-panel" role="tabpanel" id="${id}-panel-${position}"` +
+      ` aria-labelledby="${id}-tab-${position}"${position === 0 ? '' : ' hidden'}>` +
+      `${block}</div>`;
+
+    return `${open}${panel}${isLast ? '</div>\n' : ''}`;
+  };
 
   // A wide table should scroll in its own box rather than widening the page,
   // and markdown has nowhere to hang the wrapper that needs.

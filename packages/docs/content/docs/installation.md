@@ -8,15 +8,15 @@ order: 2
 
 ## Install
 
-```sh
+```sh title="pnpm"
 pnpm add @mixedrays/keyrove
 ```
 
-```sh
+```sh title="npm"
 npm install @mixedrays/keyrove
 ```
 
-```sh
+```sh title="yarn"
 yarn add @mixedrays/keyrove
 ```
 
