@@ -1,5 +1,30 @@
 # Changelog
 
+## [2.2.0](https://github.com/mixedrays/keyrove/compare/v2.1.0...v2.2.0) (2026-09-17)
+
+### Features
+
+* add cycle matching mode for typeahead functionality ([6d3488e](https://github.com/mixedrays/keyrove/commit/6d3488e45a3bc73f4e96f2c78b8761481886b488))
+
+### Bug Fixes
+
+* cycle typeahead from the focused item on every press ([ec80b63](https://github.com/mixedrays/keyrove/commit/ec80b6381ebe44547c9c286685ff594960c0dff6))
+* ensure .tmp is ignored in the repository ([7423d9e](https://github.com/mixedrays/keyrove/commit/7423d9e9cb64c37b9b9cc18fd4ebbc000dd799fa))
+* fall back to the default when cols or page-length is below 1 ([24410d7](https://github.com/mixedrays/keyrove/commit/24410d7a8915acbbb80c3a3ffd156641a07e0317))
+
+### Performance Improvements
+
+* derive key attribute names and compact the default binding table ([9ed3e00](https://github.com/mixedrays/keyrove/commit/9ed3e008abfa455ebbae1683ff35a7764d0f2aa7))
+* resolve every move with one skip-aware walk ([b56507b](https://github.com/mixedrays/keyrove/commit/b56507bc11af7a027f8f786350ab3a8f79c29469))
+* split the attribute map into flat constants to shrink the bundle ([e12685d](https://github.com/mixedrays/keyrove/commit/e12685d3dc46191ccb7c5b8b7614f56c4f203a57))
+
+## [2.1.0](https://github.com/mixedrays/keyrove/compare/v2.0.0...v2.1.0) (2026-09-16)
+
+### Features
+
+* add support for explicit false values for boolean attributes ([d6bb99e](https://github.com/mixedrays/keyrove/commit/d6bb99e9369a3f9931850b2a51c6fc8a94bea564))
+* optimize Open Graph card generation and caching strategy ([df3b3e5](https://github.com/mixedrays/keyrove/commit/df3b3e5e588cf305033bd94d26b8b99dfc86ffee))
+
 ## [2.0.0](https://github.com/mixedrays/keyrove/compare/v1.0.0...v2.0.0) (2026-09-07)
 
 ### ⚠ BREAKING CHANGES
