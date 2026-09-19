@@ -94,14 +94,23 @@
    * programmatically, and the demo is about making that movement visible
    * however it was triggered.
    *
+   * The focus ring is an outline, set off from the item rather than drawn as
+   * its border: a dressing is free to draw the border however it likes, and
+   * the ring paints over the neighbouring rows rather than under them. Its
+   * colour is set at rest, so the item's colour fade does not fade the ring
+   * in with it, and the scroll margin is the room it takes, so an item
+   * scrolled into view in a scrolling list does not have its ring cut off at
+   * the edge.
+   *
    * Scoped to the preview rather than the whole demo: the tabs over the source
    * are keyrove items too, and they are the site's chrome, not the demo.
    */
   .demo-preview :where([data-keyrove-item], [data-keyrove-focus-key]) {
-    @apply block w-full cursor-pointer rounded-lg border border-transparent px-3 py-2 text-left text-sm text-zinc-800 transition-colors;
+    @apply block w-full scroll-m-1 cursor-pointer rounded-lg border border-transparent px-3 py-2 text-left text-sm text-zinc-800 transition-colors duration-120;
+    @apply outline-offset-2 outline-indigo-500 dark:outline-indigo-400;
     @apply hover:bg-indigo-500/10;
-    @apply focus:border-indigo-500 focus:bg-indigo-50 focus:outline-none;
-    @apply dark:text-zinc-200 dark:focus:border-indigo-400 dark:focus:bg-indigo-500/15;
+    @apply focus:bg-indigo-50 focus:outline-2;
+    @apply dark:text-zinc-200 dark:focus:bg-indigo-500/15;
   }
 
   /* Grid cells and toolbar buttons size to content instead of filling a row. */
@@ -118,7 +127,7 @@
      jump out of a field can be tried where it matters. */
   .demo :where(textarea) {
     @apply mt-2 block w-full resize-none rounded-md border border-zinc-200 bg-white px-2 py-1 text-sm text-zinc-800 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200;
-    @apply focus:border-indigo-500 focus:outline-none dark:focus:border-indigo-400;
+    @apply outline-offset-2 outline-indigo-500 focus:outline-2 dark:outline-indigo-400;
   }
 
   /* A nested navigation root, drawn as its own panel inside the one around it
@@ -139,7 +148,7 @@
 
   .demo :where(input[type='text']) {
     @apply ml-auto w-44 rounded-md border border-zinc-200 bg-white px-2 py-1 text-sm text-zinc-800 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200;
-    @apply focus:border-indigo-500 focus:outline-none dark:focus:border-indigo-400;
+    @apply outline-offset-2 outline-indigo-500 focus:outline-2 dark:outline-indigo-400;
   }
 
   .demo :where(input[type='range']) {
@@ -570,9 +579,9 @@
    * The resting fill is restated here at a specificity that clears the shared
    * item rule, which means the hover and focus fills have to be restated with
    * it — they live on that rule, and would otherwise lose to this one and
-   * take the focused reaction's highlight with them. The border is left
-   * alone: it is transparent until focus colours it, and that rule still
-   * wins on its own.
+   * take the focused reaction's highlight with them. The ring is left alone:
+   * it is an outline, which nothing here touches, so that rule still
+   * draws it.
    */
   .demo[data-demo='nested'] [data-keyrove-root] > [data-keyrove-item] {
     @apply grid size-8 place-items-center rounded-full p-0 text-base;
@@ -665,8 +674,8 @@
    * The resting fill is restated here at a specificity that clears the shared
    * item rule, which means the hover and focus fills have to be restated with
    * it — they live on that rule, and would otherwise lose to this one and take
-   * the focused chip's highlight with them. The border is left alone: it is
-   * transparent until focus colours it, and that rule still wins on its own.
+   * the focused chip's highlight with them. The ring is left alone: it is an
+   * outline, which nothing here touches, so that rule still draws it.
    */
   .demo:is([data-demo='orientation'], [data-demo='rtl'])
     .demo-surface
@@ -753,17 +762,13 @@
    * A panel: its own bordered region, with the name along the top in the small
    * caps an editor writes a panel header in. The name is the section's whole
    * text, so the header style is the panel's — and the text area has to say
-   * otherwise, since case and tracking are inherited.
-   *
-   * The resting border is restated at a specificity that clears the shared
-   * item rule, so the focused one has to be restated with it: that rule turns
-   * every border indigo on focus, and it would lose to this one.
+   * otherwise, since case and tracking are inherited. The border stays grey
+   * on focus: the shared item rule's ring goes round it.
    */
   .demo[data-demo='panes'] .demo-surface > [data-keyrove-focus-key] {
     @apply min-h-20 flex-wrap content-start rounded-lg border px-2.5 py-2;
     @apply text-[0.65rem] font-semibold tracking-widest uppercase;
     @apply border-zinc-200 text-zinc-500 dark:border-zinc-700 dark:text-zinc-400;
-    @apply focus:border-indigo-500 dark:focus:border-indigo-400;
   }
 
   .demo[data-demo='panes'] .demo-surface > [data-keyrove-focus-key] > textarea {
@@ -983,16 +988,13 @@
    * time that can still be taken. The times are set in tabular figures so the
    * digits stack down the columns rather than shuffling by a hair per row.
    *
-   * The resting border is restated at a specificity that clears the shared
-   * item rule, so the focused one has to be restated with it — that rule turns
-   * every border indigo on focus and would otherwise lose to this one. The
-   * fills are left alone: nothing here shadows them, so hover and focus still
-   * come from where every other demo's do.
+   * The chip's border stays grey on focus, with the shared item rule's ring
+   * drawn round it; the fills and the ring are left alone, so hover and focus
+   * still come from where every other demo's do.
    */
   .demo[data-demo='grid'] .demo-surface > [data-keyrove-item] {
     @apply px-2 py-1.5 tabular-nums;
     border-color: var(--field-border);
-    @apply focus:border-indigo-500 dark:focus:border-indigo-400;
   }
 
   /*
@@ -1057,9 +1059,9 @@
    * It is the toolbar's own `::after`, ordered into place rather than hung off
    * one of the buttons. A border on the fourth button would have been one rule
    * instead of three, but it would also have been part of that button: the
-   * shared item rule turns every border indigo on focus, and a separator
-   * declared here at a higher specificity would have held its grey through the
-   * focus ring and broken it. Nothing about the buttons is touched this way.
+   * focus ring goes round the button's border, so the separator would have
+   * been fenced in with the button every time it took focus. Nothing about the
+   * buttons is touched this way.
    * The orders below run in DOM order, so what is read matches what is
    * focused.
    */
