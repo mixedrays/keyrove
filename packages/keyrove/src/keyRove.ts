@@ -83,18 +83,16 @@ const readExplicitBinding =
     );
 
 /**
- * The focus keys in reach of a keypress: every navigable item under `scope`
- * that names one, in DOM order. Skipped and disabled items are not
+ * The focus keys in reach of a keypress: every element under `scope` that
+ * names one, in DOM order. It need not be an item — a panel reached by its key
+ * alone stays out of every arrow order. Skipped and disabled elements are not
  * destinations, so theirs are not read — the key falls through as though it
  * were undeclared.
  */
 const readFocusKeys = (scope: Element): FocusKey[] =>
   Array.from(
-    scope.querySelectorAll(
-      `[${KEYROVE_ATTR_ITEM}][${KEYROVE_ATTR_FOCUS_KEY}]:not([disabled])`,
-    ),
+    scope.querySelectorAll(`[${KEYROVE_ATTR_FOCUS_KEY}]:not([disabled])`),
   )
-    .filter((target) => hasEnabledAttribute(target, KEYROVE_ATTR_ITEM))
     .filter((target) => !hasEnabledAttribute(target, KEYROVE_ATTR_SKIP))
     .map((target) => ({
       combo: target.getAttribute(KEYROVE_ATTR_FOCUS_KEY) ?? '',
@@ -156,12 +154,29 @@ export const keyRove = (
   // out of the field. A move keeps the caret's keys however it is bound.
   if (editable && binding.intent !== 'focus') return null;
 
-  // A focus row's move happens in its target's own group — the nearest root
-  // above the item, else the listener's element — so `from` is the sibling
-  // holding focus, the roving stop stays within one group, and a key pressed
-  // while focus is already inside its item is a consumed no-op. The search
-  // starts at the item's *parent*: a panel is often itself the root of the
-  // list inside it, and its group is the one above.
+  // A focus key on an element that is not an item names a destination in no
+  // group: there is no sibling to report as `from` or to take the roving stop
+  // from. Focus inside the element already makes `from` the element itself —
+  // the same consumed no-op an item's key makes.
+  if (
+    binding.intent === 'focus' &&
+    !hasEnabledAttribute(binding.target, KEYROVE_ATTR_ITEM)
+  ) {
+    return moveFocus({
+      e,
+      action: 'focus',
+      from: binding.target.matches(':focus-within') ? binding.target : null,
+      to: binding.target,
+      onMove,
+    });
+  }
+
+  // An item's focus row moves in the item's own group — the nearest root above
+  // it, else the listener's element — so `from` is the sibling holding focus,
+  // the roving stop stays within one group, and a key pressed while focus is
+  // already inside its item is a consumed no-op. The search starts at the
+  // item's *parent*: a panel is often itself the root of the list inside it,
+  // and its group is the one above.
   const group =
     binding.intent === 'focus'
       ? (resolveRoot(binding.target.parentElement, scope) ?? scope)

@@ -1,17 +1,21 @@
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
+import { loadPublished } from './npm.ts';
+
 /**
- * The facts the About page states about the project, read from the manifests
- * rather than written down a second time in prose that would go stale.
+ * The facts the site states about the project, read from the manifests and the
+ * registry rather than written down a second time in prose that would go stale.
  *
- * The version is the docs package's own, so releasing the site is what moves
- * it. The repository and author come from the workspace root, which is the
- * only manifest that carries them.
+ * The docs version is the docs package's own, so releasing the site is what
+ * moves it. The repository and author come from the workspace root, which is
+ * the only manifest that carries them. The library's version and size come
+ * from npm (see npm.ts).
  *
- * Both files are read synchronously at module load: they are small, every
- * render needs them, and nothing here can change while the process is running,
- * so a promise would only have to be threaded through the whole layout.
+ * All of it is loaded once, at module load — the manifests synchronously, the
+ * registry behind a top-level await: every render needs them, and nothing here
+ * can change while the process is running, so a promise would only have to be
+ * threaded through the whole layout.
  */
 
 type Manifest = {
@@ -59,19 +63,21 @@ const repoUrl = toBrowserUrl(workspace.repository?.url ?? '');
 const author = toAuthorName(workspace.author ?? '');
 const version = docs.version ?? '';
 const packageName = library.name ?? '';
-const packageVersion = library.version ?? '';
+const localVersion = library.version ?? '';
 
 if (
   repoUrl === '' ||
   author === '' ||
   version === '' ||
   packageName === '' ||
-  packageVersion === ''
+  localVersion === ''
 ) {
   throw new Error(
     '[docs] a package.json is missing its name, version, repository or author.',
   );
 }
+
+const published = await loadPublished(packageName);
 
 export const META = {
   version,
@@ -84,10 +90,10 @@ export const META = {
   packageName,
   /**
    * The published library's version, which is not `version` above — that one
-   * is the docs package's, and the two move independently. Only the structured
-   * data names a version, and the version it means is the library's.
+   * is the docs package's, and the two move independently. npm's `latest`
+   * when the registry answers, the workspace manifest's when it does not.
    */
-  packageVersion,
+  packageVersion: published?.version ?? localVersion,
   npmUrl: `https://www.npmjs.com/package/${packageName}`,
 } as const;
 
@@ -98,7 +104,7 @@ export const META = {
  * serves both the rendered page and its `.md` twin — anything fetching
  * `/docs/about.md` gets the version and the links, not an empty `<div>`.
  */
-const PLACEHOLDER = /^<div data-about><\/div>$/gm;
+const ABOUT_PLACEHOLDER = /^<div data-about><\/div>$/gm;
 
 const renderFacts = () =>
   [
@@ -108,6 +114,38 @@ const renderFacts = () =>
     `- **Author** — [@${META.author}](${META.authorUrl})`,
   ].join('\n');
 
-/** Replaces the About placeholder with the manifests' facts. */
+/**
+ * A chip on the landing page that npm fills in, alone on its line inside the
+ * `.hero-tags` list: `<li data-npm="version"></li>`.
+ *
+ * A fact npm did not supply takes its line with it. The version is never
+ * filled in from the workspace manifest here, because that one can be a
+ * release behind, and a chip that is missing reads better than one that is
+ * wrong.
+ */
+const NPM_PLACEHOLDER = /^<li data-npm="(\w+)"><\/li>\n?/gm;
+
+const kilobytes = new Intl.NumberFormat('en', { maximumFractionDigits: 2 });
+
+const npmFacts: Record<string, string | undefined> = {
+  version: published && `v${published.version}`,
+  size:
+    published?.gzipSize === undefined
+      ? undefined
+      : `${kilobytes.format(published.gzipSize / 1000)} kB gzipped`,
+};
+
+const renderNpmFact = (_match: string, fact: string) => {
+  if (!(fact in npmFacts)) {
+    throw new Error(`[docs] no npm fact is called "${fact}".`);
+  }
+
+  const text = npmFacts[fact];
+  return text ? `<li>${text}</li>\n` : '';
+};
+
+/** Replaces the About placeholder and the landing page's npm chips. */
 export const expandMeta = (body: string): string =>
-  body.replace(PLACEHOLDER, renderFacts);
+  body
+    .replace(ABOUT_PLACEHOLDER, renderFacts)
+    .replace(NPM_PLACEHOLDER, renderNpmFact);

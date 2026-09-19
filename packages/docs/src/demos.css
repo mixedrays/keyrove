@@ -67,8 +67,19 @@
     @apply mt-0 rounded-none border-0 pr-14;
   }
 
+  /* Where the script shares the panel, the demo's frame is the panel's frame,
+     and the tab strip keeps its tabs clear of the copy button, which sits at
+     the strip's end. */
+  .demo-code .code-tabs {
+    @apply mt-0 rounded-none border-0;
+  }
+
+  .demo-code .code-tabs-bar {
+    @apply pr-14;
+  }
+
   .demo-copy {
-    @apply absolute top-2.5 right-2.5 z-10 inline-flex cursor-pointer items-center rounded-lg border border-zinc-200 bg-white p-1.5 text-zinc-500 transition-colors dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-400;
+    @apply absolute top-1.5 right-1.5 z-10 inline-flex cursor-pointer items-center rounded-lg border border-zinc-200 bg-white p-1.5 text-zinc-500 transition-colors dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-400;
     @apply hover:text-zinc-900 dark:hover:text-zinc-100;
   }
 
@@ -76,21 +87,34 @@
    * Demo items are styled off the attributes the docs teach rather than off
    * classes of their own, so a fragment under content/_demos stays markup a
    * reader could paste as-is — there is nothing in it that only this site
-   * understands.
+   * understands. An element reached by its focus key alone is drawn as one:
+   * a destination looks the same whichever attribute made it one.
    *
    * `focus:` rather than `focus-visible:` on purpose — keyrove moves focus
    * programmatically, and the demo is about making that movement visible
    * however it was triggered.
+   *
+   * The focus ring is an outline, set off from the item rather than drawn as
+   * its border: a dressing is free to draw the border however it likes, and
+   * the ring paints over the neighbouring rows rather than under them. Its
+   * colour is set at rest, so the item's colour fade does not fade the ring
+   * in with it, and the scroll margin is the room it takes, so an item
+   * scrolled into view in a scrolling list does not have its ring cut off at
+   * the edge.
+   *
+   * Scoped to the preview rather than the whole demo: the tabs over the source
+   * are keyrove items too, and they are the site's chrome, not the demo.
    */
-  .demo :where([data-keyrove-item]) {
-    @apply block w-full cursor-pointer rounded-lg border border-transparent px-3 py-2 text-left text-sm text-zinc-800 transition-colors;
+  .demo-preview :where([data-keyrove-item], [data-keyrove-focus-key]) {
+    @apply block w-full scroll-m-1 cursor-pointer rounded-lg border border-transparent px-3 py-2 text-left text-sm text-zinc-800 transition-colors duration-120;
+    @apply outline-offset-2 outline-indigo-500 dark:outline-indigo-400;
     @apply hover:bg-indigo-500/10;
-    @apply focus:border-indigo-500 focus:bg-indigo-50 focus:outline-none;
-    @apply dark:text-zinc-200 dark:focus:border-indigo-400 dark:focus:bg-indigo-500/15;
+    @apply focus:bg-indigo-50 focus:outline-2;
+    @apply dark:text-zinc-200 dark:focus:bg-indigo-500/15;
   }
 
   /* Grid cells and toolbar buttons size to content instead of filling a row. */
-  .demo :where(button[data-keyrove-item]) {
+  .demo-preview :where(button[data-keyrove-item]) {
     @apply w-auto text-center;
   }
 
@@ -99,11 +123,11 @@
     @apply hover:bg-transparent;
   }
 
-  /* A field inside an item — the focus-keys demo's text area — so the chorded
+  /* A field inside a panel — the focus-keys demo's text area — so the chorded
      jump out of a field can be tried where it matters. */
   .demo :where(textarea) {
     @apply mt-2 block w-full resize-none rounded-md border border-zinc-200 bg-white px-2 py-1 text-sm text-zinc-800 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200;
-    @apply focus:border-indigo-500 focus:outline-none dark:focus:border-indigo-400;
+    @apply outline-offset-2 outline-indigo-500 focus:outline-2 dark:outline-indigo-400;
   }
 
   /* A nested navigation root, drawn as its own panel inside the one around it
@@ -124,7 +148,7 @@
 
   .demo :where(input[type='text']) {
     @apply ml-auto w-44 rounded-md border border-zinc-200 bg-white px-2 py-1 text-sm text-zinc-800 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200;
-    @apply focus:border-indigo-500 focus:outline-none dark:focus:border-indigo-400;
+    @apply outline-offset-2 outline-indigo-500 focus:outline-2 dark:outline-indigo-400;
   }
 
   .demo :where(input[type='range']) {
@@ -555,9 +579,9 @@
    * The resting fill is restated here at a specificity that clears the shared
    * item rule, which means the hover and focus fills have to be restated with
    * it — they live on that rule, and would otherwise lose to this one and
-   * take the focused reaction's highlight with them. The border is left
-   * alone: it is transparent until focus colours it, and that rule still
-   * wins on its own.
+   * take the focused reaction's highlight with them. The ring is left alone:
+   * it is an outline, which nothing here touches, so that rule still
+   * draws it.
    */
   .demo[data-demo='nested'] [data-keyrove-root] > [data-keyrove-item] {
     @apply grid size-8 place-items-center rounded-full p-0 text-base;
@@ -650,8 +674,8 @@
    * The resting fill is restated here at a specificity that clears the shared
    * item rule, which means the hover and focus fills have to be restated with
    * it — they live on that rule, and would otherwise lose to this one and take
-   * the focused chip's highlight with them. The border is left alone: it is
-   * transparent until focus colours it, and that rule still wins on its own.
+   * the focused chip's highlight with them. The ring is left alone: it is an
+   * outline, which nothing here touches, so that rule still draws it.
    */
   .demo:is([data-demo='orientation'], [data-demo='rtl'])
     .demo-surface
@@ -738,20 +762,16 @@
    * A panel: its own bordered region, with the name along the top in the small
    * caps an editor writes a panel header in. The name is the section's whole
    * text, so the header style is the panel's — and the text area has to say
-   * otherwise, since case and tracking are inherited.
-   *
-   * The resting border is restated at a specificity that clears the shared
-   * item rule, so the focused one has to be restated with it: that rule turns
-   * every border indigo on focus, and it would lose to this one.
+   * otherwise, since case and tracking are inherited. The border stays grey
+   * on focus: the shared item rule's ring goes round it.
    */
-  .demo[data-demo='panes'] .demo-surface > [data-keyrove-item] {
+  .demo[data-demo='panes'] .demo-surface > [data-keyrove-focus-key] {
     @apply min-h-20 flex-wrap content-start rounded-lg border px-2.5 py-2;
     @apply text-[0.65rem] font-semibold tracking-widest uppercase;
     @apply border-zinc-200 text-zinc-500 dark:border-zinc-700 dark:text-zinc-400;
-    @apply focus:border-indigo-500 dark:focus:border-indigo-400;
   }
 
-  .demo[data-demo='panes'] .demo-surface > [data-keyrove-item] > textarea {
+  .demo[data-demo='panes'] .demo-surface > [data-keyrove-focus-key] > textarea {
     @apply font-normal normal-case tracking-normal;
     order: 1;
   }
@@ -765,7 +785,7 @@
    * own key leaves the reader guessing at DOM order — and DOM order is not
    * visible in a sidebar that spans two rows.
    *
-   * The cap is the item's `::after` and the icon its `::before`, which puts
+   * The cap is the panel's `::after` and the icon its `::before`, which puts
    * the text area between them in source order, a pseudo-element coming after
    * every child. The header wraps and the text area is ordered last, so the
    * line reads icon, name, chord with the field dropping underneath. Nothing
@@ -775,7 +795,7 @@
    * `Ctrl` rather than a Mac glyph, because the attribute spells `ctrl+` and
    * not `mod+` — it is Ctrl on every platform, which is what the page says.
    */
-  .demo[data-demo='panes'] .demo-surface > [data-keyrove-item]::after {
+  .demo[data-demo='panes'] .demo-surface > [data-keyrove-focus-key]::after {
     @apply rounded border px-1.5 py-0.5 font-mono text-[0.6rem] font-normal tracking-normal whitespace-nowrap normal-case;
     border-color: var(--field-border);
     color: var(--field-muted);
@@ -806,6 +826,90 @@
   /* Terminal */
   .demo[data-demo='panes'] .demo-surface > :nth-child(3)::before {
     mask-image: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%20fill='none'%20stroke='%23000'%20stroke-width='1.75'%20stroke-linecap='round'%20stroke-linejoin='round'%3E%3Cpath%20d='m7%2011%202-2-2-2'/%3E%3Cpath%20d='M11%2013h4'/%3E%3Crect%20width='18'%20height='18'%20x='3'%20y='3'%20rx='2'%20ry='2'/%3E%3C/svg%3E");
+  }
+
+  /*
+   * The tool palette down the side of a design app: a narrow strip of tools,
+   * lifted off the stage the way a palette floats over the canvas it works
+   * on.
+   *
+   * It is the counterpart to the panels above it on the page. They have no
+   * order, so they are not items and a key is the only way to them. A palette
+   * has both an order and a key per tool that its users already know, so each
+   * tool is an item that carries a focus key as well — and the demo's point
+   * is that the two ways in land on the same stops.
+   */
+  .demo[data-demo='tools'] .demo-preview {
+    --panel: 13rem;
+  }
+
+  .demo[data-demo='tools'] .demo-surface {
+    @apply w-full border-zinc-200 bg-white shadow-lg shadow-zinc-950/5;
+    @apply dark:border-zinc-700 dark:bg-zinc-900;
+  }
+
+  /* A tool is a whole row of the strip, not a button hugging its label, which
+     is what the shared button rule makes of a toolbar's buttons. */
+  .demo[data-demo='tools'] .demo-surface > [data-keyrove-item] {
+    @apply w-full;
+  }
+
+  /*
+   * The key, at the far end of the row, in the cap the panels wear theirs in.
+   *
+   * It is read off the tool's own `aria-keyshortcuts` rather than written out
+   * per tool, as the panels' chords are. The palette is where the page pairs
+   * the two attributes, and a cap drawn from the ARIA one is the shortcut a
+   * screen reader announces, spelled the way it announces it: a cap written
+   * here could say one thing while the markup said another. The alternative
+   * text is empty for the reason it is on the rest of the dressing — a tool's
+   * name is its label, not its key.
+   */
+  .demo[data-demo='tools'] .demo-surface > [data-keyrove-item]::after {
+    content: attr(aria-keyshortcuts) / '';
+    @apply ml-auto rounded border px-1.5 py-0.5 font-mono text-[0.6rem];
+    border-color: var(--field-border);
+    color: var(--field-muted);
+  }
+
+  /* Move */
+  .demo[data-demo='tools'] .demo-surface > :nth-child(1)::before {
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%20fill='none'%20stroke='%23000'%20stroke-width='1.75'%20stroke-linecap='round'%20stroke-linejoin='round'%3E%3Cpath%20d='M4.037%204.688a.495.495%200%200%201%20.651-.651l16%206.5a.5.5%200%200%201-.063.947l-6.124%201.58a2%202%200%200%200-1.438%201.435l-1.579%206.126a.5.5%200%200%201-.947.063z'/%3E%3C/svg%3E");
+  }
+
+  /* Frame */
+  .demo[data-demo='tools'] .demo-surface > :nth-child(2)::before {
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%20fill='none'%20stroke='%23000'%20stroke-width='1.75'%20stroke-linecap='round'%20stroke-linejoin='round'%3E%3Cline%20x1='22'%20x2='2'%20y1='6'%20y2='6'/%3E%3Cline%20x1='22'%20x2='2'%20y1='18'%20y2='18'/%3E%3Cline%20x1='6'%20x2='6'%20y1='2'%20y2='22'/%3E%3Cline%20x1='18'%20x2='18'%20y1='2'%20y2='22'/%3E%3C/svg%3E");
+  }
+
+  /* Rectangle */
+  .demo[data-demo='tools'] .demo-surface > :nth-child(3)::before {
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%20fill='none'%20stroke='%23000'%20stroke-width='1.75'%20stroke-linecap='round'%20stroke-linejoin='round'%3E%3Crect%20width='18'%20height='18'%20x='3'%20y='3'%20rx='2'/%3E%3C/svg%3E");
+  }
+
+  /* Ellipse */
+  .demo[data-demo='tools'] .demo-surface > :nth-child(4)::before {
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%20fill='none'%20stroke='%23000'%20stroke-width='1.75'%20stroke-linecap='round'%20stroke-linejoin='round'%3E%3Ccircle%20cx='12'%20cy='12'%20r='10'/%3E%3C/svg%3E");
+  }
+
+  /* Pen */
+  .demo[data-demo='tools'] .demo-surface > :nth-child(5)::before {
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%20fill='none'%20stroke='%23000'%20stroke-width='1.75'%20stroke-linecap='round'%20stroke-linejoin='round'%3E%3Cpath%20d='M15.707%2021.293a1%201%200%200%201-1.414%200l-1.586-1.586a1%201%200%200%201%200-1.414l5.586-5.586a1%201%200%200%201%201.414%200l1.586%201.586a1%201%200%200%201%200%201.414z'/%3E%3Cpath%20d='m18%2013-1.375-6.874a1%201%200%200%200-.746-.776L3.235%202.028a1%201%200%200%200-1.207%201.207L5.35%2015.879a1%201%200%200%200%20.776.746L13%2018'/%3E%3Cpath%20d='m2.3%202.3%207.286%207.286'/%3E%3Ccircle%20cx='11'%20cy='11'%20r='2'/%3E%3C/svg%3E");
+  }
+
+  /* Text */
+  .demo[data-demo='tools'] .demo-surface > :nth-child(6)::before {
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%20fill='none'%20stroke='%23000'%20stroke-width='1.75'%20stroke-linecap='round'%20stroke-linejoin='round'%3E%3Cpath%20d='M12%204v16'/%3E%3Cpath%20d='M4%207V5a1%201%200%200%201%201-1h14a1%201%200%200%201%201%201v2'/%3E%3Cpath%20d='M9%2020h6'/%3E%3C/svg%3E");
+  }
+
+  /* Eyedropper */
+  .demo[data-demo='tools'] .demo-surface > :nth-child(7)::before {
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%20fill='none'%20stroke='%23000'%20stroke-width='1.75'%20stroke-linecap='round'%20stroke-linejoin='round'%3E%3Cpath%20d='m12%209-8.414%208.414A2%202%200%200%200%203%2018.828v1.344a2%202%200%200%201-.586%201.414A2%202%200%200%201%203.828%2021h1.344a2%202%200%200%200%201.414-.586L15%2012'/%3E%3Cpath%20d='m18%209%20.4.4a1%201%200%201%201-3%203l-3.8-3.8a1%201%200%201%201%203-3l.4.4%203.4-3.4a1%201%200%201%201%203%203z'/%3E%3Cpath%20d='m2%2022%20.414-.414'/%3E%3C/svg%3E");
+  }
+
+  /* Hand */
+  .demo[data-demo='tools'] .demo-surface > :nth-child(8)::before {
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%20fill='none'%20stroke='%23000'%20stroke-width='1.75'%20stroke-linecap='round'%20stroke-linejoin='round'%3E%3Cpath%20d='M18%2011V6a2%202%200%200%200-2-2a2%202%200%200%200-2%202'/%3E%3Cpath%20d='M14%2010V4a2%202%200%200%200-2-2a2%202%200%200%200-2%202v2'/%3E%3Cpath%20d='M10%2010.5V6a2%202%200%200%200-2-2a2%202%200%200%200-2%202v8'/%3E%3Cpath%20d='M18%208a2%202%200%201%201%204%200v6a8%208%200%200%201-8%208h-2c-2.8%200-4.5-.86-5.99-2.34l-3.6-3.6a2%202%200%200%201%202.83-2.82L7%2015'/%3E%3C/svg%3E");
   }
 
   /*
@@ -884,16 +988,13 @@
    * time that can still be taken. The times are set in tabular figures so the
    * digits stack down the columns rather than shuffling by a hair per row.
    *
-   * The resting border is restated at a specificity that clears the shared
-   * item rule, so the focused one has to be restated with it — that rule turns
-   * every border indigo on focus and would otherwise lose to this one. The
-   * fills are left alone: nothing here shadows them, so hover and focus still
-   * come from where every other demo's do.
+   * The chip's border stays grey on focus, with the shared item rule's ring
+   * drawn round it; the fills and the ring are left alone, so hover and focus
+   * still come from where every other demo's do.
    */
   .demo[data-demo='grid'] .demo-surface > [data-keyrove-item] {
     @apply px-2 py-1.5 tabular-nums;
     border-color: var(--field-border);
-    @apply focus:border-indigo-500 dark:focus:border-indigo-400;
   }
 
   /*
@@ -958,9 +1059,9 @@
    * It is the toolbar's own `::after`, ordered into place rather than hung off
    * one of the buttons. A border on the fourth button would have been one rule
    * instead of three, but it would also have been part of that button: the
-   * shared item rule turns every border indigo on focus, and a separator
-   * declared here at a higher specificity would have held its grey through the
-   * focus ring and broken it. Nothing about the buttons is touched this way.
+   * focus ring goes round the button's border, so the separator would have
+   * been fenced in with the button every time it took focus. Nothing about the
+   * buttons is touched this way.
    * The orders below run in DOM order, so what is read matches what is
    * focused.
    */
@@ -982,7 +1083,7 @@
   /*
    * Icons, on the demos whose items are the kind a real app labels with one:
    * the mail folders, the account menu, the message actions, the toolbar, the
-   * file list and the statuses. The rest stay plain, because the products they
+   * tool palette, the file list and the statuses. The rest stay plain, because the products they
    * are drawn from leave them plain — filter chips, time slots, language and
    * country names — and the presence list brings its own glyphs already.
    *
@@ -1012,10 +1113,13 @@
       [data-demo='nested'],
       [data-demo='keys'],
       [data-demo='skip'],
-      [data-demo='panes']
+      [data-demo='panes'],
+      [data-demo='tools']
     )
     .demo-surface
-    > [data-keyrove-item]:not([data-keyrove-skip]) {
+    > :is([data-keyrove-item], [data-keyrove-focus-key]):not(
+      [data-keyrove-skip]
+    ) {
     @apply flex items-center gap-2.5;
   }
 
@@ -1026,10 +1130,13 @@
       [data-demo='nested'],
       [data-demo='keys'],
       [data-demo='skip'],
-      [data-demo='panes']
+      [data-demo='panes'],
+      [data-demo='tools']
     )
     .demo-surface
-    > [data-keyrove-item]:not([data-keyrove-skip])::before {
+    > :is([data-keyrove-item], [data-keyrove-focus-key]):not(
+      [data-keyrove-skip]
+    )::before {
     content: '';
     @apply size-4 shrink-0 bg-current opacity-60;
     mask-position: center;

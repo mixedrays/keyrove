@@ -166,8 +166,9 @@ Explicit bindings are literal under RTL, too; only the
 ## An item's own key
 
 Everything above binds a _move_ on the root. An item can also carry a combo of
-its own: `data-keyrove-focus-key="ctrl+shift+KeyE"` focuses it from anywhere
-under the listener and outranks the root's bindings.
+its own, and so can an element that is not one:
+`data-keyrove-focus-key="ctrl+shift+KeyE"` focuses it from anywhere under the
+listener and outranks the root's bindings.
 [Focus keys](/docs/examples/focus-keys) has the rules in full.
 
 ## Editable elements are exempt

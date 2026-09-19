@@ -88,10 +88,10 @@ export type StrideAction =
   | 'pageDown';
 
 /**
- * Everything a keypress can resolve to: the strides, plus `focus` — an item
- * named outright by its own `data-keyrove-focus-key`, reached from anywhere
- * under the listener rather than from a position. It is the one move whose
- * `*-key` attribute sits on the item, and the one with no default.
+ * Everything a keypress can resolve to: the strides, plus `focus` — an element
+ * named outright by its own `data-keyrove-focus-key`, item or not, reached from
+ * anywhere under the listener rather than from a position. It is the one move
+ * whose `*-key` attribute sits on its destination, and the one with no default.
  */
 export type MoveAction = StrideAction | 'focus';
 
@@ -169,7 +169,7 @@ export type Layout = {
  * whether the combo enters a group when pressed with nothing focused inside —
  * true for the four directional moves, false for every other stride, which
  * move only within a group. A property of the move, not of the key it is bound
- * to. A focus row carries its target outright — the item that declared the
+ * to. A focus row carries its target outright — the element that declared the
  * key — and always enters: it names a destination, not a step from a position.
  */
 export type Binding =
@@ -185,7 +185,7 @@ export type ExplicitBinding = (
   intent: StrideAction,
 ) => string | null | undefined;
 
-/** A focus key as read off an item: its combo, and the item it focuses. */
+/** A focus key as read off an element: its combo, and the element it focuses. */
 export type FocusKey = {
   combo: string;
   target: Element;
@@ -199,7 +199,7 @@ export type BuildBindingsArgs = {
   explicit: ExplicitBinding;
   /**
    * The focus keys in the listener's reach, in DOM order. Head of the table:
-   * an item's own key is the most specific declaration there is.
+   * an element's own key is the most specific declaration there is.
    */
   focus?: readonly FocusKey[];
   layout: Layout;

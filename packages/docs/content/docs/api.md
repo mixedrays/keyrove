@@ -98,7 +98,7 @@ Every `*-key` value is a combo, matched by
 One keypress resolves to at most one action. The binding table is searched in
 order, and the first match wins:
 
-1. An item's own [focus key](#focus-keys).
+1. An element's own [focus key](#focus-keys).
 2. The root's explicit `*-key` bindings.
 3. The defaults of the moves left unbound.
 
@@ -128,7 +128,7 @@ the listener is attached to (`currentTarget`). A listener on `document` or
   [nest](/docs/examples/nested-roots). While focus is inside an inner root,
   only that root's bindings apply; a key it does not bind keeps its browser
   default rather than reaching the group around it. The one thing heard across
-  roots is an outer item's [focus key](#focus-keys).
+  roots is a [focus key](#focus-keys).
 - An item counts as focused when focus is anywhere inside it
   (`:focus-within`), so an item wrapping a link or a button is still the
   position after <kbd class="kbd">Tab</kbd> lands on that inner control.
@@ -145,7 +145,7 @@ on where focus is:
 - **Nothing in the group focused.** Only the moves that can enter a group are
   consumed: the four directional moves, which land on the first navigable item
   (the last, for prev on a looping list), and a [focus key](#focus-keys),
-  which lands on its item. Home, End, the row ends and the page moves act only
+  which lands on its element. Home, End, the row ends and the page moves act only
   once focus is inside an item; pressed here, they keep their browser default.
 - **A group with no items.** Every key keeps its browser default.
 
@@ -226,27 +226,33 @@ work.
 
 ### Focus keys
 
-An item can name its own key. `data-keyrove-focus-key="ctrl+shift+KeyE"`
-focuses that item from anywhere the keydown reaches the listener: a sibling
+An element can name its own key. `data-keyrove-focus-key="ctrl+shift+KeyE"`
+focuses that element from anywhere the keydown reaches the listener: a sibling
 group, a nested root, or, when the combo holds <kbd class="kbd">Ctrl</kbd>,
 <kbd class="kbd">Alt</kbd> or <kbd class="kbd">Meta</kbd>, a text field. The
 move reports `'focus'`. The value is a [combo](#combos) like any other, and a
 bare code such as `KeyE` works wherever the letter would not be typing.
 
 - Focus keys sit first in the [binding table](#precedence), so they win any
-  collision with the root's bindings or the defaults. Two items naming one
-  combo resolve to the first in DOM order. A skipped or disabled item's key is
-  inert.
-- The move happens in the target's own group: the nearest root above the item,
-  else the listener's element. An item that is itself a root belongs to the
-  group above it. `from` is the item of that group holding focus, or `null`
+  collision with the root's bindings or the defaults. Two elements naming one
+  combo resolve to the first in DOM order. A skipped or disabled element's key
+  is inert.
+- The element need not be an item. An item stays in its group's order, so the
+  arrows reach it too; any other element is reached by its key alone.
+- On an item, the move happens in the item's own group: the nearest root above
+  it, else the listener's element. An item that is itself a root belongs to
+  the group above it. `from` is the item of that group holding focus, or `null`
   when focus was outside it.
-- Pressed while focus is already inside its item, the key is a consumed no-op:
-  claimed, with `to: null`.
-- The roving tab stop moves within the target's group, as for an arrow move:
-  when the item focus leaves carries `data-keyrove-roving-tabindex`, it drops
-  to `tabindex="-1"` and the target takes `0`. From outside the group the stop
-  stays where it was, and a nested group's stop is never touched.
+- On any other element, the move belongs to no group: `from` is `null`, and no
+  roving tab stop moves. A panel holding a list is best made that list's root,
+  so an arrow pressed on the panel after the jump enters the panel's own items.
+- Pressed while focus is already inside its element, the key is a consumed
+  no-op: claimed, with `to: null`.
+- On an item, the roving tab stop moves within the item's group, as for an
+  arrow move: when the item focus leaves carries
+  `data-keyrove-roving-tabindex`, it drops to `tabindex="-1"` and the target
+  takes `0`. From outside the group the stop stays where it was, and a nested
+  group's stop is never touched.
 
 See [focus keys](/docs/examples/focus-keys) for the pattern at work.
 
@@ -263,19 +269,19 @@ keyRove(e, {
 
 `action` names the move: `'next'`, `'prev'`, `'home'`, `'end'`, `'pageUp'`,
 `'pageDown'`; in grids only, `'nextRow'`, `'prevRow'`, `'homeRow'` and
-`'endRow'`; and `'focus'` for an item's own [focus key](#focus-keys). A cell
-move and a row move never report the same token. `from` is the item focus left,
-or `null` when the group was entered from outside, and `to` is the item it
-landed on.
+`'endRow'`; and `'focus'` for a [focus key](#focus-keys). A cell move and a
+row move never report the same token. `from` is the item focus left, or `null`
+when the group was entered from outside or by a focus key on an element that is
+not an item, and `to` is where focus landed.
 
 ### Return value
 
 `keyRove` reports what it did with the key, so handlers compose:
 
 - `null`: the key was not keyrove's and is untouched, browser default included.
-- `{ action, from, to }`: the key was consumed. `to` is the newly focused item,
-  or `null` for a consumed no-op, where the group owns the key but there is
-  nowhere left to go.
+- `{ action, from, to }`: the key was consumed. `to` is the newly focused
+  element, or `null` for a consumed no-op, where the group owns the key but
+  there is nowhere left to go.
 
 A non-null result means "claimed", which is what lets several handlers share
 one listener without stepping on each other:
@@ -396,7 +402,7 @@ On an item:
 | `data-keyrove-item`            | Marks an element as navigable. It is the position whenever focus is anywhere inside it.                                                                                              |
 | `data-keyrove-skip`            | Passed over when moving; keeps its place in the sequence. `disabled` also excludes an element, but removes it from the sequence entirely, so in a grid it shifts the cells after it. |
 | `data-keyrove-roving-tabindex` | Moves the `tabindex="0"` tab stop along with focus.                                                                                                                                  |
-| `data-keyrove-focus-key`       | [Combo](#combos) that focuses this item from anywhere under the listener, e.g. `ctrl+shift+KeyE`.                                                                                    |
+| `data-keyrove-focus-key`       | [Combo](#combos) that focuses this element from anywhere under the listener, e.g. `ctrl+shift+KeyE`. Works without `data-keyrove-item`, too.                                         |
 | `data-keyrove-typeahead`       | Label for [type-to-focus](#createtypeahead-options), when the item's own text is not it.                                                                                             |
 
 On the root, read on every keypress:
@@ -519,7 +525,7 @@ type MoveAction =
   | 'prevRow'
   | 'pageUp'
   | 'pageDown'
-  | 'focus'; // an item's own data-keyrove-focus-key
+  | 'focus'; // an element's own data-keyrove-focus-key
 
 // what keyRove returns for a consumed keypress
 type MoveResult = {

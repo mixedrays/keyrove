@@ -1,3 +1,5 @@
+import { mountCodeTabs } from './code-tabs.ts';
+import { mountCopyCommands } from './copy-command.ts';
 import { mountDemos } from './demos.ts';
 import {
   mountCopyMarkdown,
@@ -25,4 +27,6 @@ mountThemeToggle();
 mountSidebar();
 mountTableOfContents();
 mountCopyMarkdown();
+mountCodeTabs();
+mountCopyCommands();
 mountDemos();

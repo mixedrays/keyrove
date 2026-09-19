@@ -16,6 +16,11 @@ import { icon } from './icons.ts';
  * and the fragment carries no site classes: styling hangs off the same
  * `data-keyrove-*` attributes the docs teach, which is what keeps a fragment
  * markup a reader could paste as-is.
+ *
+ * The script a page writes straight under the placeholder joins the source
+ * block as a tab of its own (see build/markdown.ts), so the markup and the call
+ * that drives it read as the two files of one demo rather than as a demo and a
+ * stray block below it.
  */
 
 export const DEMOS_DIR = fileURLToPath(
@@ -27,16 +32,6 @@ export type Demos = Map<string, string>;
 
 /** What the reader gets: HTML for a page, a fenced block for the `.md` twin. */
 export type DemoTarget = 'html' | 'markdown';
-
-/**
- * The placeholder a content file writes, alone on its line.
- *
- * `data-demo-class` is layout the demo needs but the library does not teach —
- * the grid's columns, the long list's scroll box. It lands on the surface at
- * render time rather than in the fragment, so it stays out of the source block.
- */
-const PLACEHOLDER =
-  /^<div data-demo="([\w-]+)"(?: data-demo-class="([^"]*)")?><\/div>$/gm;
 
 /**
  * A folded region: markup that runs but is not worth reading.
@@ -51,6 +46,25 @@ const FOLD =
 const FOLD_MARKER = /^[ \t]*<!--[ \t]*\/?fold[ \t]*-->[ \t]*\n/gm;
 
 const FENCE = '```';
+
+/**
+ * The placeholder a content file writes, alone on its line, and the fenced
+ * blocks directly under it.
+ *
+ * `data-demo-class` is layout the demo needs but the library does not teach —
+ * the grid's columns, the long list's scroll box. It lands on the surface at
+ * render time rather than in the fragment, so it stays out of the source block.
+ *
+ * The blocks are the demo's other files, and they are taken with it so they
+ * can share its panel. HTML is left where it stands: a demo has one HTML file,
+ * its own, and an HTML block right under it is a closer look at that file —
+ * custom keys picks out the two attributes of its root — not a second one.
+ */
+const PLACEHOLDER = new RegExp(
+  String.raw`^<div data-demo="([\w-]+)"(?: data-demo-class="([^"]*)")?><\/div>$` +
+    String.raw`((?:\n\n${FENCE}(?!html\b)\w[^\n]*\n[\s\S]*?\n${FENCE}$)*)`,
+  'gm',
+);
 
 /**
  * The demos whose log is a history rather than one line.
@@ -77,6 +91,7 @@ const HISTORY = new Set([
   'rtl',
   'editable',
   'panes',
+  'tools',
   'grid',
   'responsive',
 ]);
@@ -182,9 +197,16 @@ const withClass = (markup: string, className: string) =>
  * The source is emitted as a fence rather than as pre-highlighted HTML so that
  * it goes through the page's own Shiki pass and is themed like every other
  * block on the site. That is why the wrapper is split around it — markdown-it
- * needs the blank lines either side to see a fence at all.
+ * needs the blank lines either side to see a fence at all. `files` are the
+ * blocks the placeholder took with it, still fenced and each led by its blank
+ * line, so they land beside the markup and share its panel.
  */
-const renderUnit = (name: string, markup: string, surfaceClass: string) => {
+const renderUnit = (
+  name: string,
+  markup: string,
+  surfaceClass: string,
+  files: string,
+) => {
   const live = withClass(
     toLive(markup),
     ['demo-surface', surfaceClass].filter(Boolean).join(' '),
@@ -192,7 +214,7 @@ const renderUnit = (name: string, markup: string, surfaceClass: string) => {
 
   const copy = [
     '<button type="button" class="demo-copy" data-copy-code',
-    'aria-label="Copy markup">',
+    'aria-label="Copy code">',
     icon('copy', 'size-3.5 icon-idle'),
     icon('check', 'size-3.5 icon-done'),
     '</button>',
@@ -213,7 +235,7 @@ ${copy}
 
 ${FENCE}html
 ${toExcerpt(markup)}
-${FENCE}
+${FENCE}${files}
 
 </div>
 </div>`;
@@ -246,20 +268,24 @@ export const hasDemos = (body: string) => body.search(PLACEHOLDER) !== -1;
  *
  * This runs on the source rather than on rendered HTML, so the `.md` twin a
  * reader (or an agent) fetches carries the markup too — it used to carry the
- * bare placeholder, which said nothing at all.
+ * bare placeholder, which said nothing at all. The blocks a placeholder took
+ * with it go back under the markup there, as the page wrote them.
  */
 export const expandDemos = (
   body: string,
   demos: Demos,
   target: DemoTarget,
 ): string =>
-  body.replace(PLACEHOLDER, (_match, name: string, surfaceClass = '') => {
-    const markup = demos.get(name);
-    if (markup === undefined) {
-      throw new Error(`[docs] no demo named "${name}" in content/_demos.`);
-    }
+  body.replace(
+    PLACEHOLDER,
+    (_match, name: string, surfaceClass = '', files: string) => {
+      const markup = demos.get(name);
+      if (markup === undefined) {
+        throw new Error(`[docs] no demo named "${name}" in content/_demos.`);
+      }
 
-    return target === 'html'
-      ? renderUnit(name, markup, surfaceClass)
-      : `${FENCE}html\n${toExcerpt(markup)}\n${FENCE}`;
-  });
+      return target === 'html'
+        ? renderUnit(name, markup, surfaceClass, files)
+        : `${FENCE}html\n${toExcerpt(markup)}\n${FENCE}${files}`;
+    },
+  );
