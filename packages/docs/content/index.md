@@ -5,24 +5,26 @@ titleTag: keyrove — Keyboard navigation for lists and grids
 layout: landing
 ---
 
-<p class="hero-eyebrow">Framework-agnostic · Zero dependencies</p>
+<ul class="hero-tags">
+<li>under 3 kB gzipped</li>
+<li>zero deps</li>
+<li>framework-agnostic</li>
+<li>TypeScript</li>
+<li>MIT licence</li>
+</ul>
 
-# Keyboard navigation, driven by data attributes.
+# Keyboard navigation that behaves itself.
 
-Mark your items with `data-keyrove-item`, pass keydown events to `keyRove`, and
-lists and grids become keyboard navigable. Arrow keys are only the default: the
-keys that move focus are attributes, so any key can drive a group, and
-<kbd class="kbd">Tab</kbd> keeps its native behaviour.
+Lists and grids, custom key bindings, roving tabindex, typeahead and focus
+shortcuts for any DOM tree. Data attributes and one keydown call, no wrappers,
+no framework opinions.
 
 <div class="hero-actions">
 
-[Get started](/docs/introduction) [Try the demos](/docs/examples/basic)
+[Get started](/docs/introduction) [Demos](/docs/examples/basic)
+<span class="hero-install"><code>npm i @mixedrays/keyrove</code><button type="button" data-copy-command="npm i @mixedrays/keyrove">copy</button></span>
 
 </div>
-
-```sh
-pnpm add @mixedrays/keyrove
-```
 
 ## Three lines and a list is navigable
 

@@ -268,7 +268,8 @@
    * demo markup, which is a list inside this prose — override without
    * escalating. The demo exclusions are explicit for the same reason: a
    * `.demo-surface` is a `<ul>` whose items are `<li>`, a `.demo-log-list` is
-   * an `<ol>` of the same, and none of them should pick up list styling.
+   * an `<ol>` of the same, and none of them should pick up list styling. The
+   * landing page's `.hero-tags` is a `<ul>` of chips on the same terms.
    */
   .markdown {
     @apply text-zinc-700 dark:text-zinc-300;
@@ -317,7 +318,7 @@
     @apply font-semibold text-zinc-900 dark:text-zinc-100;
   }
 
-  .markdown :where(ul:not(.demo-surface)) {
+  .markdown :where(ul:not(.demo-surface, .hero-tags)) {
     @apply mt-4 list-disc space-y-2 pl-6;
   }
 
@@ -373,28 +374,37 @@
     @apply mx-auto max-w-4xl px-6 pb-24;
   }
 
+  /* The headline is display type: heavier and tighter than a docs title, with
+     the lines set close enough to read as one block. */
   .landing :where(h1) {
-    @apply mt-3 text-4xl leading-[1.1] sm:text-5xl;
+    @apply mt-6 text-5xl leading-none font-bold tracking-tighter sm:text-6xl;
   }
 
   .landing :where(h2) {
-    @apply mt-16 border-b-0 text-2xl;
+    @apply mt-20 border-b-0 text-2xl;
   }
 
   /* The hero lead is the paragraph after the headline. Matching on
-     `p:first-of-type` instead would land on the eyebrow above it — and win,
-     since `:first-of-type` carries specificity that `:where()` does not. */
+     `p:first-of-type` would land on the wrong paragraph once another one is
+     added above it, and win, since `:first-of-type` carries specificity that
+     `:where()` does not. */
   .landing :where(h1 + p) {
-    @apply text-lg text-zinc-600 dark:text-zinc-400;
+    @apply mt-6 max-w-2xl leading-6 text-zinc-600 dark:text-zinc-400;
   }
 
-  .hero-eyebrow {
-    @apply pt-16 text-xs font-semibold tracking-[0.12em] text-indigo-600 uppercase sm:pt-24 dark:text-indigo-400;
+  /* What the package is, at a glance, above the headline: one chip a fact. */
+  .hero-tags {
+    @apply flex flex-wrap gap-2 pt-16 sm:pt-20;
   }
 
-  /* The two links are one markdown paragraph; the row is the paragraph itself. */
+  .hero-tags li {
+    @apply rounded-full border border-zinc-300 px-3 py-1 font-mono text-xs text-zinc-600 dark:border-zinc-700 dark:text-zinc-400;
+  }
+
+  /* The two links and the install command are one markdown paragraph; the row
+     is the paragraph itself. */
   .hero-actions p {
-    @apply mt-7 flex flex-wrap gap-3;
+    @apply mt-8 flex flex-wrap gap-3;
   }
 
   .hero-actions a {
@@ -405,6 +415,30 @@
      class, and the order in the source is the order of importance. */
   .hero-actions a:first-child {
     @apply border-transparent bg-indigo-600 text-white hover:bg-indigo-700 dark:bg-indigo-500 dark:text-zinc-950 dark:hover:bg-indigo-400;
+  }
+
+  /*
+   * The install command, sized to the buttons beside it. On a narrow screen
+   * the command scrolls inside the box rather than widening the page.
+   */
+  .hero-install {
+    @apply inline-flex max-w-full items-center gap-3 rounded-lg border border-zinc-200 bg-zinc-100 py-2.5 pr-3 pl-4 font-mono text-sm text-zinc-900 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-100;
+  }
+
+  .hero-install code {
+    @apply min-w-0 overflow-x-auto whitespace-nowrap;
+  }
+
+  /* The prompt is drawn, not written, so a selection of the command leaves it
+     behind. The empty alt text keeps it from being read aloud. */
+  .hero-install code::before {
+    @apply mr-2 text-zinc-400 dark:text-zinc-500;
+    content: '$';
+    content: '$' / '';
+  }
+
+  .hero-install button {
+    @apply shrink-0 cursor-pointer border-l border-zinc-300 pl-3 text-xs text-zinc-500 hover:text-zinc-900 dark:border-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-100;
   }
 
   .feature-grid {
