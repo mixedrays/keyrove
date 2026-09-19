@@ -1,5 +1,11 @@
 # Changelog
 
+## [2.3.0](https://github.com/mixedrays/keyrove/compare/v2.2.0...v2.3.0) (2026-09-19)
+
+### Features
+
+* accept a focus key on any element, not only an item, add additional demo for focus key example ([35acf5d](https://github.com/mixedrays/keyrove/commit/35acf5d52a9ac1ad0f5391aa4c72edb247ca0031))
+
 ## [2.2.0](https://github.com/mixedrays/keyrove/compare/v2.1.0...v2.2.0) (2026-09-17)
 
 ### Features
