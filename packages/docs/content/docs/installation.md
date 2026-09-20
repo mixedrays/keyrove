@@ -54,6 +54,11 @@ By default the group answers to <kbd class="kbd">↑</kbd> and
 [custom keys](/docs/examples/custom-keys). Every attribute name is also
 exported as a [constant](/docs/api#constants), for markup built in JavaScript.
 
+If the markup is not yours to add attributes to, the same settings can be
+passed to `keyRove` instead — `keyRove(e, { items: '[role="menuitem"]' })`
+navigates a component you did not write. The wiring below is the same either
+way; see [attributes and options](/docs/attributes-and-options).
+
 ## React
 
 ```tsx

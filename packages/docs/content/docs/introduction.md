@@ -40,7 +40,7 @@ way:
 - **It is not markup-only.** Attributes are where a group is described by
   default, not the only place: every one of them has an option of the same
   name, which is how you navigate
-  [HTML you do not write](#describing-a-group-in-javascript).
+  [HTML you do not write](/docs/attributes-and-options).
 
 ## How it works
 
@@ -59,7 +59,7 @@ Three pieces do all the work:
 Describing a group in its markup means a list becomes a grid by gaining a
 column-count attribute, with nothing in your JavaScript to keep in sync. Where
 the markup is not yours to change, the same settings can be
-[named in JavaScript](#describing-a-group-in-javascript) instead.
+[named in JavaScript](#where-a-group-is-described) instead.
 
 ## What it handles
 
@@ -81,37 +81,34 @@ Inside an input, textarea, select or `contenteditable` region the arrows and
 <kbd class="kbd">Home</kbd> belong to the caret, and keyrove leaves them there;
 see [editable targets](/docs/examples/editable-targets).
 
-Every attribute in that table has an option of the same name, for groups
-described in JavaScript — see below.
+Every attribute in that table has an option of the same name, for
+[groups described in JavaScript](#where-a-group-is-described).
 
-## Describing a group in JavaScript
+## Where a group is described
 
-An attribute has to be on the element, which is no help when the HTML belongs
-to a component library, a CMS, or anything else you do not write. The same
-settings can be named in an options object instead:
+An attribute has to be on the element, which is no help when the HTML belongs to
+a component library, a CMS, or anything else you do not write. Every attribute
+has an option of the same name, so the same group can be described at the call
+site instead:
 
 ```ts
 import { keyRove } from '@mixedrays/keyrove';
 
-const config = { items: '[role="menuitem"]', loop: true };
+const menu = { items: '[role="menuitem"]', loop: true };
 
 document
   .querySelector('#share')
-  .addEventListener('keydown', (e) => keyRove(e, config));
+  .addEventListener('keydown', (e) => keyRove(e, menu));
 ```
 
-The two sources are read one field at a time, options first, so neither has to
-answer for the other's fields. `keyRove(e, { loop: true })` loops a group whose
-items, keys and columns still come from its attributes, and `keyRove(e)` reads
-exactly the markup it always did — nothing about the attribute API changed when
-options arrived.
+The two are read field by field, options first, so neither has to answer for
+the other's: `keyRove(e, { loop: true })` loops a group whose items and keys
+still come from its attributes, and `keyRove(e)` reads exactly the markup it
+always did.
 
-Options are read on every keypress, like the attributes, so an object built at
-the call site is as live as one: `keyRove(e, { cols: columnsNow() })` re-folds
-the grid between presses. `createTypeahead` takes the settings it needs under
-the same names, so one object can drive both handlers. See
-[options in JavaScript](/docs/examples/javascript-options) for the whole
-picture, and the [API reference](/docs/api#options) for every field.
+[Attributes and options](/docs/attributes-and-options) covers both, and which
+to reach for; [options in JavaScript](/docs/examples/javascript-options) is a
+menu navigated without a keyrove attribute anywhere.
 
 ## Which keys move focus
 

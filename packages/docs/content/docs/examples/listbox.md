@@ -3,7 +3,7 @@ title: Listbox
 description: A complete widget — a single-select listbox with roving tabindex, typeahead, Space and Enter to pick, and the ARIA keyrove leaves to you.
 titleTag: Accessible listbox with keyboard navigation — keyrove
 group: Examples
-order: 22
+order: 23
 ---
 
 Every page so far shows one attribute at a time. This one puts them together

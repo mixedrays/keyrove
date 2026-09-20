@@ -2,7 +2,7 @@
 title: About
 description: What keyrove is, who maintains it, and which version of these docs you are reading.
 group: Guide
-order: 4
+order: 5
 ---
 
 keyrove is a framework-agnostic, dependency-free library for keyboard navigation

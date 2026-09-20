@@ -2,7 +2,7 @@
 title: API reference
 description: Every export in the package — the handler, the typeahead helper, the combo matcher, the attributes, and the types.
 group: Guide
-order: 3
+order: 4
 ---
 
 | Export                                                                | What it is                                                                 |
@@ -263,7 +263,8 @@ Every setting a root's attributes carry can be named in the options object
 instead. Both sources are read for every keypress, one field at a time, options
 first — so a group can be described in markup, in JavaScript, or in any mixture
 of the two, and a call passing no options reads exactly the markup it always
-did.
+did. [Attributes and options](/docs/attributes-and-options) is the guide to
+choosing between them.
 
 ```ts
 keyRove(e); // everything from the markup
