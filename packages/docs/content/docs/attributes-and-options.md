@@ -76,11 +76,11 @@ your own — so a group can be named by the roles or classes its markup already
 has:
 
 ```ts
-const menu = { items: '[role="menuitem"]', loop: true };
+const config = { items: '[role="menuitem"]', loop: true };
 
 document
   .querySelector('#share')
-  .addEventListener('keydown', (e) => keyRove(e, menu));
+  .addEventListener('keydown', (e) => keyRove(e, config));
 ```
 
 **Options, for settings you compute.** `keyRove` is called fresh for every
@@ -106,10 +106,10 @@ fallbacks. So a group described in JavaScript hands the same object to both
 handlers, and they cannot disagree about what an item is:
 
 ```ts
-const menu = { items: '[role="menuitem"]', loop: true };
-const typeahead = createTypeahead(menu);
+const config = { items: '[role="menuitem"]', loop: true };
+const typeahead = createTypeahead(config);
 
-el.addEventListener('keydown', (e) => keyRove(e, menu) || typeahead(e));
+el.addEventListener('keydown', (e) => keyRove(e, config) || typeahead(e));
 ```
 
 The settings that are about _moves_ — the keys, the columns, looping — are not

@@ -43,35 +43,30 @@ import { keyRove } from '@mixedrays/keyrove';
 document.querySelector('#menu').addEventListener('keydown', (e) => keyRove(e));
 ```
 
-## Or bind the keys you want
-
-The same list, driven by <kbd class="kbd">J</kbd> and <kbd class="kbd">K</kbd>
-instead: one attribute each, and nothing in the JavaScript changes.
-
-```html
-<ul id="menu" data-keyrove-next-key="KeyJ" data-keyrove-prev-key="KeyK">
-  <li data-keyrove-item tabindex="0">Inbox</li>
-  <li data-keyrove-item tabindex="0">Drafts</li>
-</ul>
-```
-
 ## Or skip the attributes entirely
 
 Every attribute has an option of the same name, so a group whose HTML is not
 yours to change — a component library's menu, a CMS's output — is described in
-JavaScript instead. Each setting falls back to its attribute on its own, so the
-two mix freely.
+JavaScript instead. The menu below is navigated that way: open its HTML tab and
+there is not a keyrove attribute in it.
+
+<div data-demo="menu"></div>
 
 ```ts
-const config = { items: '[role="menuitem"]', loop: true };
+import { createTypeahead, keyRove } from '@mixedrays/keyrove';
+
+const config = { items: '[role="menuitem"]', loop: true, rovingTabindex: true };
+const typeahead = createTypeahead(config);
 
 document
   .querySelector('#share')
-  .addEventListener('keydown', (e) => keyRove(e, config));
+  .addEventListener('keydown', (e) => keyRove(e, config) || typeahead(e));
 ```
 
-See [options in JavaScript](/docs/examples/javascript-options) for the whole
-thing at work.
+Each setting falls back to its attribute on its own, so the two mix freely. See
+[attributes and options](/docs/attributes-and-options) for both, or
+[options in JavaScript](/docs/examples/javascript-options) for this menu in
+full.
 
 <div class="feature-grid">
 <div class="feature">

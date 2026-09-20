@@ -17,17 +17,17 @@ the group is named by the role its items already have.
 ```ts
 import { createTypeahead, keyRove } from '@mixedrays/keyrove';
 
-const menu = {
+const config = {
   items: '[role="menuitem"]',
   loop: true,
   rovingTabindex: true,
 };
 
-const typeahead = createTypeahead(menu);
+const typeahead = createTypeahead(config);
 
 document
   .querySelector('#share')
-  .addEventListener('keydown', (e) => keyRove(e, menu) || typeahead(e));
+  .addEventListener('keydown', (e) => keyRove(e, config) || typeahead(e));
 ```
 
 <kbd class="kbd">↑</kbd> <kbd class="kbd">↓</kbd> move and wrap at the ends,

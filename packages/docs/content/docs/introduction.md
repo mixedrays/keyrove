@@ -94,11 +94,11 @@ site instead:
 ```ts
 import { keyRove } from '@mixedrays/keyrove';
 
-const menu = { items: '[role="menuitem"]', loop: true };
+const config = { items: '[role="menuitem"]', loop: true };
 
 document
   .querySelector('#share')
-  .addEventListener('keydown', (e) => keyRove(e, menu));
+  .addEventListener('keydown', (e) => keyRove(e, config));
 ```
 
 The two are read field by field, options first, so neither has to answer for
