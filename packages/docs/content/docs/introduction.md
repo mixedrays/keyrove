@@ -1,6 +1,6 @@
 ---
 title: Introduction
-description: What keyrove does, which keys it moves focus with, how it sits beside native Tab navigation, and what it deliberately leaves to you.
+description: What keyrove does, which keys it moves focus with, where a group is described, how it sits beside native Tab navigation, and what it deliberately leaves to you.
 titleTag: Introduction to keyboard navigation — keyrove
 group: Guide
 order: 1
@@ -11,7 +11,7 @@ elements with an attribute and forward keydown events to one function; it works
 out which element should receive focus next and moves it there. It does not
 render anything, own any state, or wrap your components.
 
-```html
+```html title="Markup"
 <ul id="menu">
   <li data-keyrove-item tabindex="0">Inbox</li>
   <li data-keyrove-item tabindex="0">Drafts</li>
@@ -19,14 +19,25 @@ render anything, own any state, or wrap your components.
 </ul>
 ```
 
-```ts
+```ts title="The call"
 import { keyRove } from '@mixedrays/keyrove';
 
 document.querySelector('#menu').addEventListener('keydown', (e) => keyRove(e));
 ```
 
-That is the whole library. Two things about it are easy to assume the other
-way:
+```ts title="No attributes"
+// The same list, with nothing in it but <li tabindex="0">: where the markup is
+// not yours to change, every attribute has an option of the same name.
+import { keyRove } from '@mixedrays/keyrove';
+
+document
+  .querySelector('#menu')
+  .addEventListener('keydown', (e) => keyRove(e, { items: 'li' }));
+```
+
+That is the whole library — the third tab included, which is the same list
+navigated the same way, described somewhere else. Three things about it are
+easy to assume the other way:
 
 - **It is not an arrow-key library.** Arrows are the default binding.
   [Which keys move focus](#which-keys-move-focus) is markup, so a group can be
@@ -37,6 +48,10 @@ way:
   focus and leaves every key it is not bound to alone, so
   [sequential focus navigation](#tab-still-works) keeps working as the browser
   does it.
+- **It is not markup-only.** Attributes are where a group is described by
+  default, not the only place: every one of them has an option of the same
+  name, which is how you navigate
+  [HTML you do not write](/docs/attributes-and-options).
 
 ## How it works
 
@@ -52,9 +67,10 @@ Three pieces do all the work:
    for the keys it is bound to, so the page does not scroll out from under you
    while every other key keeps its browser default.
 
-Because the configuration lives in the markup, there is no options object to
-keep in sync with the DOM. A list becomes a grid by gaining a column-count
-attribute, and nothing in your JavaScript changes.
+Describing a group in its markup means a list becomes a grid by gaining a
+column-count attribute, with nothing in your JavaScript to keep in sync. Where
+the markup is not yours to change, the same settings can be
+[named in JavaScript](#where-a-group-is-described) instead.
 
 ## What it handles
 
@@ -75,6 +91,35 @@ attribute, and nothing in your JavaScript changes.
 Inside an input, textarea, select or `contenteditable` region the arrows and
 <kbd class="kbd">Home</kbd> belong to the caret, and keyrove leaves them there;
 see [editable targets](/docs/examples/editable-targets).
+
+Every attribute in that table has an option of the same name, for
+[groups described in JavaScript](#where-a-group-is-described).
+
+## Where a group is described
+
+An attribute has to be on the element, which is no help when the HTML belongs to
+a component library, a CMS, or anything else you do not write. Every attribute
+has an option of the same name, so the same group can be described at the call
+site instead:
+
+```ts
+import { keyRove } from '@mixedrays/keyrove';
+
+const config = { items: '[role="menuitem"]', loop: true };
+
+document
+  .querySelector('#share')
+  .addEventListener('keydown', (e) => keyRove(e, config));
+```
+
+The two are read field by field, options first, so neither has to answer for
+the other's: `keyRove(e, { loop: true })` loops a group whose items and keys
+still come from its attributes, and `keyRove(e)` reads exactly the markup it
+always did.
+
+[Attributes and options](/docs/attributes-and-options) covers both, and which
+to reach for; [options in JavaScript](/docs/examples/javascript-options) is a
+menu navigated without a keyrove attribute anywhere.
 
 ## Which keys move focus
 

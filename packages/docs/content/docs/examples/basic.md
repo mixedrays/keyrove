@@ -42,8 +42,10 @@ wrapping round to the other end instead.
 
 ## Reacting to movement
 
-The optional second argument takes `onMove`, fired _after_ focus has moved, and
-only when it actually moved.
+The optional second argument carries the group's
+[settings](/docs/attributes-and-options), where you would rather not write them
+as attributes, and `onMove` — fired _after_ focus has moved, and only when it
+actually moved.
 
 ```ts
 list.addEventListener('keydown', (e) => {

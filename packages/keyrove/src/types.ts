@@ -116,12 +116,99 @@ export type MoveResult = ActionResult<MoveAction>;
 /** The argument `onMove` receives: a move that actually happened. */
 export type Move = MoveResult & { to: Element };
 
-export type Options = {
+/**
+ * A group's configuration, named in JavaScript rather than in markup.
+ *
+ * Every field is optional and falls back on its own to the `data-keyrove-*`
+ * attribute it stands for, so a group can be described here, in its markup, or
+ * in any mixture of the two: `{ loop: true }` over marked-up items loops a
+ * group whose items, keys and columns still come from its attributes, and a
+ * handler passing no options reads exactly the markup it always did.
+ */
+export type GroupOptions = {
+  /**
+   * The group's items: a selector run inside the root, or a reading of your
+   * own. Defaults to the item attribute. Items carrying `disabled` are never
+   * navigable, whichever reading found them.
+   */
+  items?: string | ReadItems;
+  /**
+   * The selector a root answers to, matched at or above the event's target.
+   * Defaults to the root attribute; either way the listener's element stands
+   * in when nothing above the target matches.
+   */
+  root?: string;
+  /** Columns. Above 1 the group is a grid. Defaults to the cols attribute. */
+  cols?: number;
+  /**
+   * Whether `next`/`prev` wrap at the ends. Lists only, as for the attribute.
+   */
+  loop?: boolean;
+  /** Which axis `next`/`prev` take their default arrows from. */
+  orientation?: 'horizontal' | 'vertical';
+  /** Rows per page jump — items, in a list. Defaults to 10. */
+  pageLength?: number;
+  /**
+   * The combo each move answers to: `{ next: 'KeyJ', prev: 'KeyK' }`. Read
+   * move by move, so a move left out keeps its attribute and then its default
+   * key.
+   */
+  keys?: Partial<Record<StrideAction, KeyRoveCode>>;
+  /**
+   * Elements reachable by a combo of their own: combo → the element, or a
+   * selector resolved within the listener's reach. Replaces the focus-key
+   * scan rather than adding to it.
+   */
+  focusKeys?: Record<string, string | Element>;
+  /** Which items a move passes over. Defaults to the skip attribute. */
+  skip?: string | IsSkipped;
+  /**
+   * Whether the group carries one tab stop that follows focus. One boolean for
+   * the whole group, where the attribute is read per item.
+   */
+  rovingTabindex?: boolean;
+};
+
+export type Options = GroupOptions & {
   /** Fired after focus has moved — and only when it actually moved. */
   onMove?: (move: Move) => void;
 };
 
-export type TypeaheadOptions = {
+/**
+ * Every setting one keypress needs, resolved for the root it is navigating:
+ * options where they name a field, the root's attributes where they do not.
+ * The layers below take these as given and never read a source of their own.
+ */
+export type GroupConfig = {
+  layout: Layout;
+  explicit: ExplicitBinding;
+  focus: FocusKey[];
+  rtl: () => boolean;
+  pageLength: number;
+  readItems: ReadItems;
+  isSkipped: IsSkipped;
+  isRoving: IsRoving;
+};
+
+/**
+ * The typeahead handler's options: the group settings that bear on matching a
+ * label, and the handler's own.
+ *
+ * The group settings are the same fields {@link GroupOptions} names, and fall
+ * back the same way, so one object can be handed to both handlers and each
+ * takes what it needs. The rest of a group's settings are about moves, which
+ * typeahead does not make: it has one way to reach an item, its label.
+ */
+export type TypeaheadOptions = Pick<
+  GroupOptions,
+  'items' | 'root' | 'skip' | 'rovingTabindex'
+> & {
+  /**
+   * The text an item is matched by. Falling back, where it returns nothing, to
+   * the typeahead attribute and then the item's own text — the same chain an
+   * absent attribute walks.
+   */
+  label?: (item: Element) => string;
   /** Milliseconds of typing silence after which the buffer resets. Defaults to 500. */
   resetMs?: number;
   /**
@@ -191,6 +278,22 @@ export type FocusKey = {
   target: Element;
 };
 
+/**
+ * The readings the group and position layers need but do not make themselves:
+ * which elements a root governs, which of them a move passes over, which
+ * element scopes a group, and whether the item focus is leaving carries the
+ * roving tab stop.
+ *
+ * Each one defaults to the `data-keyrove-*` reading it stands for, so the
+ * attribute API passes none of them. They are parameters rather than reads so
+ * that a second config source can answer the same questions without either
+ * layer knowing where the answers came from.
+ */
+export type ReadItems = (root: Element) => Element[];
+export type IsSkipped = (element: Element) => boolean;
+export type IsRoot = (element: Element) => boolean;
+export type IsRoving = (from: Element) => boolean;
+
 export type BuildBindingsArgs = {
   /**
    * Asked only about the moves in the layout's default table, so a move the
@@ -218,6 +321,8 @@ export type ResolveTargetArgs = {
   layout: Layout;
   /** Rows per page jump — items, in a list. */
   pageLength: number;
+  /** Whether a move passes an item over. Defaults to the skip attribute. */
+  isSkipped?: IsSkipped;
 };
 
 export type ToggleTabIndexArgs = {
@@ -242,5 +347,10 @@ export type MoveFocusArgs<Action extends string> = {
   action: Action;
   from: Element | null;
   to: Element | null | undefined;
+  /**
+   * Whether the item focus is leaving carries the roving tab stop. Defaults to
+   * the roving-tabindex attribute.
+   */
+  isRoving?: IsRoving;
   onMove?: (move: ActionResult<Action> & { to: Element }) => void;
 };

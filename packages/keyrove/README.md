@@ -57,6 +57,11 @@ pnpm add @mixedrays/keyrove
   do nothing on, like a checkbox or a button, keep navigating.
 - **Typeahead:** `createTypeahead()` adds case-insensitive type-to-focus,
   matching `data-keyrove-typeahead` or the item's own text.
+- **Markup you don't own:** every attribute has an option of the same name, so
+  a group can be described in JavaScript instead — `keyRove(e, { items:
+'[role="menuitem"]', loop: true })` navigates a component library's menu that
+  carries no keyrove attributes at all. Each field falls back to its attribute
+  on its own, so the two can be mixed.
 
 ## Usage
 
@@ -270,6 +275,26 @@ const result = keyRove(e, {
   onMove: ({ action, from, to }) => {},
 });
 ```
+
+Beside `onMove`, the options object takes the group's settings themselves —
+`items`, `root`, `cols`, `loop`, `orientation`, `pageLength`, `keys`,
+`focusKeys`, `skip` and `rovingTabindex` — each named after the attribute it
+stands for and each falling back to that attribute on its own. So a group can
+be described in markup, in JavaScript, or in any mixture:
+
+```ts
+keyRove(e); // everything from the markup
+keyRove(e, { loop: true }); // items from the markup, looping from here
+keyRove(e, { items: '[role="menuitem"]', loop: true }); // nothing from the markup
+```
+
+`items` takes a selector run inside the root, or `(root) => Element[]`; `skip`
+a selector or a test of your own; `keys` the combo per move, read move by move,
+so `{ keys: { next: 'KeyJ' } }` leaves the others to their attributes and
+defaults. Options are read on every keypress, so an object built at the call
+site is as live as an attribute is. `createTypeahead` takes the settings it
+needs — `items`, `root`, `skip`, `rovingTabindex`, plus a `label` of its own —
+under the same names, so one object configures both handlers.
 
 `onMove` fires after focus has moved, and only when it actually moved: a
 consumed key with nowhere to go — the end of a list, the edge of a grid —

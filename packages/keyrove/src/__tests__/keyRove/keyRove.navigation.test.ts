@@ -12,6 +12,7 @@ import {
   renderList,
   resetTestState,
 } from './testUtils';
+import type { RoveResult } from './testUtils';
 
 afterEach(resetTestState);
 
@@ -159,6 +160,52 @@ describe('keyRove', () => {
       pressKey('ArrowDown');
 
       expect(activeId()).toBe('c');
+    });
+
+    it('takes no position from a disabled item, so Home keeps its default', () => {
+      renderList([
+        createItem('a'),
+        createItem('b', { disabled: true }),
+        createItem('c'),
+      ]);
+      document.getElementById('b')!.focus();
+
+      const event = pressKey('Home');
+
+      expect(event.defaultPrevented).toBe(false);
+      expect(activeId()).toBe('b');
+    });
+
+    it('enters at the first item from a disabled one, reporting no origin', () => {
+      const results: RoveResult[] = [];
+      renderList(
+        [createItem('a'), createItem('b', { disabled: true }), createItem('c')],
+        { onResult: (result) => results.push(result) },
+      );
+      document.getElementById('b')!.focus();
+
+      pressKey('ArrowDown');
+
+      expect(activeId()).toBe('a');
+      expect(results[results.length - 1]).toMatchObject({
+        action: 'next',
+        from: null,
+      });
+    });
+  });
+
+  describe('position within an item', () => {
+    it('navigates from the item holding focus in a descendant', () => {
+      const wrapper = createItem('a');
+      const button = document.createElement('button');
+      button.id = 'inner';
+      wrapper.appendChild(button);
+      renderList([wrapper, createItem('b')]);
+      button.focus();
+
+      pressKey('ArrowDown');
+
+      expect(activeId()).toBe('b');
     });
   });
 

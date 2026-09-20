@@ -1,107 +1,27 @@
-import {
-  KEYROVE_ATTR_COLS,
-  KEYROVE_ATTR_FOCUS_KEY,
-  KEYROVE_ATTR_ITEM,
-  KEYROVE_ATTR_LOOP,
-  KEYROVE_ATTR_ORIENTATION,
-  KEYROVE_ATTR_PAGE_LENGTH,
-  KEYROVE_ATTR_SKIP,
-} from './attributes.js';
 import { buildBindings } from './bindings.js';
-import { listenerElement, moveFocus, readGroup, resolveRoot } from './group.js';
-import { resolveTarget } from './position.js';
+import { readConfig, rootTest } from './config.js';
 import {
-  hasCommandModifier,
-  hasEnabledAttribute,
-  isEditableTarget,
-  matchesCombo,
-  parseAttributeInt,
-} from './utils.js';
-import type {
-  ExplicitBinding,
-  FocusKey,
-  KeyRoveEvent,
-  Layout,
-  MoveResult,
-  Options,
-} from './types.js';
+  holdsFocus,
+  listenerElement,
+  moveFocus,
+  readGroup,
+  resolveRoot,
+} from './group.js';
+import { resolveTarget } from './position.js';
+import { hasCommandModifier, isEditableTarget, matchesCombo } from './utils.js';
+import type { KeyRoveEvent, MoveResult, Options } from './types.js';
 
 // The attribute constants ship alongside the handler that reads them, so
 // consumers can spread them into markup; see `attributes.ts`.
 export * from './attributes.js';
 
-// Reading direction for an inline axis. The nearest `dir` attribute
-// decides, mirroring how the DOM resolves direction (and working in jsdom,
-// which has no layout); `dir="auto"` — content-dependent, so only the
-// browser can resolve it — and a missing attribute fall through to the
-// computed style, guarded for environments without `getComputedStyle`.
-const isRtl = (root: Element): boolean => {
-  const dir = root.closest('[dir]')?.getAttribute('dir')?.toLowerCase();
-
-  if (dir === 'rtl' || dir === 'ltr') return dir === 'rtl';
-
-  return (
-    typeof getComputedStyle !== 'undefined' &&
-    getComputedStyle(root).direction === 'rtl'
-  );
-};
-
-/**
- * Reads the group's layout off its root. A list is one column; `cols` above 1
- * makes a grid, which has no orientation of its own — its `next`/`prev` axis is
- * sideways by nature — and never wraps, per the APG grid pattern.
- */
-const readLayout = (root: Element): Layout => {
-  const cols = parseAttributeInt(root, KEYROVE_ATTR_COLS, 1);
-
-  if (cols > 1) return { kind: 'grid', cols, horizontal: true, loop: false };
-
-  return {
-    kind: 'list',
-    cols: 1,
-    // `orientation="horizontal"` redirects only the *default* keys — an
-    // explicit binding still wins in the table. Nothing but the literal value
-    // "horizontal" switches anything.
-    horizontal: root.getAttribute(KEYROVE_ATTR_ORIENTATION) === 'horizontal',
-    loop: hasEnabledAttribute(root, KEYROVE_ATTR_LOOP),
-  };
-};
-
-/**
- * The combo bound on the root for a move — `null` where the attribute is unset
- * and the move keeps its default key. Every move's attribute is named after
- * it, so the name is derived rather than listed: `nextRow` reads
- * `data-keyrove-next-row-key`, the value of `KEYROVE_ATTR_NEXT_ROW_KEY`. Read
- * on demand: the binding table asks only for the moves its layout has, so a
- * row key set on a list is never looked at.
- */
-const readExplicitBinding =
-  (root: Element): ExplicitBinding =>
-  (intent) =>
-    root.getAttribute(
-      `data-keyrove-${intent.replace(/[A-Z]/g, '-$&').toLowerCase()}-key`,
-    );
-
-/**
- * The focus keys in reach of a keypress: every element under `scope` that
- * names one, in DOM order. It need not be an item — a panel reached by its key
- * alone stays out of every arrow order. Skipped and disabled elements are not
- * destinations, so theirs are not read — the key falls through as though it
- * were undeclared.
- */
-const readFocusKeys = (scope: Element): FocusKey[] =>
-  Array.from(
-    scope.querySelectorAll(`[${KEYROVE_ATTR_FOCUS_KEY}]:not([disabled])`),
-  )
-    .filter((target) => !hasEnabledAttribute(target, KEYROVE_ATTR_SKIP))
-    .map((target) => ({
-      combo: target.getAttribute(KEYROVE_ATTR_FOCUS_KEY) ?? '',
-      target,
-    }));
-
 /**
  * Handles keyboard navigation within the provided event's current target.
  * @param e - The keydown event, native or framework-synthetic.
+ * @param options - The group's settings, where you would rather name them here
+ * than in markup, and `onMove`. Every setting falls back on its own to the
+ * `data-keyrove-*` attribute it stands for, so passing none navigates a
+ * marked-up group exactly as before; see {@link Options}.
  * @param options.onMove - Fired after focus moved — only when it actually did.
  * @returns `null` when the key was left untouched; `{ action, from, to }` when
  * it was consumed, with `to: null` for a consumed no-op at an edge. A non-null
@@ -110,7 +30,7 @@ const readFocusKeys = (scope: Element): FocusKey[] =>
  */
 export const keyRove = (
   e: KeyRoveEvent,
-  { onMove }: Options = {},
+  options: Options = {},
 ): MoveResult | null => {
   // Mid-composition, every press belongs to the input method: arrows walk its
   // candidate list and a chord can be part of the conversion. Composition
@@ -127,25 +47,29 @@ export const keyRove = (
   // modifier — so there is nothing to look up.
   if (editable && !hasCommandModifier(e)) return null;
 
-  const root = resolveRoot(eventTarget, e.currentTarget);
+  // What marks a root is the one setting read before the root is known: it is
+  // what finds it.
+  const isRoot = rootTest(options);
+  const root = resolveRoot(eventTarget, e.currentTarget, isRoot);
 
   if (!root) return null;
 
-  // A move is relative to the root focus is in; a focus key names its item
+  // A move is relative to the root focus is in; a focus key names its element
   // outright and is heard as far as the listener reaches — across sibling
   // groups and out of nested roots — so its lookup spans the listener's
   // element, not the root.
   const scope = listenerElement(e.currentTarget) ?? root;
-  const layout = readLayout(root);
+  const config = readConfig(root, scope, options);
+  const { onMove } = options;
 
   // First match wins: one keypress resolves to at most one action, and the
-  // table's order is the precedence — an item's own key over the root's
-  // explicit bindings over the defaults.
+  // table's order is the precedence — an element's own key over the explicit
+  // bindings over the defaults.
   const binding = buildBindings({
-    explicit: readExplicitBinding(root),
-    focus: readFocusKeys(scope),
-    layout,
-    rtl: () => isRtl(root),
+    explicit: config.explicit,
+    focus: config.focus,
+    layout: config.layout,
+    rtl: config.rtl,
   }).find(({ combo }) => matchesCombo(e, combo));
 
   if (!binding) return null;
@@ -153,23 +77,6 @@ export const keyRove = (
   // A chorded press from inside a field reaches only a focus key, which points
   // out of the field. A move keeps the caret's keys however it is bound.
   if (editable && binding.intent !== 'focus') return null;
-
-  // A focus key on an element that is not an item names a destination in no
-  // group: there is no sibling to report as `from` or to take the roving stop
-  // from. Focus inside the element already makes `from` the element itself —
-  // the same consumed no-op an item's key makes.
-  if (
-    binding.intent === 'focus' &&
-    !hasEnabledAttribute(binding.target, KEYROVE_ATTR_ITEM)
-  ) {
-    return moveFocus({
-      e,
-      action: 'focus',
-      from: binding.target.matches(':focus-within') ? binding.target : null,
-      to: binding.target,
-      onMove,
-    });
-  }
 
   // An item's focus row moves in the item's own group — the nearest root above
   // it, else the listener's element — so `from` is the sibling holding focus,
@@ -179,9 +86,24 @@ export const keyRove = (
   // and its group is the one above.
   const group =
     binding.intent === 'focus'
-      ? (resolveRoot(binding.target.parentElement, scope) ?? scope)
+      ? (resolveRoot(binding.target.parentElement, scope, isRoot) ?? scope)
       : root;
-  const { items: elements, focused } = readGroup(group);
+  const { items: elements, focused } = readGroup(group, config.readItems);
+
+  // A focus key on an element that is none of that group's items names a
+  // destination in no group: there is no sibling to report as `from` or to
+  // take the roving stop from. Focus inside the element already makes `from`
+  // the element itself — the same consumed no-op an item's key makes.
+  if (binding.intent === 'focus' && !elements.includes(binding.target)) {
+    return moveFocus({
+      e,
+      action: 'focus',
+      from: holdsFocus(binding.target) ? binding.target : null,
+      to: binding.target,
+      isRoving: config.isRoving,
+      onMove,
+    });
+  }
 
   // Most moves only act once focus is genuinely inside an item, whatever key
   // they are bound to: they move *within* a group, they are not a way into
@@ -196,8 +118,9 @@ export const keyRove = (
           intent: binding.intent,
           elements,
           fromIndex: focused ? elements.indexOf(focused) : -1,
-          layout,
-          pageLength: parseAttributeInt(root, KEYROVE_ATTR_PAGE_LENGTH, 10),
+          layout: config.layout,
+          pageLength: config.pageLength,
+          isSkipped: config.isSkipped,
         });
 
   // With neither a target nor a focused item, keyrove has nothing to move
@@ -212,6 +135,7 @@ export const keyRove = (
     action: binding.intent,
     from: focused,
     to: target,
+    isRoving: config.isRoving,
     onMove,
   });
 };

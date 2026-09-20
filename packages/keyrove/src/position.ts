@@ -11,25 +11,32 @@
 
 import { KEYROVE_ATTR_SKIP } from './attributes.js';
 import { hasEnabledAttribute } from './utils.js';
-import type { ResolveTargetArgs } from './types.js';
+import type { IsSkipped, ResolveTargetArgs } from './types.js';
 
 /**
- * The first element not skipped, walking `elements` from index `i` in steps
- * of `step`; `undefined` once the walk leaves either end. Every move is this
- * walk — from a different start, by a different stride, with a different
- * fallback when it comes back empty.
+ * Which items a move passes over, where the caller names no other test. The
+ * config layer hands it back down where an options object leaves `skip`
+ * unnamed.
  */
-const scan = (
-  elements: Element[],
-  i: number,
-  step: number,
-): Element | undefined => {
-  for (; i >= 0 && i < elements.length; i += step) {
-    if (!hasEnabledAttribute(elements[i], KEYROVE_ATTR_SKIP)) {
-      return elements[i];
+export const attributeSkip: IsSkipped = (element) =>
+  hasEnabledAttribute(element, KEYROVE_ATTR_SKIP);
+
+/**
+ * Binds a skip test into the walk every move is made of: the first element
+ * `isSkipped` leaves alone, from index `i` in steps of `step`; `undefined`
+ * once the walk leaves either end. The moves differ by where they start, by
+ * what they stride, and by the fallback when the walk comes back empty — never
+ * by which items they pass over, so that test is bound once per resolution.
+ */
+const scanner =
+  (isSkipped: IsSkipped) =>
+  (elements: Element[], i: number, step: number): Element | undefined => {
+    for (; i >= 0 && i < elements.length; i += step) {
+      if (!isSkipped(elements[i])) {
+        return elements[i];
+      }
     }
-  }
-};
+  };
 
 /**
  * Resolves the element an intent lands on, or `null`/`undefined` when there
@@ -45,7 +52,9 @@ export const resolveTarget = ({
   fromIndex,
   layout: { kind, cols, loop },
   pageLength,
+  isSkipped = attributeSkip,
 }: ResolveTargetArgs): Element | null | undefined => {
+  const scan = scanner(isSkipped);
   const lastIndex = elements.length - 1;
   // The group's ends. When every item is skipped they fall back to the very
   // first and last, so a move still lands somewhere.

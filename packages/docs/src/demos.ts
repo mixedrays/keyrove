@@ -4,6 +4,7 @@ import {
   KEYROVE_ATTR_ITEM,
   KEYROVE_ATTR_ROOT,
   KEYROVE_ATTR_SKIP,
+  type GroupOptions,
   type MoveResult,
   createTypeahead,
   keyRove,
@@ -353,13 +354,31 @@ const wireSelection = (surface: HTMLElement, log: Log): Handler => {
  * A demo not listed runs navigation alone: typeahead on every list would make
  * letters do something the page they sit on never mentions.
  */
-const EXTRAS: Record<string, (surface: HTMLElement, log: Log) => Handler[]> = {
+const EXTRAS: Record<
+  string,
+  (surface: HTMLElement, log: Log, group: GroupOptions) => Handler[]
+> = {
   typeahead: (_surface, log) => [createTypeahead({ onMove: log.move })],
   labels: (_surface, log) => [createTypeahead({ onMove: log.move })],
+  // The one demo whose group is described in JavaScript hands the same object
+  // to both handlers, which is the point the page it sits on makes.
+  menu: (_surface, log, group) => [
+    createTypeahead({ ...group, onMove: log.move }),
+  ],
   listbox: (surface, log) => [
     createTypeahead({ onMove: log.move }),
     wireSelection(surface, log),
   ],
+};
+
+/**
+ * The settings a demo's group is described with, for the demos that are
+ * described in JavaScript rather than in markup, keyed by name as `EXTRAS` is.
+ * A demo not listed here is configured by its own attributes, which is what
+ * every other page teaches.
+ */
+const CONFIGS: Record<string, GroupOptions> = {
+  menu: { items: '[role="menuitem"]', loop: true, rovingTabindex: true },
 };
 
 /**
@@ -406,11 +425,16 @@ const wireCopy = (demo: HTMLElement) => {
  * the first of those is the first item. A demo with no items at all, like the
  * focus-keys panels, opens on the first element a focus key names.
  */
-const firstItem = (surface: HTMLElement) => {
+const firstItem = (surface: HTMLElement, { items: named }: GroupOptions) => {
+  // A group described in JavaScript carries no attribute to look for, so the
+  // selector its own config names stands in for one.
+  const selector =
+    typeof named === 'string'
+      ? named
+      : `[${KEYROVE_ATTR_ITEM}]:not([${KEYROVE_ATTR_SKIP}])`;
+
   const items = Array.from(
-    surface.querySelectorAll<HTMLElement>(
-      `[${KEYROVE_ATTR_ITEM}]:not([${KEYROVE_ATTR_SKIP}]):not([disabled])`,
-    ),
+    surface.querySelectorAll<HTMLElement>(`${selector}:not([disabled])`),
   );
 
   const isNested = (item: HTMLElement) => {
@@ -461,9 +485,13 @@ export const mountDemos = () => {
     const log = createHistory(demo) ?? (line ? createLine(line) : null);
     if (!surface || !log) return;
 
+    // Every demo but one is described in its own markup, which is what the
+    // pages teach; `CONFIGS` is the exception, and it is handed to the
+    // handlers exactly as that page's snippet hands it to them.
+    const group = CONFIGS[demo.dataset.demo ?? ''] ?? {};
     const handlers: Handler[] = [
-      (e) => keyRove(e, { onMove: log.move }),
-      ...(EXTRAS[demo.dataset.demo ?? '']?.(surface, log) ?? []),
+      (e) => keyRove(e, { ...group, onMove: log.move }),
+      ...(EXTRAS[demo.dataset.demo ?? '']?.(surface, log, group) ?? []),
     ];
 
     // One listener for the demo, nested roots included: the event bubbles here
@@ -497,7 +525,7 @@ export const mountDemos = () => {
     // rather than dragging them down to it; the first arrow press will scroll
     // it into view, which is the cost of having it ready.
     if (index === 0) {
-      firstItem(surface)?.focus({ preventScroll: true });
+      firstItem(surface, group)?.focus({ preventScroll: true });
     }
   });
 };

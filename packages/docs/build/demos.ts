@@ -78,6 +78,7 @@ const PLACEHOLDER = new RegExp(
  */
 const HISTORY = new Set([
   'list',
+  'menu',
   'loop',
   'roving',
   'inbox',

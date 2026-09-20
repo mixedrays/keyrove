@@ -2,18 +2,19 @@
 title: API reference
 description: Every export in the package — the handler, the typeahead helper, the combo matcher, the attributes, and the types.
 group: Guide
-order: 3
+order: 4
 ---
 
-| Export                                                                | What it is                                                               |
-| --------------------------------------------------------------------- | ------------------------------------------------------------------------ |
-| [`keyRove(event, options?)`](#keyrove-event-options)                  | The handler. Moves focus for one keydown and reports what it did.        |
-| [`createTypeahead(options?)`](#createtypeahead-options)               | Builds a type-to-focus handler to chain after `keyRove`.                 |
-| [`matchesCombo(event, combo)`](#matchescombo-event-combo)             | The combo matcher behind every binding, for your own handlers.           |
-| [`toggleTabIndex({ root, isActive })`](#toggletabindex-root-isactive) | Sets `tabindex` to `0` or `-1` on one element.                           |
-| [`data-keyrove-*`](#attributes)                                       | The attributes: the whole configuration, on items and on the root.       |
-| [`KEYROVE_ATTR_*`](#constants)                                        | One constant per attribute name.                                         |
-| [Types](#types)                                                       | `KeyRoveEvent`, `MoveResult`, `Move`, `Options` and the typeahead types. |
+| Export                                                                | What it is                                                                 |
+| --------------------------------------------------------------------- | -------------------------------------------------------------------------- |
+| [`keyRove(event, options?)`](#keyrove-event-options)                  | The handler. Moves focus for one keydown and reports what it did.          |
+| [`options`](#options)                                                 | The group's settings in JavaScript, where you would rather not use markup. |
+| [`createTypeahead(options?)`](#createtypeahead-options)               | Builds a type-to-focus handler to chain after `keyRove`.                   |
+| [`matchesCombo(event, combo)`](#matchescombo-event-combo)             | The combo matcher behind every binding, for your own handlers.             |
+| [`toggleTabIndex({ root, isActive })`](#toggletabindex-root-isactive) | Sets `tabindex` to `0` or `-1` on one element.                             |
+| [`data-keyrove-*`](#attributes)                                       | The attributes: the whole configuration, on items and on the root.         |
+| [`KEYROVE_ATTR_*`](#constants)                                        | One constant per attribute name.                                           |
+| [Types](#types)                                                       | `KeyRoveEvent`, `MoveResult`, `Move`, `Options` and the typeahead types.   |
 
 ## keyRove(event, options?)
 
@@ -256,6 +257,48 @@ bare code such as `KeyE` works wherever the letter would not be typing.
 
 See [focus keys](/docs/examples/focus-keys) for the pattern at work.
 
+### Options
+
+Every setting a root's attributes carry can be named in the options object
+instead. Both sources are read for every keypress, one field at a time, options
+first — so a group can be described in markup, in JavaScript, or in any mixture
+of the two, and a call passing no options reads exactly the markup it always
+did. [Attributes and options](/docs/attributes-and-options) is the guide to
+choosing between them.
+
+```ts
+keyRove(e); // everything from the markup
+keyRove(e, { loop: true }); // items from the markup, looping from here
+keyRove(e, { items: '[role="menuitem"]' }); // nothing from the markup
+```
+
+| Option           | Falls back to                  | Meaning                                                                                                                        |
+| ---------------- | ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------ |
+| `items`          | `data-keyrove-item`            | The group's items: a selector run inside the root, or `(root) => Element[]`. Elements carrying `disabled` are never navigable. |
+| `root`           | `data-keyrove-root`            | Selector a [root](#roots) answers to, matched at or above the event's target.                                                  |
+| `cols`           | `data-keyrove-cols`            | Columns. Above 1 the group is a grid.                                                                                          |
+| `loop`           | `data-keyrove-loop`            | Whether next/prev wrap at the ends. Lists only.                                                                                |
+| `orientation`    | `data-keyrove-orientation`     | `'horizontal'` re-points a list's default arrows; see [RTL](#horizontal-groups-and-rtl).                                       |
+| `pageLength`     | `data-keyrove-page-length`     | Rows per page jump — items, in a list.                                                                                         |
+| `keys`           | the `*-key` attributes         | The [combo](#combos) each move answers to: `{ next: 'KeyJ', prev: 'KeyK' }`. Read move by move.                                |
+| `focusKeys`      | `data-keyrove-focus-key`       | Combo → element, or a selector resolved within the listener's reach. Replaces the attribute scan rather than adding to it.     |
+| `skip`           | `data-keyrove-skip`            | Which items a move passes over: a selector or `(element) => boolean`.                                                          |
+| `rovingTabindex` | `data-keyrove-roving-tabindex` | Whether the group carries one tab stop. One boolean for the group, where the attribute is read per item.                       |
+
+The fallback is per _field_, not per call. With
+`keyRove(e, { keys: { next: 'KeyJ' } })` the next move answers to
+<kbd class="kbd">J</kbd> while <kbd class="kbd">Home</kbd>,
+<kbd class="kbd">End</kbd> and the page keys keep their attributes, and their
+defaults where there is no attribute. `cols` and `pageLength` are ignored below
+1, as an unparseable attribute is.
+
+Options are read on every keypress, so an object built at the call site is as
+live as an attribute: `keyRove(e, { cols: columnsNow() })` re-folds the grid
+between presses. See [options in JavaScript](/docs/examples/javascript-options)
+for the whole thing at work, and
+[`createTypeahead`](#createtypeahead-options), which takes the same names for
+the settings it needs.
+
 ### options.onMove
 
 Fired _after_ focus has moved, and only when it actually moved. A consumed key
@@ -313,9 +356,26 @@ buffer lives in the handler, which keeps `keyRove` itself stateless. See
 
 | Option      | Default    | Meaning                                                                                                                                  |
 | ----------- | ---------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| `label`     | —          | `(item) => string`, the text an item is matched by. Falls through to the attribute and then the item's text where it returns nothing.    |
 | `resetMs`   | `500`      | Milliseconds of typing silence after which the buffer clears.                                                                            |
 | `matchMode` | `'prefix'` | `'cycle'` moves each single-character press to the next matching item after focus, wrapping, so repeats cycle; [see below](#cycle-mode). |
 | `onMove`    | —          | Fired after focus has moved, and only then; see [`keyRove`'s option](#options-onmove).                                                   |
+
+It also takes the [group settings](#options) that bear on finding an item —
+`items`, `root`, `skip` and `rovingTabindex` — under the same names and with
+the same fallbacks, so one object configures both handlers and they cannot
+disagree about what an item is:
+
+```ts
+const config = { items: '[role="menuitem"]', loop: true };
+const typeahead = createTypeahead(config);
+
+el.addEventListener('keydown', (e) => keyRove(e, config) || typeahead(e));
+```
+
+The settings that are about _moves_ — `keys`, `cols`, `loop`, `orientation`,
+`pageLength` — are not among its options: a typeahead has one way to reach an
+item, its label.
 
 The label is the item's `data-keyrove-typeahead` attribute, falling back to its
 `textContent`, trimmed and with runs of whitespace collapsed, when the attribute
@@ -395,6 +455,10 @@ query that found nothing needs no guard.
 
 ## Attributes
 
+Every attribute below has an [option](#options) of the same name, and each
+field falls back from the option to the attribute on its own. What follows is
+the markup half; a group can name any of it in JavaScript instead.
+
 On an item:
 
 | Attribute                      | Meaning                                                                                                                                                                              |
@@ -453,12 +517,14 @@ item.tabIndex = 0;
 
 ```ts
 import type {
+  GroupOptions,
   KeyRoveCode,
   KeyRoveEvent,
   Move,
   MoveAction,
   MoveResult,
   Options,
+  StrideAction,
   TypeaheadMove,
   TypeaheadOptions,
   TypeaheadResult,
@@ -537,7 +603,30 @@ type MoveResult = {
 // what onMove receives: a move that actually happened
 type Move = MoveResult & { to: Element };
 
-type Options = { onMove?: (move: Move) => void };
+type Options = GroupOptions & { onMove?: (move: Move) => void };
+```
+
+### GroupOptions, StrideAction
+
+A group's [settings](#options), every one of them optional and every one
+falling back to the attribute it stands for. `StrideAction` is the move a key
+can be bound to — every move but `focus`, whose key sits on its destination.
+
+```ts
+type GroupOptions = {
+  items?: string | ((root: Element) => Element[]);
+  root?: string;
+  cols?: number;
+  loop?: boolean;
+  orientation?: 'horizontal' | 'vertical';
+  pageLength?: number;
+  keys?: Partial<Record<StrideAction, KeyRoveCode>>;
+  focusKeys?: Record<string, string | Element>;
+  skip?: string | ((element: Element) => boolean);
+  rovingTabindex?: boolean;
+};
+
+type StrideAction = Exclude<MoveAction, 'focus'>;
 ```
 
 ### TypeaheadOptions, TypeaheadResult, TypeaheadMove
@@ -546,7 +635,11 @@ What [`createTypeahead`](#createtypeahead-options) takes and its handler
 returns. The result has `MoveResult`'s shape with its own action.
 
 ```ts
-type TypeaheadOptions = {
+type TypeaheadOptions = Pick<
+  GroupOptions,
+  'items' | 'root' | 'skip' | 'rovingTabindex'
+> & {
+  label?: (item: Element) => string; // the text an item is matched by
   resetMs?: number; // buffer lifetime, default 500
   matchMode?: 'prefix' | 'cycle'; // how repeated characters match, default 'prefix'
   onMove?: (move: TypeaheadMove) => void;

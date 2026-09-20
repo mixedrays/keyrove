@@ -1,13 +1,14 @@
 ---
 title: keyrove
-description: Framework-agnostic keyboard navigation for lists and grids, driven by data-* attributes. Any key can move focus, and native Tab navigation keeps working.
+description: Framework-agnostic keyboard navigation for lists and grids, driven by data-* attributes or a plain options object. Any key can move focus, and native Tab navigation keeps working.
 titleTag: keyrove — Keyboard navigation for lists and grids
 layout: landing
 ---
 
 <ul class="hero-tags">
-<li>under 3 kB gzipped</li>
+<li>about 3 kB gzipped</li>
 <li>zero deps</li>
+<li>stateless</li>
 <li>framework-agnostic</li>
 <li>TypeScript</li>
 <li>MIT licence</li>
@@ -16,8 +17,9 @@ layout: landing
 # Keyboard navigation that behaves itself.
 
 Lists and grids, custom key bindings, roving tabindex, typeahead and focus
-shortcuts for any DOM tree. Data attributes and one keydown call, no wrappers,
-no framework opinions.
+shortcuts for any DOM tree. Data attributes — or a plain options object, for
+markup you don't own — and one keydown call. No wrappers, no framework
+opinions.
 
 <div class="hero-actions">
 
@@ -41,17 +43,30 @@ import { keyRove } from '@mixedrays/keyrove';
 document.querySelector('#menu').addEventListener('keydown', (e) => keyRove(e));
 ```
 
-## Or bind the keys you want
+## Or skip the attributes entirely
 
-The same list, driven by <kbd class="kbd">J</kbd> and <kbd class="kbd">K</kbd>
-instead: one attribute each, and nothing in the JavaScript changes.
+Every attribute has an option of the same name, so a group whose HTML is not
+yours to change — a component library's menu, a CMS's output — is described in
+JavaScript instead. The menu below is navigated that way: open its HTML tab and
+there is not a keyrove attribute in it.
 
-```html
-<ul id="menu" data-keyrove-next-key="KeyJ" data-keyrove-prev-key="KeyK">
-  <li data-keyrove-item tabindex="0">Inbox</li>
-  <li data-keyrove-item tabindex="0">Drafts</li>
-</ul>
+<div data-demo="menu"></div>
+
+```ts
+import { createTypeahead, keyRove } from '@mixedrays/keyrove';
+
+const config = { items: '[role="menuitem"]', loop: true, rovingTabindex: true };
+const typeahead = createTypeahead(config);
+
+document
+  .querySelector('#share')
+  .addEventListener('keydown', (e) => keyRove(e, config) || typeahead(e));
 ```
+
+Each setting falls back to its attribute on its own, so the two mix freely. See
+[attributes and options](/docs/attributes-and-options) for both, or
+[options in JavaScript](/docs/examples/javascript-options) for this menu in
+full.
 
 <div class="feature-grid">
 <div class="feature">
@@ -61,6 +76,15 @@ instead: one attribute each, and nothing in the JavaScript changes.
 `keyRove` takes anything shaped like a keydown event, so the same call works
 with a native listener or a React, Vue, or Svelte synthetic event. The package
 ships no dependencies.
+
+</div>
+<div class="feature">
+
+### <span aria-hidden="true">🫧</span> Nothing to mount or dispose
+
+`keyRove` is a plain function of one keydown event: no instances, no
+subscriptions, no cleanup, nothing to keep in sync with the DOM. It reads the
+group on every press, so a list that re-renders needs no re-initialising.
 
 </div>
 <div class="feature">
@@ -119,6 +143,15 @@ delegated listener can serve a list nested in a list, each with its own keys.
 </div>
 <div class="feature">
 
+### <span aria-hidden="true">🧾</span> Markup you don't own
+
+Every attribute has an option of the same name, so a group can be described in
+JavaScript instead: `keyRove(e, { items: '[role="menuitem"]', loop: true })`
+navigates a component library's menu that carries no keyrove attributes at all.
+
+</div>
+<div class="feature">
+
 ### <span aria-hidden="true">🔎</span> Jump and type-to-focus
 
 `data-keyrove-focus-key` gives an item, or a panel, a shortcut that focuses it
@@ -129,5 +162,7 @@ typeahead, matching an item by `data-keyrove-typeahead` or by its own text.
 </div>
 
 Read the [introduction](/docs/introduction) for how it fits together, see
-[custom keys](/docs/examples/custom-keys) for rebinding at work, or jump
-straight to the [API reference](/docs/api) for the rules.
+[custom keys](/docs/examples/custom-keys) for rebinding at work or
+[options in JavaScript](/docs/examples/javascript-options) for a group
+described without markup, or jump straight to the
+[API reference](/docs/api) for the rules.
