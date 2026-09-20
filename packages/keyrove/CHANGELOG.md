@@ -1,5 +1,14 @@
 # Changelog
 
+## [2.4.0](https://github.com/mixedrays/keyrove/compare/v2.3.0...v2.4.0) (2026-09-20)
+
+### Features
+
+* let one object configure typeahead beside navigation ([f067030](https://github.com/mixedrays/keyrove/commit/f0670305e77f32d8e8136ca4d50eaaedfe253b45))
+* name a group's settings in options as well as in markup ([9c0b5f9](https://github.com/mixedrays/keyrove/commit/9c0b5f91a0fa6b5d26eaf37ed30f1139db2bfb16))
+* read a group's position from its own items ([9fa0f13](https://github.com/mixedrays/keyrove/commit/9fa0f135cefd77b0999b04d70cd5b9b2b7e89631))
+* take a group's items, root, skips and roving as parameters ([78ecf9c](https://github.com/mixedrays/keyrove/commit/78ecf9c28e336a7714b701767d9cff8c2757fe40))
+
 ## [2.3.0](https://github.com/mixedrays/keyrove/compare/v2.2.0...v2.3.0) (2026-09-19)
 
 ### Features
