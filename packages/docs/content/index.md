@@ -1,6 +1,6 @@
 ---
 title: keyrove
-description: Framework-agnostic keyboard navigation for lists and grids, driven by data-* attributes. Any key can move focus, and native Tab navigation keeps working.
+description: Framework-agnostic keyboard navigation for lists and grids, driven by data-* attributes or a plain options object. Any key can move focus, and native Tab navigation keeps working.
 titleTag: keyrove — Keyboard navigation for lists and grids
 layout: landing
 ---
@@ -8,6 +8,7 @@ layout: landing
 <ul class="hero-tags">
 <li>about 3 kB gzipped</li>
 <li>zero deps</li>
+<li>stateless</li>
 <li>framework-agnostic</li>
 <li>TypeScript</li>
 <li>MIT licence</li>
@@ -16,8 +17,9 @@ layout: landing
 # Keyboard navigation that behaves itself.
 
 Lists and grids, custom key bindings, roving tabindex, typeahead and focus
-shortcuts for any DOM tree. Data attributes and one keydown call, no wrappers,
-no framework opinions.
+shortcuts for any DOM tree. Data attributes — or a plain options object, for
+markup you don't own — and one keydown call. No wrappers, no framework
+opinions.
 
 <div class="hero-actions">
 
@@ -53,6 +55,24 @@ instead: one attribute each, and nothing in the JavaScript changes.
 </ul>
 ```
 
+## Or skip the attributes entirely
+
+Every attribute has an option of the same name, so a group whose HTML is not
+yours to change — a component library's menu, a CMS's output — is described in
+JavaScript instead. Each setting falls back to its attribute on its own, so the
+two mix freely.
+
+```ts
+const menu = { items: '[role="menuitem"]', loop: true };
+
+document
+  .querySelector('#share')
+  .addEventListener('keydown', (e) => keyRove(e, menu));
+```
+
+See [options in JavaScript](/docs/examples/javascript-options) for the whole
+thing at work.
+
 <div class="feature-grid">
 <div class="feature">
 
@@ -61,6 +81,15 @@ instead: one attribute each, and nothing in the JavaScript changes.
 `keyRove` takes anything shaped like a keydown event, so the same call works
 with a native listener or a React, Vue, or Svelte synthetic event. The package
 ships no dependencies.
+
+</div>
+<div class="feature">
+
+### <span aria-hidden="true">🫧</span> Nothing to mount or dispose
+
+`keyRove` is a plain function of one keydown event: no instances, no
+subscriptions, no cleanup, nothing to keep in sync with the DOM. It reads the
+group on every press, so a list that re-renders needs no re-initialising.
 
 </div>
 <div class="feature">

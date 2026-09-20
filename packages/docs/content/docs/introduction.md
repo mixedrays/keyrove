@@ -1,6 +1,6 @@
 ---
 title: Introduction
-description: What keyrove does, which keys it moves focus with, how it sits beside native Tab navigation, and what it deliberately leaves to you.
+description: What keyrove does, which keys it moves focus with, where a group is described, how it sits beside native Tab navigation, and what it deliberately leaves to you.
 titleTag: Introduction to keyboard navigation — keyrove
 group: Guide
 order: 1
@@ -25,7 +25,7 @@ import { keyRove } from '@mixedrays/keyrove';
 document.querySelector('#menu').addEventListener('keydown', (e) => keyRove(e));
 ```
 
-That is the whole library. Two things about it are easy to assume the other
+That is the whole library. Three things about it are easy to assume the other
 way:
 
 - **It is not an arrow-key library.** Arrows are the default binding.
@@ -37,6 +37,10 @@ way:
   focus and leaves every key it is not bound to alone, so
   [sequential focus navigation](#tab-still-works) keeps working as the browser
   does it.
+- **It is not markup-only.** Attributes are where a group is described by
+  default, not the only place: every one of them has an option of the same
+  name, which is how you navigate
+  [HTML you do not write](#describing-a-group-in-javascript).
 
 ## How it works
 
