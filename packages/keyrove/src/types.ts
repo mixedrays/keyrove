@@ -191,6 +191,22 @@ export type FocusKey = {
   target: Element;
 };
 
+/**
+ * The readings the group and position layers need but do not make themselves:
+ * which elements a root governs, which of them a move passes over, which
+ * element scopes a group, and whether the item focus is leaving carries the
+ * roving tab stop.
+ *
+ * Each one defaults to the `data-keyrove-*` reading it stands for, so the
+ * attribute API passes none of them. They are parameters rather than reads so
+ * that a second config source can answer the same questions without either
+ * layer knowing where the answers came from.
+ */
+export type ReadItems = (root: Element) => Element[];
+export type IsSkipped = (element: Element) => boolean;
+export type IsRoot = (element: Element) => boolean;
+export type IsRoving = (from: Element) => boolean;
+
 export type BuildBindingsArgs = {
   /**
    * Asked only about the moves in the layout's default table, so a move the
@@ -218,6 +234,8 @@ export type ResolveTargetArgs = {
   layout: Layout;
   /** Rows per page jump — items, in a list. */
   pageLength: number;
+  /** Whether a move passes an item over. Defaults to the skip attribute. */
+  isSkipped?: IsSkipped;
 };
 
 export type ToggleTabIndexArgs = {
@@ -242,5 +260,10 @@ export type MoveFocusArgs<Action extends string> = {
   action: Action;
   from: Element | null;
   to: Element | null | undefined;
+  /**
+   * Whether the item focus is leaving carries the roving tab stop. Defaults to
+   * the roving-tabindex attribute.
+   */
+  isRoving?: IsRoving;
   onMove?: (move: ActionResult<Action> & { to: Element }) => void;
 };

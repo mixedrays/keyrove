@@ -14,7 +14,28 @@ import {
   KEYROVE_ATTR_ROVING_TABINDEX,
 } from './attributes.js';
 import { hasEnabledAttribute, toggleTabIndex } from './utils.js';
-import type { ActionResult, Group, MoveFocusArgs } from './types.js';
+import type {
+  ActionResult,
+  Group,
+  IsRoot,
+  IsRoving,
+  MoveFocusArgs,
+  ReadItems,
+} from './types.js';
+
+// The attribute source's answers to the three questions this layer asks about
+// a group. They are the defaults of the parameters below, so a caller that
+// names no other source navigates markup exactly as it always has.
+const attributeRoot: IsRoot = (element) =>
+  hasEnabledAttribute(element, KEYROVE_ATTR_ROOT);
+
+const attributeItems: ReadItems = (root) =>
+  Array.from(
+    root.querySelectorAll(`[${KEYROVE_ATTR_ITEM}]:not([disabled])`),
+  ).filter((item) => hasEnabledAttribute(item, KEYROVE_ATTR_ITEM));
+
+const attributeRoving: IsRoving = (from) =>
+  hasEnabledAttribute(from, KEYROVE_ATTR_ROVING_TABINDEX);
 
 /**
  * The element a listener sits on. A listener on the document, or the window,
@@ -36,18 +57,19 @@ export const listenerElement = (
 };
 
 /**
- * The root a keypress is navigated in: the nearest `data-keyrove-root` at or
- * above `target`, else the listener's element. Resolving from the *target*
- * rather than the listener is what lets one delegated listener serve several
- * groups, and lets a root nest inside another and still win while focus is in
- * it.
+ * The root a keypress is navigated in: the nearest element `isRoot` accepts at
+ * or above `target` — by default the nearest `data-keyrove-root` — else the
+ * listener's element. Resolving from the *target* rather than the listener is
+ * what lets one delegated listener serve several groups, and lets a root nest
+ * inside another and still win while focus is in it.
  */
 export const resolveRoot = (
   target: Element | null | undefined,
   listener: EventTarget | null | undefined,
+  isRoot: IsRoot = attributeRoot,
 ): Element | null => {
   for (let element = target; element; element = element.parentElement) {
-    if (hasEnabledAttribute(element, KEYROVE_ATTR_ROOT)) return element;
+    if (isRoot(element)) return element;
   }
 
   return listenerElement(listener);
@@ -59,10 +81,11 @@ export const resolveRoot = (
  * (`:focus-within`), so an item wrapping a control is still the position after
  * Tab lands on that control.
  */
-export const readGroup = (root: Element): Group => ({
-  items: Array.from(
-    root.querySelectorAll(`[${KEYROVE_ATTR_ITEM}]:not([disabled])`),
-  ).filter((item) => hasEnabledAttribute(item, KEYROVE_ATTR_ITEM)),
+export const readGroup = (
+  root: Element,
+  readItems: ReadItems = attributeItems,
+): Group => ({
+  items: readItems(root),
   focused:
     Array.from(
       root.querySelectorAll(`[${KEYROVE_ATTR_ITEM}]:focus-within`),
@@ -77,21 +100,23 @@ export const readGroup = (root: Element): Group => ({
  * to its own boundary and the page must not scroll instead. A missing `to`, or
  * one that is the focused item already, is a consumed no-op — focus and the
  * tab stop stay put, `onMove` stays quiet, and the result carries `to: null`.
- * Otherwise the roving tab stop follows when the item being left carries the
- * attribute, `to` is focused, and `onMove` fires with the move that happened.
+ * Otherwise the roving tab stop follows when `isRoving` accepts the item being
+ * left — by default, when it carries the attribute — `to` is focused, and
+ * `onMove` fires with the move that happened.
  */
 export const moveFocus = <Action extends string>({
   e,
   action,
   from,
   to,
+  isRoving = attributeRoving,
   onMove,
 }: MoveFocusArgs<Action>): ActionResult<Action> => {
   e.preventDefault();
 
   if (!to || to === from) return { action, from, to: null };
 
-  if (from && hasEnabledAttribute(from, KEYROVE_ATTR_ROVING_TABINDEX)) {
+  if (from && isRoving(from)) {
     toggleTabIndex({ root: from, isActive: false });
     toggleTabIndex({ root: to, isActive: true });
   }
