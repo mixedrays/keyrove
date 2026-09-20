@@ -104,8 +104,14 @@
    *
    * Scoped to the preview rather than the whole demo: the tabs over the source
    * are keyrove items too, and they are the site's chrome, not the demo.
+   *
+   * The menu demo's group is described in JavaScript, so its items carry no
+   * keyrove attribute at all — which is the whole point of the page it sits
+   * on. The role its config selects on is what makes them items there, so it
+   * is what this rule reaches them by.
    */
-  .demo-preview :where([data-keyrove-item], [data-keyrove-focus-key]) {
+  .demo-preview
+    :where([data-keyrove-item], [data-keyrove-focus-key], [role='menuitem']) {
     @apply block w-full scroll-m-1 cursor-pointer rounded-lg border border-transparent px-3 py-2 text-left text-sm text-zinc-800 transition-colors duration-120;
     @apply outline-offset-2 outline-indigo-500 dark:outline-indigo-400;
     @apply hover:bg-indigo-500/10;
@@ -116,6 +122,14 @@
   /* Grid cells and toolbar buttons size to content instead of filling a row. */
   .demo-preview :where(button[data-keyrove-item]) {
     @apply w-auto text-center;
+  }
+
+  /* An entry that takes no part, drawn as one. `disabled` is the DOM's own
+     word for it, and keyrove leaves such an item out of the order whichever
+     source named the items — so the menu demo's greyed row is unreachable by
+     key for the same reason it is unclickable. */
+  .demo-preview :where([disabled]) {
+    @apply cursor-not-allowed text-zinc-400 hover:bg-transparent dark:text-zinc-600;
   }
 
   .demo :where([data-keyrove-skip]) {
@@ -385,6 +399,28 @@
      separates the ones further down from the results above them. */
   .demo[data-demo='skip'] .demo-surface > :first-child {
     @apply pt-2;
+  }
+
+  /*
+   * The share menu, dressed as the popover an app would open it as. Its group
+   * is described in JavaScript, so the fragment carries no keyrove attribute
+   * and neither does this block: it reaches the items by the role the markup
+   * already had, which is the same thing the page's own config selects on.
+   */
+  .demo[data-demo='menu'] .demo-preview {
+    --panel: 15rem;
+  }
+
+  .demo[data-demo='menu'] .demo-surface {
+    @apply w-full border-zinc-200 bg-white shadow-lg shadow-zinc-950/5;
+    @apply dark:border-zinc-700 dark:bg-zinc-900;
+  }
+
+  .demo[data-demo='menu'] .demo-surface::before {
+    content: 'Share' / '';
+    @apply -mx-1.5 -mt-1.5 mb-1.5 block border-b px-3 py-2 text-[0.7rem] font-semibold tracking-widest uppercase;
+    border-color: var(--field-border);
+    color: var(--field-text);
   }
 
   /*

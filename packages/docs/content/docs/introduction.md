@@ -52,9 +52,10 @@ Three pieces do all the work:
    for the keys it is bound to, so the page does not scroll out from under you
    while every other key keeps its browser default.
 
-Because the configuration lives in the markup, there is no options object to
-keep in sync with the DOM. A list becomes a grid by gaining a column-count
-attribute, and nothing in your JavaScript changes.
+Describing a group in its markup means a list becomes a grid by gaining a
+column-count attribute, with nothing in your JavaScript to keep in sync. Where
+the markup is not yours to change, the same settings can be
+[named in JavaScript](#describing-a-group-in-javascript) instead.
 
 ## What it handles
 
@@ -75,6 +76,38 @@ attribute, and nothing in your JavaScript changes.
 Inside an input, textarea, select or `contenteditable` region the arrows and
 <kbd class="kbd">Home</kbd> belong to the caret, and keyrove leaves them there;
 see [editable targets](/docs/examples/editable-targets).
+
+Every attribute in that table has an option of the same name, for groups
+described in JavaScript — see below.
+
+## Describing a group in JavaScript
+
+An attribute has to be on the element, which is no help when the HTML belongs
+to a component library, a CMS, or anything else you do not write. The same
+settings can be named in an options object instead:
+
+```ts
+import { keyRove } from '@mixedrays/keyrove';
+
+const menu = { items: '[role="menuitem"]', loop: true };
+
+document
+  .querySelector('#share')
+  .addEventListener('keydown', (e) => keyRove(e, menu));
+```
+
+The two sources are read one field at a time, options first, so neither has to
+answer for the other's fields. `keyRove(e, { loop: true })` loops a group whose
+items, keys and columns still come from its attributes, and `keyRove(e)` reads
+exactly the markup it always did — nothing about the attribute API changed when
+options arrived.
+
+Options are read on every keypress, like the attributes, so an object built at
+the call site is as live as one: `keyRove(e, { cols: columnsNow() })` re-folds
+the grid between presses. `createTypeahead` takes the settings it needs under
+the same names, so one object can drive both handlers. See
+[options in JavaScript](/docs/examples/javascript-options) for the whole
+picture, and the [API reference](/docs/api#options) for every field.
 
 ## Which keys move focus
 
