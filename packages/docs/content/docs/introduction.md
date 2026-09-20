@@ -11,7 +11,7 @@ elements with an attribute and forward keydown events to one function; it works
 out which element should receive focus next and moves it there. It does not
 render anything, own any state, or wrap your components.
 
-```html
+```html title="Markup"
 <ul id="menu">
   <li data-keyrove-item tabindex="0">Inbox</li>
   <li data-keyrove-item tabindex="0">Drafts</li>
@@ -19,14 +19,25 @@ render anything, own any state, or wrap your components.
 </ul>
 ```
 
-```ts
+```ts title="The call"
 import { keyRove } from '@mixedrays/keyrove';
 
 document.querySelector('#menu').addEventListener('keydown', (e) => keyRove(e));
 ```
 
-That is the whole library. Three things about it are easy to assume the other
-way:
+```ts title="No attributes"
+// The same list, with nothing in it but <li tabindex="0">: where the markup is
+// not yours to change, every attribute has an option of the same name.
+import { keyRove } from '@mixedrays/keyrove';
+
+document
+  .querySelector('#menu')
+  .addEventListener('keydown', (e) => keyRove(e, { items: 'li' }));
+```
+
+That is the whole library — the third tab included, which is the same list
+navigated the same way, described somewhere else. Three things about it are
+easy to assume the other way:
 
 - **It is not an arrow-key library.** Arrows are the default binding.
   [Which keys move focus](#which-keys-move-focus) is markup, so a group can be
