@@ -267,6 +267,30 @@ describe('keyRove', () => {
       expect(activeId()).toBe('a');
     });
 
+    it('leaves a key whose selector matches nothing to the table below it', () => {
+      renderMenu(menuItems('a', 'b'), {
+        items: '[role="menuitem"]',
+        focusKeys: { ArrowDown: '#missing' },
+      });
+      document.getElementById('a')!.focus();
+
+      pressKey('ArrowDown');
+
+      expect(activeId()).toBe('b');
+    });
+
+    it('passes over a disabled element it names, and goes on searching', () => {
+      renderMenu(
+        `${menuItems('a', 'b')}<div id="panel" tabindex="-1" disabled></div>`,
+        { items: '[role="menuitem"]', focusKeys: { ArrowDown: '#panel' } },
+      );
+      document.getElementById('a')!.focus();
+
+      pressKey('ArrowDown');
+
+      expect(activeId()).toBe('b');
+    });
+
     it('ignores a selector matching nothing', () => {
       renderMenu(menuItems('a', 'b'), {
         items: '[role="menuitem"]',
