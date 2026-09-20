@@ -28,6 +28,7 @@ import type {
   GroupConfig,
   GroupOptions,
   IsRoot,
+  IsRoving,
   IsSkipped,
   Layout,
   ReadItems,
@@ -155,7 +156,7 @@ const readFocusKeys = (
 };
 
 /** How the group's items are found: a selector run in the root, a reading of your own, or the attribute. */
-const readItemsOf = ({ items }: GroupOptions): ReadItems => {
+export const itemsReader = ({ items }: GroupOptions): ReadItems => {
   if (!items) return attributeItems;
 
   if (typeof items === 'string') {
@@ -165,6 +166,18 @@ const readItemsOf = ({ items }: GroupOptions): ReadItems => {
   return items;
 };
 
+/** Which items a move passes over: the option where one is named, else the attribute. */
+export const skipTest = ({ skip }: GroupOptions): IsSkipped =>
+  skip ? asTest(skip) : attributeSkip;
+
+/**
+ * Whether the item focus is leaving carries the roving tab stop: one boolean
+ * for the group where options name it, else the attribute's reading of that
+ * item.
+ */
+export const rovingTest = ({ rovingTabindex }: GroupOptions): IsRoving =>
+  rovingTabindex === undefined ? attributeRoving : () => rovingTabindex;
+
 /**
  * Every setting one keypress needs, read once for the root it resolved in.
  * `scope` is the listener's reach, which only the focus keys span.
@@ -173,25 +186,17 @@ export const readConfig = (
   root: Element,
   scope: Element,
   options: GroupOptions,
-): GroupConfig => {
-  const { pageLength, rovingTabindex, skip } = options;
-  const isSkipped = skip ? asTest(skip) : attributeSkip;
-
-  return {
-    layout: readLayout(root, options),
-    explicit: readExplicitBinding(root, options),
-    focus: readFocusKeys(scope, options),
-    // Resolved on demand: read only when an unbound `next`/`prev` default on a
-    // horizontal axis could flip, never otherwise.
-    rtl: () => isRtl(root),
-    pageLength:
-      count(pageLength) ??
-      parseAttributeInt(root, KEYROVE_ATTR_PAGE_LENGTH, 10),
-    readItems: readItemsOf(options),
-    isSkipped,
-    // One boolean for the group where options name it, against the attribute's
-    // reading of the item focus is leaving.
-    isRoving:
-      rovingTabindex === undefined ? attributeRoving : () => rovingTabindex,
-  };
-};
+): GroupConfig => ({
+  layout: readLayout(root, options),
+  explicit: readExplicitBinding(root, options),
+  focus: readFocusKeys(scope, options),
+  // Resolved on demand: read only when an unbound `next`/`prev` default on a
+  // horizontal axis could flip, never otherwise.
+  rtl: () => isRtl(root),
+  pageLength:
+    count(options.pageLength) ??
+    parseAttributeInt(root, KEYROVE_ATTR_PAGE_LENGTH, 10),
+  readItems: itemsReader(options),
+  isSkipped: skipTest(options),
+  isRoving: rovingTest(options),
+});

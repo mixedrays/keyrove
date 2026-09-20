@@ -190,7 +190,25 @@ export type GroupConfig = {
   isRoving: IsRoving;
 };
 
-export type TypeaheadOptions = {
+/**
+ * The typeahead handler's options: the group settings that bear on matching a
+ * label, and the handler's own.
+ *
+ * The group settings are the same fields {@link GroupOptions} names, and fall
+ * back the same way, so one object can be handed to both handlers and each
+ * takes what it needs. The rest of a group's settings are about moves, which
+ * typeahead does not make: it has one way to reach an item, its label.
+ */
+export type TypeaheadOptions = Pick<
+  GroupOptions,
+  'items' | 'root' | 'skip' | 'rovingTabindex'
+> & {
+  /**
+   * The text an item is matched by. Falling back, where it returns nothing, to
+   * the typeahead attribute and then the item's own text — the same chain an
+   * absent attribute walks.
+   */
+  label?: (item: Element) => string;
   /** Milliseconds of typing silence after which the buffer resets. Defaults to 500. */
   resetMs?: number;
   /**

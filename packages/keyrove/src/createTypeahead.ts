@@ -8,25 +8,24 @@
  * of running a timer, so the handler owns no lifecycle to clean up.
  */
 
-import { KEYROVE_ATTR_SKIP, KEYROVE_ATTR_TYPEAHEAD } from './attributes.js';
+import { KEYROVE_ATTR_TYPEAHEAD } from './attributes.js';
+import { itemsReader, rootTest, skipTest, rovingTest } from './config.js';
 import { moveFocus, readGroup, resolveRoot } from './group.js';
-import {
-  hasCommandModifier,
-  hasEnabledAttribute,
-  isEditableTarget,
-} from './utils.js';
+import { hasCommandModifier, isEditableTarget } from './utils.js';
 import type {
   KeyRoveEvent,
   TypeaheadOptions,
   TypeaheadResult,
 } from './types.js';
 
-// `||` rather than `??`, so a bare or empty attribute falls back to the text
-// instead of making the item silently unmatchable — the same trap as reading
-// bare `data-keyrove-roving-tabindex` via `getAttribute` truthiness. The text
-// collapses interior whitespace the way rendering does, so a label split
-// across source lines still matches the single spaces a user types.
-const getLabel = (item: Element) =>
+// `||` rather than `??` throughout, so a reading that comes back empty falls
+// to the next instead of making the item silently unmatchable — a `label` with
+// nothing to say about this item, or a bare attribute, the same trap as
+// reading bare `data-keyrove-roving-tabindex` via `getAttribute` truthiness.
+// The text collapses interior whitespace the way rendering does, so a label
+// split across source lines still matches the single spaces a user types.
+const getLabel = (item: Element, label?: (item: Element) => string) =>
+  label?.(item) ||
   item.getAttribute(KEYROVE_ATTR_TYPEAHEAD) ||
   item.textContent?.replace(/\s+/g, ' ').trim() ||
   '';
@@ -36,12 +35,19 @@ const getLabel = (item: Element) =>
  *
  * Printable characters accumulate in a buffer (reset after `resetMs` of
  * silence), and focus moves to the first navigable item whose label — the
- * `data-keyrove-typeahead` attribute, falling back to trimmed `textContent`
- * — starts with it, case-insensitively. Typing inside editable elements is
- * never captured, and modified presses (Ctrl/Alt/Meta) are left to their
- * shortcuts. In `cycle` mode a single character moves to the next match after
- * the focused item instead, wrapping, and repeating it cycles through those
- * matches rather than growing the buffer.
+ * `label` option, falling back to the `data-keyrove-typeahead` attribute and
+ * then to trimmed `textContent` — starts with it, case-insensitively. Typing
+ * inside editable elements is never captured, and modified presses
+ * (Ctrl/Alt/Meta) are left to their shortcuts. In `cycle` mode a single
+ * character moves to the next match after the focused item instead, wrapping,
+ * and repeating it cycles through those matches rather than growing the
+ * buffer.
+ *
+ * Which elements are items, which of them are passed over, what scopes a group
+ * and whether it carries one tab stop are settings of the group rather than of
+ * typeahead: they are named here exactly as they are for `keyRove`, and fall
+ * back to the same attributes, so one object can configure both handlers.
+ * @param options.label - The text an item is matched by.
  * @param options.resetMs - Buffer lifetime between keystrokes. Default 500.
  * @param options.matchMode - Whether repeated characters extend the prefix
  * (`'prefix'`) or cycle through its matches (`'cycle'`). Default `'prefix'`.
@@ -52,10 +58,18 @@ const getLabel = (item: Element) =>
  * navigation so bound keys win: `keyRove(e) || typeahead(e)`.
  */
 export const createTypeahead = ({
+  label,
   resetMs = 500,
   matchMode = 'prefix',
   onMove,
+  ...group
 }: TypeaheadOptions = {}) => {
+  // The group's settings cannot change for the life of the handler, so they
+  // are resolved once here rather than on every keystroke.
+  const isRoot = rootTest(group);
+  const readItems = itemsReader(group);
+  const isSkipped = skipTest(group);
+  const isRoving = rovingTest(group);
   let buffer = '';
   let lastPressTime = 0;
   let lastRoot: Element | null = null;
@@ -72,7 +86,7 @@ export const createTypeahead = ({
 
     if (isEditableTarget(eventTarget)) return null;
 
-    const root = resolveRoot(eventTarget, e.currentTarget);
+    const root = resolveRoot(eventTarget, e.currentTarget, isRoot);
 
     if (!root) return null;
 
@@ -97,7 +111,7 @@ export const createTypeahead = ({
     // growing the buffer, so "s", "s" goes on naming the S items.
     if (matchMode !== 'cycle' || buffer !== character) buffer += character;
 
-    const { items, focused } = readGroup(root);
+    const { items, focused } = readGroup(root, readItems);
 
     // A one-character prefix in cycle mode searches from just past the focused
     // item and wraps, so every press — fresh or repeated, quick or slow — lands
@@ -109,8 +123,8 @@ export const createTypeahead = ({
         : 0;
     const target = [...items.slice(start), ...items.slice(0, start)].find(
       (item) =>
-        !hasEnabledAttribute(item, KEYROVE_ATTR_SKIP) &&
-        getLabel(item).toLowerCase().startsWith(buffer),
+        !isSkipped(item) &&
+        getLabel(item, label).toLowerCase().startsWith(buffer),
     );
 
     // No match leaves the key untouched — the character still joined the
@@ -124,6 +138,7 @@ export const createTypeahead = ({
       action: 'typeahead',
       from: focused,
       to: target,
+      isRoving,
       onMove,
     });
   };
