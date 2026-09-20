@@ -116,9 +116,78 @@ export type MoveResult = ActionResult<MoveAction>;
 /** The argument `onMove` receives: a move that actually happened. */
 export type Move = MoveResult & { to: Element };
 
-export type Options = {
+/**
+ * A group's configuration, named in JavaScript rather than in markup.
+ *
+ * Every field is optional and falls back on its own to the `data-keyrove-*`
+ * attribute it stands for, so a group can be described here, in its markup, or
+ * in any mixture of the two: `{ loop: true }` over marked-up items loops a
+ * group whose items, keys and columns still come from its attributes, and a
+ * handler passing no options reads exactly the markup it always did.
+ */
+export type GroupOptions = {
+  /**
+   * The group's items: a selector run inside the root, or a reading of your
+   * own. Defaults to the item attribute. Items carrying `disabled` are never
+   * navigable, whichever reading found them.
+   */
+  items?: string | ReadItems;
+  /**
+   * The selector a root answers to, matched at or above the event's target.
+   * Defaults to the root attribute; either way the listener's element stands
+   * in when nothing above the target matches.
+   */
+  root?: string;
+  /** Columns. Above 1 the group is a grid. Defaults to the cols attribute. */
+  cols?: number;
+  /**
+   * Whether `next`/`prev` wrap at the ends. Lists only, as for the attribute.
+   */
+  loop?: boolean;
+  /** Which axis `next`/`prev` take their default arrows from. */
+  orientation?: 'horizontal' | 'vertical';
+  /** Rows per page jump — items, in a list. Defaults to 10. */
+  pageLength?: number;
+  /**
+   * The combo each move answers to: `{ next: 'KeyJ', prev: 'KeyK' }`. Read
+   * move by move, so a move left out keeps its attribute and then its default
+   * key.
+   */
+  keys?: Partial<Record<StrideAction, KeyRoveCode>>;
+  /**
+   * Elements reachable by a combo of their own: combo → the element, or a
+   * selector resolved within the listener's reach. Replaces the focus-key
+   * scan rather than adding to it.
+   */
+  focusKeys?: Record<string, string | Element>;
+  /** Which items a move passes over. Defaults to the skip attribute. */
+  skip?: string | IsSkipped;
+  /**
+   * Whether the group carries one tab stop that follows focus. One boolean for
+   * the whole group, where the attribute is read per item.
+   */
+  rovingTabindex?: boolean;
+};
+
+export type Options = GroupOptions & {
   /** Fired after focus has moved — and only when it actually moved. */
   onMove?: (move: Move) => void;
+};
+
+/**
+ * Every setting one keypress needs, resolved for the root it is navigating:
+ * options where they name a field, the root's attributes where they do not.
+ * The layers below take these as given and never read a source of their own.
+ */
+export type GroupConfig = {
+  layout: Layout;
+  explicit: ExplicitBinding;
+  focus: FocusKey[];
+  rtl: () => boolean;
+  pageLength: number;
+  readItems: ReadItems;
+  isSkipped: IsSkipped;
+  isRoving: IsRoving;
 };
 
 export type TypeaheadOptions = {

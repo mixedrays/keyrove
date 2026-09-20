@@ -13,8 +13,12 @@ import { KEYROVE_ATTR_SKIP } from './attributes.js';
 import { hasEnabledAttribute } from './utils.js';
 import type { IsSkipped, ResolveTargetArgs } from './types.js';
 
-/** Which items a move passes over, where the caller names no other test. */
-const attributeSkip: IsSkipped = (element) =>
+/**
+ * Which items a move passes over, where the caller names no other test. The
+ * config layer hands it back down where an options object leaves `skip`
+ * unnamed.
+ */
+export const attributeSkip: IsSkipped = (element) =>
   hasEnabledAttribute(element, KEYROVE_ATTR_SKIP);
 
 /**

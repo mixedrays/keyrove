@@ -25,17 +25,31 @@ import type {
 
 // The attribute source's answers to the three questions this layer asks about
 // a group. They are the defaults of the parameters below, so a caller that
-// names no other source navigates markup exactly as it always has.
-const attributeRoot: IsRoot = (element) =>
+// names no other source navigates markup exactly as it always has, and the
+// config layer hands them back down where an options object leaves a field
+// unnamed.
+export const attributeRoot: IsRoot = (element) =>
   hasEnabledAttribute(element, KEYROVE_ATTR_ROOT);
 
-const attributeItems: ReadItems = (root) =>
-  Array.from(
-    root.querySelectorAll(`[${KEYROVE_ATTR_ITEM}]:not([disabled])`),
-  ).filter((item) => hasEnabledAttribute(item, KEYROVE_ATTR_ITEM));
+export const attributeItems: ReadItems = (root) =>
+  Array.from(root.querySelectorAll(`[${KEYROVE_ATTR_ITEM}]`)).filter((item) =>
+    hasEnabledAttribute(item, KEYROVE_ATTR_ITEM),
+  );
 
-const attributeRoving: IsRoving = (from) =>
+export const attributeRoving: IsRoving = (from) =>
   hasEnabledAttribute(from, KEYROVE_ATTR_ROVING_TABINDEX);
+
+/**
+ * Whether the focused element is this element or inside it — `:focus-within`,
+ * asked of the tree rather than of the selector engine. Focus moves without
+ * mutating the DOM, and a cached selector result can go stale where a walk
+ * cannot.
+ */
+export const holdsFocus = (element: Element): boolean => {
+  const active = element.ownerDocument.activeElement;
+
+  return !!active && element.contains(active);
+};
 
 /**
  * The element a listener sits on. A listener on the document, or the window,
@@ -82,30 +96,24 @@ export const resolveRoot = (
  * Tab lands on that control; where items nest, the outer one is the position,
  * being first in DOM order.
  *
- * The position is looked for among the items themselves, so whatever `readItems`
- * leaves out — a disabled item, or anything a caller's own reading passes over
- * — is not a position either. The root answers first: focus outside it means
- * no item can hold it, and the walk is skipped.
- *
- * The focused element is asked for directly and matched with `contains`,
- * rather than queried with `:focus-within`. It is the same question of the
- * same tree, but it asks nothing of the selector engine — which matters
- * because focus moves without mutating the DOM, and a cached selector result
- * can go stale where a tree walk cannot.
+ * The position is looked for among the items themselves, so whatever
+ * `readItems` leaves out is not a position either. `disabled` is taken out
+ * here rather than in any one reading: it is the DOM's own word for an element
+ * that takes no part, and it means the same whichever source named the items.
+ * The root answers first: focus outside it means no item can hold it, and the
+ * walk is skipped.
  */
 export const readGroup = (
   root: Element,
   readItems: ReadItems = attributeItems,
 ): Group => {
-  const items = readItems(root);
-  const active = root.ownerDocument.activeElement;
+  const items = readItems(root).filter(
+    (item) => !item.hasAttribute('disabled'),
+  );
 
   return {
     items,
-    focused:
-      active && root.contains(active)
-        ? (items.find((item) => item.contains(active)) ?? null)
-        : null,
+    focused: holdsFocus(root) ? (items.find(holdsFocus) ?? null) : null,
   };
 };
 
