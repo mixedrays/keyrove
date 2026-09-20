@@ -79,18 +79,35 @@ export const resolveRoot = (
  * What a root governs: its navigable items in DOM order, and the one holding
  * focus. An item counts as focused when focus is anywhere inside it
  * (`:focus-within`), so an item wrapping a control is still the position after
- * Tab lands on that control.
+ * Tab lands on that control; where items nest, the outer one is the position,
+ * being first in DOM order.
+ *
+ * The position is looked for among the items themselves, so whatever `readItems`
+ * leaves out — a disabled item, or anything a caller's own reading passes over
+ * — is not a position either. The root answers first: focus outside it means
+ * no item can hold it, and the walk is skipped.
+ *
+ * The focused element is asked for directly and matched with `contains`,
+ * rather than queried with `:focus-within`. It is the same question of the
+ * same tree, but it asks nothing of the selector engine — which matters
+ * because focus moves without mutating the DOM, and a cached selector result
+ * can go stale where a tree walk cannot.
  */
 export const readGroup = (
   root: Element,
   readItems: ReadItems = attributeItems,
-): Group => ({
-  items: readItems(root),
-  focused:
-    Array.from(
-      root.querySelectorAll(`[${KEYROVE_ATTR_ITEM}]:focus-within`),
-    ).find((item) => hasEnabledAttribute(item, KEYROVE_ATTR_ITEM)) ?? null,
-});
+): Group => {
+  const items = readItems(root);
+  const active = root.ownerDocument.activeElement;
+
+  return {
+    items,
+    focused:
+      active && root.contains(active)
+        ? (items.find((item) => item.contains(active)) ?? null)
+        : null,
+  };
+};
 
 /**
  * Claims the key and lands focus on `to`, reporting the move.
