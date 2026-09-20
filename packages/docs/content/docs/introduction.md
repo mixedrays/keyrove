@@ -93,11 +93,11 @@ settings can be named in an options object instead:
 ```ts
 import { keyRove } from '@mixedrays/keyrove';
 
-const menu = { items: '[role="menuitem"]', loop: true };
+const config = { items: '[role="menuitem"]', loop: true };
 
 document
   .querySelector('#share')
-  .addEventListener('keydown', (e) => keyRove(e, menu));
+  .addEventListener('keydown', (e) => keyRove(e, config));
 ```
 
 The two sources are read one field at a time, options first, so neither has to

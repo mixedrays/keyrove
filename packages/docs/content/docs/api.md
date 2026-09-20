@@ -366,10 +366,10 @@ the same fallbacks, so one object configures both handlers and they cannot
 disagree about what an item is:
 
 ```ts
-const menu = { items: '[role="menuitem"]', loop: true };
-const typeahead = createTypeahead(menu);
+const config = { items: '[role="menuitem"]', loop: true };
+const typeahead = createTypeahead(config);
 
-el.addEventListener('keydown', (e) => keyRove(e, menu) || typeahead(e));
+el.addEventListener('keydown', (e) => keyRove(e, config) || typeahead(e));
 ```
 
 The settings that are about _moves_ — `keys`, `cols`, `loop`, `orientation`,

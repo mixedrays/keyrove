@@ -63,11 +63,11 @@ JavaScript instead. Each setting falls back to its attribute on its own, so the
 two mix freely.
 
 ```ts
-const menu = { items: '[role="menuitem"]', loop: true };
+const config = { items: '[role="menuitem"]', loop: true };
 
 document
   .querySelector('#share')
-  .addEventListener('keydown', (e) => keyRove(e, menu));
+  .addEventListener('keydown', (e) => keyRove(e, config));
 ```
 
 See [options in JavaScript](/docs/examples/javascript-options) for the whole
