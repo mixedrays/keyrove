@@ -1,7 +1,7 @@
 {
   "name": "@mixedrays/keyrove",
   "version": "2.4.0",
-  "description": "Framework-agnostic keyboard navigation for lists and grids, driven by data-* attributes or a plain options object. Any key can move focus, and native Tab navigation keeps working.",
+  "description": "Framework-agnostic keyboard navigation for lists, grids and trees, driven by data-* attributes or a plain options object. Any key can move focus, and native Tab navigation keeps working.",
   "keywords": [
     "keyboard",
     "keyboard-navigation",
@@ -14,7 +14,8 @@
     "focus",
     "focus-management",
     "list",
-    "grid"
+    "grid",
+    "tree"
   ],
   "license": "MIT",
   "author": "mixedrays <mixedrays@gmail.com>",

@@ -84,6 +84,8 @@ const HISTORY = new Set([
   'inbox',
   'skip',
   'listbox',
+  'sidebar',
+  'tree',
   'typeahead',
   'labels',
   'nested',

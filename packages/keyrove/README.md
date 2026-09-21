@@ -4,8 +4,8 @@
 [![minzipped size](https://img.shields.io/bundlejs/size/%40mixedrays%2Fkeyrove?color=4f46e5&label=minzipped%20size)](https://bundlejs.com/?q=%40mixedrays%2Fkeyrove)
 [![license](https://img.shields.io/npm/l/@mixedrays/keyrove?color=4f46e5)](https://github.com/mixedrays/keyrove/blob/main/LICENSE)
 
-Framework-agnostic keyboard navigation for lists and grids, driven by `data-*`
-attributes or a plain options object.
+Framework-agnostic keyboard navigation for lists, grids and trees, driven by
+`data-*` attributes or a plain options object.
 
 **[Documentation](https://keyrove.pages.dev)** ·
 [Attributes and options](https://keyrove.pages.dev/docs/attributes-and-options) ·
@@ -53,6 +53,13 @@ pnpm add @mixedrays/keyrove
   <kbd>PageUp</kbd>/<kbd>PageDown</kbd> out of the box; `data-keyrove-cols`
   folds the items into rows — Up/Down move a whole row, Left/Right move a cell
   — and `data-keyrove-loop` wraps a list at its ends.
+- **Trees:** a tree is a list whose closed folders' rows are skipped, so the
+  arrows walk the rows on screen — through `data-keyrove-skip` on those rows,
+  or a `skip` selector such as `'[hidden] [role="treeitem"]'` that follows the
+  tree's own state. Opening and closing folders on <kbd>→</kbd>/<kbd>←</kbd>
+  is a few lines of your own, chained after `keyRove` with `||`; the
+  [tree view](https://keyrove.pages.dev/docs/examples/tree-view) example builds
+  it both ways.
 - **Horizontal and RTL groups:** `data-keyrove-orientation="horizontal"`
   re-points a list's defaults at <kbd>←</kbd>/<kbd>→</kbd> — and a grid's
   default cell arrows follow the reading direction too, flipped under RTL from

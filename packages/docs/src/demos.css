@@ -105,13 +105,18 @@
    * Scoped to the preview rather than the whole demo: the tabs over the source
    * are keyrove items too, and they are the site's chrome, not the demo.
    *
-   * The menu demo's group is described in JavaScript, so its items carry no
-   * keyrove attribute at all — which is the whole point of the page it sits
-   * on. The role its config selects on is what makes them items there, so it
-   * is what this rule reaches them by.
+   * The menu and tree demos' groups are described in JavaScript, so their
+   * items carry no keyrove attribute at all — which is the whole point of the
+   * options page. The role each config selects on is what makes them items
+   * there, so it is what this rule reaches them by.
    */
   .demo-preview
-    :where([data-keyrove-item], [data-keyrove-focus-key], [role='menuitem']) {
+    :where(
+      [data-keyrove-item],
+      [data-keyrove-focus-key],
+      [role='menuitem'],
+      [role='treeitem']
+    ) {
     @apply block w-full scroll-m-1 cursor-pointer rounded-lg border border-transparent px-3 py-2 text-left text-sm text-zinc-800 transition-colors duration-120;
     @apply outline-offset-2 outline-indigo-500 dark:outline-indigo-400;
     @apply hover:bg-indigo-500/10;
@@ -481,6 +486,140 @@
   /* Barbara Liskov */
   .demo[data-demo='listbox'] .demo-surface > :nth-child(6)::before {
     content: 'BL' / '';
+  }
+
+  /*
+   * The docs sidebar the attribute tree is drawn as: sections that fold, with
+   * their pages stepped in under them. Like the file tree below it, the
+   * dressing is read off the state the fragment carries — a row is a folder
+   * because it has `aria-expanded` — so the chevron turns with nothing else
+   * kept in step.
+   */
+  .demo[data-demo='sidebar'] .demo-preview {
+    --panel: 15rem;
+  }
+
+  .demo[data-demo='sidebar'] .demo-surface {
+    @apply w-full border-zinc-200 bg-white shadow-lg shadow-zinc-950/5;
+    @apply dark:border-zinc-700 dark:bg-zinc-900;
+  }
+
+  /* A row fills its line and reads from the left, where the shared button
+     rule sizes a toolbar's buttons to their labels. Scoped to the surface, as
+     the shared rule is to the preview: the tabs over the source are keyrove
+     items too, and would be stretched into rows with the rest. */
+  .demo[data-demo='sidebar'] .demo-surface [data-keyrove-item] {
+    @apply flex w-full items-center py-1.5 text-left;
+  }
+
+  /* A folder is a section's name, with the chevron at the far end that turns
+     down as it opens. */
+  .demo[data-demo='sidebar'] .demo-surface [aria-expanded] {
+    @apply font-medium;
+  }
+
+  .demo[data-demo='sidebar'] .demo-surface [aria-expanded]::after {
+    content: '';
+    @apply ml-auto size-3.5 shrink-0 bg-current opacity-60 transition-transform duration-120;
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%20fill='none'%20stroke='%23000'%20stroke-width='1.75'%20stroke-linecap='round'%20stroke-linejoin='round'%3E%3Cpath%20d='m9%2018%206-6-6-6'/%3E%3C/svg%3E");
+    mask-position: center;
+    mask-size: contain;
+    mask-repeat: no-repeat;
+  }
+
+  .demo[data-demo='sidebar'] .demo-surface [aria-expanded='true']::after {
+    @apply rotate-90;
+  }
+
+  /* A folder's pages, stepped in under its name behind a guide line. */
+  .demo[data-demo='sidebar'] .demo-surface ul {
+    @apply ml-3 border-l pl-1.5;
+    border-color: var(--field-border);
+  }
+
+  /*
+   * The file tree, dressed as an editor's sidebar: a titled panel of rows,
+   * each folder with the chevron that says whether it is open and each file
+   * with its page, and a folder's rows stepped in under it.
+   *
+   * Every piece is read off the ARIA the fragment already carries rather than
+   * mapped by position, as the other demos' icons are: the title is the tree's
+   * own `aria-label`, and a row is a folder because it has `aria-expanded`.
+   * That state is the widget's, written by the page's snippet, so the chevron
+   * turns and the folder opens with nothing else kept in step — and a row
+   * moved within the fragment keeps the right icon.
+   */
+  .demo[data-demo='tree'] .demo-preview {
+    --panel: 16rem;
+  }
+
+  .demo[data-demo='tree'] .demo-surface {
+    @apply w-full border-zinc-200 bg-white shadow-lg shadow-zinc-950/5;
+    @apply dark:border-zinc-700 dark:bg-zinc-900;
+  }
+
+  .demo[data-demo='tree'] .demo-surface::before {
+    content: attr(aria-label) / '';
+    @apply -mx-1.5 -mt-1.5 mb-1.5 block border-b px-3 py-2 text-[0.7rem] font-semibold tracking-widest uppercase;
+    border-color: var(--field-border);
+    color: var(--field-text);
+  }
+
+  /* A row reads chevron, icon, name, and sits tighter than a menu's rows, the
+     way a file tree's do. */
+  .demo[data-demo='tree'] [role='treeitem'] {
+    @apply flex items-center gap-1.5 py-1 pl-1.5;
+  }
+
+  /*
+   * The chevron is the row's `::before` and the icon its `::after`, ordered
+   * ahead of the name: a pseudo-element comes after every child, and the flex
+   * order is what puts the icon back between the chevron and the text. A file
+   * keeps the chevron's width with nothing in it, so every name at one depth
+   * starts at the same place.
+   */
+  .demo[data-demo='tree'] [role='treeitem']::before,
+  .demo[data-demo='tree'] [role='treeitem']::after {
+    content: '';
+    @apply shrink-0 opacity-60;
+    mask-position: center;
+    mask-size: contain;
+    mask-repeat: no-repeat;
+  }
+
+  .demo[data-demo='tree'] [role='treeitem']::before {
+    @apply size-3.5 transition-transform duration-120;
+    order: -2;
+  }
+
+  .demo[data-demo='tree'] [role='treeitem']::after {
+    @apply size-4 bg-current;
+    order: -1;
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%20fill='none'%20stroke='%23000'%20stroke-width='1.75'%20stroke-linecap='round'%20stroke-linejoin='round'%3E%3Cpath%20d='M6%2022a2%202%200%200%201-2-2V4a2%202%200%200%201%202-2h8a2.4%202.4%200%200%201%201.704.706l3.588%203.588A2.4%202.4%200%200%201%2020%208v12a2%202%200%200%201-2%202z'/%3E%3Cpath%20d='M14%202v5a1%201%200%200%200%201%201h5'/%3E%3C/svg%3E");
+  }
+
+  .demo[data-demo='tree'] [role='treeitem'][aria-expanded]::before {
+    @apply bg-current;
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%20fill='none'%20stroke='%23000'%20stroke-width='1.75'%20stroke-linecap='round'%20stroke-linejoin='round'%3E%3Cpath%20d='m9%2018%206-6-6-6'/%3E%3C/svg%3E");
+  }
+
+  .demo[data-demo='tree'] [role='treeitem'][aria-expanded='true']::before {
+    @apply rotate-90;
+  }
+
+  .demo[data-demo='tree'] [role='treeitem'][aria-expanded='false']::after {
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%20fill='none'%20stroke='%23000'%20stroke-width='1.75'%20stroke-linecap='round'%20stroke-linejoin='round'%3E%3Cpath%20d='M20%2020a2%202%200%200%200%202-2V8a2%202%200%200%200-2-2h-7.9a2%202%200%200%201-1.69-.9L9.6%203.9A2%202%200%200%200%207.93%203H4a2%202%200%200%200-2%202v13a2%202%200%200%200%202%202Z'/%3E%3C/svg%3E");
+  }
+
+  .demo[data-demo='tree'] [role='treeitem'][aria-expanded='true']::after {
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%20fill='none'%20stroke='%23000'%20stroke-width='1.75'%20stroke-linecap='round'%20stroke-linejoin='round'%3E%3Cpath%20d='m6%2014%201.5-2.9A2%202%200%200%201%209.24%2010H20a2%202%200%200%201%201.94%202.5l-1.54%206a2%202%200%200%201-1.95%201.5H4a2%202%200%200%201-2-2V5a2%202%200%200%201%202-2h3.9a2%202%200%200%201%201.69.9l.81%201.2a2%202%200%200%200%201.67.9H18a2%202%200%200%201%202%202v2'/%3E%3C/svg%3E");
+  }
+
+  /* A folder's rows, stepped in under it, with the guide an editor draws down
+     from the folder's chevron to show which folder they are in. */
+  .demo[data-demo='tree'] [role='group'] {
+    @apply ml-[0.8125rem] border-l pl-1;
+    border-color: var(--field-border);
   }
 
   /*
@@ -1516,9 +1655,10 @@
     @apply bg-zinc-300 dark:bg-zinc-600;
   }
 
-  /* Not keyrove at all: the widget's own state, changed by the page's code.
-     The accent says so — this is the row the reader's own handler wrote. */
-  .log-row[data-outcome='picked'] .log-dot {
+  /* Not keyrove at all: the widget's own doing — a pick, a folder opening, a
+     step out to a parent — made by the page's code. The accent says so — this
+     is the row the reader's own handler wrote. */
+  .log-row[data-outcome='widget'] .log-dot {
     @apply bg-indigo-500;
   }
 

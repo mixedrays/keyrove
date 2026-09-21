@@ -40,8 +40,12 @@ const nameOf = (item: Element) =>
 type Log = {
   /** A move that happened, in the shape `onMove` hands it over. */
   move: (move: { action: string; to: Element }) => void;
-  /** The widget's own doing, which keyrove has no part in: the listbox's pick. */
-  pick: (option: Element, key: string) => void;
+  /**
+   * The widget's own doing, which keyrove has no part in: the listbox's pick,
+   * the tree opening a folder or stepping out of one. `phrase` is what
+   * happened to `target`, in the words the row reads with.
+   */
+  widget: (target: Element, key: string, phrase: string) => void;
   /** A finished keydown, with whatever the handler chain answered it with. */
   keydown: (e: KeyboardEvent, claimed: unknown) => void;
 };
@@ -52,8 +56,8 @@ const createLine = (line: HTMLElement): Log => ({
     line.textContent = `${action} → ${nameOf(to)}`;
   },
 
-  pick: (option) => {
-    line.textContent = `selected → ${nameOf(option)}`;
+  widget: (target, _key, phrase) => {
+    line.textContent = `${phrase} → ${nameOf(target)}`;
   },
 
   // One line has nothing to say about a key that moved nothing: it would wipe
@@ -89,7 +93,7 @@ const HISTORY_LENGTH = 20;
 
 /** A keypress as a row: what was pressed, and what keyrove made of it. */
 type Entry = {
-  outcome: 'moved' | 'noop' | 'passed' | 'picked';
+  outcome: 'moved' | 'noop' | 'passed' | 'widget';
   key: string;
   action: string;
   phrase: string;
@@ -206,23 +210,23 @@ const createHistory = (demo: HTMLElement): Log | null => {
     // all. Taking the moves from there too would only double them.
     move: () => {},
 
-    /** The widget's own state changing, which no return value describes. */
-    pick: (option, key) => {
+    /** The widget's own doing, which no return value of keyrove's describes. */
+    widget: (target, key, phrase) => {
       push({
-        outcome: 'picked',
+        outcome: 'widget',
         key,
         action: '',
-        phrase: 'selected',
-        target: nameOf(option),
+        phrase,
+        target: nameOf(target),
       });
     },
 
     keydown: (e, claimed) => {
       const key = keyLabel(e);
 
-      // The selection handler answers with the option it picked, and has
-      // already reported it. Anything else here would be a second row for one
-      // keypress.
+      // The widget's own handlers — the listbox's pick, the tree's branches —
+      // answer with the element they acted on, and have already reported it.
+      // Anything else here would be a second row for one keypress.
       if (claimed instanceof Element) return;
 
       if (isMoveResult(claimed)) {
@@ -329,7 +333,7 @@ const wireSelection = (surface: HTMLElement, log: Log): Handler => {
     select(option);
 
     // No key to name: the pointer did this one.
-    log.pick(option, '');
+    log.widget(option, '', 'selected');
   });
 
   return (e) => {
@@ -340,9 +344,142 @@ const wireSelection = (surface: HTMLElement, log: Log): Handler => {
 
     e.preventDefault();
     select(option);
-    log.pick(option, keyLabel(e));
+    log.widget(option, keyLabel(e), 'selected');
 
     return option;
+  };
+};
+
+/**
+ * Folding, for the sidebar demo: the tree described in attributes, made live
+ * as its page's snippet. → opens a folder and ← closes it, and a click flips
+ * one — which is Enter and Space too, since a folder is a button and the
+ * browser turns either key into a click. Every row's skip attribute is then
+ * brought level with whether a closed folder hides it. Returns the keydown
+ * half, to chain after navigation.
+ */
+const wireFolds = (surface: HTMLElement, log: Log): Handler => {
+  const setOpen = (folder: Element, open: boolean) => {
+    folder.setAttribute('aria-expanded', String(open));
+
+    const group = folder.nextElementSibling;
+    if (group instanceof HTMLElement) group.hidden = !open;
+
+    for (const item of surface.querySelectorAll(`[${KEYROVE_ATTR_ITEM}]`)) {
+      item.toggleAttribute(KEYROVE_ATTR_SKIP, !!item.closest('[hidden]'));
+    }
+  };
+
+  surface.addEventListener('click', (e) => {
+    const folder = (e.target as Element).closest('[aria-expanded]');
+    if (!folder) return;
+
+    const open = folder.getAttribute('aria-expanded') === 'false';
+    setOpen(folder, open);
+
+    // No key to name: the click did this one, whatever set it off.
+    log.widget(folder, '', open ? 'expanded' : 'collapsed');
+  });
+
+  return (e) => {
+    const open = matchesCombo(e, 'ArrowRight');
+    if (!open && !matchesCombo(e, 'ArrowLeft')) return null;
+
+    // Only a folder the key would change: a page, or a folder already that
+    // way round, leaves the key to the browser.
+    const folder = e.target as Element;
+    if (folder.getAttribute('aria-expanded') !== String(!open)) return null;
+
+    e.preventDefault();
+    setOpen(folder, open);
+    log.widget(folder, keyLabel(e), open ? 'expanded' : 'collapsed');
+
+    return folder;
+  };
+};
+
+/**
+ * Opening and closing, for the tree demo.
+ *
+ * keyrove walks the rows that are showing; the tree's shape is the tree's own,
+ * so this is the page's snippet made live: → opens a closed folder and steps
+ * into an open one, ← closes an open folder and steps out to the parent of
+ * anything else, and a click opens or closes the folder it lands on, carrying
+ * the roving tab stop with it. A key with nothing to do — → on a file, ← on a
+ * closed top-level folder — is left to the browser, which is the contract the
+ * handlers before it keep. Returns the keydown half, to chain after navigation
+ * and typeahead.
+ */
+const wireTree = (surface: HTMLElement, log: Log): Handler => {
+  const ITEM = '[role="treeitem"]';
+
+  // A folder's rows are the group its `aria-owns` names, and the folder an
+  // item sits under is the row just before the group around it.
+  const groupOf = (item: Element) =>
+    document.getElementById(item.getAttribute('aria-owns') ?? '');
+  const parentOf = (item: Element) =>
+    item.closest('[role="group"]')?.previousElementSibling ?? null;
+
+  const toggle = (item: Element, open: boolean) => {
+    const group = groupOf(item);
+    if (!group) return;
+
+    item.setAttribute('aria-expanded', String(open));
+    group.hidden = !open;
+  };
+
+  const moveTo = (from: Element | null, to: Element) => {
+    toggleTabIndex({ root: from, isActive: false });
+    toggleTabIndex({ root: to, isActive: true });
+    (to as HTMLElement).focus();
+  };
+
+  surface.addEventListener('click', (e) => {
+    const item = (e.target as Element).closest(ITEM);
+    if (!item) return;
+
+    moveTo(surface.querySelector('[tabindex="0"]'), item);
+
+    const expanded = item.getAttribute('aria-expanded');
+    if (expanded === null) return;
+
+    toggle(item, expanded === 'false');
+
+    // No key to name: the pointer did this one.
+    log.widget(item, '', expanded === 'false' ? 'expanded' : 'collapsed');
+  });
+
+  return (e) => {
+    const item = (e.target as Element).closest(ITEM);
+    if (!item) return null;
+
+    // Null on a file: only a folder says whether it is open.
+    const expanded = item.getAttribute('aria-expanded');
+    const parent = parentOf(item);
+    const key = keyLabel(e);
+
+    if (matchesCombo(e, 'ArrowRight') && expanded === 'false') {
+      toggle(item, true);
+      log.widget(item, key, 'expanded');
+    } else if (matchesCombo(e, 'ArrowRight') && expanded === 'true') {
+      const child = groupOf(item)?.querySelector(ITEM);
+      if (!child) return null;
+
+      moveTo(item, child);
+      log.widget(child, key, 'moved to');
+    } else if (matchesCombo(e, 'ArrowLeft') && expanded === 'true') {
+      toggle(item, false);
+      log.widget(item, key, 'collapsed');
+    } else if (matchesCombo(e, 'ArrowLeft') && parent) {
+      moveTo(item, parent);
+      log.widget(parent, key, 'moved to');
+    } else {
+      return null;
+    }
+
+    e.preventDefault();
+
+    return item;
   };
 };
 
@@ -360,14 +497,19 @@ const EXTRAS: Record<
 > = {
   typeahead: (_surface, log) => [createTypeahead({ onMove: log.move })],
   labels: (_surface, log) => [createTypeahead({ onMove: log.move })],
-  // The one demo whose group is described in JavaScript hands the same object
-  // to both handlers, which is the point the page it sits on makes.
+  // The demos whose group is described in JavaScript hand the same object to
+  // both handlers, which is the point the options page makes.
   menu: (_surface, log, group) => [
     createTypeahead({ ...group, onMove: log.move }),
   ],
   listbox: (surface, log) => [
     createTypeahead({ onMove: log.move }),
     wireSelection(surface, log),
+  ],
+  sidebar: (surface, log) => [wireFolds(surface, log)],
+  tree: (surface, log, group) => [
+    createTypeahead({ ...group, onMove: log.move }),
+    wireTree(surface, log),
   ],
 };
 
@@ -379,6 +521,13 @@ const EXTRAS: Record<
  */
 const CONFIGS: Record<string, GroupOptions> = {
   menu: { items: '[role="menuitem"]', loop: true, rovingTabindex: true },
+  // A row inside a closed folder is still in the DOM, so it is still an item;
+  // `skip` is what keeps a move from landing on one nobody can see.
+  tree: {
+    items: '[role="treeitem"]',
+    skip: '[hidden] [role="treeitem"]',
+    rovingTabindex: true,
+  },
 };
 
 /**
@@ -485,9 +634,9 @@ export const mountDemos = () => {
     const log = createHistory(demo) ?? (line ? createLine(line) : null);
     if (!surface || !log) return;
 
-    // Every demo but one is described in its own markup, which is what the
-    // pages teach; `CONFIGS` is the exception, and it is handed to the
-    // handlers exactly as that page's snippet hands it to them.
+    // Almost every demo is described in its own markup, which is what the
+    // pages teach; `CONFIGS` holds the exceptions, each handed to the
+    // handlers exactly as its page's snippet hands it to them.
     const group = CONFIGS[demo.dataset.demo ?? ''] ?? {};
     const handlers: Handler[] = [
       (e) => keyRove(e, { ...group, onMove: log.move }),
