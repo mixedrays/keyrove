@@ -1,7 +1,7 @@
 # keyrove repository
 
 This repository is a pnpm monorepo for [keyrove](packages/keyrove), a
-framework-agnostic keyboard navigation library for lists and grids.
+framework-agnostic keyboard navigation library for lists, grids and trees.
 
 ## Packages
 

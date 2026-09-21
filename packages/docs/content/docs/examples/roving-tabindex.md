@@ -65,7 +65,7 @@ Reach for plain tab stops when the items are few, or when each one is a
 destination a user might reasonably tab to: a row of three toolbar buttons, a
 short menu. Reach for roving tabindex when the group is long, or when it is one
 control conceptually rather than many: a [listbox](/docs/examples/listbox), a
-grid, a tab list. The
+[tree](/docs/examples/tree-view), a grid, a tab list. The
 [ARIA authoring practices](https://www.w3.org/WAI/ARIA/apg/practices/keyboard-interface/)
 describe the second arrangement for composite widgets, and it is also what makes
 [nested groups](/docs/examples/nested-roots) escapable:
