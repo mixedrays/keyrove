@@ -6,9 +6,9 @@ order: 5
 ---
 
 keyrove is a framework-agnostic, dependency-free library for keyboard navigation
-in lists and grids; the [introduction](/docs/introduction) explains what it does
-and how it fits together. It is developed in the open under the MIT licence, and
-issues and pull requests are welcome.
+in lists, grids and trees; the [introduction](/docs/introduction) explains what
+it does and how it fits together. It is developed in the open under the MIT
+licence, and issues and pull requests are welcome.
 
 ## This site
 

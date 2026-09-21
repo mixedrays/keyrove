@@ -1,7 +1,7 @@
 ---
 title: keyrove
-description: Framework-agnostic keyboard navigation for lists and grids, driven by data-* attributes or a plain options object. Any key can move focus, and native Tab navigation keeps working.
-titleTag: keyrove — Keyboard navigation for lists and grids
+description: Framework-agnostic keyboard navigation for lists, grids and trees, driven by data-* attributes or a plain options object. Any key can move focus, and native Tab navigation keeps working.
+titleTag: keyrove — Keyboard navigation for lists, grids and trees
 layout: landing
 ---
 
@@ -16,8 +16,8 @@ layout: landing
 
 # Keyboard navigation that behaves itself.
 
-Lists and grids, custom key bindings, roving tabindex, typeahead and focus
-shortcuts for any DOM tree. Data attributes — or a plain options object, for
+Lists, grids and trees, custom key bindings, roving tabindex, typeahead and
+focus shortcuts on any page. Data attributes — or a plain options object, for
 markup you don't own — and one keydown call. No wrappers, no framework
 opinions.
 
@@ -99,12 +99,13 @@ flip under RTL.
 </div>
 <div class="feature">
 
-### <span aria-hidden="true">↕️</span> Lists and grids
+### <span aria-hidden="true">↕️</span> Lists, grids and trees
 
 <kbd class="kbd">Home</kbd> / <kbd class="kbd">End</kbd> and
 <kbd class="kbd">PageUp</kbd> / <kbd class="kbd">PageDown</kbd> come with the
 list. Declare `data-keyrove-cols` and Up/Down move a whole row while
 Left/Right move a cell; add `data-keyrove-loop` and a list wraps at its ends.
+Skip the rows of a closed folder and the same list walks a tree.
 
 </div>
 <div class="feature">

@@ -6,7 +6,7 @@ group: Guide
 order: 1
 ---
 
-keyrove makes a list or a grid keyboard-navigable. You mark the navigable
+keyrove makes a list, a grid or a tree keyboard-navigable. You mark the navigable
 elements with an attribute and forward keydown events to one function; it works
 out which element should receive focus next and moves it there. It does not
 render anything, own any state, or wrap your components.

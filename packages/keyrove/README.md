@@ -49,17 +49,15 @@ pnpm add @mixedrays/keyrove
   it from anywhere under the listener: another group, a nested root, even a
   text field when the combo holds a modifier. It need not be an item, so a panel
   reached by its key stays out of the arrow order.
-- **Lists and grids:** arrows, <kbd>Home</kbd>/<kbd>End</kbd> and
+- **Lists, grids and trees:** arrows, <kbd>Home</kbd>/<kbd>End</kbd> and
   <kbd>PageUp</kbd>/<kbd>PageDown</kbd> out of the box; `data-keyrove-cols`
   folds the items into rows — Up/Down move a whole row, Left/Right move a cell
-  — and `data-keyrove-loop` wraps a list at its ends.
-- **Trees:** a tree is a list whose closed folders' rows are skipped, so the
-  arrows walk the rows on screen — through `data-keyrove-skip` on those rows,
-  or a `skip` selector such as `'[hidden] [role="treeitem"]'` that follows the
-  tree's own state. Opening and closing folders on <kbd>→</kbd>/<kbd>←</kbd>
-  is a few lines of your own, chained after `keyRove` with `||`; the
-  [tree view](https://keyrove.pages.dev/docs/examples/tree-view) example builds
-  it both ways.
+  — and `data-keyrove-loop` wraps a list at its ends. A tree is a list whose
+  closed folders' rows are skipped, through `data-keyrove-skip` or a `skip`
+  selector such as `'[hidden] [role="treeitem"]'`, so the arrows walk the rows
+  on screen; opening and closing folders on <kbd>→</kbd>/<kbd>←</kbd> is a few
+  lines of your own, chained after `keyRove` with `||` — see the
+  [tree view](https://keyrove.pages.dev/docs/examples/tree-view) example.
 - **Horizontal and RTL groups:** `data-keyrove-orientation="horizontal"`
   re-points a list's defaults at <kbd>←</kbd>/<kbd>→</kbd> — and a grid's
   default cell arrows follow the reading direction too, flipped under RTL from

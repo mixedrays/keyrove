@@ -314,7 +314,7 @@ const OG_IMAGE = {
   path: '/og.png',
   width: 1200,
   height: 630,
-  alt: 'keyrove — framework-agnostic keyboard navigation for lists and grids.',
+  alt: 'keyrove — framework-agnostic keyboard navigation for lists, grids and trees.',
 } as const;
 
 const meta = (attribute: 'name' | 'property', key: string, content: string) =>
