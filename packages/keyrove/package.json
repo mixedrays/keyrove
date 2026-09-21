@@ -1,7 +1,7 @@
 {
   "name": "@mixedrays/keyrove",
   "version": "2.4.0",
-  "description": "Framework-agnostic keyboard navigation for lists and grids, driven by data-* attributes. Any key can move focus; arrows are the default.",
+  "description": "Framework-agnostic keyboard navigation for lists and grids, driven by data-* attributes or a plain options object. Any key can move focus, and native Tab navigation keeps working.",
   "keywords": [
     "keyboard",
     "keyboard-navigation",

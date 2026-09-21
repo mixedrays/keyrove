@@ -5,8 +5,8 @@
 [![license](https://img.shields.io/npm/l/@mixedrays/keyrove?color=4f46e5)](https://github.com/mixedrays/keyrove/blob/main/LICENSE)
 
 Framework-agnostic keyboard navigation for lists and grids, driven by `data-*`
-attributes. Any key can move focus — arrows are only the default — and native
-<kbd>Tab</kbd> navigation keeps working.
+attributes or a plain options object. Any key can move focus — arrows are only
+the default — and native <kbd>Tab</kbd> navigation keeps working.
 
 ## Getting started
 
@@ -31,6 +31,16 @@ import { keyRove } from '@mixedrays/keyrove';
 document.querySelector('#menu').addEventListener('keydown', (e) => keyRove(e));
 ```
 
+Where the markup is not yours to change — a component library's menu, a CMS's
+output — every attribute has an option of the same name, so the same list can
+be described in the call instead:
+
+```ts
+document
+  .querySelector('#menu')
+  .addEventListener('keydown', (e) => keyRove(e, { items: 'li' }));
+```
+
 `keyRove` takes anything shaped like a keydown event, so React, Vue and Svelte
 synthetic events work without an adapter. The
 [installation guide](https://keyrove.pages.dev/docs/installation) shows the
@@ -40,6 +50,8 @@ wiring in each framework.
 
 - [Introduction](https://keyrove.pages.dev/docs/introduction) — how it works,
   which keys move focus, and what it leaves to you.
+- [Attributes and options](https://keyrove.pages.dev/docs/attributes-and-options)
+  — the two places a group can be described, and which to reach for.
 - [Examples](https://keyrove.pages.dev/docs/examples/basic) — live demos of
   lists, grids, custom keys, roving tabindex, nested roots and more.
 - [API reference](https://keyrove.pages.dev/docs/api) — every attribute,
