@@ -311,6 +311,21 @@ describe('keyRove', () => {
       expect(activeId()).toBe('b');
     });
 
+    it('answers to every combo a key lists', () => {
+      renderMenu(`${menuItems('a', 'b')}<div id="panel" tabindex="-1"></div>`, {
+        items: '[role="menuitem"]',
+        focusKeys: { 'F6, ctrl+KeyE': '#panel' },
+      });
+
+      document.getElementById('a')!.focus();
+      pressKey('F6');
+      expect(activeId()).toBe('panel');
+
+      document.getElementById('a')!.focus();
+      pressKey('KeyE', undefined, { ctrlKey: true });
+      expect(activeId()).toBe('panel');
+    });
+
     it('ignores a blank combo', () => {
       renderMenu(`${menuItems('a', 'b')}<div id="panel" tabindex="-1"></div>`, {
         items: '[role="menuitem"]',

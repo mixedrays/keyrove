@@ -149,15 +149,16 @@ export type GroupOptions = {
   /** Rows per page jump — items, in a list. Defaults to 10. */
   pageLength?: number;
   /**
-   * The combo each move answers to: `{ next: 'KeyJ', prev: 'KeyK' }`. Read
-   * move by move, so a move left out keeps its attribute and then its default
-   * key. `'none'` binds a move to no key, freeing its default.
+   * The combo each move answers to, or a comma-separated list of them:
+   * `{ next: 'ArrowDown, KeyJ', prev: 'KeyK' }`. Read move by move, so a move
+   * left out keeps its attribute and then its default key. `'none'` binds a
+   * move to no key, freeing its default.
    */
   keys?: Partial<Record<StrideAction, KeyRoveCode | 'none'>>;
   /**
-   * Elements reachable by a combo of their own: combo → the element, or a
-   * selector resolved within the listener's reach. Replaces the focus-key
-   * scan rather than adding to it.
+   * Elements reachable by a combo of their own: combo, or a comma-separated
+   * list of them, → the element, or a selector resolved within the listener's
+   * reach. Replaces the focus-key scan rather than adding to it.
    */
   focusKeys?: Record<string, string | Element>;
   /** Which items a move passes over. Defaults to the skip attribute. */

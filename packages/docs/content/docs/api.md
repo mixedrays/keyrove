@@ -70,7 +70,7 @@ the page. See [custom keys](/docs/examples/custom-keys) for worked examples.
 
 ### Combos
 
-Every `*-key` value is a combo, matched by
+Every `*-key` value is a combo, or a list of them, matched by
 [`matchesCombo`](#matchescombo-event-combo):
 
 - Zero or more of `mod+`, `ctrl+`, `alt+`, `shift+`, `meta+`, in any order and
@@ -88,18 +88,26 @@ Every `*-key` value is a combo, matched by
   <kbd class="kbd">Ctrl</kbd>+<kbd class="kbd">J</kbd> keeps its browser
   default. A `ctrl+KeyJ` binding never fires on a plain
   <kbd class="kbd">J</kbd>.
+- A comma separates the combos of a list, and a move answers to any of them:
+  `data-keyrove-next-key="ArrowDown, KeyJ"` keeps the arrow and adds
+  <kbd class="kbd">J</kbd>. No code contains a comma (the comma key is
+  `Comma`), and whitespace around the commas is ignored. Each entry is matched
+  on its own, so an empty entry or one naming an unknown modifier matches
+  nothing and leaves the others working. A list is literal like any explicit
+  binding: to keep the default key, name it.
 - The defaults are exact combos too. A modified
   <kbd class="kbd">PageDown</kbd> is left alone, and so are
   <kbd class="kbd">Ctrl</kbd>+<kbd class="kbd">Home</kbd> and
   <kbd class="kbd">Ctrl</kbd>+<kbd class="kbd">End</kbd> in a list, which has
   no grid-wide scope for them.
 - A combo naming an unknown modifier, or ending in a dangling `+`, matches
-  nothing, not even a keydown with an empty `code`. An empty or blank value is
-  unset: an attribute leaves the move its default key, and a `keys` value
-  leaves it to the attribute.
-- `none`, trimmed and in any case, is not a combo. It binds the move to no key.
-  On a [focus key](#focus-keys) it is unset, since an element has no default
-  key to free.
+  nothing, not even a keydown with an empty `code`. An empty or blank value,
+  or one of nothing but commas, is unset: an attribute leaves the move its
+  default key, and a `keys` value leaves it to the attribute.
+- `none`, trimmed and in any case, is not a combo. On its own it binds the move
+  to no key; inside a list it is an entry that matches nothing. On a
+  [focus key](#focus-keys) it is unset, since an element has no default key to
+  free.
 
 ### Precedence
 
@@ -281,18 +289,18 @@ keyRove(e, { loop: true }); // items from the markup, looping from here
 keyRove(e, { items: '[role="menuitem"]' }); // nothing from the markup
 ```
 
-| Option           | Falls back to                  | Meaning                                                                                                                        |
-| ---------------- | ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------ |
-| `items`          | `data-keyrove-item`            | The group's items: a selector run inside the root, or `(root) => Element[]`. Elements carrying `disabled` are never navigable. |
-| `root`           | `data-keyrove-root`            | Selector a [root](#roots) answers to, matched at or above the event's target.                                                  |
-| `cols`           | `data-keyrove-cols`            | Columns. Above 1 the group is a grid.                                                                                          |
-| `loop`           | `data-keyrove-loop`            | Whether next/prev wrap at the ends. Lists only.                                                                                |
-| `orientation`    | `data-keyrove-orientation`     | `'horizontal'` re-points a list's default arrows; see [RTL](#horizontal-groups-and-rtl).                                       |
-| `pageLength`     | `data-keyrove-page-length`     | Rows per page jump — items, in a list.                                                                                         |
-| `keys`           | the `*-key` attributes         | The [combo](#combos) each move answers to: `{ next: 'KeyJ', prev: 'KeyK' }`, or `'none'` for no key. Read move by move.        |
-| `focusKeys`      | `data-keyrove-focus-key`       | Combo → element, or a selector resolved within the listener's reach. Replaces the attribute scan rather than adding to it.     |
-| `skip`           | `data-keyrove-skip`            | Which items a move passes over: a selector or `(element) => boolean`.                                                          |
-| `rovingTabindex` | `data-keyrove-roving-tabindex` | Whether the group carries one tab stop. One boolean for the group, where the attribute is read per item.                       |
+| Option           | Falls back to                  | Meaning                                                                                                                                                                        |
+| ---------------- | ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `items`          | `data-keyrove-item`            | The group's items: a selector run inside the root, or `(root) => Element[]`. Elements carrying `disabled` are never navigable.                                                 |
+| `root`           | `data-keyrove-root`            | Selector a [root](#roots) answers to, matched at or above the event's target.                                                                                                  |
+| `cols`           | `data-keyrove-cols`            | Columns. Above 1 the group is a grid.                                                                                                                                          |
+| `loop`           | `data-keyrove-loop`            | Whether next/prev wrap at the ends. Lists only.                                                                                                                                |
+| `orientation`    | `data-keyrove-orientation`     | `'horizontal'` re-points a list's default arrows; see [RTL](#horizontal-groups-and-rtl).                                                                                       |
+| `pageLength`     | `data-keyrove-page-length`     | Rows per page jump — items, in a list.                                                                                                                                         |
+| `keys`           | the `*-key` attributes         | The [combo](#combos) or combos each move answers to: `{ next: 'ArrowDown, KeyJ' }`, or `'none'` for no key. Read move by move.                                                 |
+| `focusKeys`      | `data-keyrove-focus-key`       | Combo, or a list of them, → element or a selector resolved within the listener's reach: `{ 'F6, ctrl+KeyE': '#panel' }`. Replaces the attribute scan rather than adding to it. |
+| `skip`           | `data-keyrove-skip`            | Which items a move passes over: a selector or `(element) => boolean`.                                                                                                          |
+| `rovingTabindex` | `data-keyrove-roving-tabindex` | Whether the group carries one tab stop. One boolean for the group, where the attribute is read per item.                                                                       |
 
 The fallback is per _field_, not per call. With
 `keyRove(e, { keys: { next: 'KeyJ' } })` the next move answers to
@@ -443,7 +451,12 @@ list.addEventListener('keydown', (e) => {
 ```
 
 Matching is exact, so `'Escape'` above rejects
-<kbd class="kbd">Ctrl</kbd>+<kbd class="kbd">Escape</kbd>.
+<kbd class="kbd">Ctrl</kbd>+<kbd class="kbd">Escape</kbd>. A list matches any
+of its combos, which saves writing the any-of by hand:
+
+```ts
+if (!matchesCombo(e, 'Space, Enter')) return null;
+```
 
 ## toggleTabIndex({ root, isActive })
 

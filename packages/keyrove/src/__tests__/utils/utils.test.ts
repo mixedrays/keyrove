@@ -173,6 +173,55 @@ describe('matchesCombo', () => {
     },
   );
 
+  describe('lists', () => {
+    it('matches any entry of a comma-separated list', () => {
+      expect(matchesCombo(keyEvent('Space'), 'Space, Enter')).toBe(true);
+      expect(matchesCombo(keyEvent('Enter'), 'Space, Enter')).toBe(true);
+      expect(matchesCombo(keyEvent('Escape'), 'Space, Enter')).toBe(false);
+    });
+
+    it('matches modifiers exactly, entry by entry', () => {
+      const combo = 'ctrl+KeyJ, ArrowDown';
+
+      expect(matchesCombo(keyEvent('KeyJ', { ctrlKey: true }), combo)).toBe(
+        true,
+      );
+      expect(matchesCombo(keyEvent('ArrowDown'), combo)).toBe(true);
+      expect(matchesCombo(keyEvent('KeyJ'), combo)).toBe(false);
+      expect(
+        matchesCombo(keyEvent('ArrowDown', { ctrlKey: true }), combo),
+      ).toBe(false);
+    });
+
+    it('ignores whitespace around the commas', () => {
+      expect(matchesCombo(keyEvent('Enter'), ' Space ,Enter ')).toBe(true);
+      expect(
+        matchesCombo(keyEvent('KeyE', { ctrlKey: true }), 'F6 , ctrl + KeyE'),
+      ).toBe(true);
+    });
+
+    it.each(['KeyJ,', ', KeyJ', 'KeyJ,,', ' , KeyJ , '])(
+      'passes over the empty entries of %j',
+      (combo) => {
+        expect(matchesCombo(keyEvent('KeyJ'), combo)).toBe(true);
+        expect(matchesCombo(keyEvent(''), combo)).toBe(false);
+      },
+    );
+
+    it('never matches a list of nothing but commas', () => {
+      expect(matchesCombo(keyEvent(''), ',')).toBe(false);
+      expect(matchesCombo(keyEvent(''), ' , , ')).toBe(false);
+    });
+
+    it('lets the valid entries match beside an invalid one', () => {
+      expect(matchesCombo(keyEvent('KeyK'), 'hyper+KeyJ, KeyK')).toBe(true);
+      expect(matchesCombo(keyEvent('KeyK'), 'KeyK, ctrl+')).toBe(true);
+      expect(
+        matchesCombo(keyEvent('KeyJ', { ctrlKey: true }), 'hyper+KeyJ, KeyK'),
+      ).toBe(false);
+    });
+  });
+
   it('tolerates whitespace around combo parts', () => {
     expect(
       matchesCombo(

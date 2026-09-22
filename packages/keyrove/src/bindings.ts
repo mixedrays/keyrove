@@ -9,6 +9,7 @@
  * precedence of a keypress is one ordered list.
  */
 
+import { isComboSet } from './utils.js';
 import type {
   Binding,
   BuildBindingsArgs,
@@ -102,11 +103,11 @@ export const buildBindings = ({
   // An element's own key names one element, where a root's names a group and
   // a default names nothing in particular: the most specific declaration in
   // the table, so it sits first — it wins any collision, and two elements
-  // naming one combo resolve to the first in DOM order. A bare or blank combo
+  // naming one combo resolve to the first in DOM order. A combo naming nothing
   // is unset, as it is for the root keys, and so is `none`: an element has no
   // default key to take away.
   const named: Binding[] = focus
-    .filter(({ combo }) => combo.trim() && !isNone(combo))
+    .filter(({ combo }) => isComboSet(combo) && !isNone(combo))
     .map(({ combo, target }) => ({
       combo,
       intent: 'focus',

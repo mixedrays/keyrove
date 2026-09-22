@@ -32,25 +32,11 @@ const MODIFIER_ALIASES = new Map<string, Modifier>([
   ['command', 'meta'],
 ]);
 
-/**
- * Whether the event matches a key combo like `"ctrl+ArrowDown"` or `"KeyJ"`.
- *
- * Grammar: zero or more of `mod+` / `ctrl+` / `alt+` / `shift+` / `meta+`
- * (any order, any case) followed by a `KeyboardEvent.code`. `mod` resolves to
- * `meta` on Apple platforms and `ctrl` elsewhere; `control`, `option`, `cmd`
- * and `command` are the longer spellings of `ctrl`, `alt` and `meta`.
- *
- * Matching is exact: every declared modifier must be held and every undeclared
- * one must not be, so a bare `"ArrowDown"` means "ArrowDown with no modifiers"
- * and leaves shortcuts like Ctrl+ArrowDown alone. The code is matched on
- * `e.code` — the physical key, independent of keyboard layout.
- *
- * A combo with no code — empty, blank, or ending in a dangling `+` — matches
- * nothing, not even an event whose own code is empty, as Android's virtual
- * keyboards send.
- */
-export const matchesCombo = (e: KeyRoveEvent, combo: string): boolean => {
-  const parts = combo.split('+');
+// One entry of a combo list, matched exactly. An entry with no code — empty,
+// blank, or ending in a dangling `+` — matches nothing, not even an event whose
+// own code is empty, as Android's virtual keyboards send.
+const matchesEntry = (e: KeyRoveEvent, entry: string): boolean => {
+  const parts = entry.split('+');
   const code = parts.pop()?.trim();
   const declared = { ctrl: false, alt: false, shift: false, meta: false };
 
@@ -78,6 +64,35 @@ export const matchesCombo = (e: KeyRoveEvent, combo: string): boolean => {
     !!e.metaKey === declared.meta
   );
 };
+
+/**
+ * Whether the event matches a key combo like `"ctrl+ArrowDown"` or `"KeyJ"`,
+ * or any of a comma-separated list of them: `"ArrowDown, KeyJ"`.
+ *
+ * Grammar: zero or more of `mod+` / `ctrl+` / `alt+` / `shift+` / `meta+`
+ * (any order, any case) followed by a `KeyboardEvent.code`. `mod` resolves to
+ * `meta` on Apple platforms and `ctrl` elsewhere; `control`, `option`, `cmd`
+ * and `command` are the longer spellings of `ctrl`, `alt` and `meta`. No code
+ * contains a comma — the comma key is `Comma` — so it is free to separate
+ * entries.
+ *
+ * Matching is exact: every declared modifier must be held and every undeclared
+ * one must not be, so a bare `"ArrowDown"` means "ArrowDown with no modifiers"
+ * and leaves shortcuts like Ctrl+ArrowDown alone. The code is matched on
+ * `e.code` — the physical key, independent of keyboard layout.
+ *
+ * Each entry of a list is matched on its own: an empty entry, or one naming an
+ * unknown modifier, matches nothing and does not stop the others matching.
+ */
+export const matchesCombo = (e: KeyRoveEvent, combo: string): boolean =>
+  combo.split(',').some((entry) => matchesEntry(e, entry));
+
+/**
+ * Whether a binding value names anything: an entry that is not blank. An
+ * empty, blank or comma-only value is unset, wherever a binding is read.
+ */
+export const isComboSet = (value: string | null | undefined): value is string =>
+  !!value && /[^\s,]/.test(value);
 
 /**
  * Whether Ctrl, Alt or Meta is held: a command rather than typing. Shift on

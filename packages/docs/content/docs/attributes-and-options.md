@@ -47,7 +47,8 @@ The fallback is per _field_, not per call, and it reaches inside `keys` too.
 With `keyRove(e, { keys: { next: 'KeyJ' } })` the next move answers to
 <kbd class="kbd">J</kbd>, while <kbd class="kbd">Home</kbd>,
 <kbd class="kbd">End</kbd> and the page keys keep whatever the root's attributes
-say — and their defaults where it says nothing.
+say — and their defaults where it says nothing. An empty `keys` value falls
+through the same way; `'none'` is what switches a move off.
 
 Two consequences worth stating plainly:
 

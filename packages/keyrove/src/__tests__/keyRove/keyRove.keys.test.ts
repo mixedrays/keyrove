@@ -144,6 +144,70 @@ describe('keyRove', () => {
     });
   });
 
+  describe('several keys per move', () => {
+    it.each([
+      [
+        'attribute',
+        { containerAttrs: { [KEYROVE_ATTR_NEXT_KEY]: 'ArrowDown, KeyJ' } },
+      ],
+      ['keys option', { options: { keys: { next: 'ArrowDown, KeyJ' } } }],
+    ])('moves on every key the %s lists', (_, source) => {
+      renderList(
+        ['a', 'b', 'c'].map((id) => createItem(id)),
+        source,
+      );
+      document.getElementById('a')!.focus();
+
+      pressKey('ArrowDown');
+      expect(activeId()).toBe('b');
+
+      pressKey('KeyJ');
+      expect(activeId()).toBe('c');
+    });
+
+    it('frees the default a list leaves out', () => {
+      renderList([createItem('a'), createItem('b')], {
+        containerAttrs: { [KEYROVE_ATTR_NEXT_KEY]: 'KeyJ, ctrl+KeyN' },
+      });
+      document.getElementById('a')!.focus();
+
+      const freed = pressKey('ArrowDown');
+      expect(activeId()).toBe('a');
+      expect(freed.defaultPrevented).toBe(false);
+
+      pressKey('KeyN', undefined, { ctrlKey: true });
+      expect(activeId()).toBe('b');
+    });
+
+    it('treats a list of nothing but commas as unset, keeping the default', () => {
+      renderList([createItem('a'), createItem('b'), createItem('c')], {
+        containerAttrs: { [KEYROVE_ATTR_NEXT_KEY]: ' , ' },
+        options: { keys: { prev: ',' } },
+      });
+      document.getElementById('b')!.focus();
+
+      pressKey('ArrowDown');
+      expect(activeId()).toBe('c');
+
+      pressKey('ArrowUp');
+      expect(activeId()).toBe('b');
+    });
+
+    it('reads none inside a list as an entry naming no key', () => {
+      renderList([createItem('a'), createItem('b')], {
+        containerAttrs: { [KEYROVE_ATTR_NEXT_KEY]: 'KeyJ, none' },
+      });
+      document.getElementById('a')!.focus();
+
+      const freed = pressKey('ArrowDown');
+      expect(activeId()).toBe('a');
+      expect(freed.defaultPrevented).toBe(false);
+
+      pressKey('KeyJ');
+      expect(activeId()).toBe('b');
+    });
+  });
+
   describe('unbinding with none', () => {
     type Press = [code: string, modifiers?: { ctrlKey: boolean }];
 

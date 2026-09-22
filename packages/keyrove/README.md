@@ -43,7 +43,8 @@ pnpm add @mixedrays/keyrove
 - **Configurable key bindings:** every move — next/prev, the grid's row moves,
   Home/End and the page jumps — takes any `KeyboardEvent.code`, as a
   `data-keyrove-*-key` attribute or under the `keys` option, with exact
-  modifier combos and platform-aware `mod`.
+  modifier combos, platform-aware `mod`, several keys per move
+  (`ArrowDown, KeyJ`), and `none` to switch a move off.
 - **Focus keys:** `data-keyrove-focus-key` (or the `focusKeys` option) gives an
   element a combo of its own — `ctrl+shift+KeyE`, or just `KeyE` — that focuses
   it from anywhere under the listener: another group, a nested root, even a
@@ -141,6 +142,18 @@ Every `data-keyrove-*-key` attribute below is a field of `keys` named after its
 move — `data-keyrove-next-row-key` is `keys.nextRow` — and `keys` is read move
 by move, so a move it leaves out keeps its attribute and then its default.
 
+A binding replaces the default. To add a key rather than swap one, list several
+combos, comma-separated, and the move answers to any of them:
+
+```html
+<div
+  data-keyrove-next-key="ArrowDown, KeyJ"
+  data-keyrove-prev-key="ArrowUp, KeyK"
+>
+  …
+</div>
+```
+
 For the toolbar case there is a shorthand that also respects the text
 direction: `data-keyrove-orientation="horizontal"`, or
 `orientation: 'horizontal'`, maps the default keys to `ArrowRight`/`ArrowLeft`,
@@ -155,7 +168,8 @@ exact — declared modifiers are required, undeclared ones are forbidden — so 
 bare `ArrowDown` binding leaves shortcuts like <kbd>Ctrl</kbd>+<kbd>ArrowDown</kbd>
 with their browser defaults. Keys are matched on `e.code`, the physical key, so
 bindings hold across keyboard layouts. The matcher is exported as
-`matchesCombo(e, combo)` for your own handlers.
+`matchesCombo(e, combo)` for your own handlers, and takes a list the same way:
+`matchesCombo(e, 'Space, Enter')`.
 
 ```html
 <div

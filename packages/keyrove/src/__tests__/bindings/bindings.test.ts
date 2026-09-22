@@ -227,6 +227,12 @@ describe('buildBindings', () => {
         build(),
       );
     });
+
+    it('drops a focus key whose combo lists nothing but commas', () => {
+      expect(build({ focus: [{ combo: ' , ', target: item('a') }] })).toEqual(
+        build(),
+      );
+    });
   });
 
   describe('rebinding every move', () => {

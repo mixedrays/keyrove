@@ -274,6 +274,22 @@ describe('keyRove', () => {
       expect(results).toEqual([null]);
     });
 
+    it('answers to every combo the attribute lists', () => {
+      renderList([
+        createItem('a'),
+        createItem('b'),
+        createItem('c', { focusKey: 'F6, ctrl+KeyE' }),
+      ]);
+      byId('a').focus();
+
+      pressKey('F6');
+      expect(activeId()).toBe('c');
+
+      byId('a').focus();
+      pressKey('KeyE', undefined, { ctrlKey: true });
+      expect(activeId()).toBe('c');
+    });
+
     it('ignores a blank attribute, even for a keydown with no code', () => {
       const results: RoveResult[] = [];
       renderList([createItem('a'), createItem('b', { focusKey: ' ' })], {

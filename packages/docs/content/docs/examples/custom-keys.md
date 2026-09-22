@@ -73,6 +73,28 @@ of supported keys to choose from:
 Each root is read on its own, so two groups on the same page can answer to
 different keys with one delegated listener serving both.
 
+## Several keys for one move
+
+A binding replaces the default, so the vim-style list above gives up the
+arrows: <kbd class="kbd">↓</kbd> goes back to scrolling the page. To keep them,
+list both, separated by commas. The move answers to any key in the list:
+
+```html
+<ul
+  data-keyrove-next-key="ArrowDown, KeyJ"
+  data-keyrove-prev-key="ArrowUp, KeyK"
+>
+  …
+</ul>
+```
+
+```ts
+keyRove(e, { keys: { next: 'ArrowDown, KeyJ', prev: 'ArrowUp, KeyK' } });
+```
+
+A list is as literal as a single combo, so the arrow you keep is the one you
+name. Nothing flips under RTL, and nothing is added back for you.
+
 ## Modifiers
 
 Prefix the code with any of `mod+`, `ctrl+`, `alt+`, `shift+`, `meta+`; the

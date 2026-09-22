@@ -36,7 +36,7 @@ const select = (option) => {
 };
 
 const pick = (e) => {
-  if (!matchesCombo(e, 'Space') && !matchesCombo(e, 'Enter')) return null;
+  if (!matchesCombo(e, 'Space, Enter')) return null;
 
   const option = e.target.closest('[role="option"]');
   if (!option) return null;

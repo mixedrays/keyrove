@@ -337,7 +337,7 @@ const wireSelection = (surface: HTMLElement, log: Log): Handler => {
   });
 
   return (e) => {
-    if (!matchesCombo(e, 'Space') && !matchesCombo(e, 'Enter')) return null;
+    if (!matchesCombo(e, 'Space, Enter')) return null;
 
     const option = (e.target as Element).closest(OPTION);
     if (!option) return null;

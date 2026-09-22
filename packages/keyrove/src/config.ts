@@ -21,7 +21,7 @@ import {
 } from './attributes.js';
 import { attributeItems, attributeRoving } from './group.js';
 import { attributeSkip } from './position.js';
-import { hasEnabledAttribute, parseAttributeInt } from './utils.js';
+import { hasEnabledAttribute, isComboSet, parseAttributeInt } from './utils.js';
 import type {
   ExplicitBinding,
   FocusKey,
@@ -111,18 +111,19 @@ const readLayout = (
  * attribute is named after it, so the name is derived rather than listed —
  * `nextRow` reads `data-keyrove-next-row-key`.
  *
- * A blank value is unset in either source: an empty or whitespace-only option
- * falls through to the attribute, and such an attribute to the default.
+ * A value naming no combo is unset in either source: an empty, blank or
+ * comma-only option falls through to the attribute, and such an attribute to
+ * the default.
  */
 const readExplicitBinding =
   (root: Element, { keys }: GroupOptions): ExplicitBinding =>
   (intent) =>
-    keys?.[intent]?.trim() ||
-    root
-      .getAttribute(
+    [
+      keys?.[intent],
+      root.getAttribute(
         `data-keyrove-${intent.replace(/[A-Z]/g, '-$&').toLowerCase()}-key`,
-      )
-      ?.trim();
+      ),
+    ].find(isComboSet);
 
 /**
  * The focus keys in reach of a keypress: the `focusKeys` map where one is
