@@ -232,14 +232,15 @@ next/prev in lists loop; grids keep their boundaries. See
 A page jump travels as far as it can. One that would overshoot lands on the
 last (or first) navigable item rather than doing nothing; in a grid that is the
 grid's last (or first) navigable cell, whatever column the jump started in. The
-row ends are stricter: `Home` and `End` in a grid never fall back to a skipped
-cell, so a row of nothing but skipped cells is a consumed no-op.
+row ends are stricter: `Home` and `End` in a grid look only at the focused
+row, so a row of nothing but skipped cells is a consumed no-op.
 
-If every item is skipped, entry, <kbd class="kbd">Home</kbd>/<kbd class="kbd">End</kbd>, list clamping or looping, and page
-clamping currently fall back to the physical first or last item. Grid row
-moves and row ends do not use that fallback. Typeahead and roving
-initialization also exclude all skipped items. To prevent navigation when
-nothing is eligible, return an empty `items` collection or guard the call.
+A skipped item is never a move's destination, including when every item is
+skipped. Then no move has anywhere to land. From outside the group, the
+directional keys are unhandled and keep their browser default. With focus
+already inside an item, such as a skipped item the user clicked, a bound move
+is a consumed no-op. Typeahead and roving initialization exclude skipped items
+the same way.
 
 ### Editable targets
 

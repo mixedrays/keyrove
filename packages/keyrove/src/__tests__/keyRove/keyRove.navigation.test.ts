@@ -146,6 +146,112 @@ describe('keyRove', () => {
 
       expect(activeId()).toBe('b');
     });
+
+    describe('when every item is skipped', () => {
+      // The same group skipped two ways: by attribute, and by the `skip`
+      // option over otherwise plain items.
+      const render = (
+        via: 'attribute' | 'option',
+        containerAttrs: Record<string, string> = {},
+      ) => {
+        const results: RoveResult[] = [];
+        const container = renderList(
+          ['a', 'b', 'c'].map((id) =>
+            createItem(id, { skip: via === 'attribute' }),
+          ),
+          {
+            containerAttrs,
+            options: via === 'option' ? { skip: () => true } : undefined,
+            onResult: (r) => results.push(r),
+          },
+        );
+
+        return { container, results };
+      };
+
+      describe.each(['attribute', 'option'] as const)('by %s', (via) => {
+        it.each(['ArrowDown', 'ArrowUp'])(
+          'leaves %s untouched from outside the group',
+          (code) => {
+            const { container, results } = render(via);
+            container.setAttribute('tabindex', '0');
+            container.focus();
+
+            const event = pressKey(code, container);
+
+            expect(document.activeElement).toBe(container);
+            expect(event.defaultPrevented).toBe(false);
+            expect(results).toEqual([null]);
+          },
+        );
+
+        it('leaves entry untouched in a looping list too', () => {
+          const { container, results } = render(via, {
+            'data-keyrove-loop': '',
+          });
+          container.setAttribute('tabindex', '0');
+          container.focus();
+
+          const event = pressKey('ArrowUp', container);
+
+          expect(event.defaultPrevented).toBe(false);
+          expect(results).toEqual([null]);
+        });
+
+        it.each([
+          ['a list', {}],
+          ['a looping list', { 'data-keyrove-loop': '' }],
+        ])(
+          'consumes every move from a focused item in %s without moving',
+          (_, containerAttrs) => {
+            const { results } = render(via, containerAttrs);
+            const b = document.getElementById('b')!;
+            b.focus();
+
+            for (const code of [
+              'ArrowDown',
+              'ArrowUp',
+              'Home',
+              'End',
+              'PageDown',
+              'PageUp',
+            ]) {
+              const event = pressKey(code);
+
+              expect(activeId(), code).toBe('b');
+              expect(event.defaultPrevented, code).toBe(true);
+            }
+            expect(results).toEqual(
+              Array.from({ length: 6 }, (_, i) => ({
+                action: ['next', 'prev', 'home', 'end', 'pageDown', 'pageUp'][
+                  i
+                ],
+                from: b,
+                to: null,
+              })),
+            );
+          },
+        );
+
+        it('consumes every move from a focused cell in a grid without moving', () => {
+          render(via, { 'data-keyrove-cols': '2' });
+          document.getElementById('a')!.focus();
+
+          for (const [code, modifiers] of [
+            ['ArrowRight'],
+            ['ArrowDown'],
+            ['End'],
+            ['End', { ctrlKey: true }],
+            ['PageDown'],
+          ] as const) {
+            const event = pressKey(code, undefined, modifiers);
+
+            expect(activeId(), code).toBe('a');
+            expect(event.defaultPrevented, code).toBe(true);
+          }
+        });
+      });
+    });
   });
 
   describe('disabled items', () => {

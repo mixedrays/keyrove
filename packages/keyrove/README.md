@@ -389,9 +389,10 @@ The boolean attributes — `data-keyrove-item`, `data-keyrove-skip`,
 `data-keyrove-roving-tabindex`, `data-keyrove-root`, and `data-keyrove-loop` —
 are enabled when bare or set to `"true"`; set one to `"false"` to disable it.
 
-When every item is skipped, some navigation moves currently fall back to the
-first or last item. See [edge behavior](https://keyrove.pages.dev/docs/api#edges-and-looping)
-for the exceptions and how to prevent those moves.
+A skipped item is never a move's destination. When every item is skipped,
+arrows from outside the group stay unhandled, and keys pressed from a focused
+item are consumed without moving. See
+[edge behavior](https://keyrove.pages.dev/docs/api#edges-and-looping).
 
 The next/prev defaults follow the group's axis: `ArrowDown`/`ArrowUp` in a
 vertical list, the reading-direction arrows in a horizontal list or a grid.

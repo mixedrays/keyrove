@@ -44,7 +44,7 @@ a grid, this shifts later cells. To retain a disabled cell's slot, use
 they land on the first and last _navigable_ items, not on a leading heading or a
 trailing separator.
 
-If every item is skipped, some moves currently fall back to the first or last
-item. See [the edge rules](/docs/api#edges-and-looping). To prevent that,
-return an empty `items` collection or skip calling `keyRove` until an item is
-eligible. Typeahead and roving initialization do not use this fallback.
+If every item is skipped, no move lands anywhere. Arrows pressed from outside
+the group keep their browser default, and keys pressed from a focused item are
+consumed without moving. Typeahead and roving initialization behave the same
+way. See [the edge rules](/docs/api#edges-and-looping).

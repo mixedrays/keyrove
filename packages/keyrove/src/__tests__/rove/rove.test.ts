@@ -433,6 +433,26 @@ describe('rove', () => {
       });
     });
 
+    it('has no move to make when every item is skipped', () => {
+      const root = group(
+        ['a', 'b', 'c'].map((id) => item(id, { roving: false, skip: true })),
+      );
+      outsideButton();
+
+      for (const action of ['home', 'next', 'end', 'prev'] as const) {
+        expect(rove(root, action)).toBeNull();
+      }
+      expect(activeId()).toBe('outside');
+
+      byId('b').focus();
+      expect(named(rove(root, 'next'))).toEqual({
+        action: 'next',
+        from: 'b',
+        to: null,
+      });
+      expect(activeId()).toBe('b');
+    });
+
     it("never starts from a nested group's stop", () => {
       const root = group([
         item('o0', { tabindex: '0', roving: false }),
