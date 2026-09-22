@@ -25,14 +25,27 @@ export type KnownCode =
   | 'PageDown';
 
 /**
- * A `KeyboardEvent.code`.
+ * A `KeyboardEvent.code`: the physical key an event carries. A binding, which
+ * can add modifiers and list several keys, is a {@link KeyCombo}.
  *
  * The `(string & {})` arm keeps this assignable from a plain `string` — which
- * is how both the DOM and React type `code`, and what a `data-keyrove-*-key`
- * attribute yields — while editors still complete the codes keyrove acts on.
- * It documents intent and aids autocomplete; it does not validate.
+ * is how both the DOM and React type `code` — while editors still complete
+ * the codes keyrove acts on. It documents intent and aids autocomplete; it
+ * does not validate.
  */
 export type KeyRoveCode = KnownCode | (string & {});
+
+/**
+ * A key binding: one combo, `"KeyJ"` or `"ctrl+ArrowDown"`, or a
+ * comma-separated list of them, `"ArrowDown, KeyJ"`. Each combo is optional
+ * modifiers followed by a {@link KeyRoveCode}; see `matchesCombo` for the
+ * grammar.
+ *
+ * Open like {@link KeyRoveCode}, and for the same reasons: bindings also
+ * arrive as attribute values and from outside data, as plain strings. It
+ * documents intent and aids autocomplete; it does not validate.
+ */
+export type KeyCombo = KnownCode | (string & {});
 
 /**
  * The shape keyrove needs from a keydown event.
@@ -171,11 +184,11 @@ export type GroupOptions = {
    * move to no key, freeing its default. `exit` and `enter` have no default,
    * and move across a nested root's boundary: `{ exit: 'Escape' }`.
    */
-  keys?: Partial<Record<StrideAction | 'exit' | 'enter', KeyRoveCode | 'none'>>;
+  keys?: Partial<Record<StrideAction | 'exit' | 'enter', KeyCombo | 'none'>>;
   /**
-   * Elements reachable by a combo of their own: combo, or a comma-separated
-   * list of them, → the element, or a selector resolved within the listener's
-   * reach. Replaces the focus-key scan rather than adding to it.
+   * Elements reachable by a combo of their own: a {@link KeyCombo} → the
+   * element, or a selector resolved within the listener's reach. Replaces the
+   * focus-key scan rather than adding to it.
    */
   focusKeys?: Record<string, string | Element>;
   /** Which items a move passes over. Defaults to the skip attribute. */
@@ -187,10 +200,14 @@ export type GroupOptions = {
   rovingTabindex?: boolean;
 };
 
-export type Options = GroupOptions & {
+/** What `keyRove` and `rove` take: the group's settings, and `onMove`. */
+export type KeyRoveOptions = GroupOptions & {
   /** Fired after focus has moved — and only when it actually moved. */
   onMove?: (move: Move) => void;
 };
+
+/** {@link KeyRoveOptions} under its earlier name, kept for existing imports. */
+export type Options = KeyRoveOptions;
 
 /** Group settings that can be written as attributes on a root. */
 export type RootAttributeOptions = Pick<
@@ -202,7 +219,7 @@ export type RootAttributeOptions = Pick<
 export type ItemAttributeOptions = {
   skip?: boolean;
   rovingTabindex?: boolean;
-  focusKey?: KeyRoveCode;
+  focusKey?: KeyCombo;
   typeahead?: string;
 };
 

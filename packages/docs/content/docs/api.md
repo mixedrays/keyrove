@@ -327,7 +327,8 @@ See [focus keys](/docs/examples/focus-keys) for the pattern at work.
 ### Options
 
 Use options to configure a group in JavaScript. `keyRove` reads them on each
-call, falling back to attributes and defaults for omitted settings. See
+call, falling back to attributes and defaults for omitted settings. The
+options object is typed [`KeyRoveOptions`](#keyroveoptions). See
 [configuration differences](/docs/attributes-and-options#configuration-differences)
 for naming, scope and replacement rules.
 
@@ -546,8 +547,9 @@ cannot be found by typing "aa".
 
 ## matchesCombo(event, combo)
 
-Whether a keydown event matches a [combo](#combos). This is the matcher behind
-every key check keyrove makes, exported for your own handlers.
+Whether a keydown event matches a [combo](#combos), typed
+[`KeyCombo`](#keycombo). This is the matcher behind every key check keyrove
+makes, exported for your own handlers.
 
 ```ts
 import { matchesCombo } from '@mixedrays/keyrove';
@@ -746,8 +748,9 @@ and `undefined` fields are omitted. They do not set `tabindex`; give each item
 a tab stop or [initialize roving tabindex](/docs/examples/roving-tabindex#setting-the-initial-tab-stop).
 
 The root input shares its fields and types with `GroupOptions`. Move bindings
-accept the same combos, comma-separated lists and `'none'`. Key codes remain
-open strings, as in `GroupOptions`; the builders do not validate their spelling.
+accept the same combos, comma-separated lists and `'none'`. Bindings are open
+[`KeyCombo`](#keycombo) strings, as in `GroupOptions`; the builders do not
+validate their spelling.
 Per-item `skip` and `rovingTabindex` are booleans, unlike group-wide selectors
 and settings. The public input and output types are:
 
@@ -760,7 +763,7 @@ type RootAttributeOptions = Pick<
 type ItemAttributeOptions = {
   skip?: boolean;
   rovingTabindex?: boolean;
-  focusKey?: KeyRoveCode;
+  focusKey?: KeyCombo;
   typeahead?: string;
 };
 
@@ -802,15 +805,17 @@ item.tabIndex = 0;
 ```ts
 import type {
   GroupOptions,
+  KeyCombo,
   KeyRoveCode,
   KeyRoveEvent,
+  KeyRoveOptions,
   Move,
   MoveAction,
   MoveResult,
   InitRovingTabindexOptions,
   ItemAttributeOptions,
   ItemAttributes,
-  Options,
+  Options, // the earlier name of KeyRoveOptions
   RootAttributeOptions,
   RootAttributes,
   RovingTabindexOptions,
@@ -852,9 +857,10 @@ navigates but never typeaheads.
 
 ### KeyRoveCode
 
-A `KeyboardEvent.code`. Any string is accepted; the union exists so editors
-complete the codes keyrove binds by default. It does not validate, and it does
-not constrain what you can bind.
+The `code` an event carries: the physical key, such as `KeyJ` or `ArrowDown`.
+Any string is accepted; the union exists so editors complete the codes
+keyrove binds by default. It does not validate. Bindings, which add modifiers
+and lists, use [`KeyCombo`](#keycombo).
 
 ```ts
 type KeyRoveCode =
@@ -868,6 +874,25 @@ type KeyRoveCode =
   | 'PageDown'
   | (string & {});
 ```
+
+### KeyCombo
+
+A binding string: one [combo](#combos), such as `'KeyJ'` or
+`'ctrl+ArrowDown'`, or a comma-separated list of them, such as
+`'ArrowDown, KeyJ'`. It types the `keys` values, `focusKey` in the attribute
+builders, and the second argument of
+[`matchesCombo`](#matchescombo-event-combo). Where a move is bound, `'none'`
+binds it to no key and returns the default key to the browser.
+
+```ts
+type KeyCombo = KeyRoveCode; // the same open string, in a binding's role
+
+const next: KeyCombo = 'ArrowDown, ctrl+KeyJ';
+const options: KeyRoveOptions = { keys: { next, pageDown: 'none' } };
+```
+
+Like `KeyRoveCode`, it accepts any string, including values read from
+attributes or data, and does not validate the grammar.
 
 ### MoveAction, MoveResult, Move
 
@@ -896,8 +921,18 @@ type MoveResult = {
 
 // what onMove receives: a move that actually happened
 type Move = MoveResult & { to: Element };
+```
 
-type Options = GroupOptions & { onMove?: (move: Move) => void };
+### KeyRoveOptions
+
+What [`keyRove`](#options) and [`rove`](#rove-element-action-options) take:
+the group settings and `onMove`. `Options` is its earlier name and remains
+exported as the same type.
+
+```ts
+type KeyRoveOptions = GroupOptions & { onMove?: (move: Move) => void };
+
+type Options = KeyRoveOptions;
 ```
 
 ### GroupOptions, StrideAction
@@ -914,7 +949,7 @@ type GroupOptions = {
   loop?: boolean;
   orientation?: 'horizontal' | 'vertical';
   pageLength?: number;
-  keys?: Partial<Record<StrideAction | 'exit' | 'enter', KeyRoveCode | 'none'>>;
+  keys?: Partial<Record<StrideAction | 'exit' | 'enter', KeyCombo | 'none'>>;
   focusKeys?: Record<string, string | Element>;
   skip?: string | ((element: Element) => boolean);
   rovingTabindex?: boolean;

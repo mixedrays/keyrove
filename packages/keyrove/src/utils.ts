@@ -7,7 +7,7 @@
  * root.
  */
 
-import type { KeyRoveEvent, ToggleTabIndexArgs } from './types.js';
+import type { KeyCombo, KeyRoveEvent, ToggleTabIndexArgs } from './types.js';
 
 const isMacLike = () =>
   typeof navigator !== 'undefined' &&
@@ -84,7 +84,7 @@ const matchesEntry = (e: KeyRoveEvent, entry: string): boolean => {
  * Each entry of a list is matched on its own: an empty entry, or one naming an
  * unknown modifier, matches nothing and does not stop the others matching.
  */
-export const matchesCombo = (e: KeyRoveEvent, combo: string): boolean =>
+export const matchesCombo = (e: KeyRoveEvent, combo: KeyCombo): boolean =>
   combo.split(',').some((entry) => matchesEntry(e, entry));
 
 /**

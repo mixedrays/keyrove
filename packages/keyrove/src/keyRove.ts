@@ -12,7 +12,7 @@ import {
 } from './group.js';
 import { resolveTarget } from './position.js';
 import { hasCommandModifier, isEditableTarget, matchesCombo } from './utils.js';
-import type { KeyRoveEvent, MoveResult, Options } from './types.js';
+import type { KeyRoveEvent, KeyRoveOptions, MoveResult } from './types.js';
 
 // The attribute constants ship alongside the handler that reads them, so
 // consumers can spread them into markup; see `attributes.ts`.
@@ -24,7 +24,7 @@ export * from './attributes.js';
  * @param options - The group's settings, where you would rather name them here
  * than in markup, and `onMove`. Every setting falls back on its own to the
  * `data-keyrove-*` attribute it stands for, so passing none navigates a
- * marked-up group exactly as before; see {@link Options}.
+ * marked-up group exactly as before; see {@link KeyRoveOptions}.
  * @param options.onMove - Fired after focus moved — only when it actually did.
  * @returns `null` when the key was left untouched, which includes a press an
  * earlier handler already claimed with `preventDefault()`; `{ action, from,
@@ -34,7 +34,7 @@ export * from './attributes.js';
  */
 export const keyRove = (
   e: KeyRoveEvent,
-  options: Options = {},
+  options: KeyRoveOptions = {},
 ): MoveResult | null => {
   // A press another handler has claimed is spent: a keyRove further up the
   // tree would otherwise read the focus the first one just moved, and move

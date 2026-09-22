@@ -18,7 +18,7 @@ import {
   stopSource,
 } from './group.js';
 import { resolveTarget } from './position.js';
-import type { MoveResult, Options, StrideAction } from './types.js';
+import type { KeyRoveOptions, MoveResult, StrideAction } from './types.js';
 
 // Where each move enters a group it has no position in: a forward move at the
 // first item, as if from before it, and a backward one at the last, as if
@@ -66,7 +66,7 @@ const ENTRY: Record<StrideAction, 'home' | 'end' | null> = {
 export const rove = (
   element: Element | null | undefined,
   action: StrideAction,
-  options: Options = {},
+  options: KeyRoveOptions = {},
 ): MoveResult | null => {
   const isRoot = rootTest(options);
   const root = resolveRoot(element, element, isRoot);
