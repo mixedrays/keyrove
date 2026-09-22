@@ -7,6 +7,7 @@ import {
   mountTableOfContents,
 } from './nav.ts';
 import { mountThemeToggle } from './theme.ts';
+import { mountSearch } from './search.ts';
 
 /**
  * One entry for every page.
@@ -24,6 +25,7 @@ import { mountThemeToggle } from './theme.ts';
  */
 
 mountThemeToggle();
+mountSearch();
 mountSidebar();
 mountTableOfContents();
 mountCopyMarkdown();

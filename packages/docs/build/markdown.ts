@@ -73,8 +73,13 @@ const tabLabel = (info: string) => {
 /** The visible text of a heading, with the markdown syntax dropped. */
 const plainText = (token: Token): string =>
   (token.children ?? [])
-    .filter((child) => child.type === 'text' || child.type === 'code_inline')
-    .map((child) => child.content)
+    .map((child) =>
+      child.type === 'softbreak' || child.type === 'hardbreak'
+        ? ' '
+        : child.type === 'text' || child.type === 'code_inline'
+          ? child.content
+          : '',
+    )
     .join('');
 
 const slugify = (text: string) =>
@@ -110,6 +115,34 @@ const collectHeadings = (tokens: Token[]): Heading[] => {
   });
 
   return headings;
+};
+
+/** Search uses the same parser and ID allocator, without loading Shiki. */
+const searchParser = MarkdownIt({ html: true, linkify: true });
+
+export const collectSearchSections = (source: string) => {
+  const tokens = searchParser.parse(source, {});
+  collectHeadings(tokens);
+  const sections = [{ id: '', heading: '', text: '' }];
+  for (let index = 0; index < tokens.length; index++) {
+    const token = tokens[index];
+    if (token.type === 'heading_open' && ANCHORED_TAGS.has(token.tag)) {
+      sections.push({
+        id: String(token.attrGet('id')),
+        heading: plainText(tokens[index + 1]),
+        text: '',
+      });
+      index += 2;
+    } else if (token.type === 'inline') {
+      sections[sections.length - 1].text += `${plainText(token)} `;
+    } else if (token.type === 'fence' || token.type === 'code_block') {
+      sections[sections.length - 1].text += `${token.content} `;
+    }
+  }
+  return sections.map((section) => ({
+    ...section,
+    text: section.text.replace(/\s+/g, ' ').trim(),
+  }));
 };
 
 /**

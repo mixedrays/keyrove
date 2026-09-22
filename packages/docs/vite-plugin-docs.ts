@@ -16,6 +16,7 @@ import { expandDemos, hasDemos, loadDemos, type Demos } from './build/demos.ts';
 import { renderMarkdown } from './build/markdown.ts';
 import { createHrefResolver, renderPage, routeToPath } from './build/layout.ts';
 import { expandMeta } from './build/meta.ts';
+import { toSearchIndex } from './build/search.ts';
 import {
   toLlmsTxt,
   toMarkdown,
@@ -66,6 +67,7 @@ const toStylesheets = (toUrl: (file: string) => string): Stylesheets => ({
 });
 
 type Site = {
+  searchIndex: string;
   pages: Page[];
   demos: Demos;
   nav: NavGroup[];
@@ -88,6 +90,11 @@ const toGenerated = (site: Site, base: string): Generated[] => {
 
   return [
     {
+      file: 'search-index.json',
+      type: 'application/json',
+      body: site.searchIndex,
+    },
+    {
       file: 'llms.txt',
       type: 'text/plain',
       body: toLlmsTxt(landing, site.nav, base),
@@ -106,6 +113,7 @@ const loadSite = async (): Promise<Site> => {
   const nav = toNav(pages);
 
   return {
+    searchIndex: toSearchIndex(pages, demos),
     pages,
     demos,
     nav,

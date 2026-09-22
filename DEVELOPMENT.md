@@ -75,6 +75,18 @@ The served markdown is not the file verbatim: frontmatter is site plumbing, so
 it is replaced by the `title` as an H1 and the `description` as a blockquote,
 leaving a document that stands on its own when fetched in isolation.
 
+### Documentation search
+
+The header search button and `Cmd+K` / `Ctrl+K` open a native dialog. MiniSearch
+and `search-index.json` load on first use. The index contains docs page leads
+and individual sections, with heading IDs allocated by the same parser as the
+rendered pages; landing and `noindex` pages are excluded. Titles and headings
+rank above body matches, with prefix matching and typo tolerance enabled.
+
+The Vite plugin generates the index in development and production. Markdown
+edits invalidate the development cache and reload the page, including search.
+Run the search indexing tests with `pnpm --filter @mixedrays/keyrove/docs test`.
+
 ### Live demos
 
 A content file embeds a demo with `<div data-demo="grid"></div>`. The markup
