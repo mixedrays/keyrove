@@ -44,11 +44,17 @@ const MODIFIER_ALIASES = new Map<string, Modifier>([
  * one must not be, so a bare `"ArrowDown"` means "ArrowDown with no modifiers"
  * and leaves shortcuts like Ctrl+ArrowDown alone. The code is matched on
  * `e.code` — the physical key, independent of keyboard layout.
+ *
+ * A combo with no code — empty, blank, or ending in a dangling `+` — matches
+ * nothing, not even an event whose own code is empty, as Android's virtual
+ * keyboards send.
  */
 export const matchesCombo = (e: KeyRoveEvent, combo: string): boolean => {
   const parts = combo.split('+');
   const code = parts.pop()?.trim();
   const declared = { ctrl: false, alt: false, shift: false, meta: false };
+
+  if (!code) return false;
 
   for (const part of parts) {
     const name = part.trim().toLowerCase();

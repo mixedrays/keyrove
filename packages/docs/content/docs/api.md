@@ -92,7 +92,9 @@ Every `*-key` value is a combo, matched by
   <kbd class="kbd">Ctrl</kbd>+<kbd class="kbd">End</kbd> in a list, which has
   no grid-wide scope for them.
 - A combo naming an unknown modifier, or ending in a dangling `+`, matches
-  nothing. An empty attribute is unset.
+  nothing, not even a keydown with an empty `code`. An empty or blank value is
+  unset: an attribute leaves the move its default key, and a `keys` value
+  leaves it to the attribute.
 
 ### Precedence
 

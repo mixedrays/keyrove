@@ -160,6 +160,19 @@ describe('matchesCombo', () => {
     );
   });
 
+  // Android's virtual keyboards send keydowns with an empty code.
+  it.each([
+    ['empty', '', {}],
+    ['blank', ' ', {}],
+    ['a lone "+"', '+', {}],
+    ['a dangling "ctrl+"', 'ctrl+', { ctrlKey: true }],
+  ])(
+    'never matches a combo with no code, %s, even an event with no code',
+    (_, combo, modifiers) => {
+      expect(matchesCombo(keyEvent('', modifiers), combo)).toBe(false);
+    },
+  );
+
   it('tolerates whitespace around combo parts', () => {
     expect(
       matchesCombo(

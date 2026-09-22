@@ -95,10 +95,10 @@ export const buildBindings = ({
   // An element's own key names one element, where a root's names a group and
   // a default names nothing in particular: the most specific declaration in
   // the table, so it sits first — it wins any collision, and two elements
-  // naming one combo resolve to the first in DOM order. A bare attribute is unset, as it
-  // is for the root keys.
+  // naming one combo resolve to the first in DOM order. A bare or blank combo
+  // is unset, as it is for the root keys.
   const named: Binding[] = focus
-    .filter(({ combo }) => combo)
+    .filter(({ combo }) => combo.trim())
     .map(({ combo, target }) => ({
       combo,
       intent: 'focus',

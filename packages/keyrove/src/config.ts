@@ -110,14 +110,19 @@ const readLayout = (
  * naming `next` leaves every other move to its attribute. Every move's
  * attribute is named after it, so the name is derived rather than listed —
  * `nextRow` reads `data-keyrove-next-row-key`.
+ *
+ * A blank value is unset in either source: an empty or whitespace-only option
+ * falls through to the attribute, and such an attribute to the default.
  */
 const readExplicitBinding =
   (root: Element, { keys }: GroupOptions): ExplicitBinding =>
   (intent) =>
-    keys?.[intent] ??
-    root.getAttribute(
-      `data-keyrove-${intent.replace(/[A-Z]/g, '-$&').toLowerCase()}-key`,
-    );
+    keys?.[intent]?.trim() ||
+    root
+      .getAttribute(
+        `data-keyrove-${intent.replace(/[A-Z]/g, '-$&').toLowerCase()}-key`,
+      )
+      ?.trim();
 
 /**
  * The focus keys in reach of a keypress: the `focusKeys` map where one is

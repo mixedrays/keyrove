@@ -221,6 +221,12 @@ describe('buildBindings', () => {
         build(),
       );
     });
+
+    it('drops a focus key with a blank combo', () => {
+      expect(build({ focus: [{ combo: '  ', target: item('a') }] })).toEqual(
+        build(),
+      );
+    });
   });
 
   describe('rebinding every move', () => {

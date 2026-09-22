@@ -124,6 +124,24 @@ describe('keyRove', () => {
         expect(result).toMatchObject({ action: intent });
       },
     );
+
+    it.each([
+      ['an empty', ''],
+      ['a blank', '  '],
+    ])('treats %s attribute as unset, keeping the default', (_, value) => {
+      renderList([createItem('a'), createItem('b'), createItem('c')], {
+        containerAttrs: { [KEYROVE_ATTR_NEXT_KEY]: value },
+      });
+      document.getElementById('a')!.focus();
+
+      // Android's virtual keyboards send keydowns with an empty code.
+      const noCode = pressKey('');
+      expect(activeId()).toBe('a');
+      expect(noCode.defaultPrevented).toBe(false);
+
+      pressKey('ArrowDown');
+      expect(activeId()).toBe('b');
+    });
   });
 
   describe('custom navigation keys', () => {

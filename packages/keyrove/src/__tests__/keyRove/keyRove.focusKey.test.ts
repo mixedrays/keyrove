@@ -273,6 +273,19 @@ describe('keyRove', () => {
       expect(activeId()).toBe('a');
       expect(results).toEqual([null]);
     });
+
+    it('ignores a blank attribute, even for a keydown with no code', () => {
+      const results: RoveResult[] = [];
+      renderList([createItem('a'), createItem('b', { focusKey: ' ' })], {
+        onResult: (result) => results.push(result),
+      });
+      byId('a').focus();
+
+      pressKey('');
+
+      expect(activeId()).toBe('a');
+      expect(results).toEqual([null]);
+    });
   });
 
   describe('focus key reach', () => {
