@@ -1,6 +1,6 @@
 {
   "name": "@mixedrays/keyrove",
-  "version": "2.4.0",
+  "version": "2.5.0",
   "description": "Keyboard navigation for lists, grids and trees. Configure it with data attributes or JavaScript options, in any framework.",
   "keywords": [
     "keyboard",

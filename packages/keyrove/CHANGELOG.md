@@ -1,5 +1,31 @@
 # Changelog
 
+## [2.5.0](https://github.com/mixedrays/keyrove/compare/v2.4.0...v2.5.0) (2026-09-22)
+
+### Features
+
+* accept a comma-separated list of combos per move ([1f51379](https://github.com/mixedrays/keyrove/commit/1f51379e3f8cecb4f98bcb4e9ccf238c55e39976))
+* add exit and enter keys to move between nested roots ([aeb7599](https://github.com/mixedrays/keyrove/commit/aeb7599b8975996871b00ad9a4e47fc4be450a43))
+* add followFocus to move the roving tab stop on focusin ([60f63b0](https://github.com/mixedrays/keyrove/commit/60f63b008753e430fb6a95f324f75a52de8bdf1a))
+* add initRovingTabindex to give a roving group one tab stop ([ab5f153](https://github.com/mixedrays/keyrove/commit/ab5f15371733ec0c5f55b0fd4907962ba6c5da64))
+* add rove to make a move from code without a keypress ([9a20785](https://github.com/mixedrays/keyrove/commit/9a20785ac4d05fe88026af9f9498f7626cb86e4d))
+* count a CSS grid's columns with data-keyrove-cols="auto" ([ae9672d](https://github.com/mixedrays/keyrove/commit/ae9672dec7a4f535fa181cb8902033001839cf68))
+* export KeyRoveOptions and KeyCombo type names ([b0ef55d](https://github.com/mixedrays/keyrove/commit/b0ef55d6cf17a3b4e75b28a01878020c4d91635b))
+* ignore accents in typeahead matching ([cb1ea71](https://github.com/mixedrays/keyrove/commit/cb1ea71688189f7f9060ade916f1f40273516505))
+* implement attribute builders for root and item settings with type-checking ([05fab60](https://github.com/mixedrays/keyrove/commit/05fab609782b132a500bfc4b093c910120569255))
+* let initRovingTabindex take the item to hold the tab stop ([683e361](https://github.com/mixedrays/keyrove/commit/683e36174c32f17f92b4b12f086d09ab8422b955))
+* never land on a skipped item, even when every item is skipped ([ca715cb](https://github.com/mixedrays/keyrove/commit/ca715cb6a0d2d7b182353bb8877a924b684e823e))
+* switch a move off with 'none' value, from its attribute or the keys option ([ebfdb14](https://github.com/mixedrays/keyrove/commit/ebfdb143cae2925ead0b47a077bec8d88a281b61))
+
+### Bug Fixes
+
+* find the focused item inside a shadow root ([25624b9](https://github.com/mixedrays/keyrove/commit/25624b9483e723b15ef1dd6d47e804b781edc200))
+* keep each nested group's roving tab stop when navigation crosses into it ([7f6603f](https://github.com/mixedrays/keyrove/commit/7f6603f6dbf1b3c25dc3e2d44b93b2c45c7cabd5))
+* never match a combo with no code, and read blank bindings as unset ([2f0580a](https://github.com/mixedrays/keyrove/commit/2f0580ac22f06ecc10d642fe822128a8a77382a8))
+* report no move when the target does not take focus ([fccaf3e](https://github.com/mixedrays/keyrove/commit/fccaf3ed3d73ede5c8683fbe83270f943e321201))
+* skip keydown events another handler already consumed ([d187688](https://github.com/mixedrays/keyrove/commit/d187688060a73ef303c48015596d7a7646f6c777))
+* tell a document or window listener apart by value, not by name ([fff9e67](https://github.com/mixedrays/keyrove/commit/fff9e67547a5d416c2959e1455f8b5fd4785a684))
+
 ## [2.4.0](https://github.com/mixedrays/keyrove/compare/v2.3.0...v2.4.0) (2026-09-20)
 
 ### Features
