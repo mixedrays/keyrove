@@ -245,6 +245,16 @@ export type TypeaheadResult = ActionResult<'typeahead'>;
 export type TypeaheadMove = TypeaheadResult & { to: Element };
 
 /**
+ * What `initRovingTabindex` takes: the group settings that decide which
+ * elements are a group's roving items. The same fields {@link GroupOptions}
+ * names, falling back the same way, so one object serves every export.
+ */
+export type RovingTabindexOptions = Pick<
+  GroupOptions,
+  'items' | 'root' | 'skip' | 'rovingTabindex'
+>;
+
+/**
  * How a group folds its DOM-ordered sequence — read once off the root and
  * handed to both pure layers, so neither re-derives it.
  *

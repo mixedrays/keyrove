@@ -5,16 +5,17 @@ group: Guide
 order: 4
 ---
 
-| Export                                                                | What it is                                                                 |
-| --------------------------------------------------------------------- | -------------------------------------------------------------------------- |
-| [`keyRove(event, options?)`](#keyrove-event-options)                  | The handler. Moves focus for one keydown and reports what it did.          |
-| [`options`](#options)                                                 | The group's settings in JavaScript, where you would rather not use markup. |
-| [`createTypeahead(options?)`](#createtypeahead-options)               | Builds a type-to-focus handler to chain after `keyRove`.                   |
-| [`matchesCombo(event, combo)`](#matchescombo-event-combo)             | The combo matcher behind every binding, for your own handlers.             |
-| [`toggleTabIndex({ root, isActive })`](#toggletabindex-root-isactive) | Sets `tabindex` to `0` or `-1` on one element.                             |
-| [`data-keyrove-*`](#attributes)                                       | The attributes: the whole configuration, on items and on the root.         |
-| [`KEYROVE_ATTR_*`](#constants)                                        | One constant per attribute name.                                           |
-| [Types](#types)                                                       | `KeyRoveEvent`, `MoveResult`, `Move`, `Options` and the typeahead types.   |
+| Export                                                                   | What it is                                                                    |
+| ------------------------------------------------------------------------ | ----------------------------------------------------------------------------- |
+| [`keyRove(event, options?)`](#keyrove-event-options)                     | The handler. Moves focus for one keydown and reports what it did.             |
+| [`options`](#options)                                                    | The group's settings in JavaScript, where you would rather not use markup.    |
+| [`createTypeahead(options?)`](#createtypeahead-options)                  | Builds a type-to-focus handler to chain after `keyRove`.                      |
+| [`matchesCombo(event, combo)`](#matchescombo-event-combo)                | The combo matcher behind every binding, for your own handlers.                |
+| [`initRovingTabindex(root, options?)`](#initrovingtabindex-root-options) | Gives a roving group exactly one tab stop, and keeps it whole across renders. |
+| [`toggleTabIndex({ root, isActive })`](#toggletabindex-root-isactive)    | Sets `tabindex` to `0` or `-1` on one element.                                |
+| [`data-keyrove-*`](#attributes)                                          | The attributes: the whole configuration, on items and on the root.            |
+| [`KEYROVE_ATTR_*`](#constants)                                           | One constant per attribute name.                                              |
+| [Types](#types)                                                          | `KeyRoveEvent`, `MoveResult`, `Move`, `Options` and the typeahead types.      |
 
 ## keyRove(event, options?)
 
@@ -471,6 +472,48 @@ of its combos, which saves writing the any-of by hand:
 if (!matchesCombo(e, 'Space, Enter')) return null;
 ```
 
+## initRovingTabindex(root, options?)
+
+Gives a [roving group](/docs/examples/roving-tabindex) exactly one tab stop.
+keyrove moves an existing stop and never creates one, so call this once the
+group renders, and again after any render that may have replaced its items.
+
+```ts
+import { initRovingTabindex } from '@mixedrays/keyrove';
+
+initRovingTabindex(list);
+```
+
+It repairs the group rather than resetting it:
+
+- The group's roving items are its own items that carry the stop:
+  `data-keyrove-item` with `data-keyrove-roving-tabindex`, or whatever the
+  options name. Items of a [nested root](#roots) belong to that root's group
+  and are left alone; call it on that root to set up its stop.
+- A navigable item, neither skipped nor disabled, that already has
+  `tabindex="0"` keeps the stop, the first in DOM order where there are
+  several. So the stop keyboard moves carried, or the one a template put on the
+  selected option, survives the call.
+- Failing that, the first navigable item gets the stop.
+- Every other roving item gets `-1`, skipped and disabled ones included. Only
+  attributes that change are written, so a call after a render that changed
+  nothing changes nothing.
+
+It returns the item holding the stop, or `null` when no roving item is
+navigable. Items that do not carry the stop keep whatever `tabindex` they have.
+
+It takes the [group settings](#options) that decide what an item is — `items`,
+`root`, `skip` and `rovingTabindex` — under the same names and with the same
+fallbacks as `keyRove` and `createTypeahead`, so a group described in
+JavaScript hands every export the same object:
+
+```ts
+const config = { items: '[role="menuitem"]', rovingTabindex: true };
+
+initRovingTabindex(menu, config);
+menu.addEventListener('keydown', (e) => keyRove(e, config));
+```
+
 ## toggleTabIndex({ root, isActive })
 
 Sets `tabindex` to `0` or `-1` on a single element.
@@ -481,11 +524,11 @@ import { toggleTabIndex } from '@mixedrays/keyrove';
 toggleTabIndex({ root: firstItem, isActive: true });
 ```
 
-Use it where you manage the tab stop yourself: establishing the first one in a
-[roving group](/docs/examples/roving-tabindex), restoring it after re-rendering
-a list, or moving it after a click, as the [listbox](/docs/examples/listbox)
-does. Descendant tab stops are left alone; roving tabindex only
-needs the item itself to carry the stop. A nullish `root` is a no-op, so a
+Use it where you manage one element's tab stop yourself, such as moving the
+stop after a click, as the [listbox](/docs/examples/listbox) does. For a whole
+roving group, [`initRovingTabindex`](#initrovingtabindex-root-options) keeps
+exactly one `0` for you. Descendant tab stops are left alone; roving tabindex
+only needs the item itself to carry the stop. A nullish `root` is a no-op, so a
 query that found nothing needs no guard.
 
 ## Attributes
@@ -562,6 +605,7 @@ import type {
   MoveAction,
   MoveResult,
   Options,
+  RovingTabindexOptions,
   StrideAction,
   TypeaheadMove,
   TypeaheadOptions,
@@ -692,4 +736,16 @@ type TypeaheadResult = {
 
 // what onMove receives: a move that actually happened
 type TypeaheadMove = TypeaheadResult & { to: Element };
+```
+
+### RovingTabindexOptions
+
+What [`initRovingTabindex`](#initrovingtabindex-root-options) takes: the group
+settings that decide which elements are the group's roving items.
+
+```ts
+type RovingTabindexOptions = Pick<
+  GroupOptions,
+  'items' | 'root' | 'skip' | 'rovingTabindex'
+>;
 ```

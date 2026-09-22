@@ -118,6 +118,34 @@ export const readGroup = (
 };
 
 /**
+ * The items a root governs itself: its items, less those of a root nested
+ * inside it. An item belongs to the nearest root above its *parent* — the
+ * resolution a focus key's move uses — so an item that is itself a root
+ * belongs to the group around it, and its own items to it.
+ *
+ * Deliberately not `readGroup`'s items, which keep a nested root's items so
+ * the outer order runs straight through them. This is the set one group's
+ * roving tab stop is shared across: exactly one `0` among them, and a nested
+ * group's stop left alone.
+ */
+export const ownItems = (
+  root: Element,
+  readItems: ReadItems = attributeItems,
+  isRoot: IsRoot = attributeRoot,
+): Element[] =>
+  readItems(root).filter((item) => {
+    for (
+      let element = item.parentElement;
+      element && element !== root;
+      element = element.parentElement
+    ) {
+      if (isRoot(element)) return false;
+    }
+
+    return true;
+  });
+
+/**
  * Whether focus landed on `to` or inside it — an item may hand its focus on
  * to a control of its own. Asked of `to`'s own tree: inside a shadow root the
  * document sees only the host.

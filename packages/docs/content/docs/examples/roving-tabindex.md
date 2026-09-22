@@ -31,20 +31,27 @@ last focused. It takes three rules:
 ## Setting the initial tab stop
 
 keyrove moves an existing tab stop; it does not create one. If the list is
-rendered from data, set the first one yourself, either in the template or with
-the exported helper:
+rendered from data, give it one once it renders:
 
 ```ts
-import { toggleTabIndex } from '@mixedrays/keyrove';
+import { initRovingTabindex } from '@mixedrays/keyrove';
 
-const first = list.querySelector(
-  '[data-keyrove-item]:not([data-keyrove-skip])',
-);
-toggleTabIndex({ root: first, isActive: true });
+initRovingTabindex(list);
 ```
 
-The same call restores the tab stop after a re-render drops it, which is the
-usual reason a roving group stops being reachable by <kbd class="kbd">Tab</kbd>.
+The first item that is neither skipped nor disabled gets `tabindex="0"`, and
+every other roving item gets `-1`.
+
+Call it again after every render that may have replaced items. A re-render
+that drops the item holding the stop is the usual reason a roving group stops
+being reachable by <kbd class="kbd">Tab</kbd>. The call repairs rather than
+resets: while the item holding the stop is still there and navigable, the stop
+stays on it, so <kbd class="kbd">Tab</kbd> away and back still returns to where
+the user left off. Only when that item is gone does the stop go to the first
+item. A template that renders `tabindex="0"` on the selected item keeps it the
+same way. A [nested group](/docs/examples/nested-roots) keeps its own stop,
+untouched; call the function on its root to set that one up.
+
 A group with every item at `tabindex="-1"` cannot be reached with
 <kbd class="kbd">Tab</kbd> at all, which is the one way this pattern can leave a
 page _less_ navigable than the plain tab order it replaced. Exactly one `0` per

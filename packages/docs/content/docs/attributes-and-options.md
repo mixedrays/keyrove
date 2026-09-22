@@ -116,5 +116,9 @@ The settings that are about _moves_ — the keys, the columns, looping — are n
 among its options: a typeahead has one way to reach an item, its label, for
 which it takes a `label` of its own.
 
+[`initRovingTabindex`](/docs/api#initrovingtabindex-root-options) takes the
+same four settings, so the object that describes a roving group also places
+its tab stop.
+
 [Options in JavaScript](/docs/examples/javascript-options) is the whole of this
 at work, on a menu that carries no keyrove attribute anywhere.

@@ -279,6 +279,12 @@ ordinary tab stops that arrows _also_ reach. Opt into
 instead be a single tab stop that <kbd>Tab</kbd> moves past rather than
 through.
 
+keyrove moves that stop but never creates it. Call `initRovingTabindex(list)`
+once the group renders, and again after re-renders: it gives the group exactly
+one `tabindex="0"`, keeping the one it has while that item is still there, and
+leaves nested groups' stops alone. It takes `items`, `root`, `skip` and
+`rovingTabindex`, the same as `keyRove` and `createTypeahead`.
+
 ## Typeahead
 
 `createTypeahead` adds type-to-focus: printable characters accumulate in a
@@ -373,7 +379,7 @@ presses.
 
 `keyRove` takes every option but `label`. `createTypeahead` takes `items`,
 `root`, `skip`, `rovingTabindex` and `label` — the settings that bear on
-finding an item.
+finding an item. `initRovingTabindex` takes the same four without `label`.
 
 The boolean attributes — `data-keyrove-item`, `data-keyrove-skip`,
 `data-keyrove-roving-tabindex`, `data-keyrove-root`, and `data-keyrove-loop` —
@@ -412,8 +418,9 @@ non-null result means the key is claimed, so handlers chain with `||`:
 element.addEventListener('keydown', (e) => keyRove(e) || myOwnHandler(e));
 ```
 
-`toggleTabIndex({ root, isActive })` is exported for cases where you manage the
-tab stop yourself — restoring it after re-rendering a list, for instance.
+`toggleTabIndex({ root, isActive })` is exported for cases where you manage one
+element's tab stop yourself, such as moving it after a click. For a whole
+roving group, `initRovingTabindex(root, options?)` keeps exactly one stop.
 
 ## License
 
