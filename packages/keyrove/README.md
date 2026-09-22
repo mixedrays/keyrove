@@ -76,9 +76,9 @@ pnpm add @mixedrays/keyrove
 - **Editable control awareness:** the caret and value keys stay with inputs,
   textareas, selects, and `contenteditable` regions — while inputs those keys
   do nothing on, like a checkbox or a button, keep navigating.
-- **Typeahead:** `createTypeahead()` adds case-insensitive type-to-focus,
-  matching a `label` of your own, `data-keyrove-typeahead`, or the item's own
-  text — and takes the same options object as `keyRove`.
+- **Typeahead:** `createTypeahead()` adds type-to-focus that ignores case and
+  accents, matching a `label` of your own, `data-keyrove-typeahead`, or the
+  item's own text — and takes the same options object as `keyRove`.
 
 ## Usage
 
@@ -283,12 +283,13 @@ through.
 
 `createTypeahead` adds type-to-focus: printable characters accumulate in a
 buffer (reset after 500 ms of silence), and focus jumps to the first item
-whose label starts with what was typed, case-insensitively.
+whose label starts with what was typed, ignoring case and accents: `e`
+reaches "Émilie". `foldDiacritics: false` keeps accents apart.
 
 ```ts
 import { keyRove, createTypeahead } from '@mixedrays/keyrove';
 
-const typeahead = createTypeahead(); // { resetMs?, matchMode?, label?, onMove?, … }
+const typeahead = createTypeahead(); // { resetMs?, matchMode?, label?, foldDiacritics?, onMove?, … }
 
 list.addEventListener('keydown', (e) => keyRove(e) || typeahead(e));
 ```

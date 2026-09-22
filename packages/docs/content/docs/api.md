@@ -366,7 +366,9 @@ The [listbox](/docs/examples/listbox) chains three handlers this way.
 
 Builds a keydown handler that focuses items as their labels are typed.
 Printable characters accumulate in a buffer, and focus jumps to the first
-navigable item whose label starts with it, case-insensitively.
+navigable item whose label starts with it. Case is ignored, and so are
+accents and other combining marks: <kbd class="kbd">E</kbd> reaches _Émilie_,
+and <kbd class="kbd">É</kbd> reaches _emilie_.
 
 ```ts
 import { keyRove, createTypeahead } from '@mixedrays/keyrove';
@@ -381,12 +383,13 @@ navigates instead of entering the buffer. Create one handler per listener: the
 buffer lives in the handler, which keeps `keyRove` itself stateless. See
 [typeahead](/docs/examples/typeahead) for it at work.
 
-| Option      | Default    | Meaning                                                                                                                                  |
-| ----------- | ---------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
-| `label`     | —          | `(item) => string`, the text an item is matched by. Falls through to the attribute and then the item's text where it returns nothing.    |
-| `resetMs`   | `500`      | Milliseconds of typing silence after which the buffer clears.                                                                            |
-| `matchMode` | `'prefix'` | `'cycle'` moves each single-character press to the next matching item after focus, wrapping, so repeats cycle; [see below](#cycle-mode). |
-| `onMove`    | —          | Fired after focus has moved, and only then; see [`keyRove`'s option](#options-onmove).                                                   |
+| Option           | Default    | Meaning                                                                                                                                  |
+| ---------------- | ---------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| `label`          | —          | `(item) => string`, the text an item is matched by. Falls through to the attribute and then the item's text where it returns nothing.    |
+| `resetMs`        | `500`      | Milliseconds of typing silence after which the buffer clears.                                                                            |
+| `matchMode`      | `'prefix'` | `'cycle'` moves each single-character press to the next matching item after focus, wrapping, so repeats cycle; [see below](#cycle-mode). |
+| `foldDiacritics` | `true`     | Ignore accents and other combining marks on both sides of the match. Turn it off where an accent tells two items apart.                  |
+| `onMove`         | —          | Fired after focus has moved, and only then; see [`keyRove`'s option](#options-onmove).                                                   |
 
 It also takes the [group settings](#options) that bear on finding an item —
 `items`, `root`, `skip` and `rovingTabindex` — under the same names and with
@@ -677,6 +680,7 @@ type TypeaheadOptions = Pick<
   label?: (item: Element) => string; // the text an item is matched by
   resetMs?: number; // buffer lifetime, default 500
   matchMode?: 'prefix' | 'cycle'; // how repeated characters match, default 'prefix'
+  foldDiacritics?: boolean; // ignore accents and other marks, default true
   onMove?: (move: TypeaheadMove) => void;
 };
 

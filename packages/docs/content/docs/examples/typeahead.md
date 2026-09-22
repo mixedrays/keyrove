@@ -100,6 +100,21 @@ _Do not disturb_. The attribute is the whole label rather than a prefix added
 to the text, and an empty one falls back to the text, so a template can set it
 conditionally.
 
+## Accented labels
+
+Accents are ignored on both sides: <kbd class="kbd">E</kbd> reaches _Émilie_,
+<kbd class="kbd">A</kbd> reaches _Ángel_, and on a keyboard that can type it,
+<kbd class="kbd">É</kbd> reaches a plain _Emilie_ too. Each letter is compared
+with its marks taken off, whether the label comes from the text, the attribute
+or a `label` function, so no label needs folding by hand. A letter that is not
+a base letter plus a mark, such as _ø_, _ł_ or _ß_, is matched as itself.
+
+Where an accent is what tells two items apart, turn the folding off:
+
+```ts
+const typeahead = createTypeahead({ foldDiacritics: false });
+```
+
 ## What it reports
 
 The handler returns `null` when it left the key alone and

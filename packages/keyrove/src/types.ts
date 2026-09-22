@@ -221,6 +221,12 @@ export type TypeaheadOptions = Pick<
    * starting with it, wrapping, so repeats cycle. Defaults to `'prefix'`.
    */
   matchMode?: 'prefix' | 'cycle';
+  /**
+   * Whether accents and other combining marks are ignored on both sides of
+   * the match, so "e" reaches "Émilie" and "É" reaches "emilie". Turn it off
+   * where an accent tells two items apart. Defaults to `true`.
+   */
+  foldDiacritics?: boolean;
   /** Fired after focus has moved — and only when it actually moved. */
   onMove?: (move: TypeaheadMove) => void;
 };
