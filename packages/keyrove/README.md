@@ -4,8 +4,8 @@
 [![minzipped size](https://img.shields.io/bundlejs/size/%40mixedrays%2Fkeyrove?color=4f46e5&label=minzipped%20size)](https://bundlejs.com/?q=%40mixedrays%2Fkeyrove)
 [![license](https://img.shields.io/npm/l/@mixedrays/keyrove?color=4f46e5)](https://github.com/mixedrays/keyrove/blob/main/LICENSE)
 
-Framework-agnostic keyboard navigation for lists, grids and trees, driven by
-`data-*` attributes or a plain options object.
+Keyboard navigation for lists, grids and trees. Configure it with data
+attributes or JavaScript options, in any framework.
 
 **[Documentation](https://keyrove.pages.dev)** ·
 [Attributes and options](https://keyrove.pages.dev/docs/attributes-and-options) ·

@@ -1,15 +1,14 @@
 ---
 title: Introduction
-description: What keyrove does, which keys it moves focus with, where a group is described, how it sits beside native Tab navigation, and what it deliberately leaves to you.
+description: Set up keyboard navigation, choose keys and options, and keep native Tab behavior.
 titleTag: Introduction to keyboard navigation — keyrove
 group: Guide
 order: 1
 ---
 
-keyrove makes a list, a grid or a tree keyboard-navigable. You mark the navigable
-elements with an attribute and forward keydown events to one function; it works
-out which element should receive focus next and moves it there. It does not
-render anything, own any state, or wrap your components.
+keyrove moves focus through lists, grids and trees. Mark the items you want to
+navigate and pass `keydown` events to `keyRove`. It finds and focuses the next
+item without rendering UI or wrapping your components.
 
 ```html title="Markup"
 <ul id="menu">
@@ -22,176 +21,127 @@ render anything, own any state, or wrap your components.
 ```ts title="The call"
 import { keyRove } from '@mixedrays/keyrove';
 
-document.querySelector('#menu').addEventListener('keydown', (e) => keyRove(e));
+const menu = document.querySelector<HTMLElement>('#menu')!;
+menu.addEventListener('keydown', (e) => keyRove(e));
 ```
 
 ```ts title="No attributes"
-// The same list, with nothing in it but <li tabindex="0">: where the markup is
-// not yours to change, every attribute has an option of the same name.
+// Keep <li tabindex="0">, but select items without data-keyrove-item.
 import { keyRove } from '@mixedrays/keyrove';
 
-document
-  .querySelector('#menu')
-  .addEventListener('keydown', (e) => keyRove(e, { items: 'li' }));
+const menu = document.querySelector<HTMLElement>('#menu')!;
+menu.addEventListener('keydown', (e) => keyRove(e, { items: 'li' }));
 ```
 
-That is the whole library — the third tab included, which is the same list
-navigated the same way, described somewhere else. Three things about it are
-easy to assume the other way:
-
-- **It is not an arrow-key library.** Arrows are the default binding.
-  [Which keys move focus](#which-keys-move-focus) is markup, so a group can be
-  driven by <kbd class="kbd">J</kbd> / <kbd class="kbd">K</kbd>,
-  <kbd class="kbd">W</kbd> / <kbd class="kbd">S</kbd>, or whatever your widget
-  reads as forward and back.
-- **It does not replace <kbd class="kbd">Tab</kbd>.** keyrove moves real DOM
-  focus and leaves every key it is not bound to alone, so
-  [sequential focus navigation](#tab-still-works) keeps working as the browser
-  does it.
-- **It is not markup-only.** Attributes are where a group is described by
-  default, not the only place: every one of them has an option of the same
-  name, which is how you navigate
-  [HTML you do not write](/docs/attributes-and-options).
+This list supports arrows, Home, End and page jumps. Tab still visits each
+item. You can [change the keys](#which-keys-move-focus) and configure the group
+with [attributes, options, or both](#where-a-group-is-described).
 
 ## How it works
 
-Three pieces do all the work:
+1. **Items** are the elements marked with `data-keyrove-item`, read in DOM
+   order. An `items` option can select them instead.
+2. **The root** is the nearest element at or above the event target marked with
+   `data-keyrove-root`, or the listener's element if none is marked. It contains
+   the items and carries the group's settings.
+3. **The handler**, `keyRove(event)`, reads the key, finds the target item and
+   focuses it. It calls `preventDefault()` for handled keys, so navigation does
+   not also scroll the page. Unhandled keys keep their browser defaults.
 
-1. **Items** carry `data-keyrove-item`. Everything keyrove can move focus to is
-   found by that attribute, in DOM order.
-2. **The root** is the element whose keydown you forward, or the nearest
-   ancestor carrying `data-keyrove-root`. It scopes the item query, and its
-   attributes configure the group.
-3. **The call** is `keyRove(event)`. It reads the event's `code`, finds the
-   target element, focuses it, and calls `preventDefault()`. That happens only
-   for the keys it is bound to, so the page does not scroll out from under you
-   while every other key keeps its browser default.
-
-Describing a group in its markup means a list becomes a grid by gaining a
-column-count attribute, with nothing in your JavaScript to keep in sync. Where
-the markup is not yours to change, the same settings can be
-[named in JavaScript](#where-a-group-is-described) instead.
+The handler reads the current DOM and settings on every keypress. Changing
+items or adding a column count requires no navigation instance to update.
 
 ## What it handles
 
-| Feature                                                                                        | Attribute                                                                            | Default keys                                                                                                      | Read more                                           |
-| ---------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------- | --------------------------------------------------- |
-| Forward and back, one item through the DOM order                                               | `data-keyrove-next-key`, `data-keyrove-prev-key`                                     | <kbd class="kbd">↓</kbd> <kbd class="kbd">↑</kbd>                                                                 | [Basic list](/docs/examples/basic)                  |
-| Rows and cells                                                                                 | `data-keyrove-cols`, `data-keyrove-next-row-key`, `data-keyrove-prev-row-key`        | <kbd class="kbd">↓</kbd> <kbd class="kbd">↑</kbd> a row, <kbd class="kbd">→</kbd> <kbd class="kbd">←</kbd> a cell | [Grid](/docs/examples/grid)                         |
-| First and last item; in a grid the row's ends, and the grid's with <kbd class="kbd">Ctrl</kbd> | `data-keyrove-home-key`, `data-keyrove-end-key` and their `-row-` pair               | <kbd class="kbd">Home</kbd> <kbd class="kbd">End</kbd>                                                            | [Grid](/docs/examples/grid)                         |
-| Page jumps, by items or by rows                                                                | `data-keyrove-page-length`, `data-keyrove-page-up-key`, `data-keyrove-page-down-key` | <kbd class="kbd">PageUp</kbd> <kbd class="kbd">PageDown</kbd>, 10 at a time                                       | [Basic list](/docs/examples/basic#page-length)      |
-| Horizontal lists, RTL-aware                                                                    | `data-keyrove-orientation="horizontal"`                                              | <kbd class="kbd">→</kbd> <kbd class="kbd">←</kbd>                                                                 | [Horizontal lists](/docs/examples/horizontal-lists) |
-| Wrapping at the ends of a list                                                                 | `data-keyrove-loop`                                                                  | —                                                                                                                 | [Looping lists](/docs/examples/looping-lists)       |
-| One tab stop per group                                                                         | `data-keyrove-roving-tabindex`                                                       | —                                                                                                                 | [Roving tabindex](/docs/examples/roving-tabindex)   |
-| Headings and dead entries out of the order                                                     | `data-keyrove-skip`, or `disabled`                                                   | —                                                                                                                 | [Skipped items](/docs/examples/skipped-items)       |
-| Groups inside groups, each with its own keys                                                   | `data-keyrove-root`                                                                  | —                                                                                                                 | [Nested roots](/docs/examples/nested-roots)         |
-| An element's own shortcut, from anywhere under the listener                                    | `data-keyrove-focus-key`                                                             | —                                                                                                                 | [Focus keys](/docs/examples/focus-keys)             |
-| Type-to-focus, as an opt-in second handler                                                     | `createTypeahead()`, `data-keyrove-typeahead`                                        | letters                                                                                                           | [Typeahead](/docs/examples/typeahead)               |
+| Feature              | Behavior                                                                     | Example                                             |
+| -------------------- | ---------------------------------------------------------------------------- | --------------------------------------------------- |
+| Lists                | Up/Down move one item in DOM order                                           | [Basic list](/docs/examples/basic)                  |
+| Grids                | Up/Down move a row; Left/Right move a cell                                   | [Grid](/docs/examples/grid)                         |
+| First and last items | Home/End jump to list ends or grid row ends; Ctrl+Home/End jump to grid ends | [Grid](/docs/examples/grid)                         |
+| Page jumps           | PageUp/PageDown move 10 items or rows by default                             | [Page length](/docs/examples/basic#page-length)     |
+| Horizontal lists     | Left/Right follow the text direction                                         | [Horizontal lists](/docs/examples/horizontal-lists) |
+| Looping              | Next/previous wrap at list ends                                              | [Looping lists](/docs/examples/looping-lists)       |
+| Roving tabindex      | One tab stop follows focus within a group                                    | [Roving tabindex](/docs/examples/roving-tabindex)   |
+| Skipped items        | Pass over items marked with `data-keyrove-skip` or `disabled`                | [Skipped items](/docs/examples/skipped-items)       |
+| Nested groups        | Each group uses its own keys and settings                                    | [Nested roots](/docs/examples/nested-roots)         |
+| Focus shortcuts      | Focus an item or panel from anywhere under the listener                      | [Focus keys](/docs/examples/focus-keys)             |
+| Typeahead            | Add `createTypeahead()` to focus items by typing their labels                | [Typeahead](/docs/examples/typeahead)               |
+| Trees                | Navigate visible rows; your handlers expand and collapse branches            | [Tree view](/docs/examples/tree-view)               |
 
-Inside an input, textarea, select or `contenteditable` region the arrows and
-<kbd class="kbd">Home</kbd> belong to the caret, and keyrove leaves them there;
-see [editable targets](/docs/examples/editable-targets).
-
-Every attribute in that table has an option of the same name, for
-[groups described in JavaScript](#where-a-group-is-described).
+Text fields, selects and editable content keep their editing keys. See
+[editable targets](/docs/examples/editable-targets) for the rules and exceptions.
 
 ## Where a group is described
 
-An attribute has to be on the element, which is no help when the HTML belongs to
-a component library, a CMS, or anything else you do not write. Every attribute
-has an option of the same name, so the same group can be described at the call
-site instead:
+Use `data-keyrove-*` attributes in your markup or pass options to the handler.
+Options are useful when the HTML comes from a component library or CMS:
 
 ```ts
 import { keyRove } from '@mixedrays/keyrove';
 
 const config = { items: '[role="menuitem"]', loop: true };
+const menu = document.querySelector<HTMLElement>('#share')!;
 
-document
-  .querySelector('#share')
-  .addEventListener('keydown', (e) => keyRove(e, config));
+menu.addEventListener('keydown', (e) => keyRove(e, config));
 ```
 
-The two are read field by field, options first, so neither has to answer for
-the other's: `keyRove(e, { loop: true })` loops a group whose items and keys
-still come from its attributes, and `keyRove(e)` reads exactly the markup it
-always did.
+Options override attributes one setting at a time. For example,
+`keyRove(e, { loop: true })` enables looping while reading items and key bindings
+from the markup.
 
-[Attributes and options](/docs/attributes-and-options) covers both, and which
-to reach for; [options in JavaScript](/docs/examples/javascript-options) is a
-menu navigated without a keyrove attribute anywhere.
+See [attributes and options](/docs/attributes-and-options) for the full mapping,
+or [options in JavaScript](/docs/examples/javascript-options) for a complete demo.
 
 ## Which keys move focus
 
-The keys are configuration, not a fixed part of the library.
-`data-keyrove-next-key` and `data-keyrove-prev-key` on the root take any
-[`KeyboardEvent.code`](https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/code),
-and default to `ArrowDown` and `ArrowUp` only because that is what most lists
-want.
+Lists use `ArrowDown` for next and `ArrowUp` for previous by default. Set
+`data-keyrove-next-key` and `data-keyrove-prev-key` on the root to use other
+`KeyboardEvent.code` values or combinations such as `mod+KeyJ`:
 
 ```html
-<!-- A results list in an app whose users expect vim keys. -->
 <ul data-keyrove-next-key="KeyJ" data-keyrove-prev-key="KeyK">
   …
 </ul>
 ```
 
-Keys you have not bound are never touched: bind `KeyJ` and `KeyK`, and the
-arrow keys go back to scrolling the page. Each root is read separately, so two
-groups on one page can answer to different keys. <kbd class="kbd">Home</kbd>,
-<kbd class="kbd">End</kbd>, <kbd class="kbd">PageUp</kbd> and
-<kbd class="kbd">PageDown</kbd> are defaults in the same way, with
-`data-keyrove-home-key` and its siblings to rebind them. The full rules,
-grammar, defaults and precedence, are in the [API reference](/docs/api#keys);
-[custom keys](/docs/examples/custom-keys) shows them at work.
+Here, J and K move focus, and the arrows return to their browser defaults.
+Each group can have different bindings. Home, End, PageUp and PageDown can also
+be rebound with their own key attributes.
+
+See [custom keys](/docs/examples/custom-keys) for examples and the
+[API reference](/docs/api#keys) for defaults, syntax and precedence.
 
 ## Tab still works
 
-keyrove adds to the browser's focus model rather than replacing it:
+keyrove uses `element.focus()`, preserving the browser's focus styling,
+scrolling and focus announcements. An item also counts as focused when a link,
+button or other element inside it has focus.
 
-- Focus moves through `element.focus()`, so focus order, `:focus-visible`,
-  scroll-into-view, and what a screen reader announces are all the native
-  behaviours.
-- `preventDefault()` is called only for the keys keyrove acts on.
-  <kbd class="kbd">Tab</kbd>, <kbd class="kbd">Shift</kbd>+<kbd class="kbd">Tab</kbd>,
-  <kbd class="kbd">Enter</kbd>, <kbd class="kbd">Space</kbd> and
-  <kbd class="kbd">Escape</kbd> reach your handlers and the browser untouched.
-- An item counts as focused when focus is anywhere inside it, so an item
-  wrapping a link or a button still navigates after
-  <kbd class="kbd">Tab</kbd> lands on that inner control.
+With the default bindings, Tab, Shift+Tab, Enter, Space and Escape keep their
+usual behavior. Items with `tabindex="0"` remain ordinary tab stops, reachable
+with both Tab and the bound navigation keys.
 
-So the two navigation models compose. Items given `tabindex="0"` are ordinary
-tab stops that <kbd class="kbd">Tab</kbd> walks through _and_ the bound keys
-move between, with nothing to configure.
-
-When a long group should not cost the page a tab stop per item, opt into
-[roving tabindex](/docs/examples/roving-tabindex): the group becomes a single
-stop that <kbd class="kbd">Tab</kbd> moves _past_, and the bound keys move
-within it.
+For a single tab stop per group, use
+[roving tabindex](/docs/examples/roving-tabindex). Tab enters and leaves the
+group, while the bound keys move between its items.
 
 ## What it leaves to you
 
-keyrove moves focus. It does not decide what focus _means_ in your widget, so
-these remain yours:
+- **Roles and ARIA.** Set the roles, labels and states your widget needs.
+  keyrove does not write `role`, `aria-selected` or `aria-activedescendant`.
+- **Selection and activation.** Decide what clicks, Enter and Space do, and
+  add your own handlers. They are unbound by default.
+- **Initial tab stops.** Make items focusable in your markup. For a roving
+  group, give one item `tabindex="0"` and the others `-1`, or call
+  [`initRovingTabindex`](/docs/api#initrovingtabindex-root-options) after rendering.
 
-- **Roles and ARIA.** keyrove never writes `role`, `aria-selected`, or
-  `aria-activedescendant`. A listbox needs those; what they should say depends
-  on the widget you are building.
-- **Selection and activation.** <kbd class="kbd">Enter</kbd> and
-  <kbd class="kbd">Space</kbd> are not touched. Wiring them up is one more
-  listener on the same element.
-- **Tab stops on first render.** keyrove never creates a tab stop. Give the
-  first item `tabindex="0"` yourself, or call
-  [`toggleTabIndex`](/docs/api#toggletabindex-root-isactive).
-
-The [listbox](/docs/examples/listbox) example wires all three around one
-widget.
+The [listbox example](/docs/examples/listbox) combines navigation with all three.
 
 ## Framework support
 
-There is no adapter, and none is needed. `keyRove` takes anything shaped like a
-keydown event, which a native `KeyboardEvent` and every framework's synthetic
-wrapper already are; the exact shape is
-[`KeyRoveEvent`](/docs/api#keyroveevent). [Installation](/docs/installation)
-shows the wiring in React, Vue and Svelte, and the
-[basic list](/docs/examples/basic) is the first example.
+`keyRove` accepts native keyboard events and compatible framework events,
+including React's synthetic events. See
+[`KeyRoveEvent`](/docs/api#keyroveevent) for the required shape.
+
+[Installation](/docs/installation) shows setup in vanilla JavaScript, React,
+Vue and Svelte. Start with the [basic list](/docs/examples/basic) to try it.

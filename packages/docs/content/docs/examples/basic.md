@@ -1,63 +1,63 @@
 ---
 title: Basic list
-description: The default behaviour — arrows step one item, Home and End jump to the ends, PageUp and PageDown move in blocks, and Tab still does what Tab does.
+description: Add keyboard navigation to a list while keeping its normal tab order.
 titleTag: Arrow key navigation for lists — keyrove
 group: Examples
 order: 10
 ---
 
-A list needs two things: `data-keyrove-item` on every navigable element, and a
-keydown listener on the container. <kbd class="kbd">Tab</kbd> to an item or
-click it, then use <kbd class="kbd">↑</kbd> <kbd class="kbd">↓</kbd>,
-<kbd class="kbd">Home</kbd> / <kbd class="kbd">End</kbd>, and
-<kbd class="kbd">PageUp</kbd> / <kbd class="kbd">PageDown</kbd>.
+Add `data-keyrove-item` and `tabindex="0"` to each list item, then attach a
+`keydown` listener to the container.
+
+<kbd class="kbd">Tab</kbd> to an item or click it to try the demo:
+
+- <kbd class="kbd">↑</kbd> / <kbd class="kbd">↓</kbd> move one item.
+- <kbd class="kbd">Home</kbd> / <kbd class="kbd">End</kbd> jump to the first or last item.
+- <kbd class="kbd">PageUp</kbd> / <kbd class="kbd">PageDown</kbd> move in blocks.
 
 <div data-demo="list" data-demo-class="max-h-60 overflow-y-auto"></div>
 
 ```ts
 import { keyRove } from '@mixedrays/keyrove';
 
-document
-  .querySelector('#countries')
-  .addEventListener('keydown', (e) => keyRove(e));
+const list = document.querySelector<HTMLElement>('#countries')!;
+list.addEventListener('keydown', (e) => keyRove(e));
 ```
 
-Both routes in work because neither is taken away: `tabindex="0"` makes each
-item a real tab stop, and keyrove adds arrow movement on top.
-<kbd class="kbd">Tab</kbd> still walks the list item by item here; see
-[roving tabindex](/docs/examples/roving-tabindex) to make the whole group one
-stop instead. The arrows are only the default keys: two attributes on the root
-put any key in their place, see [custom keys](/docs/examples/custom-keys).
+<kbd class="kbd">Tab</kbd> still visits every item. Use
+[roving tabindex](/docs/examples/roving-tabindex) to make the list a single tab
+stop, or [custom keys](/docs/examples/custom-keys) to change the bindings.
 
 ## Page length
 
-`data-keyrove-page-length` sets how far <kbd class="kbd">PageUp</kbd> and
-<kbd class="kbd">PageDown</kbd> move. It defaults to `10`; the demo sets `5` so
-the jump is visible in twelve items. A jump past the end lands on the last item
-rather than doing nothing.
+Set `data-keyrove-page-length` on the container to choose how many items
+<kbd class="kbd">PageUp</kbd> and <kbd class="kbd">PageDown</kbd> move. The
+default is `10`; this twelve-item demo uses `5`. Jumps stop at the first or
+last item.
 
-The ends themselves are where a list stops: next on the last item is claimed
-but moves nothing. See [looping lists](/docs/examples/looping-lists) for
-wrapping round to the other end instead.
+At either end, pressing a key to move farther keeps focus in place and prevents
+the browser's default action. See [looping lists](/docs/examples/looping-lists)
+to wrap to the other end.
 
 ## Reacting to movement
 
-The optional second argument carries the group's
-[settings](/docs/attributes-and-options), where you would rather not write them
-as attributes, and `onMove` — fired _after_ focus has moved, and only when it
-actually moved.
+Pass `onMove` in the second argument to run a callback after focus moves.
+It only fires when focus actually changes. This argument also accepts
+[settings](/docs/attributes-and-options) in place of HTML attributes.
 
 ```ts
 list.addEventListener('keydown', (e) => {
   keyRove(e, {
-    onMove: ({ action, from, to }) => console.log(action, '→', to),
+    onMove: ({ action, to }) => console.log(action, '→', to),
   });
 });
 ```
 
-Every demo on this site reports its moves that way. The log beside the list
-above shows the rest of the picture too: its green rows are the `onMove` calls,
-while the amber and grey ones are what `keyRove`
-[returned](/docs/api#return-value) — a key it claimed but could not act on at
-the end of the list, and a key that was never its own, left to the browser.
-Handlers sharing a listener chain on that same return value.
+The demo log shows three outcomes:
+
+- **Green:** focus moved; `onMove` fired.
+- **Amber:** keyrove handled the key, but focus stayed in place.
+- **Grey:** keyrove left the key to the browser.
+
+Amber and grey rows use `keyRove`'s [return value](/docs/api#return-value).
+Other handlers can use it to check whether keyrove handled the key.

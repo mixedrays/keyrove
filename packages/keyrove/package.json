@@ -1,7 +1,7 @@
 {
   "name": "@mixedrays/keyrove",
   "version": "2.4.0",
-  "description": "Framework-agnostic keyboard navigation for lists, grids and trees, driven by data-* attributes or a plain options object. Any key can move focus, and native Tab navigation keeps working.",
+  "description": "Keyboard navigation for lists, grids and trees. Configure it with data attributes or JavaScript options, in any framework.",
   "keywords": [
     "keyboard",
     "keyboard-navigation",
