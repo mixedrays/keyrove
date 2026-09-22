@@ -21,9 +21,9 @@ focus returns to where you left it.
 ```ts
 import {
   createTypeahead,
+  followFocus,
   keyRove,
   matchesCombo,
-  toggleTabIndex,
 } from '@mixedrays/keyrove';
 
 const listbox = document.querySelector('#assignee');
@@ -51,14 +51,11 @@ listbox.addEventListener('keydown', (e) => {
   keyRove(e) || typeahead(e) || pick(e);
 });
 
+listbox.addEventListener('focusin', (e) => followFocus(e));
+
 listbox.addEventListener('click', (e) => {
   const option = e.target.closest('[role="option"]');
-  if (!option) return;
-
-  const stop = listbox.querySelector('[tabindex="0"]');
-  toggleTabIndex({ root: stop, isActive: false });
-  toggleTabIndex({ root: option, isActive: true });
-  select(option);
+  if (option) select(option);
 });
 ```
 
@@ -94,10 +91,11 @@ key can be told apart.
   default. `pick` keeps the contract of the two handlers before it, `null` for
   a key it left alone, so a fourth handler could chain on.
 - **The mouse.** A click focuses an option natively, which `tabindex="-1"`
-  allows, but it leaves the tab stop where the keyboard last put it, and
+  allows. keyRove moves the stop only on the moves it makes, so on its own the
+  click would leave the stop where the keyboard last put it, and
   <kbd class="kbd">Tab</kbd> away and back would return to the wrong option.
-  keyrove moves the stop only on the moves it makes, so the click handler moves
-  it with `toggleTabIndex` and then picks.
+  `followFocus` on `focusin` moves the stop to wherever focus lands, the click
+  included, and the click handler is left with the picking.
 
 ## Selection that follows focus
 

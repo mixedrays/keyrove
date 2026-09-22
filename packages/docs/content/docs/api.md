@@ -12,6 +12,7 @@ order: 4
 | [`createTypeahead(options?)`](#createtypeahead-options)                  | Builds a type-to-focus handler to chain after `keyRove`.                      |
 | [`matchesCombo(event, combo)`](#matchescombo-event-combo)                | The combo matcher behind every binding, for your own handlers.                |
 | [`initRovingTabindex(root, options?)`](#initrovingtabindex-root-options) | Gives a roving group exactly one tab stop, and keeps it whole across renders. |
+| [`followFocus(event, options?)`](#followfocus-event-options)             | Moves the roving tab stop to wherever focus lands, on `focusin`.              |
 | [`toggleTabIndex({ root, isActive })`](#toggletabindex-root-isactive)    | Sets `tabindex` to `0` or `-1` on one element.                                |
 | [`data-keyrove-*`](#attributes)                                          | The attributes: the whole configuration, on items and on the root.            |
 | [`KEYROVE_ATTR_*`](#constants)                                           | One constant per attribute name.                                              |
@@ -279,8 +280,9 @@ bare code such as `KeyE` works wherever the letter would not be typing.
 - On an item, the roving tab stop moves within the item's group, as for an
   arrow move: when the item focus leaves carries
   `data-keyrove-roving-tabindex`, it drops to `tabindex="-1"` and the target
-  takes `0`. From outside the group the stop stays where it was, and a nested
-  group's stop is never touched.
+  takes `0`. From outside the group keyRove leaves the stop where it was,
+  though a [`followFocus`](#followfocus-event-options) listener then moves it
+  to the item focus landed on. A nested group's stop is never touched.
 
 See [focus keys](/docs/examples/focus-keys) for the pattern at work.
 
@@ -514,6 +516,40 @@ initRovingTabindex(menu, config);
 menu.addEventListener('keydown', (e) => keyRove(e, config));
 ```
 
+## followFocus(event, options?)
+
+Moves a roving group's tab stop to the item focus landed in. keyRove carries
+the stop on the moves it makes, but focus also arrives by a click, by
+`element.focus()` from your code, and by <kbd class="kbd">Tab</kbd> onto a
+control inside an item. Each of those would leave the stop behind, and
+<kbd class="kbd">Tab</kbd> away and back would return somewhere else.
+`followFocus` on `focusin` covers all of them:
+
+```ts
+import { followFocus, keyRove } from '@mixedrays/keyrove';
+
+list.addEventListener('keydown', (e) => keyRove(e));
+list.addEventListener('focusin', (e) => followFocus(e));
+```
+
+- The item is found the way a keypress finds its position: the nearest
+  [root](#roots) above the target, and the item of its group holding focus.
+  Focus on a control inside an item counts as focus on the item.
+- Where that root's own items hold no focus, the group around it is asked,
+  as far as the listener's element. That covers a panel that is a root and
+  also an item of the group around it, and a control of a nested root that
+  sits inside an outer item.
+- The item takes the stop when it carries one and is not skipped, and every
+  other roving item of its group gets `-1`. A nested group's stop is its own
+  and is never touched.
+- Only attributes that change are written. After one of keyRove's own moves,
+  which has already carried the stop, the `focusin` it causes writes nothing.
+
+It returns the item now holding the stop, or `null` when focus is in no item
+that carries one. It takes the same [group settings](#options) as
+[`initRovingTabindex`](#initrovingtabindex-root-options): `items`, `root`,
+`skip` and `rovingTabindex`.
+
 ## toggleTabIndex({ root, isActive })
 
 Sets `tabindex` to `0` or `-1` on a single element.
@@ -524,10 +560,10 @@ import { toggleTabIndex } from '@mixedrays/keyrove';
 toggleTabIndex({ root: firstItem, isActive: true });
 ```
 
-Use it where you manage one element's tab stop yourself, such as moving the
-stop after a click, as the [listbox](/docs/examples/listbox) does. For a whole
-roving group, [`initRovingTabindex`](#initrovingtabindex-root-options) keeps
-exactly one `0` for you. Descendant tab stops are left alone; roving tabindex
+Use it where you manage one element's tab stop yourself. For a whole roving
+group, [`initRovingTabindex`](#initrovingtabindex-root-options) keeps exactly
+one `0` for you, and [`followFocus`](#followfocus-event-options) moves it with
+focus that keyRove did not move. Descendant tab stops are left alone; roving tabindex
 only needs the item itself to carry the stop. A nullish `root` is a no-op, so a
 query that found nothing needs no guard.
 
@@ -740,8 +776,9 @@ type TypeaheadMove = TypeaheadResult & { to: Element };
 
 ### RovingTabindexOptions
 
-What [`initRovingTabindex`](#initrovingtabindex-root-options) takes: the group
-settings that decide which elements are the group's roving items.
+What [`initRovingTabindex`](#initrovingtabindex-root-options) and
+[`followFocus`](#followfocus-event-options) take: the group settings that
+decide which elements are the group's roving items.
 
 ```ts
 type RovingTabindexOptions = Pick<

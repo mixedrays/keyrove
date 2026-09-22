@@ -285,6 +285,15 @@ one `tabindex="0"`, keeping the one it has while that item is still there, and
 leaves nested groups' stops alone. It takes `items`, `root`, `skip` and
 `rovingTabindex`, the same as `keyRove` and `createTypeahead`.
 
+keyRove carries the stop on its own moves only. For a click, a call to
+`element.focus()`, or <kbd>Tab</kbd> onto a control inside an item, attach
+`followFocus` to `focusin` and the stop follows focus there too:
+
+```ts
+list.addEventListener('keydown', (e) => keyRove(e));
+list.addEventListener('focusin', (e) => followFocus(e));
+```
+
 ## Typeahead
 
 `createTypeahead` adds type-to-focus: printable characters accumulate in a
@@ -379,7 +388,8 @@ presses.
 
 `keyRove` takes every option but `label`. `createTypeahead` takes `items`,
 `root`, `skip`, `rovingTabindex` and `label` — the settings that bear on
-finding an item. `initRovingTabindex` takes the same four without `label`.
+finding an item. `initRovingTabindex` and `followFocus` take the same four
+without `label`.
 
 The boolean attributes — `data-keyrove-item`, `data-keyrove-skip`,
 `data-keyrove-roving-tabindex`, `data-keyrove-root`, and `data-keyrove-loop` —
@@ -419,8 +429,9 @@ element.addEventListener('keydown', (e) => keyRove(e) || myOwnHandler(e));
 ```
 
 `toggleTabIndex({ root, isActive })` is exported for cases where you manage one
-element's tab stop yourself, such as moving it after a click. For a whole
-roving group, `initRovingTabindex(root, options?)` keeps exactly one stop.
+element's tab stop yourself. For a whole roving group,
+`initRovingTabindex(root, options?)` keeps exactly one stop, and
+`followFocus(event, options?)` moves it with focus keyRove did not move.
 
 ## License
 

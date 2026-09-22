@@ -6,6 +6,7 @@ import {
   type GroupOptions,
   type MoveResult,
   createTypeahead,
+  followFocus,
   keyRove,
   matchesCombo,
   toggleTabIndex,
@@ -309,9 +310,9 @@ const wireGroupExit = (surface: HTMLElement) => {
  *
  * Selection is the widget's state rather than keyrove's, so this is the page's
  * own snippet made live: Space or Enter picks the focused option, a click picks
- * and carries the roving tab stop with it, and either is reported to the log
- * beside the moves. Returns the keydown half, to chain after navigation and
- * typeahead.
+ * it, and either is reported to the log beside the moves. `followFocus` carries
+ * the roving tab stop to wherever focus lands, the click included. Returns the
+ * keydown half, to chain after navigation and typeahead.
  */
 const wireSelection = (surface: HTMLElement, log: Log): Handler => {
   const OPTION = '[role="option"]';
@@ -322,13 +323,12 @@ const wireSelection = (surface: HTMLElement, log: Log): Handler => {
     }
   };
 
+  surface.addEventListener('focusin', (e) => followFocus(e));
+
   surface.addEventListener('click', (e) => {
     const option = (e.target as Element).closest(OPTION);
     if (!option) return;
 
-    const stop = surface.querySelector('[tabindex="0"]');
-    toggleTabIndex({ root: stop, isActive: false });
-    toggleTabIndex({ root: option, isActive: true });
     select(option);
 
     // No key to name: the pointer did this one.

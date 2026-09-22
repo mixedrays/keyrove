@@ -146,6 +146,21 @@ export const ownItems = (
   });
 
 /**
+ * Gives `stop` the group's one `tabindex="0"` and every other of its roving
+ * `items` `-1` — or all of them `-1` where there is no stop. Only attributes
+ * that change are written, so a group already in order takes no mutations.
+ */
+export const placeStop = (items: Element[], stop: Element | null) => {
+  for (const item of items) {
+    const isActive = item === stop;
+
+    if (item.getAttribute('tabindex') !== (isActive ? '0' : '-1')) {
+      toggleTabIndex({ root: item, isActive });
+    }
+  }
+};
+
+/**
  * Whether focus landed on `to` or inside it — an item may hand its focus on
  * to a control of its own. Asked of `to`'s own tree: inside a shadow root the
  * document sees only the host.

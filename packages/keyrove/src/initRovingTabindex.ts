@@ -9,8 +9,7 @@
  */
 
 import { itemsReader, rootTest, rovingTest, skipTest } from './config.js';
-import { attributeRoot, ownItems } from './group.js';
-import { toggleTabIndex } from './utils.js';
+import { attributeRoot, ownItems, placeStop } from './group.js';
 import type { RovingTabindexOptions } from './types.js';
 
 /**
@@ -55,13 +54,7 @@ export const initRovingTabindex = (
     navigable[0] ??
     null;
 
-  for (const item of items) {
-    const isActive = item === stop;
-
-    if (item.getAttribute('tabindex') !== (isActive ? '0' : '-1')) {
-      toggleTabIndex({ root: item, isActive });
-    }
-  }
+  placeStop(items, stop);
 
   return stop;
 };

@@ -1,5 +1,6 @@
 export * from './keyRove.js';
 export * from './createTypeahead.js';
+export { followFocus } from './followFocus.js';
 export { initRovingTabindex } from './initRovingTabindex.js';
 export { matchesCombo, toggleTabIndex } from './utils.js';
 // Named rather than `export *`, so the internal types in `types.ts` stay

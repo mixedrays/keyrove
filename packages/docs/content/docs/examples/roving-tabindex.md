@@ -57,6 +57,27 @@ A group with every item at `tabindex="-1"` cannot be reached with
 page _less_ navigable than the plain tab order it replaced. Exactly one `0` per
 group, always.
 
+## Focus that keyrove did not move
+
+keyrove carries the stop on the moves it makes. Focus arrives other ways too:
+a click on an item, which `tabindex="-1"` allows, `element.focus()` from your
+code, and <kbd class="kbd">Tab</kbd> onto a link or a field inside an item.
+Each of those leaves the stop where it was, so <kbd class="kbd">Tab</kbd> away
+and back returns to the old item rather than the one the user was on.
+`followFocus` on `focusin` moves the stop to wherever focus lands:
+
+```ts
+import { followFocus, keyRove } from '@mixedrays/keyrove';
+
+list.addEventListener('keydown', (e) => keyRove(e));
+list.addEventListener('focusin', (e) => followFocus(e));
+```
+
+It reads the group the way `keyRove` does, so it leaves a nested group's stop
+alone, gives no stop to a skipped item, and takes the same options object
+where the group is described in JavaScript. The
+[listbox](/docs/examples/listbox) uses it for clicks.
+
 ## Choosing between the two
 
 Neither is more correct; they answer different questions.
