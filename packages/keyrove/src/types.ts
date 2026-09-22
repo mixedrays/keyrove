@@ -441,8 +441,9 @@ export type MoveFocusArgs<Action extends string> = {
   isRoving?: IsRoving;
   /**
    * The item the roving stop is carried from, where that is not `from`: a
-   * move across a nested root's boundary lands in another group, whose own
-   * stop moves while the group focus left keeps its. Nullish carries nothing.
+   * move onto a nested group's item, or across a nested root's boundary,
+   * lands in another group, whose own stop moves while the group focus left
+   * keeps its. Nullish carries nothing.
    */
   stopFrom?: Element | null;
   onMove?: (move: ActionResult<Action> & { to: Element }) => void;

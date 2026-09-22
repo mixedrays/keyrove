@@ -714,4 +714,34 @@ describe('createTypeahead', () => {
       ]);
     });
   });
+
+  describe('across nested groups', () => {
+    it("moves the matched item's own group stop and keeps the outer one", () => {
+      const inner = document.createElement('div');
+      inner.setAttribute(KEYROVE_ATTR_ROOT, '');
+      inner.append(
+        createItem('b', 'Beta', { roving: true }),
+        createItem('c', 'Gamma', { roving: true, tabindex: '-1' }),
+      );
+      const outer = [
+        createItem('a', 'Alpha', { roving: true }),
+        inner,
+        createItem('d', 'Delta', { roving: true, tabindex: '-1' }),
+      ];
+      const { container } = renderList(outer);
+      document.getElementById('a')!.focus();
+
+      pressKey('g');
+
+      expect(activeId()).toBe('c');
+      expect(
+        Object.fromEntries(
+          Array.from(container.querySelectorAll('[tabindex]')).map((el) => [
+            el.id,
+            el.getAttribute('tabindex'),
+          ]),
+        ),
+      ).toEqual({ a: '0', b: '-1', c: '0', d: '-1' });
+    });
+  });
 });

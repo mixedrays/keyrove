@@ -179,6 +179,9 @@ the listener is attached to (`currentTarget`). A listener on `document` or
 - Items are all enabled `data-keyrove-item` elements under the root, in DOM
   order, except those carrying `disabled`. This includes items in nested
   roots. Use sibling roots to keep attribute-selected sequences separate.
+  With [roving tabindex](/docs/examples/roving-tabindex), each root keeps its
+  own tab stop: a move onto a nested root's item moves that root's stop and
+  leaves the outer group's in place.
 - One delegated listener can serve several roots. Inside a
   [nested root](/docs/examples/nested-roots), only that root's movement
   bindings apply; unbound keys do not fall through to the outer group.
@@ -312,9 +315,11 @@ editable targets. The reported action is `'focus'`.
 - On an item, the roving tab stop moves within the item's group, as for an
   arrow move: when the item focus leaves carries
   `data-keyrove-roving-tabindex`, it drops to `tabindex="-1"` and the target
-  takes `0`. From outside the group keyRove leaves the stop where it was,
-  though a [`followFocus`](#followfocus-event-options) listener then moves it
-  to the item focus landed on. A nested group's stop is never touched.
+  takes `0`. When focus leaves an item of a nested group, that group keeps its
+  stop, and the target takes its own group's stop. From outside the group
+  keyRove leaves the stop where it was, though a
+  [`followFocus`](#followfocus-event-options) listener then moves it to the
+  item focus landed on.
 
 See [focus keys](/docs/examples/focus-keys) for the pattern at work.
 

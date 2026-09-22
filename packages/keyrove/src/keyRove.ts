@@ -8,6 +8,7 @@ import {
   moveFocus,
   readGroup,
   resolveRoot,
+  stopSource,
 } from './group.js';
 import { resolveTarget } from './position.js';
 import { hasCommandModifier, isEditableTarget, matchesCombo } from './utils.js';
@@ -165,6 +166,14 @@ export const keyRove = (
     from: focused,
     to: target,
     isRoving: config.isRoving,
+    stopFrom: stopSource(
+      group,
+      focused,
+      target,
+      config.readItems,
+      isRoot ?? attributeRoot,
+      config.isRoving,
+    ),
     onMove,
   });
 };

@@ -306,6 +306,30 @@ describe('rove', () => {
         to: 'b',
       });
     });
+
+    it("carries each group's own stop across a nested group's items", () => {
+      const root = group([
+        item('a', { tabindex: '0' }),
+        nestedRoot(item('b'), item('c', { tabindex: '0' })),
+        item('d'),
+      ]);
+      byId('c').focus();
+
+      expect(named(rove(root, 'next'))).toEqual({
+        action: 'next',
+        from: 'c',
+        to: 'd',
+      });
+      expect(tabindexes(root)).toEqual({ a: '-1', b: '-1', c: '0', d: '0' });
+
+      // Focus from code leaves the outer stop on d; the move into the nested
+      // group carries that group's stop from c to b.
+      byId('a').focus();
+      rove(root, 'next');
+
+      expect(activeId()).toBe('b');
+      expect(tabindexes(root)).toEqual({ a: '-1', b: '0', c: '-1', d: '0' });
+    });
   });
 
   describe('with no item focused', () => {

@@ -126,10 +126,25 @@ export const readGroup = (
 };
 
 /**
+ * The group an item of `root` belongs to: the nearest root above its
+ * *parent*, short of `root` itself, else `root`. The resolution a focus key's
+ * move uses, so an item that is itself a root belongs to the group around it.
+ */
+const ownerRoot = (item: Element, root: Element, isRoot: IsRoot): Element => {
+  for (
+    let element = item.parentElement;
+    element && element !== root;
+    element = element.parentElement
+  ) {
+    if (isRoot(element)) return element;
+  }
+
+  return root;
+};
+
+/**
  * The items a root governs itself: its items, less those of a root nested
- * inside it. An item belongs to the nearest root above its *parent* — the
- * resolution a focus key's move uses — so an item that is itself a root
- * belongs to the group around it, and its own items to it.
+ * inside it, which belong to that root (see `ownerRoot`).
  *
  * Deliberately not `readGroup`'s items, which keep a nested root's items so
  * the outer order runs straight through them. This is the set one group's
@@ -141,17 +156,7 @@ export const ownItems = (
   readItems: ReadItems = attributeItems,
   isRoot: IsRoot = attributeRoot,
 ): Element[] =>
-  readItems(root).filter((item) => {
-    for (
-      let element = item.parentElement;
-      element && element !== root;
-      element = element.parentElement
-    ) {
-      if (isRoot(element)) return false;
-    }
-
-    return true;
-  });
+  readItems(root).filter((item) => ownerRoot(item, root, isRoot) === root);
 
 /**
  * The item holding a group's roving tab stop: the first of its own items that
@@ -170,6 +175,31 @@ export const stopHolder = (
       item.getAttribute('tabindex') === '0' &&
       !item.hasAttribute('disabled'),
   ) ?? null;
+
+/**
+ * The item a move from `from` to `to`, both items of `root`, carries the
+ * roving tab stop from. `root`'s order runs on through the items of a root
+ * nested in it, but each group keeps a stop of its own: a move within one
+ * group carries it from `from`, and a move into another carries that group's
+ * own stop, leaving the stop of the group focus left where it is. `null`
+ * where there is no `from`, or the group moved into has no stop to carry.
+ */
+export const stopSource = (
+  root: Element,
+  from: Element | null,
+  to: Element | null | undefined,
+  readItems: ReadItems = attributeItems,
+  isRoot: IsRoot = attributeRoot,
+  isRoving: IsRoving = attributeRoving,
+): Element | null => {
+  if (!from || !to) return from;
+
+  const group = ownerRoot(to, root, isRoot);
+
+  return ownerRoot(from, root, isRoot) === group
+    ? from
+    : stopHolder(group, readItems, isRoot, isRoving);
+};
 
 /**
  * Gives `stop` the group's one `tabindex="0"` and every other of its roving
@@ -227,10 +257,11 @@ const carryStop = (from: Element, to: Element) => {
  * code passes no event, and has no key to claim. A missing `to`, or
  * one that is the focused item already, is a consumed no-op — focus and the
  * tab stop stay put, `onMove` stays quiet, and the result carries `to: null`.
- * Otherwise the roving tab stop follows when `isRoving` accepts the item being
- * left — by default, when it carries the attribute — `to` is focused, and
- * `onMove` fires with the move that happened. A move into another group
- * names the item its stop is carried from in `stopFrom` instead.
+ * Otherwise the roving tab stop follows when `isRoving` accepts the item it is
+ * carried from — by default, when it carries the attribute — `to` is focused,
+ * and `onMove` fires with the move that happened. That item is `from`, unless
+ * `stopFrom` names another: a move into another group carries that group's
+ * own stop, found by `stopSource` or at a boundary crossing.
  *
  * A `to` that does not take focus — not focusable, inert, hidden — is the same
  * consumed no-op, with the tab stop put back where it was.

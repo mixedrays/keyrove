@@ -15,6 +15,8 @@ tabindex gives the group one tab stop; the navigation keys move between items.
   disabled items.
 - On a move from a roving item, keyrove sets the previous item to `-1` and the
   destination to `0`.
+- Each nested root keeps its own stop. A move onto a nested root's item moves
+  that root's stop to it and leaves the outer group's stop in place.
 
 Arrow to an item, then <kbd class="kbd">Tab</kbd> away and <kbd class="kbd">Shift</kbd>+<kbd class="kbd">Tab</kbd> back. Focus returns to that item.
 

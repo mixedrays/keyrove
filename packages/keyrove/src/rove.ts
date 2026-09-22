@@ -15,6 +15,7 @@ import {
   readGroup,
   resolveRoot,
   stopHolder,
+  stopSource,
 } from './group.js';
 import { resolveTarget } from './position.js';
 import type { MoveResult, Options, StrideAction } from './types.js';
@@ -107,6 +108,14 @@ export const rove = (
     from,
     to: target,
     isRoving: config.isRoving,
+    stopFrom: stopSource(
+      root,
+      from,
+      target,
+      config.readItems,
+      isRoot ?? attributeRoot,
+      config.isRoving,
+    ),
     onMove: options.onMove,
   });
 };

@@ -103,8 +103,9 @@ Provide a way to leave the inner group:
 ## Getting in
 
 Outer arrow navigation can reach items inside nested roots, as in the reaction
-row above. When an outer item contains its own group, bind an enter key on the
-outer root to focus that group's items:
+row above. With roving tabindex, such a move updates the nested root's stop and
+leaves the outer group's stop in place. When an outer item contains its own
+group, bind an enter key on the outer root to focus that group's items:
 
 ```html
 <ul id="messages" data-keyrove-enter-key="Enter">

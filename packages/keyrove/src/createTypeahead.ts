@@ -10,7 +10,13 @@
 
 import { KEYROVE_ATTR_TYPEAHEAD } from './attributes.js';
 import { itemsReader, rootTest, skipTest, rovingTest } from './config.js';
-import { moveFocus, readGroup, resolveRoot } from './group.js';
+import {
+  attributeRoot,
+  moveFocus,
+  readGroup,
+  resolveRoot,
+  stopSource,
+} from './group.js';
 import { hasCommandModifier, isEditableTarget } from './utils.js';
 import type {
   KeyRoveEvent,
@@ -150,13 +156,22 @@ export const createTypeahead = ({
     if (!target) return null;
 
     // A match that is the focused item already is a consumed no-op, matching
-    // keyRove's edge no-ops; otherwise the roving stop moves with focus.
+    // keyRove's edge no-ops; otherwise the roving stop moves with focus,
+    // within the matched item's own group.
     return moveFocus({
       e,
       action: 'typeahead',
       from: focused,
       to: target,
       isRoving,
+      stopFrom: stopSource(
+        root,
+        focused,
+        target,
+        readItems,
+        isRoot ?? attributeRoot,
+        isRoving,
+      ),
       onMove,
     });
   };
