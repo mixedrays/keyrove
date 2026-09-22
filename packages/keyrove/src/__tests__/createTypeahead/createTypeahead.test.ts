@@ -456,6 +456,30 @@ describe('createTypeahead', () => {
     });
   });
 
+  describe('inside a shadow root', () => {
+    it('cycles on from the focused item', () => {
+      const host = document.createElement('div');
+      document.body.appendChild(host);
+      const shadow = host.attachShadow({ mode: 'open' });
+      const list = document.createElement('div');
+      list.append(
+        createItem('a', 'Sa'),
+        createItem('b', 'Sb'),
+        createItem('c', 'Sc'),
+      );
+      shadow.appendChild(list);
+      const typeahead = createTypeahead({ matchMode: 'cycle' });
+      list.addEventListener('keydown', (e) => typeahead(e));
+      shadow.getElementById('b')!.focus();
+
+      pressKey('s', { from: shadow.activeElement! });
+      expect(shadow.activeElement?.id).toBe('c');
+
+      pressKey('s', { from: shadow.activeElement! });
+      expect(shadow.activeElement?.id).toBe('a');
+    });
+  });
+
   describe('labels', () => {
     it('prefers the typeahead attribute over the text', () => {
       renderList([

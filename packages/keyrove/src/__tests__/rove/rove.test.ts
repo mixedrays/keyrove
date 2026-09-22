@@ -307,6 +307,28 @@ describe('rove', () => {
       });
     });
 
+    it('moves from the item focused inside a shadow root', () => {
+      const host = document.createElement('div');
+      document.body.appendChild(host);
+      const shadow = host.attachShadow({ mode: 'open' });
+      const list = document.createElement('div');
+      // Plain tab stops, so no roving stop stands in for the focused item.
+      list.append(
+        ...['a', 'b', 'c'].map((id) =>
+          item(id, { tabindex: '0', roving: false }),
+        ),
+      );
+      shadow.appendChild(list);
+      shadow.getElementById('b')!.focus();
+
+      expect(named(rove(list, 'next'))).toEqual({
+        action: 'next',
+        from: 'b',
+        to: 'c',
+      });
+      expect(shadow.activeElement?.id).toBe('c');
+    });
+
     it("carries each group's own stop across a nested group's items", () => {
       const root = group([
         item('a', { tabindex: '0' }),

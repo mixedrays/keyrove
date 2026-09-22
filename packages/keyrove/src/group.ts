@@ -40,13 +40,24 @@ export const attributeRoving: IsRoving = (from) =>
   hasEnabledAttribute(from, KEYROVE_ATTR_ROVING_TABINDEX);
 
 /**
+ * The focused element as `element`'s own tree sees it. Inside a shadow root
+ * the document sees only the host, so the shadow root is asked instead; focus
+ * in a shadow tree further down shows up as that tree's host, which is still
+ * inside whatever contains it.
+ */
+export const activeElementOf = (element: Element): Element | null =>
+  (element.getRootNode() as Partial<DocumentOrShadowRoot>).activeElement ??
+  null;
+
+/**
  * Whether the focused element is this element or inside it — `:focus-within`,
  * asked of the tree rather than of the selector engine. Focus moves without
  * mutating the DOM, and a cached selector result can go stale where a walk
- * cannot.
+ * cannot. An item that hands its focus on to a control of its own holds it
+ * too.
  */
 export const holdsFocus = (element: Element): boolean => {
-  const active = element.ownerDocument.activeElement;
+  const active = activeElementOf(element);
 
   return !!active && element.contains(active);
 };
@@ -217,18 +228,6 @@ export const placeStop = (items: Element[], stop: Element | null) => {
 };
 
 /**
- * Whether focus landed on `to` or inside it — an item may hand its focus on
- * to a control of its own. Asked of `to`'s own tree: inside a shadow root the
- * document sees only the host.
- */
-const tookFocus = (to: Element): boolean => {
-  const active = (to.getRootNode() as Partial<DocumentOrShadowRoot>)
-    .activeElement;
-
-  return !!active && to.contains(active);
-};
-
-/**
  * Moves the roving tab stop from one item to another, and hands back how to
  * put both `tabindex` values back exactly as they were — absent included.
  */
@@ -288,8 +287,9 @@ export const moveFocus = <Action extends string>({
 
   (to as HTMLElement).focus();
 
-  // `focus()` fails silently, so whether focus moved is read off the tree.
-  if (!tookFocus(to)) {
+  // `focus()` fails silently, so whether focus landed on `to` or inside it is
+  // read off the tree.
+  if (!holdsFocus(to)) {
     putBack?.();
 
     return { action, from, to: null };

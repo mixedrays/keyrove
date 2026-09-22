@@ -316,4 +316,103 @@ describe('keyRove', () => {
       expect(activeId()).toBe('outside');
     });
   });
+
+  describe('inside a shadow root', () => {
+    // A list and its listener inside an open shadow root, as a web component
+    // wires them. The document sees only the host as focused.
+    const renderShadow = (html: string) => {
+      const host = document.createElement('div');
+      document.body.appendChild(host);
+      const shadow = host.attachShadow({ mode: 'open' });
+      shadow.innerHTML = `<div id="list">${html}</div>`;
+      const results: RoveResult[] = [];
+      shadow
+        .getElementById('list')!
+        .addEventListener('keydown', (e) => results.push(keyRove(e)));
+
+      const byId = (id: string) => shadow.getElementById(id)!;
+      const press = (code: string) => pressKey(code, shadow.activeElement!);
+      const named = () =>
+        results.map(
+          (result) =>
+            result && {
+              action: result.action,
+              from: result.from?.id ?? null,
+              to: result.to?.id ?? null,
+            },
+        );
+
+      return { shadow, byId, press, named };
+    };
+
+    const ITEMS = `
+      <button id="a" data-keyrove-item>A</button>
+      <button id="b" data-keyrove-item>B</button>
+      <button id="c" data-keyrove-item>C</button>
+    `;
+
+    it('moves from the focused item, and back', () => {
+      const { shadow, byId, press, named } = renderShadow(ITEMS);
+      byId('a').focus();
+
+      press('ArrowDown');
+      expect(shadow.activeElement?.id).toBe('b');
+
+      press('ArrowDown');
+      expect(shadow.activeElement?.id).toBe('c');
+
+      press('ArrowUp');
+      expect(shadow.activeElement?.id).toBe('b');
+      expect(named()).toEqual([
+        { action: 'next', from: 'a', to: 'b' },
+        { action: 'next', from: 'b', to: 'c' },
+        { action: 'prev', from: 'c', to: 'b' },
+      ]);
+    });
+
+    it('goes Home and End from the focused item', () => {
+      const { shadow, byId, press, named } = renderShadow(ITEMS);
+      byId('b').focus();
+
+      press('End');
+      expect(shadow.activeElement?.id).toBe('c');
+
+      press('End');
+      expect(shadow.activeElement?.id).toBe('c');
+
+      press('Home');
+      expect(shadow.activeElement?.id).toBe('a');
+      expect(named()).toEqual([
+        { action: 'end', from: 'b', to: 'c' },
+        { action: 'end', from: 'c', to: null },
+        { action: 'home', from: 'c', to: 'a' },
+      ]);
+    });
+
+    it('navigates from the item holding focus in a descendant', () => {
+      const { shadow, byId, press, named } = renderShadow(`
+        <div id="a" data-keyrove-item tabindex="-1"><button id="control">A</button></div>
+        <button id="b" data-keyrove-item>B</button>
+      `);
+      byId('control').focus();
+
+      press('ArrowDown');
+
+      expect(shadow.activeElement?.id).toBe('b');
+      expect(named()).toEqual([{ action: 'next', from: 'a', to: 'b' }]);
+    });
+
+    it('leaves exit alone on a focused root that is an item of the group around it', () => {
+      const { byId, press, named } = renderShadow(`
+        <div id="panel" data-keyrove-item data-keyrove-root data-keyrove-exit-key="Escape" tabindex="0">
+          <button id="p0" data-keyrove-item>p0</button>
+        </div>
+        <button id="b" data-keyrove-item>B</button>
+      `);
+      byId('panel').focus();
+
+      expect(press('Escape').defaultPrevented).toBe(false);
+      expect(named()).toEqual([null]);
+    });
+  });
 });

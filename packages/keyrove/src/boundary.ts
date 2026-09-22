@@ -8,7 +8,7 @@
  * group's own, and the group focus left keeps its stop for the way back.
  */
 
-import { ownItems, stopHolder } from './group.js';
+import { activeElementOf, ownItems, stopHolder } from './group.js';
 import type { BoundaryAction, GroupConfig, IsRoot } from './types.js';
 
 // `Node.DOCUMENT_POSITION_FOLLOWING`, spelled out so reading it needs no
@@ -75,7 +75,7 @@ const exit = (
     items.find((item) => item.contains(root)) ??
     items[after < 0 ? items.length - 1 : after];
 
-  if (!to || to.ownerDocument.activeElement === to) return null;
+  if (!to || activeElementOf(to) === to) return null;
 
   return {
     to,
