@@ -199,6 +199,99 @@ describe('initRovingTabindex', () => {
     });
   });
 
+  describe('choosing the item', () => {
+    it('gives the stop to initial over the one the group has', () => {
+      const root = group(item('a', { tabindex: '0' }), item('b'), item('c'));
+      const c = document.getElementById('c');
+
+      expect(initRovingTabindex(root, { initial: c })).toBe(c);
+      expect(tabindexes('a', 'b', 'c')).toEqual({ a: '-1', b: '-1', c: '0' });
+    });
+
+    it('gives the stop to initial in a group with none', () => {
+      const root = group(
+        item('a', { tabindex: null }),
+        item('b', { tabindex: null }),
+      );
+      const b = document.getElementById('b');
+
+      expect(initRovingTabindex(root, { initial: b })).toBe(b);
+      expect(tabindexes('a', 'b')).toEqual({ a: '-1', b: '0' });
+    });
+
+    it('falls back to keep-or-first when initial is nullish', () => {
+      const root = group(item('a'), item('b', { tabindex: '0' }));
+
+      expect(initRovingTabindex(root, { initial: null })).toBe(
+        document.getElementById('b'),
+      );
+      expect(initRovingTabindex(root, { initial: undefined })).toBe(
+        document.getElementById('b'),
+      );
+      expect(tabindexes('a', 'b')).toEqual({ a: '-1', b: '0' });
+    });
+
+    it('falls back to keep-or-first when initial is not a navigable roving item', () => {
+      const skipped = item('skipped');
+      skipped.setAttribute(KEYROVE_ATTR_SKIP, '');
+      const disabled = item('disabled');
+      disabled.setAttribute('disabled', '');
+      const plain = item('plain', { roving: false });
+      const inside = document.createElement('span');
+      const root = group(
+        skipped,
+        disabled,
+        plain,
+        item('a'),
+        item('b', { tabindex: '0' }),
+        nestedRoot(item('n0', { tabindex: '0' })),
+      );
+      document.getElementById('a')!.append(inside);
+      const outside = item('outside');
+      document.body.append(outside);
+
+      for (const initial of [
+        skipped,
+        disabled,
+        plain,
+        inside,
+        document.getElementById('n0'),
+        outside,
+      ]) {
+        expect(initRovingTabindex(root, { initial })).toBe(
+          document.getElementById('b'),
+        );
+      }
+      expect(tabindexes('skipped', 'disabled', 'plain', 'a', 'b')).toEqual({
+        skipped: '-1',
+        disabled: '-1',
+        plain: '-1',
+        a: '-1',
+        b: '0',
+      });
+      expect(tabindexes('n0', 'outside')).toEqual({ n0: '0', outside: '-1' });
+    });
+
+    it('takes initial beside the settings of a group described in options', () => {
+      const root = group();
+      root.innerHTML = ['a', 'b', 'c']
+        .map(
+          (id) =>
+            `<div id="${id}" role="option" aria-selected="${id === 'b'}">${id}</div>`,
+        )
+        .join('');
+
+      const stop = initRovingTabindex(root, {
+        items: '[role="option"]',
+        rovingTabindex: true,
+        initial: root.querySelector('[aria-selected="true"]'),
+      });
+
+      expect(stop).toBe(document.getElementById('b'));
+      expect(tabindexes('a', 'b', 'c')).toEqual({ a: '-1', b: '0', c: '-1' });
+    });
+  });
+
   describe('nested groups', () => {
     it("leaves a nested group's stop alone", () => {
       const root = group(

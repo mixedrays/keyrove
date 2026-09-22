@@ -52,6 +52,20 @@ item. A template that renders `tabindex="0"` on the selected item keeps it the
 same way. A [nested group](/docs/examples/nested-roots) keeps its own stop,
 untouched; call the function on its root to set that one up.
 
+Where the item that should start with the stop is known to your code but not
+marked in the DOM, such as a tab list's active tab, name it in `initial`:
+
+```ts
+initRovingTabindex(tabs, {
+  initial: tabs.querySelector('[aria-selected="true"]'),
+});
+```
+
+It takes the stop even from an item that already holds it, so pass it when you
+mean to place the stop, not on every render. An `initial` that is `null`,
+skipped, disabled or not in the group is passed over, and the call behaves as
+if it were not there.
+
 A group with every item at `tabindex="-1"` cannot be reached with
 <kbd class="kbd">Tab</kbd> at all, which is the one way this pattern can leave a
 page _less_ navigable than the plain tab order it replaced. Exactly one `0` per

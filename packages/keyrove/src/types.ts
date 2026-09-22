@@ -255,6 +255,20 @@ export type RovingTabindexOptions = Pick<
 >;
 
 /**
+ * What `initRovingTabindex` takes: the group settings, and the item the stop
+ * should go to.
+ */
+export type InitRovingTabindexOptions = RovingTabindexOptions & {
+  /**
+   * The item to hold the stop, such as a listbox's selected option. It wins
+   * over a stop the group already has. Nullish, or anything that is not one of
+   * the group's navigable roving items, is passed over for the usual rule, so
+   * a query that found nothing needs no guard.
+   */
+  initial?: Element | null;
+};
+
+/**
  * How a group folds its DOM-ordered sequence — read once off the root and
  * handed to both pure layers, so neither re-derives it.
  *

@@ -81,6 +81,9 @@ key can be told apart.
   <kbd class="kbd">Tab</kbd> treats the whole list as one control.
   [Roving tabindex](/docs/examples/roving-tabindex) is the arrangement the APG
   describes for a composite widget, and keyrove carries the stop from here on.
+  Options rendered from data can leave the `tabindex` out and have
+  `initRovingTabindex` set the stop from the selection instead:
+  `initRovingTabindex(listbox, { initial: listbox.querySelector('[aria-selected="true"]') })`.
 - **Typeahead.** `createTypeahead()` second in the chain, after navigation and
   before the widget's own keys, so a letter jumps and a bound key never becomes
   typing. See [typeahead](/docs/examples/typeahead).

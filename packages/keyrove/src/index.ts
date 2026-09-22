@@ -7,6 +7,7 @@ export { matchesCombo, toggleTabIndex } from './utils.js';
 // internal and the public surface is visible at a glance.
 export type {
   GroupOptions,
+  InitRovingTabindexOptions,
   KeyRoveCode,
   KeyRoveEvent,
   Move,

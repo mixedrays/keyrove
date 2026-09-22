@@ -283,7 +283,14 @@ keyrove moves that stop but never creates it. Call `initRovingTabindex(list)`
 once the group renders, and again after re-renders: it gives the group exactly
 one `tabindex="0"`, keeping the one it has while that item is still there, and
 leaves nested groups' stops alone. It takes `items`, `root`, `skip` and
-`rovingTabindex`, the same as `keyRove` and `createTypeahead`.
+`rovingTabindex`, the same as `keyRove` and `createTypeahead`, and an `initial`
+item that takes the stop, such as a listbox's selected option:
+
+```ts
+initRovingTabindex(listbox, {
+  initial: listbox.querySelector('[aria-selected="true"]'),
+});
+```
 
 keyRove carries the stop on its own moves only. For a click, a call to
 `element.focus()`, or <kbd>Tab</kbd> onto a control inside an item, attach

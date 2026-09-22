@@ -492,10 +492,12 @@ It repairs the group rather than resetting it:
   `data-keyrove-item` with `data-keyrove-roving-tabindex`, or whatever the
   options name. Items of a [nested root](#roots) belong to that root's group
   and are left alone; call it on that root to set up its stop.
-- A navigable item, neither skipped nor disabled, that already has
-  `tabindex="0"` keeps the stop, the first in DOM order where there are
-  several. So the stop keyboard moves carried, or the one a template put on the
-  selected option, survives the call.
+- The `initial` option's item gets the stop, when it is one of the group's
+  navigable items, neither skipped nor disabled.
+- Failing that, a navigable item that already has `tabindex="0"` keeps the
+  stop, the first in DOM order where there are several. So the stop keyboard
+  moves carried, or the one a template put on the selected option, survives
+  the call.
 - Failing that, the first navigable item gets the stop.
 - Every other roving item gets `-1`, skipped and disabled ones included. Only
   attributes that change are written, so a call after a render that changed
@@ -515,6 +517,22 @@ const config = { items: '[role="menuitem"]', rovingTabindex: true };
 initRovingTabindex(menu, config);
 menu.addEventListener('keydown', (e) => keyRove(e, config));
 ```
+
+Where the item that should hold the stop is known to your code but not marked
+in the DOM, such as a listbox's selected option, name it in `initial`:
+
+```ts
+initRovingTabindex(listbox, {
+  initial: listbox.querySelector('[aria-selected="true"]'),
+});
+```
+
+`initial` wins over a stop the group already has, so pass it when you mean to
+place the stop: the first render, or a selection changed from outside the
+widget. Leave it out of the other re-renders, and the stop stays where the user
+left it. Anything that is not one of the group's navigable roving items,
+`null` included, is passed over for the rule above, so a query that found
+nothing needs no guard.
 
 ## followFocus(event, options?)
 
@@ -640,6 +658,7 @@ import type {
   Move,
   MoveAction,
   MoveResult,
+  InitRovingTabindexOptions,
   Options,
   RovingTabindexOptions,
   StrideAction,
@@ -774,15 +793,20 @@ type TypeaheadResult = {
 type TypeaheadMove = TypeaheadResult & { to: Element };
 ```
 
-### RovingTabindexOptions
+### RovingTabindexOptions, InitRovingTabindexOptions
 
-What [`initRovingTabindex`](#initrovingtabindex-root-options) and
-[`followFocus`](#followfocus-event-options) take: the group settings that
-decide which elements are the group's roving items.
+What [`followFocus`](#followfocus-event-options) and
+[`initRovingTabindex`](#initrovingtabindex-root-options) take: the group
+settings that decide which elements are the group's roving items, and for
+`initRovingTabindex`, the item to give the stop.
 
 ```ts
 type RovingTabindexOptions = Pick<
   GroupOptions,
   'items' | 'root' | 'skip' | 'rovingTabindex'
 >;
+
+type InitRovingTabindexOptions = RovingTabindexOptions & {
+  initial?: Element | null; // the item to hold the stop, when it can
+};
 ```
