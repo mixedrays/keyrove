@@ -66,6 +66,51 @@ const count = (value: number | undefined): number | undefined => {
   return whole >= 1 ? whole : undefined;
 };
 
+// A track in a resolved `grid-template-columns`: a size in pixels.
+const TRACK = /^\d*\.?\d+px$/;
+
+/**
+ * The columns a grid container lays out: the tracks of its resolved
+ * `grid-template-columns`, which lists every track as a pixel size however the
+ * rule was written, `repeat(auto-fill, …)` included. Named lines
+ * (`[full-start]`) are not tracks.
+ *
+ * A value that is not a list of pixel sizes counts nothing — `none` on a root
+ * that is no grid, or the declared value where nothing is laid out — and
+ * neither does an environment without `getComputedStyle`: the group is then a
+ * list.
+ */
+const countTracks = (root: Element): number => {
+  if (typeof getComputedStyle === 'undefined') return 1;
+
+  const tracks = getComputedStyle(root)
+    .getPropertyValue('grid-template-columns')
+    .replace(/\[[^\]]*\]/g, ' ')
+    .trim()
+    .split(/\s+/);
+
+  return tracks.every((track) => TRACK.test(track)) ? tracks.length : 1;
+};
+
+/**
+ * The group's column count. `auto`, from either source and in any case in the
+ * attribute, counts the tracks on screen on every keypress; a number is taken
+ * as it stands, where it is usable.
+ */
+const readColumns = (root: Element, cols: GroupOptions['cols']): number => {
+  if (cols === 'auto') return countTracks(root);
+
+  const option = count(cols);
+
+  if (option) return option;
+
+  if (root.getAttribute(KEYROVE_ATTR_COLS)?.trim().toLowerCase() === 'auto') {
+    return countTracks(root);
+  }
+
+  return parseAttributeInt(root, KEYROVE_ATTR_COLS, 1);
+};
+
 /**
  * Whether an element is a group's root, where a `root` selector names one.
  * Undefined otherwise, which leaves `resolveRoot` reading the attribute.
@@ -85,7 +130,7 @@ const readLayout = (
   root: Element,
   { cols, orientation, loop }: GroupOptions,
 ): Layout => {
-  const columns = count(cols) ?? parseAttributeInt(root, KEYROVE_ATTR_COLS, 1);
+  const columns = readColumns(root, cols);
 
   if (columns > 1) {
     return { kind: 'grid', cols: columns, horizontal: true, loop: false };

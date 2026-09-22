@@ -96,8 +96,7 @@ el.addEventListener('keydown', (e) =>
 
 For markup you do own, the attribute is usually the better of the two:
 [responsive grid](/docs/examples/responsive-grid) tracks a column count that CSS
-decides, without an options object at all, by writing the attribute its layout
-implies.
+decides, without an options object at all, with `data-keyrove-cols="auto"`.
 
 ## One object, both handlers
 

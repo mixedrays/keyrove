@@ -353,7 +353,7 @@ presses.
 | `data-keyrove-skip`            | `skip`           | item | —           | Passed over when moving; stays in the DOM order. As an option: a selector or `(element) => boolean`.                              |
 | `data-keyrove-roving-tabindex` | `rovingTabindex` | item | —           | Moves the `tabindex="0"` tab stop with focus. As an option: one boolean for the whole group.                                      |
 | `data-keyrove-root`            | `root`           | root | —           | Marks the navigation root explicitly, instead of using the listener's element. As an option: the selector a root answers to.      |
-| `data-keyrove-cols`            | `cols`           | root | `1`         | Column count; above 1 the group navigates as a grid.                                                                              |
+| `data-keyrove-cols`            | `cols`           | root | `1`         | Column count; above 1 the group navigates as a grid. `auto` counts the root's CSS grid tracks on every keypress.                  |
 | `data-keyrove-page-length`     | `pageLength`     | root | `10`        | Items per page jump — whole rows in a grid.                                                                                       |
 | `data-keyrove-next-key`        | `keys.next`      | root | axis arrow  | Combo for the next item — the next cell, in a grid. E.g. `KeyJ` or `ctrl+ArrowRight`.                                             |
 | `data-keyrove-prev-key`        | `keys.prev`      | root | axis arrow  | Combo for the previous item.                                                                                                      |

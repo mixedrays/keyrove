@@ -138,8 +138,11 @@ export type GroupOptions = {
    * in when nothing above the target matches.
    */
   root?: string;
-  /** Columns. Above 1 the group is a grid. Defaults to the cols attribute. */
-  cols?: number;
+  /**
+   * Columns. Above 1 the group is a grid. `'auto'` counts the tracks of the
+   * root's CSS grid on every keypress. Defaults to the cols attribute.
+   */
+  cols?: number | 'auto';
   /**
    * Whether `next`/`prev` wrap at the ends. Lists only, as for the attribute.
    */

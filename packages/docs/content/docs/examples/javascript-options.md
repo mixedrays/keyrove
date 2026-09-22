@@ -84,5 +84,5 @@ Reach for options where the markup is not yours, or where a setting is computed
 keypresses, since the object is read fresh on every one. For markup you do own,
 the attributes usually read better:
 [responsive grid](/docs/examples/responsive-grid) tracks a column count without
-an options object at all, by writing the attribute its layout implies.
+an options object at all, with `data-keyrove-cols="auto"`.
 [Attributes and options](/docs/attributes-and-options) weighs the two.

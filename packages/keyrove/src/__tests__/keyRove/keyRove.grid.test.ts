@@ -14,6 +14,7 @@ import {
   renderList,
   resetTestState,
 } from './testUtils';
+import type { RenderOptions } from './testUtils';
 
 afterEach(resetTestState);
 
@@ -238,6 +239,148 @@ describe('keyRove', () => {
         expect(activeId()).toBe('b');
       },
     );
+  });
+
+  describe('columns counted from CSS (cols="auto")', () => {
+    // jsdom lays nothing out, so the resolved `grid-template-columns` a
+    // browser would report is stubbed in.
+    const resolveColumns = (template: string) =>
+      vi.spyOn(window, 'getComputedStyle').mockImplementation(
+        () =>
+          ({
+            direction: 'ltr',
+            getPropertyValue: (property: string) =>
+              property === 'grid-template-columns' ? template : '',
+          }) as CSSStyleDeclaration,
+      );
+
+    const renderAuto = (renderOptions: RenderOptions = {}) =>
+      renderList(
+        Array.from({ length: 9 }, (_, i) => createItem(`${i}`)),
+        {
+          ...renderOptions,
+          containerAttrs: {
+            [KEYROVE_ATTR_COLS]: 'auto',
+            ...renderOptions.containerAttrs,
+          },
+        },
+      );
+
+    afterEach(() => {
+      vi.unstubAllGlobals();
+    });
+
+    it('folds rows by the tracks on screen', () => {
+      resolveColumns('120px 120px 120px');
+      renderAuto();
+      document.getElementById('0')!.focus();
+
+      pressKey('ArrowDown');
+      expect(activeId()).toBe('3');
+
+      pressKey('ArrowRight');
+      expect(activeId()).toBe('4');
+    });
+
+    it('does not count named lines as tracks', () => {
+      resolveColumns('[full-start] 96.5px 96.5px [mid] 96.5px [full-end]');
+      renderAuto();
+      document.getElementById('0')!.focus();
+
+      pressKey('ArrowDown');
+
+      expect(activeId()).toBe('3');
+    });
+
+    it('re-counts on every keypress, as the layout changes', () => {
+      const style = resolveColumns('100px 100px 100px');
+      renderAuto();
+      document.getElementById('0')!.focus();
+
+      pressKey('ArrowDown');
+      expect(activeId()).toBe('3');
+
+      style.mockImplementation(
+        () =>
+          ({
+            direction: 'ltr',
+            getPropertyValue: () => '100px 100px',
+          }) as unknown as CSSStyleDeclaration,
+      );
+      pressKey('ArrowDown');
+      expect(activeId()).toBe('5');
+    });
+
+    it('reads the attribute in any case', () => {
+      resolveColumns('100px 100px 100px');
+      renderAuto({ containerAttrs: { [KEYROVE_ATTR_COLS]: ' AUTO ' } });
+      document.getElementById('0')!.focus();
+
+      pressKey('ArrowDown');
+
+      expect(activeId()).toBe('3');
+    });
+
+    it.each([
+      ['a root that is no grid', 'none'],
+      ['a value with nothing laid out', ''],
+      ['a declared value left unresolved', 'repeat(3, minmax(0, 1fr))'],
+    ])('makes a list of %s', (_, template) => {
+      resolveColumns(template);
+      renderAuto();
+      document.getElementById('0')!.focus();
+
+      pressKey('ArrowDown');
+      expect(activeId()).toBe('1');
+
+      const cellMove = pressKey('ArrowRight');
+      expect(cellMove.defaultPrevented).toBe(false);
+    });
+
+    it('makes a list where jsdom resolves the grid without layout', () => {
+      const root = renderAuto();
+      root.style.display = 'grid';
+      root.style.gridTemplateColumns = 'repeat(3, 1fr)';
+      document.getElementById('0')!.focus();
+
+      pressKey('ArrowDown');
+
+      expect(activeId()).toBe('1');
+    });
+
+    it('makes a list without getComputedStyle', () => {
+      vi.stubGlobal('getComputedStyle', undefined);
+      renderAuto();
+      document.getElementById('0')!.focus();
+
+      pressKey('ArrowDown');
+
+      expect(activeId()).toBe('1');
+    });
+
+    it("takes 'auto' as an option, over a numeric attribute", () => {
+      resolveColumns('100px 100px 100px');
+      renderAuto({
+        containerAttrs: { [KEYROVE_ATTR_COLS]: '2' },
+        options: { cols: 'auto' },
+      });
+      document.getElementById('0')!.focus();
+
+      pressKey('ArrowDown');
+
+      expect(activeId()).toBe('3');
+    });
+
+    it("lets a numeric option win over an 'auto' attribute", () => {
+      // Three tracks on screen; the option's two columns fold the rows.
+      resolveColumns('100px 100px 100px');
+      renderAuto({ options: { cols: 2 } });
+      document.getElementById('0')!.focus();
+
+      pressKey('ArrowDown');
+
+      expect(activeId()).toBe('2');
+    });
   });
 
   describe('grid key bindings', () => {

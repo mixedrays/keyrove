@@ -1,5 +1,4 @@
 import {
-  KEYROVE_ATTR_COLS,
   KEYROVE_ATTR_FOCUS_KEY,
   KEYROVE_ATTR_ITEM,
   KEYROVE_ATTR_ROOT,
@@ -599,25 +598,6 @@ const firstItem = (surface: HTMLElement, { items: named }: GroupOptions) => {
   );
 };
 
-/**
- * Columns decided by CSS.
- *
- * The responsive demo lets a container query choose its column count and
- * publishes it as `--cols` on the grid. keyrove reads `data-keyrove-cols`, so
- * the attribute is brought level with the property right before each keypress
- * — the line the page's own snippet shows — rather than watched for resizes.
- * The grid is a descendant of the surface rather than the surface itself
- * because the query needs a container above the element it lays out.
- */
-const syncColumns = (surface: HTMLElement) => {
-  const grids = surface.querySelectorAll<HTMLElement>(`[${KEYROVE_ATTR_COLS}]`);
-
-  for (const grid of grids) {
-    const cols = getComputedStyle(grid).getPropertyValue('--cols');
-    if (cols) grid.setAttribute(KEYROVE_ATTR_COLS, cols);
-  }
-};
-
 /** Wires every demo on the current page. */
 export const mountDemos = () => {
   const demos = Array.from(document.querySelectorAll<HTMLElement>('.demo'));
@@ -648,8 +628,6 @@ export const mountDemos = () => {
     // The first handler to claim the key ends the chain, which is the `||` of
     // the pages' own snippets.
     surface.addEventListener('keydown', (e) => {
-      syncColumns(surface);
-
       // The first handler to claim the key ends the chain, which is the `||`
       // of the pages' own snippets — kept rather than discarded, because what
       // it answered with is what the history has to report.
