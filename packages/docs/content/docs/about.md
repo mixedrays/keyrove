@@ -5,16 +5,15 @@ group: Guide
 order: 5
 ---
 
-keyrove is a framework-agnostic, dependency-free library for keyboard navigation
-in lists, grids and trees; the [introduction](/docs/introduction) explains what
-it does and how it fits together. It is developed in the open under the MIT
-licence, and issues and pull requests are welcome.
+keyrove provides keyboard navigation for lists, grids and trees, in any
+framework and with no runtime dependencies. See the [introduction](/docs/introduction)
+for setup and behavior. The project is open source under the MIT license;
+issues and pull requests are welcome.
 
 ## This site
 
 <div data-about></div>
 
-Every page is also available as markdown — append `.md` to any URL, or use
-**View as Markdown** in the right-hand rail. The pages are generated from the
-files under `packages/docs/content` in the same repository, which is what the
-**View source** link on each page opens.
+To read a page as Markdown, append `.md` to its URL or choose **View as
+Markdown** in the right-hand rail. **View source** opens its source file under
+`packages/docs/content` in the repository.

@@ -1,21 +1,17 @@
 ---
 title: Nested roots
-description: A group inside a group — the nearest root wins, so an inner list navigates by its own keys while the list around it keeps its.
+description: Give nested groups their own bindings and provide a way to return to the outer group.
 titleTag: Nested keyboard navigation groups — keyrove
 group: Examples
 order: 18
 ---
 
-Composite widgets nest: a menu with a row of reactions along the top, a settings
-list with a colour-swatch grid between two of its rows. `data-keyrove-root` on
-the inner group gives it its own keys, columns, and page size.
+Put `data-keyrove-root` on an inner group to give it its own keys, columns
+and page size.
 
-<kbd class="kbd">↑</kbd> <kbd class="kbd">↓</kbd> walk the menu, and
-<kbd class="kbd">↑</kbd> from _Reply_ steps into the reaction row. Inside it,
-<kbd class="kbd">←</kbd> <kbd class="kbd">→</kbd> move between reactions and
-<kbd class="kbd">Escape</kbd> returns to the menu. The inner group is a root
-with its own attributes; nothing else about it is special, and the same
-`data-keyrove-item` marks its items.
+In this menu, Up/Down move between actions. Up from _Reply_ enters the
+reaction row, where Left/Right move between reactions. The demo's Escape
+handler returns focus to the menu.
 
 <div data-demo="nested"></div>
 
@@ -25,12 +21,10 @@ document
   .addEventListener('keydown', (e) => keyRove(e));
 ```
 
-One listener, on the outer list. The inner group needs none of its own: the
-keydown bubbles up to that listener, and `keyRove` resolves the root from the
-event's _target_ rather than from the element the listener sits on. That is also
-why the outer list carries no `data-keyrove-root`: it is the listener's element,
-which keyrove falls back to. Move the listener further up, to a panel or to
-`document`, and the outer group needs the attribute too.
+The outer list has one listener. Events bubble to it, and keyrove finds the
+root from the event target. The outer list needs no root attribute because it
+is the listener's element. If you move the listener to a panel or `document`,
+mark the outer list with `data-keyrove-root` too.
 
 ## The nearest root wins
 
@@ -64,20 +58,17 @@ so the outer group's order runs straight _through_ the inner one. In the demo,
 <kbd class="kbd">↑</kbd> from _Reply_ lands on the last reaction rather than
 skipping the row.
 
-That is usually what you want: the outer group's keys reach the inner group,
-instead of <kbd class="kbd">Tab</kbd> being the only way in. But there is no
-attribute that hides an inner group from the group around it. If the outer
-group's keys should not reach a group, place that group outside the outer root.
+This lets outer navigation enter the inner group. To keep the groups'
+attribute-selected item sequences separate, place them in sibling roots.
 
 ## Getting back out
 
-Once focus is inside the inner group, no key reaches the outer one. A key the
-inner root does not bind, <kbd class="kbd">↓</kbd> in the reaction row above,
-does nothing at all: keyrove leaves it to the browser rather than passing it on
-to the group outside. The log tells that apart from the other way a key can
-come to nothing: <kbd class="kbd">↓</kbd> is grey, never bound here, while
-<kbd class="kbd">←</kbd> on the first reaction is amber — bound, claimed, and
-out of room. Leaving is yours to wire, and there are three ways to do it:
+Inside a nested root, only that root's movement bindings apply. Unbound keys
+do not fall through to the outer group. In the reaction row, Down is unhandled
+(grey in the log); Left at the first reaction is consumed without moving
+(amber).
+
+Provide a way to leave the inner group:
 
 1. **<kbd class="kbd">Tab</kbd>.** keyrove never binds it, so the browser's
    focus order is always a way out. With
@@ -103,8 +94,6 @@ out of room. Leaving is yours to wire, and there are three ways to do it:
 
 ## Nesting, or two roots side by side
 
-Nest only when the inner group sits inside the outer one's flow. Groups that are
-merely on the same page do not need to be nested at all: marking each of them
-`data-keyrove-root` under one delegated listener keeps them fully independent,
-with no group's items in another's order. See
+Use nested roots when outer navigation should reach the inner items. For
+independent groups, place sibling roots under a shared listener. See
 [several groups, one listener](/docs/installation#several-groups-one-listener).

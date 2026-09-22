@@ -1,23 +1,16 @@
 ---
 title: Focus keys
-description: Give an element a key of its own, so one press focuses it from anywhere under the listener — another group, a nested root, even a text field.
+description: Assign shortcuts that focus items or panels across groups, including from editable fields.
 titleTag: Keyboard shortcuts that focus an element — keyrove
 group: Examples
 order: 19
 ---
 
-Every move so far is relative: next, previous, a row, a page, an end, each
-starts from wherever focus is. A focus key is absolute. Put
-`data-keyrove-focus-key` with a combo on an element, and one press focuses that
-element from anywhere the keydown reaches the listener. Use it for anything a
-user should be able to jump to, not only walk to: the panels of an editor-like
-layout, the tabs of a strip, the tools of a palette.
+Set `data-keyrove-focus-key` on an element to focus it with a shortcut from
+anywhere under the listener.
 
-<kbd class="kbd">Ctrl</kbd>+<kbd class="kbd">Shift</kbd>+<kbd class="kbd">1</kbd>,
-<kbd class="kbd">2</kbd> and <kbd class="kbd">3</kbd> pick a panel here, each
-panel carrying its own. Click into the text area first and press one anyway:
-the chord still lands, because a press holding <kbd class="kbd">Ctrl</kbd> is a
-command, not typing.
+Ctrl+Shift+1, 2 or 3 focuses a panel in this demo. Try a shortcut from the text
+area: focus keys with Ctrl, Alt or Meta also work inside editable fields.
 
 <div data-demo="panes"></div>
 
@@ -27,19 +20,13 @@ document
   .addEventListener('keydown', (e) => keyRove(e));
 ```
 
-The panels are laid out the way an editor lays them out, which is the case a
-focus key is for. There is no "down" from a sidebar that spans both rows, and
-nothing an arrow could call next that a reader would predict: a relative move
-needs an order to be relative to, and this layout does not have one. Naming
-the panel is all that is left, so the panels are not items at all, and no arrow
-walks between them.
+The panels are not navigation items, so arrows do not move between them.
+Each panel has its own [combo](/docs/api#combos). A bare code also works:
+`data-keyrove-focus-key="KeyE"` focuses an element with E outside editable
+fields.
 
-The call is the one every other page makes. The value is a
-[combo](/docs/api#combos) like any `*-key` attribute's, and a bare code works
-too: `data-keyrove-focus-key="KeyE"` makes <kbd class="kbd">E</kbd> pick the
-element wherever the letter would not be typing. The move reports `'focus'` to
-`onMove` and in the [return value](/docs/api#return-value), so a consumer can
-tell a jump from a step.
+The move reports `action: 'focus'` to `onMove` and in the
+[return value](/docs/api#return-value).
 
 ## As far as the listener hears
 
@@ -55,10 +42,8 @@ scope control:
 
 ## A key and an order
 
-The panels have no order worth walking, so they are not items. A tool palette
-has both: an order, top to bottom, and a key for every tool that anyone who has
-used a design app already knows. So each tool is an item _and_ carries a focus
-key.
+An element can have both `data-keyrove-item` and a focus key. This palette
+supports arrow navigation and direct shortcuts to tools.
 
 <div data-demo="tools"></div>
 
@@ -75,19 +60,14 @@ the tool you last reached, whichever way you reached it, because the
 [roving tab stop](/docs/examples/roving-tabindex) follows a jump as it follows
 an arrow.
 
-The keys are the ones design tools use, not the tools' initials: Move is
-<kbd class="kbd">V</kbd>, Ellipse is <kbd class="kbd">O</kbd>, and the
-eyedropper is <kbd class="kbd">I</kbd>. That is the line between a focus key
-and [typeahead](/docs/examples/typeahead): typeahead finds an item by how its
-label is spelled, while a focus key binds whatever key you choose to one
-element. Each tool also carries `aria-keyshortcuts`, and the cap beside its
-name is drawn from that attribute rather than written a second time, so what
-the palette shows is what a screen reader announces; see
-[telling users about it](#telling-users-about-it).
+Focus keys use the bindings you choose: V for Move, O for Ellipse, I for
+Eyedropper. [Typeahead](/docs/examples/typeahead) instead matches labels.
 
-The key only moves focus. A real palette would pick the tool as well, and that
-is the app's own business: `onMove` reports the jump as `'focus'`, with the
-tool as `to`, which is the place to do it.
+Each tool also has `aria-keyshortcuts`. The demo uses it to display the shortcut
+beside the label; see [telling users about it](#telling-users-about-it).
+
+A focus key only moves focus. To select or activate the tool, add your own
+logic, for example in `onMove` using the destination `to`.
 
 ## Item or not
 
@@ -98,11 +78,12 @@ decides what else reaches it:
   arrows reach it too, and the key is a shortcut to a place they already go.
   The jump is a move in that group: `from` is the item focus left, or `null`
   from outside the group, and a
-  [roving tab stop](/docs/examples/roving-tabindex) follows it as it follows an
-  arrow.
+  [roving tab stop](/docs/examples/roving-tabindex) moves when focus leaves a
+  roving item. Attach `followFocus` to `focusin` to update the stop when the
+  shortcut enters from outside the group.
 - **Any other element**, like the panels, is reached by its key alone. No arrow
-  lands on it, and the jump belongs to no group: `from` is `null`, and no tab
-  stop moves.
+  lands on it. A jump to it reports `from: null` and moves no group tab stop.
+  If focus is already inside it, `from` is that element and `to` is `null`.
 
 Either way, pressing the key while focus is already inside its element is a
 consumed no-op: the key is claimed, and focus stays where it is. The
@@ -134,12 +115,8 @@ take focus, the key is still claimed, but focus stays where it was and
 
 ## From inside a text field
 
-Moves are never handled inside
-[editable targets](/docs/examples/editable-targets), whatever they are bound
-to: arrows and <kbd class="kbd">Home</kbd> move the caret there, and letters
-type. A focus key
-points _out_ of the field, so it gets the line typeahead draws between a command
-and typing:
+Movement bindings leave [editable targets](/docs/examples/editable-targets)
+their editing keys. Focus shortcuts are the exception:
 
 - A combo holding <kbd class="kbd">Ctrl</kbd>, <kbd class="kbd">Alt</kbd> or
   <kbd class="kbd">Meta</kbd> fires from inside a field.
@@ -148,38 +125,32 @@ and typing:
 In the demo, `ctrl+shift+Digit1` reaches out of the text area; a bare `Digit1`
 would type a "1" there and focus the panel from everywhere else.
 
-That leaves collisions with the field's own commands and typing to you:
-<kbd class="kbd">Ctrl</kbd>+<kbd class="kbd">B</kbd> means bold in a rich-text
-editor, <kbd class="kbd">Alt</kbd>+letter types accented characters on macOS,
-and on Windows <kbd class="kbd">AltGr</kbd> is reported as
-<kbd class="kbd">Ctrl</kbd>+<kbd class="kbd">Alt</kbd>, so a `ctrl+alt+` chord
-fires while a user types € or @ on many European layouts.
-<kbd class="kbd">Ctrl</kbd>+<kbd class="kbd">Shift</kbd> chords, like the
-demo's, tend to be free.
+Choose shortcuts that do not conflict with editing commands or text input.
+For example, Ctrl+B can mean bold; Alt+letter can type accented characters on
+macOS; and Windows can report AltGr as Ctrl+Alt. A `ctrl+alt+` focus shortcut
+can therefore fire during text entry. No focus key runs while `isComposing`
+is true.
 
 ## Precedence and ties
 
-A focus key is the most specific binding there is: it names one element, where a
-root's `*-key` names a whole group and a default names nothing in particular. So
-focus keys sit first in the [binding table](/docs/api#precedence) and win any
-collision. An item bound to `Home` takes <kbd class="kbd">Home</kbd> and the
-default stands down, just as a root binding would. Had an inner root's rebinding
-of the same combo won instead, the outer item's key would have failed only while
-focus was inside that root, and silently; fixed precedence makes a collision
-show up every time.
+Focus keys take precedence over explicit movement bindings and defaults.
+For example, an element's `Home` focus key overrides the usual Home action.
 
-Two elements naming the same combo resolve to the first in DOM order; the second
-is unreachable by that key. Elements carrying `data-keyrove-skip` or `disabled`
-are not destinations, so a focus key on one is inert and the key keeps its
-browser default. As with every binding, the wider the listener, the more a bare-letter
-key can shadow; a chord is the safer choice on a `document` listener.
+When two elements declare the same combo, the first in DOM order wins.
+The attribute scan excludes skipped and disabled targets. An explicit
+`focusKeys` map replaces that scan and bypasses skip checks, but still excludes
+disabled targets; see
+[configuration differences](/docs/attributes-and-options#configuration-differences).
+
+If a target is excluded, another binding may handle the key. If none matches,
+the browser keeps it. Consider the listener's scope when assigning shortcuts:
+a bare letter on a document listener applies across the page.
 
 ## Telling users about it
 
-keyrove reads the combo; it does not announce it. The
+Add
 [`aria-keyshortcuts`](https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA/Reference/Attributes/aria-keyshortcuts)
-attribute exists for that, and it is worth setting alongside the focus key so
-assistive technology can say the shortcut out loud. The two use different
-spellings, ARIA names keys where keyrove names physical codes, so
+to expose a shortcut to assistive technology. keyrove does not set it for you.
+ARIA uses key names, while keyrove uses physical codes:
 `data-keyrove-focus-key="ctrl+shift+KeyE"` pairs with
 `aria-keyshortcuts="Control+Shift+E"`.

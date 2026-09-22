@@ -1,15 +1,13 @@
 ---
 title: Grid
-description: Declaring a column count folds the items into rows — cell moves and row moves, each on its own rebindable pair.
+description: Set the column count and navigate by cell, row, row ends, grid ends or pages.
 titleTag: Arrow key navigation for grids — keyrove
 group: Examples
 order: 14
 ---
 
-Add `data-keyrove-cols` to the root and the same list navigates as a grid:
-<kbd class="kbd">↑</kbd> <kbd class="kbd">↓</kbd> move a whole row, so focus
-lands on the item directly above or below, and <kbd class="kbd">←</kbd>
-<kbd class="kbd">→</kbd> move one cell.
+Set `data-keyrove-cols` above `1` to navigate a grid. Up/Down move one row in
+the same column; Left/Right move one cell in DOM order.
 
 <div data-demo="grid" data-demo-class="grid grid-cols-6 gap-1.5"></div>
 
@@ -46,11 +44,8 @@ on screen.
 - Rebind any move and the replaced default goes back to its browser behaviour;
   see [custom keys](/docs/examples/custom-keys#grids).
 
-The log under the demo is where the table's last column shows itself. A move
-that runs into an edge is still keyrove's — it comes back claimed, with nowhere
-to go, which is the amber row — and that is why holding <kbd class="kbd">↓</kbd>
-at the foot of the grid does not fall through to the browser and scroll the page
-instead.
+At an edge, the key is still consumed and the log shows an amber no-op.
+Holding Down at the bottom of the grid therefore does not scroll the page.
 
 ## Right-to-left grids
 

@@ -1,6 +1,6 @@
 ---
 title: Installation
-description: Installing the package, wiring the first keydown handler in any framework, and what the markup has to carry.
+description: Install keyrove and connect a keyboard handler in vanilla JavaScript, React, Vue or Svelte.
 titleTag: Installation for React, Vue and Svelte — keyrove
 group: Guide
 order: 2
@@ -42,22 +42,18 @@ list.addEventListener('keydown', (e) => keyRove(e));
 </ul>
 ```
 
-You add the `tabindex="0"` yourself: keyrove moves focus but never makes an
-element focusable. That `tabindex` is also what keeps the items reachable with
-<kbd class="kbd">Tab</kbd>, which keyrove leaves alone. If you would rather the
-whole group were a single tab stop, use
+Give non-native items `tabindex="0"` so they can receive focus. With the default
+bindings, Tab visits each item. For one tab stop per group, use
 [roving tabindex](/docs/examples/roving-tabindex).
 
-By default the group answers to <kbd class="kbd">↑</kbd> and
-<kbd class="kbd">↓</kbd>. Add `data-keyrove-next-key` and
-`data-keyrove-prev-key` to the root for anything else; see
-[custom keys](/docs/examples/custom-keys). Every attribute name is also
-exported as a [constant](/docs/api#constants), for markup built in JavaScript.
+Lists use Up/Down by default. Set `data-keyrove-next-key` and
+`data-keyrove-prev-key` on the root to [change the keys](/docs/examples/custom-keys).
+Attribute names are also exported as [constants](/docs/api#constants).
 
-If the markup is not yours to add attributes to, the same settings can be
-passed to `keyRove` instead — `keyRove(e, { items: '[role="menuitem"]' })`
-navigates a component you did not write. The wiring below is the same either
-way; see [attributes and options](/docs/attributes-and-options).
+Use options when you cannot add attributes to the markup. For example,
+`keyRove(e, { items: '[role="menuitem"]' })` selects items by their role.
+See [attributes and options](/docs/attributes-and-options) for the mapping
+and fallback rules.
 
 ## React
 
@@ -110,10 +106,10 @@ import { keyRove } from '@mixedrays/keyrove';
 
 ## Several groups, one listener
 
-The navigation root is the nearest ancestor carrying `data-keyrove-root`,
-falling back to the element the listener is attached to. Mark each group as a
-root, and a single delegated listener, on a panel or on `document`, serves any
-number of independent groups without them seeing each other's items.
+Mark each group with `data-keyrove-root` to use one listener on a shared
+panel or `document`. Each event uses the nearest root at or above its target,
+falling back to the listener's element when no root is marked. Sibling roots
+keep their items and settings separate.
 
 ```html
 <div id="panel">
@@ -134,6 +130,5 @@ number of independent groups without them seeing each other's items.
 document.querySelector('#panel').addEventListener('keydown', (e) => keyRove(e));
 ```
 
-Roots can also sit inside one another, which is how a group that is part of
-another group's flow keeps its own keys and columns; see
+Roots can also nest. Each inner group uses its own keys and settings; see
 [nested roots](/docs/examples/nested-roots).

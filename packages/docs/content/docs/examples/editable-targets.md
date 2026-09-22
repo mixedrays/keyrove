@@ -1,24 +1,19 @@
 ---
 title: Editable targets
-description: Fields inside items keep their keys — arrows move the caret, letters type, a slider slides — and navigation resumes the moment focus leaves them.
+description: Keep native editing keys inside fields while navigating the surrounding items.
 titleTag: Keyboard navigation with input fields — keyrove
 group: Examples
 order: 21
 ---
 
-Items are not always plain text. A settings row holds a checkbox or a text
-field; a task row has a title to rename in place. keyrove tells the two kinds
-of keypress apart by where the press lands: inside an editable element nothing
-is handled, whatever the key is bound to. The arrows and
-<kbd class="kbd">Home</kbd> belong to the caret there, and a `KeyJ` binding
-does not swallow a typed "j".
+Movement bindings leave editable fields their native keys. Arrows can move a
+caret or change a value, and letter bindings do not capture typed text. Modified
+focus shortcuts are the [exception](#the-one-exception).
 
-Arrow down the rows, then <kbd class="kbd">Tab</kbd> into the control on one.
-In _Display name_ and _Signature_, <kbd class="kbd">↓</kbd> moves the caret; on
-_Font size_ it nudges the slider; on a checkbox it moves rows again, because
-there it does nothing natively. The log beside the sheet tells the two apart:
-green while the row has focus and the arrow is a move, grey the moment the
-press lands in a field and keyrove stands down.
+Arrow between the demo's rows, then Tab into a control. Text fields keep their
+editing behavior, _Font size_ keeps its slider keys, and Down on the checkbox
+moves to the next row. The log shows navigation in green and unhandled keys
+in grey.
 
 <div data-demo="editable"></div>
 
@@ -28,11 +23,8 @@ document
   .addEventListener('keydown', (e) => keyRove(e));
 ```
 
-The call is the one every other page makes; the exemption is keyrove's, not
-something the listener arranges. Each row is the item, and an item counts as
-focused while focus is anywhere inside it, so after <kbd class="kbd">Tab</kbd>
-lands on a control the row is still the position: the moment a key is handled
-again, it counts from there.
+No extra configuration is needed. A row remains the current item while focus
+is inside one of its controls. When navigation resumes, it starts from that row.
 
 ## Which elements are editable
 
@@ -53,32 +45,25 @@ nudges the slider.
 
 ## By target, not by key
 
-The exemption is decided by where the press landed, never by which key it was.
-Whatever a move is bound to, a letter, a chord, a function key, it is left
-alone inside a field: bind next to `ctrl+ArrowRight` and the caret's word jump
-still works in a text field inside an item; bind it to `KeyJ` and "j" still
-types there. Editing is the one context where every key is the user's own.
-`keyRove` returns `null` for all of them, so a handler chained after it sees
-the press too.
+The target determines whether movement keys are handled. In a text field,
+`ctrl+ArrowRight` still moves by word and `KeyJ` still types "j", even when
+those combos are bound to navigation. `keyRove` returns `null`, so any handler
+chained after it also receives the event.
 
 ## The one exception
 
-A [focus key](/docs/examples/focus-keys) whose combo holds
-<kbd class="kbd">Ctrl</kbd>, <kbd class="kbd">Alt</kbd> or
-<kbd class="kbd">Meta</kbd> fires from inside a field. That press is a command
-rather than typing, and a focus key points _out_ of the field, so it is the way
-to leave one without reaching for the mouse. A bare focus key, or one holding
-only <kbd class="kbd">Shift</kbd>, stays typing.
-[Typeahead](/docs/examples/typeahead) draws the same line from the other side:
-it never buffers a letter typed into a field.
+A [focus key](/docs/examples/focus-keys) with Ctrl, Alt or Meta can move focus
+from an editable field. Bare keys and Shift-only combinations remain available
+for typing. Choose shortcuts carefully: some modifiers also produce text,
+including AltGr reported as Ctrl+Alt.
+
+[Typeahead](/docs/examples/typeahead) never captures typing inside a field.
 
 ## While an input method composes
 
-An input method editor, for Chinese, Japanese or Korean, turns keystrokes into
-candidates before any text lands, and the arrows walk its candidate list. While
-a composition is in progress, `isComposing` on the event, nothing is handled,
-chord or not; every key stays with the input method until the text is
-committed.
+While `isComposing` is true, keyrove leaves every key to the input method,
+including modified focus shortcuts. This lets users navigate candidates and
+finish entering text.
 
 ## Rows as tab stops
 

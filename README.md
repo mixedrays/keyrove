@@ -30,9 +30,8 @@ import { keyRove } from '@mixedrays/keyrove';
 document.querySelector('#menu').addEventListener('keydown', (e) => keyRove(e));
 ```
 
-Where the markup is not yours to change — a component library's menu, a CMS's
-output — every attribute has an option of the same name, so the same list can
-be described in the call instead:
+Use an `items` option when you cannot add attributes to the markup. This
+selects the same list items without `data-keyrove-item`; keep their tabindex:
 
 ```ts
 document
@@ -40,10 +39,13 @@ document
   .addEventListener('keydown', (e) => keyRove(e, { items: 'li' }));
 ```
 
-`keyRove` takes anything shaped like a keydown event, so React, Vue and Svelte
-synthetic events work without an adapter. The
-[installation guide](https://keyrove.pages.dev/docs/installation) shows the
-wiring in each framework.
+Options override attributes one setting at a time, with
+[scope and replacement differences](https://keyrove.pages.dev/docs/attributes-and-options#configuration-differences).
+
+`keyRove` accepts native keyboard events and compatible framework events,
+including React synthetic events. The
+[installation guide](https://keyrove.pages.dev/docs/installation) shows setup
+for vanilla JavaScript, React, Vue and Svelte.
 
 ## Documentation
 

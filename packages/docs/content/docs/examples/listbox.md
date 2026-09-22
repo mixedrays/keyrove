@@ -1,20 +1,19 @@
 ---
 title: Listbox
-description: A complete widget — a single-select listbox with roving tabindex, typeahead, Space and Enter to pick, and the ARIA keyrove leaves to you.
+description: Combine navigation, typeahead, roving tabindex and explicit selection in a single-select listbox.
 titleTag: Accessible listbox with keyboard navigation — keyrove
 group: Examples
 order: 23
 ---
 
-Every page so far shows one attribute at a time. This one puts them together
-into a widget a user would actually meet: a listbox that picks one person from
-a team. keyrove moves focus inside it; the role, the selection and the click are
-the widget's own, and the snippet under the demo is all of them.
+This single-select listbox combines navigation, roving tabindex and typeahead.
+The widget supplies ARIA roles, selection and click handling.
 
 <kbd class="kbd">Tab</kbd> into it and arrow around, type a first letter to
-jump, then press <kbd class="kbd">Space</kbd> or <kbd class="kbd">Enter</kbd>
-to pick. Clicking picks too. <kbd class="kbd">Tab</kbd> away and back, and
-focus returns to where you left it.
+jump, then press <kbd class="kbd">Enter</kbd> to pick. Space also selects
+when typeahead is inactive; wait 500 ms after typing to use it. Clicking picks
+too. <kbd class="kbd">Tab</kbd> away and back, and focus returns to where you
+left it.
 
 <div data-demo="listbox"></div>
 
@@ -59,8 +58,7 @@ listbox.addEventListener('click', (e) => {
 });
 ```
 
-The log under the demo reports a pick beside the moves, so the two kinds of
-key can be told apart.
+The log distinguishes selection from focus movement.
 
 ## The pieces
 
@@ -87,23 +85,18 @@ key can be told apart.
 - **Typeahead.** `createTypeahead()` second in the chain, after navigation and
   before the widget's own keys, so a letter jumps and a bound key never becomes
   typing. See [typeahead](/docs/examples/typeahead).
-- **Picking.** Third in the chain, and the first piece that is the widget's
-  rather than keyrove's. `matchesCombo` is the matcher behind every binding,
-  exported for exactly this; it is exact, so
-  <kbd class="kbd">Ctrl</kbd>+<kbd class="kbd">Space</kbd> keeps its browser
-  default. `pick` keeps the contract of the two handlers before it, `null` for
-  a key it left alone, so a fourth handler could chain on.
-- **The mouse.** A click focuses an option natively, which `tabindex="-1"`
-  allows. keyRove moves the stop only on the moves it makes, so on its own the
-  click would leave the stop where the keyboard last put it, and
-  <kbd class="kbd">Tab</kbd> away and back would return to the wrong option.
-  `followFocus` on `focusin` moves the stop to wherever focus lands, the click
-  included, and the click handler is left with the picking.
+- **Picking.** `pick` runs after navigation and typeahead. It uses
+  `matchesCombo` for exact Space/Enter matching, so Ctrl+Space remains
+  unhandled. It returns `null` for other keys, allowing another handler to
+  follow it. Typeahead consumes Space when it extends a matching prefix;
+  otherwise, `pick` handles it.
+- **The mouse.** `followFocus` updates the roving stop on `focusin`, including
+  focus from clicks or code. The click handler then selects the option.
 
 ## Selection that follows focus
 
-The APG allows a single-select listbox to select the focused option as focus
-moves. `onMove` is the hook, on both handlers, and the picking handler goes:
+To select each option as keyboard navigation or typeahead focuses it, pass
+`onMove` to both handlers. Replace the keydown chain above with:
 
 ```ts
 const onMove = ({ to }) => select(to);
@@ -115,18 +108,20 @@ listbox.addEventListener('keydown', (e) => {
 });
 ```
 
-Choose it when picking is cheap and reversible, a filter or a sort order. When
-a pick submits a form or loads a page, keep the explicit key: an arrow press
-should be safe to make.
+Use selection on focus for cheap, reversible changes such as filtering or
+sorting. Keep explicit selection when it submits a form or loads a page.
+`onMove` covers these handlers' moves; the separate click and `focusin`
+listeners still handle pointer selection and the tab stop.
 
 ## Variations
 
 - **Multi-select.** Add `aria-multiselectable="true"` to the list and make
   `pick` toggle the focused option's `aria-selected` instead of moving a single
   selection. Nothing about navigation changes.
-- **A grid of options.** `data-keyrove-cols` on the list turns the same options
-  into a [grid](/docs/examples/grid), with `role="grid"` and
-  `role="gridcell"` taking over from the listbox roles. The chain is unchanged.
+- **A grid of options.** `data-keyrove-cols` adds
+  [grid navigation](/docs/examples/grid). For an ARIA grid, use `role="grid"`
+  with rows and cells (`role="row"` and `role="gridcell"`) and implement
+  selection for those cells. The key handler chain can stay the same.
 - **`aria-activedescendant`.** The other listbox model keeps DOM focus on the
   container and moves a virtual cursor with `aria-activedescendant`. keyrove
   moves real focus, so it does not implement that model; the roving stop above

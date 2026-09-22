@@ -1,22 +1,17 @@
 ---
 title: Tree view
-description: A collapsible tree menu — keyrove walks the rows that are showing, and a few lines of your own open and close folders on Left and Right, first from attributes, then as a full ARIA tree view.
+description: Navigate visible tree rows and add branch controls, roving tabindex and typeahead.
 titleTag: Accessible tree view with keyboard navigation — keyrove
 group: Examples
 order: 15.5
 ---
 
-A tree is a list whose rows can hold more rows: a docs sidebar, a file
-explorer, a settings menu with sections that fold away. keyrove walks it the
-way it walks any list, over the rows that are showing. Opening and closing a
-folder changes which rows those are, and that part is yours.
+Use keyrove to navigate a tree's visible rows. Your widget handles opening
+and closing branches and excludes hidden rows from navigation.
 
-The smallest tree is a sidebar described in attributes, like the
-[basic list](/docs/examples/basic). <kbd class="kbd">↑</kbd>
-<kbd class="kbd">↓</kbd> walk the rows on screen, <kbd class="kbd">→</kbd> opens
-a folder and <kbd class="kbd">←</kbd> closes it. A folder is a button, so
-<kbd class="kbd">Enter</kbd>, <kbd class="kbd">Space</kbd> and a click open and
-close it too.
+This sidebar uses attributes. Up/Down move between visible rows, Right opens a
+folder, and Left closes it. Folders are buttons, so Enter, Space and clicks
+also toggle them.
 
 <div data-demo="sidebar"></div>
 
@@ -53,52 +48,38 @@ nav.addEventListener('click', (e) => {
 });
 ```
 
-Every row is a `data-keyrove-item`, folder or page, so the arrows walk them in
-document order as they would a flat list. The item is the row's button rather
-than its `<li>`: keyrove counts an item as focused while focus is anywhere
-inside it, and where items nest, the outer one wins, so an `<li>` wrapping a
-folder's pages would hold the position for every one of them.
+Mark each row's button with `data-keyrove-item`. Avoid marking a `<li>` that
+contains child items: when items nest, keyrove treats the first item in DOM
+order that contains focus as the current item.
 
-A closed folder's pages are still in the document, so they are still items.
-`data-keyrove-skip` is what the arrows pass them over by — the attribute
-[skipped items](/docs/examples/skipped-items) uses for headings — and `setOpen`
-keeps it in step: after a folder opens or closes, every row inside a `hidden`
-list is skipped and every other row is not.
+Hidden rows remain in the DOM. `setOpen` updates `data-keyrove-skip` after
+each toggle so navigation passes over rows inside hidden lists. See
+[skipped items](/docs/examples/skipped-items).
 
-`fold` claims <kbd class="kbd">←</kbd> and <kbd class="kbd">→</kbd> only on a
-folder they would change. On a page, or on a folder that is already open or
-closed, it returns `null` and the browser keeps the key.
+`fold` handles Left/Right only when they change a folder's state. On a page,
+or when the folder is already in the requested state, it returns `null` and
+leaves the key to the browser.
 
 ## Why ← and → are not keyrove's
 
-keyrove's moves are strides along one sequence: the next item, the previous
-one, an end, a page. Opening a folder does not move along the sequence; it
-changes the sequence. Stepping out to a parent, which the full tree below adds,
-jumps back over however many rows the folder is showing. Neither is a stride,
-so neither is a binding. They belong to the widget, like the listbox's
-[pick](/docs/examples/listbox#the-pieces).
+Expanding a branch and moving to a parent require knowledge of the tree's
+structure. Add those actions in your widget's handler, as the listbox adds
+[selection](/docs/examples/listbox#the-pieces).
 
-A vertical list binds <kbd class="kbd">↑</kbd> and <kbd class="kbd">↓</kbd>
-and leaves <kbd class="kbd">←</kbd> and <kbd class="kbd">→</kbd> alone, which
-is why they reach your handler at all: `keyRove` returns `null` for them, and
-the `||` passes them on.
+A vertical list leaves Left/Right unbound. `keyRove` returns `null` for them,
+so `keyRove(e) || fold(e)` passes them to your handler.
 
 ## A full tree view
 
-The sidebar is a list of buttons that happen to fold. A tree view is one
-control to assistive technology as well as to the keyboard: `role="tree"`, one
-tab stop, typeahead, and arrows that also step into a folder and back out of
-it, as the [APG tree pattern](https://www.w3.org/WAI/ARIA/apg/patterns/treeview/)
-describes. The file explorer below is that widget. Its group is described in
-[options](/docs/examples/javascript-options) rather than attributes, so a
-row's skip is read off the tree's own state instead of kept in step with it.
+The file explorer adds `role="tree"`, roving tabindex, typeahead and branch
+navigation from the [APG tree pattern](https://www.w3.org/WAI/ARIA/apg/patterns/treeview/).
+It uses [options](/docs/examples/javascript-options) to select rows and skip
+hidden descendants directly from the DOM.
 
-<kbd class="kbd">↑</kbd> <kbd class="kbd">↓</kbd> walk the rows on screen, and
-<kbd class="kbd">Home</kbd> and <kbd class="kbd">End</kbd> jump to the first
-and last. <kbd class="kbd">→</kbd> opens a closed folder, and on an open one
-steps into its first row. <kbd class="kbd">←</kbd> closes an open folder, and
-anywhere else steps out to the folder around it. Type a letter to jump to a
-name, and click a folder to open or close it.
+- Up/Down move between visible rows; Home/End move to the first/last.
+- Right opens a closed folder or enters an open folder's first row.
+- Left closes an open folder or moves to the parent folder.
+- Typing finds a row by name. Clicking a folder toggles it.
 
 <div data-demo="tree"></div>
 
@@ -176,9 +157,7 @@ tree.addEventListener('click', (e) => {
 });
 ```
 
-The log under the demo tells the two kinds of key apart. A green row is
-keyrove's move, and an indigo row is the tree's own: a folder opening or
-closing, or a step to a parent or into a child.
+The log shows keyrove moves in green and tree actions in indigo.
 
 ### The pieces
 
@@ -225,9 +204,10 @@ closing, or a step to a parent or into a child.
   action: open the file, or open or close the folder. In the full tree that is
   one more case in `branch`, on `matchesCombo(e, 'Enter')`; the sidebar's
   buttons have it already.
-- **Selection.** A tree that selects carries `aria-selected` on its rows, and
-  picking one is the [listbox](/docs/examples/listbox)'s `pick`, unchanged.
-  Add `aria-multiselectable="true"` to the tree to select more than one row.
+- **Selection.** Add `aria-selected` to selectable rows and a selection
+  handler like the [listbox's](/docs/examples/listbox#the-pieces). For multiple
+  selection, add `aria-multiselectable="true"` and implement toggling each
+  row's selection.
 - **Rows loaded on open.** Fill a folder's group before un-hiding it. The rows
   are read on every keypress, so rows that arrive join the order with nothing
   to call.

@@ -1,16 +1,14 @@
 ---
 title: Typeahead
-description: Type-to-focus as a second handler chained after keyRove — letters accumulate, and focus jumps to the first item whose label starts with them.
+description: Focus items by typing their labels, with prefix matching, repeated-character cycling and accent handling.
 titleTag: Type-to-focus typeahead for lists — keyrove
 group: Examples
 order: 20
 ---
 
-Arrowing through a long list is the slow way to an item you can name.
-`createTypeahead()` builds a keydown handler that focuses items as their labels
-are typed: press <kbd class="kbd">S</kbd> and focus lands on _Spanish_, press
-<kbd class="kbd">W</kbd> straight after and it moves on to _Swedish_. Pause for
-half a second and the next letter starts a new word.
+Create a typeahead handler to focus items by typing their labels. In this
+list, S focuses _Spanish_ and W immediately after it focuses _Swedish_.
+After a 500 ms pause, the next character starts a new prefix.
 
 <div data-demo="typeahead" data-demo-class="max-h-60 overflow-y-auto"></div>
 
@@ -24,20 +22,16 @@ document
   .addEventListener('keydown', (e) => keyRove(e) || typeahead(e));
 ```
 
-Two handlers, one listener. `keyRove` goes first and
-[returns what it did](/docs/api#return-value); a key it left alone is `null`,
-and falls through to `typeahead`, which keeps the same contract. The order is
-the point: with next bound to `KeyJ`, <kbd class="kbd">J</kbd> has to navigate
-rather than join the buffer, and navigation going first is what settles it.
+Call `keyRove` first so navigation bindings take precedence. It returns `null`
+for an unhandled key, letting `typeahead` process it. For example, a `KeyJ`
+navigation binding moves focus instead of adding J to the prefix.
 
 ## Why a factory
 
-Typeahead is the one thing here that has state: the letters typed so far, and
-when the last one arrived. `keyRove` holds none, so the buffer lives in the
-handler `createTypeahead` returns, and each listener gets a handler of its own.
-There is no timer to clear and nothing to dispose of. The reset is a
-comparison against the clock on the next press, and `resetMs` sets how much
-silence ends a word:
+The returned handler stores the prefix and the time of the last character.
+Create it once per listener, outside the keydown callback. It checks the time
+on each press, so there is no timer to clean up. Set `resetMs` to change the
+pause that clears the prefix:
 
 ```ts
 const typeahead = createTypeahead({ resetMs: 800 });
@@ -119,18 +113,16 @@ const typeahead = createTypeahead({ foldDiacritics: false });
 
 The handler returns `null` when it left the key alone and
 `{ action: 'typeahead', from, to }` when it consumed it, with `to: null` when
-the match is the item already focused. `onMove` fires after focus has moved
-and only then.
+the match is already focused or cannot receive focus. `onMove` fires only
+after a successful focus move.
 
-Those are three answers, and the log beside the list gives each a row of its
-own. Type "swez" in one go to see all of them: <kbd class="kbd">S</kbd> and
-<kbd class="kbd">W</kbd> are green, having landed on _Spanish_ and _Swedish_;
-<kbd class="kbd">E</kbd> is amber, because "swe" still names the item already
-focused and there is nowhere to go, which is what `to: null` says;
-<kbd class="kbd">Z</kbd> is grey, because "swez" matches nothing, so the
-handler returned `null` and the browser kept the key. The letter joined the
-buffer all the same — the next press is still typing "swez", and it takes the
-half-second of silence to get back to a prefix that matches.
+Type "swez" quickly to see each result in the log:
+
+- S and W are green: focus moves to _Spanish_, then _Swedish_.
+- E is amber: "swe" still matches the focused item, so `to` is `null`.
+- Z is grey: "swez" matches nothing, so the handler returns `null`.
+
+The unmatched character stays in the buffer. Pause for 500 ms to start again.
 
 Both handlers can feed one follow-focus callback, a preview pane for one:
 
@@ -146,8 +138,7 @@ The roving tab stop moves with the match, as it does for an arrow move.
 
 ## Several groups, one handler
 
-The buffer clears whenever a press resolves to a different root than the one
-before it, so one handler behind a delegated listener serves several groups
-without carrying a prefix from one to the next. Create one handler per
-listener, not per group; see
+The buffer clears when the next typing key resolves to a different root.
+One handler can therefore serve several groups under a delegated listener
+without sharing prefixes between them. See
 [several groups, one listener](/docs/installation#several-groups-one-listener).

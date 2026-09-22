@@ -1,17 +1,14 @@
 ---
 title: Horizontal lists
-description: One attribute turns a list sideways — Left and Right become the default keys, and they flip with the reading direction so forward follows the text.
+description: Use Left/Right for a horizontal list, with defaults that follow text direction.
 titleTag: Horizontal list keyboard navigation — keyrove
 group: Examples
 order: 13
 ---
 
-Filters along the top of an inbox, a segmented control, a strip of tabs: the
-items sit side by side, and <kbd class="kbd">↑</kbd> <kbd class="kbd">↓</kbd>
-are the wrong keys for them. `data-keyrove-orientation="horizontal"` on the
-root makes <kbd class="kbd">→</kbd> the next key and <kbd class="kbd">←</kbd>
-the previous one. The up and down arrows go back to the browser, which here
-means scrolling the page.
+Set `data-keyrove-orientation="horizontal"` on a list's root to use
+Left/Right. In left-to-right text, Right moves to the next item and Left to the
+previous one. Up/Down keep their browser behavior.
 
 <div data-demo="orientation" data-demo-class="flex flex-wrap gap-1.5"></div>
 
@@ -21,29 +18,19 @@ document
   .addEventListener('keydown', (e) => keyRove(e));
 ```
 
-Nothing else about the group changes. <kbd class="kbd">Home</kbd> and
-<kbd class="kbd">End</kbd> still jump to the ends, <kbd class="kbd">PageUp</kbd>
-and <kbd class="kbd">PageDown</kbd> still move a page, and
-<kbd class="kbd">Tab</kbd> was never bound. The attribute swaps which physical
-arrows are the _defaults_ for next and prev; the moves themselves are defined
-in DOM order, as everywhere. The value is the literal `horizontal`, and a list
-is vertical unless it says so.
+Home/End still jump to the ends, PageUp/PageDown still move a page, and Tab
+keeps its default behavior. Moves follow DOM order. Lists are vertical unless
+the orientation is set to the literal value `horizontal`.
 
 ## Right to left
 
-The reason to prefer the attribute over binding `ArrowRight` and `ArrowLeft`
-by hand is the reading direction. Under `dir="rtl"` the DOM order renders right
-to left, so forward is to the left, and the defaults flip with it:
-<kbd class="kbd">←</kbd> is next and <kbd class="kbd">→</kbd> is previous, each
-arrow still moving focus the way it points on screen.
+Under `dir="rtl"`, the defaults reverse: Left is next and Right is previous.
+This keeps navigation aligned with items laid out in right-to-left order.
 
 <div data-demo="rtl" data-demo-class="flex flex-wrap gap-1.5"></div>
 
-Both bars keep a log, and putting one against the other is the shortest way to
-see the flip: <kbd class="kbd">→</kbd> is reported as `next` on the bar above
-and as `prev` on this one. A row names the move keyrove made rather than the
-key that asked for it, and which of the two a key means is what the direction
-decides.
+Compare the logs: Right reports `next` in the first bar and `prev` in the RTL
+bar. The action names describe movement through DOM order.
 
 The direction comes from the nearest `dir` attribute at or above the root, and
 otherwise from the computed style, so a `dir` on `<html>` is enough for every
@@ -64,10 +51,8 @@ key in either direction.
 </div>
 ```
 
-That is the [custom keys](/docs/examples/custom-keys) toolbar, and the
-difference between the two spellings is exactly the right-to-left case. Reach
-for the attribute when the keys are the reading-direction arrows; spell them
-out when they are anything else, or when they must not follow the text.
+Use orientation for arrows that follow text direction. Use explicit bindings
+for fixed keys; see [custom keys](/docs/examples/custom-keys).
 
 ## Grids
 
@@ -80,13 +65,9 @@ the cell arrows flip.
 
 ## Wrapping a strip
 
-A strip of tabs is the horizontal list most pages have, and the
-[APG tabs pattern](https://www.w3.org/WAI/ARIA/apg/patterns/tabs/) wraps it:
-<kbd class="kbd">→</kbd> on the last tab lands on the first. Add
-`data-keyrove-loop` and the pair wraps. Wrapping follows the bindings rather
-than the arrow keys, so under RTL it is <kbd class="kbd">←</kbd> that wraps
-forward; see [looping lists](/docs/examples/looping-lists) for what does and
-does not wrap.
+Add `data-keyrove-loop` to wrap next/previous at the ends. Under RTL, Left
+wraps forward. See [looping lists](/docs/examples/looping-lists) for entry
+behavior and the moves that do not wrap.
 
 ## Telling users about it
 

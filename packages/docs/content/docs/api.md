@@ -1,22 +1,22 @@
 ---
 title: API reference
-description: Every export in the package — the handler, the typeahead helper, the combo matcher, the attributes, and the types.
+description: Reference for handlers, configuration, key bindings, focus behavior, attributes and exported types.
 group: Guide
 order: 4
 ---
 
-| Export                                                                   | What it is                                                                    |
-| ------------------------------------------------------------------------ | ----------------------------------------------------------------------------- |
-| [`keyRove(event, options?)`](#keyrove-event-options)                     | The handler. Moves focus for one keydown and reports what it did.             |
-| [`options`](#options)                                                    | The group's settings in JavaScript, where you would rather not use markup.    |
-| [`createTypeahead(options?)`](#createtypeahead-options)                  | Builds a type-to-focus handler to chain after `keyRove`.                      |
-| [`matchesCombo(event, combo)`](#matchescombo-event-combo)                | The combo matcher behind every binding, for your own handlers.                |
-| [`initRovingTabindex(root, options?)`](#initrovingtabindex-root-options) | Gives a roving group exactly one tab stop, and keeps it whole across renders. |
-| [`followFocus(event, options?)`](#followfocus-event-options)             | Moves the roving tab stop to wherever focus lands, on `focusin`.              |
-| [`toggleTabIndex({ root, isActive })`](#toggletabindex-root-isactive)    | Sets `tabindex` to `0` or `-1` on one element.                                |
-| [`data-keyrove-*`](#attributes)                                          | The attributes: the whole configuration, on items and on the root.            |
-| [`KEYROVE_ATTR_*`](#constants)                                           | One constant per attribute name.                                              |
-| [Types](#types)                                                          | `KeyRoveEvent`, `MoveResult`, `Move`, `Options` and the typeahead types.      |
+| Export                                                                   | Purpose                                           |
+| ------------------------------------------------------------------------ | ------------------------------------------------- |
+| [`keyRove(event, options?)`](#keyrove-event-options)                     | Handles a keydown and reports the focus move.     |
+| [`options`](#options)                                                    | Configures the group in JavaScript.               |
+| [`createTypeahead(options?)`](#createtypeahead-options)                  | Creates a type-to-focus handler.                  |
+| [`matchesCombo(event, combo)`](#matchescombo-event-combo)                | Tests a key combination in your own handlers.     |
+| [`initRovingTabindex(root, options?)`](#initrovingtabindex-root-options) | Initializes or repairs a group's roving tab stop. |
+| [`followFocus(event, options?)`](#followfocus-event-options)             | Updates the roving tab stop on `focusin`.         |
+| [`toggleTabIndex({ root, isActive })`](#toggletabindex-root-isactive)    | Sets one element's `tabindex` to `0` or `-1`.     |
+| [`data-keyrove-*`](#attributes)                                          | Configures items and roots in markup.             |
+| [`KEYROVE_ATTR_*`](#constants)                                           | Constants for attribute names.                    |
+| [Types](#types)                                                          | Event, configuration and result types.            |
 
 ## keyRove(event, options?)
 
@@ -31,11 +31,9 @@ list.addEventListener('keydown', (e) => keyRove(e));
 
 ### Keys
 
-A group is one sequence of items in DOM order. `next` and `prev` always move
-one item through it: a list item, or a grid cell. `data-keyrove-cols` folds the
-sequence into rows and adds a second pair, `next-row` and `prev-row`, that
-moves a whole row and keeps the column. Every move has a `*-key` attribute on
-the root; the tables show the default each answers to.
+Items form a sequence in DOM order. `next` and `prev` move one item. In a
+grid, `cols` divides that sequence into rows, and `next-row`/`prev-row` move
+one row in the same column. Each move has a `*-key` attribute on the root.
 
 In a list:
 
@@ -64,11 +62,10 @@ follow the [reading direction](#horizontal-groups-and-rtl)):
 | `PageDown`   | `data-keyrove-page-down-key` | Forward `page-length` rows         |
 | `PageUp`     | `data-keyrove-page-up-key`   | Back `page-length` rows            |
 
-Set the attribute on the root and that key takes over the move. The default it
-replaced goes back to its browser behaviour, and nothing else changes. Set it to
-`none` and the move has no key at all: a toolbar, which has no page moves, takes
-`data-keyrove-page-down-key="none"` to leave <kbd class="kbd">PageDown</kbd> to
-the page. See [custom keys](/docs/examples/custom-keys) for worked examples.
+Set a move's key attribute to replace its default binding. Set it to `none`
+to disable the binding, for example `data-keyrove-page-down-key="none"`.
+The replaced key returns to the browser unless another binding handles it.
+See [custom keys](/docs/examples/custom-keys).
 
 ### Combos
 
@@ -120,14 +117,11 @@ order, and the first match wins:
 2. The root's explicit `*-key` bindings.
 3. The defaults of the moves left unbound.
 
-So an explicit binding that names another move's default key takes the press,
-and that default stands down: with `data-keyrove-next-key="Home"`,
-<kbd class="kbd">Home</kbd> moves to the next item and nothing jumps to the
-first. A replaced default is not re-added anywhere; the freed key goes back to
-its browser behaviour. `none` replaces a default with nothing: the move leaves
-the table, and its default key is freed the same way. A move the layout lacks,
-such as a row move on a list, is not in the table at all, so binding it does
-nothing.
+An explicit binding wins over another action's default. For example,
+`data-keyrove-next-key="Home"` makes Home move to the next item instead of the
+first. Replaced defaults are not restored elsewhere. `none` removes a move's
+binding. Bindings for actions the layout does not support, such as row moves
+in a list, are ignored.
 
 ### Roots
 
@@ -139,16 +133,13 @@ the listener is attached to (`currentTarget`). A listener on `document` or
 - The root's attributes configure the group. They are read on every keypress,
   so changing one takes effect at once; see
   [responsive grid](/docs/examples/responsive-grid).
-- The items are every `data-keyrove-item` in the root's subtree, in DOM order,
-  nested roots included. An outer group's order runs straight through an inner
-  group's items, and nothing hides them: a group that must stay out of
-  another's order belongs outside that root.
-- Resolving from the target rather than the listener is what lets one
-  delegated listener serve several roots, and lets roots
-  [nest](/docs/examples/nested-roots). While focus is inside an inner root,
-  only that root's bindings apply; a key it does not bind keeps its browser
-  default rather than reaching the group around it. The one thing heard across
-  roots is a [focus key](#focus-keys).
+- Items are all enabled `data-keyrove-item` elements under the root, in DOM
+  order, except those carrying `disabled`. This includes items in nested
+  roots. Use sibling roots to keep attribute-selected sequences separate.
+- One delegated listener can serve several roots. Inside a
+  [nested root](/docs/examples/nested-roots), only that root's movement
+  bindings apply; unbound keys do not fall through to the outer group.
+  [Focus keys](#focus-keys) can cross root boundaries.
 - An item counts as focused when focus is anywhere inside it
   (`:focus-within`), so an item wrapping a link or a button is still the
   position after <kbd class="kbd">Tab</kbd> lands on that inner control.
@@ -167,29 +158,25 @@ on where focus is:
   (the last, for prev on a looping list), and a [focus key](#focus-keys),
   which lands on its element. Home, End, the row ends and the page moves act only
   once focus is inside an item; pressed here, they keep their browser default.
-- **A group with no items.** Every key keeps its browser default.
+- **A group with no items.** Movement keys keep their browser defaults.
+  Focus shortcuts can still reach elements that are not items.
 
-Items and focus-key targets have to be able to take focus: natively focusable,
-or given a `tabindex`. A target that refuses it, such as a bare `<div>` or an
-element that is `inert` or hidden, is a consumed no-op like an edge. Focus stays
-where it was, the roving tab stop stays with it, and `onMove` does not fire.
+Give targets native focusability or a `tabindex`. If a target cannot take
+focus, such as a hidden or inert element, the key is consumed without moving.
+The roving stop is restored and `onMove` does not fire.
 
-Keys keyrove is not bound to are never touched. <kbd class="kbd">Tab</kbd>,
-<kbd class="kbd">Shift</kbd>+<kbd class="kbd">Tab</kbd>,
-<kbd class="kbd">Enter</kbd>, <kbd class="kbd">Space</kbd> and
-<kbd class="kbd">Escape</kbd> reach your handlers and the browser as they would
-without keyrove, which is why it composes with native focus navigation instead
-of replacing it. The [return value](#return-value) tells you which case a
-keypress fell into.
+Unbound keys keep their browser behavior and remain available to your
+handlers. Tab, Shift+Tab, Enter, Space and Escape are unbound by default.
+The [return value](#return-value) tells your handler whether keyrove consumed
+the key.
 
 ### Edges and looping
 
 At the ends of a list, next and prev are consumed without moving. Add
 `data-keyrove-loop` to the root and they wrap instead: forward from the last
 navigable item lands on the first, and back from the first lands on the last.
-A looping list is entered the same way round: the prev key pressed from outside
-lands on the _last_ item, matching the APG menu-button convention. Only lists
-loop; a grid keeps its edges, per the APG grid pattern. See
+Entering a looping list with prev focuses its last navigable item. Only
+next/prev in lists loop; grids keep their boundaries. See
 [looping lists](/docs/examples/looping-lists).
 
 A page jump travels as far as it can. One that would overshoot lands on the
@@ -198,12 +185,16 @@ grid's last (or first) navigable cell, whatever column the jump started in. The
 row ends are stricter: `Home` and `End` in a grid never fall back to a skipped
 cell, so a row of nothing but skipped cells is a consumed no-op.
 
+If every item is skipped, entry, Home/End, list clamping or looping, and page
+clamping currently fall back to the physical first or last item. Grid row
+moves and row ends do not use that fallback. Typeahead and roving
+initialization also exclude all skipped items. To prevent navigation when
+nothing is eligible, return an empty `items` collection or guard the call.
+
 ### Editable targets
 
-Keys pressed inside an editable element are never acted on, however they are
-bound: the caret or value keeps the arrows and
-<kbd class="kbd">Home</kbd>/<kbd class="kbd">End</kbd>, and typing into a field
-inside an item is not swallowed by a printable-key binding. Editable means:
+Movement bindings do not run inside editable elements. Those elements keep
+their caret, value and typing keys. Editable targets include:
 
 - a `textarea` or a `select`;
 - a `[contenteditable]` element and everything inside it, except a
@@ -213,26 +204,21 @@ inside an item is not swallowed by a printable-key binding. Editable means:
   so navigating from them takes nothing away: a list of checkbox rows keeps
   its arrows.
 
-One exception: a [focus key](#focus-keys) whose combo holds
-<kbd class="kbd">Ctrl</kbd>, <kbd class="kbd">Alt</kbd> or
-<kbd class="kbd">Meta</kbd> fires from inside a field. That press is a command,
-not typing. The one chord that can be both is
-<kbd class="kbd">Ctrl</kbd>+<kbd class="kbd">Alt</kbd>: on Windows it is how
-<kbd class="kbd">AltGr</kbd> is reported, so a `ctrl+alt+` focus key fires
-while a user types € or @ on many European layouts.
+A [focus key](#focus-keys) with Ctrl, Alt or Meta can run inside an editable
+field. These shortcuts can still conflict with text input: Windows can report
+AltGr as Ctrl+Alt, so a `ctrl+alt+` focus key may fire while typing characters
+such as € or @.
 
-While an input method is composing (`isComposing` on the event), nothing is
-acted on, chord or not: the arrows walk its candidate list and a chord can be
-part of the conversion, so every key stays with the input method.
+When `isComposing` is true, no binding runs, including focus shortcuts. All
+keys remain available to the input method.
 
-See [editable targets](/docs/examples/editable-targets) for the rule at work.
+See [editable targets](/docs/examples/editable-targets) for a demo.
 
 ### Horizontal groups and RTL
 
-Reading direction changes only which physical key is a move's _default_. It
-never changes what a move does; every move is defined in DOM order. Where an
-axis runs sideways, its default arrows follow the reading direction, read from
-the nearest `dir` attribute and otherwise from the computed direction:
+Reading direction changes the default horizontal arrows. Moves still follow
+DOM order. Direction comes from the nearest `dir` attribute; a missing `dir`
+or `dir="auto"` falls back to computed style.
 
 - `data-keyrove-orientation="horizontal"` on a list makes `ArrowRight` and
   `ArrowLeft` the next and prev defaults. Under RTL they swap, so a toolbar
@@ -251,26 +237,25 @@ work.
 
 ### Focus keys
 
-An element can name its own key. `data-keyrove-focus-key="ctrl+shift+KeyE"`
-focuses that element from anywhere the keydown reaches the listener: a sibling
-group, a nested root, or, when the combo holds <kbd class="kbd">Ctrl</kbd>,
-<kbd class="kbd">Alt</kbd> or <kbd class="kbd">Meta</kbd>, a text field. The
-move reports `'focus'`. The value is a [combo](#combos) like any other, and a
-bare code such as `KeyE` works wherever the letter would not be typing.
+Set `data-keyrove-focus-key="ctrl+shift+KeyE"` on an element to focus it from
+anywhere under the listener, including sibling and nested roots. A combo with
+Ctrl, Alt or Meta also works inside an editable field. Bare codes work outside
+editable targets. The reported action is `'focus'`.
 
 - Focus keys sit first in the [binding table](#precedence), so they win any
   collision with the root's bindings or the defaults. Two elements naming one
-  combo resolve to the first in DOM order. A skipped or disabled element's key
-  is inert.
+  combo resolve to the first in DOM order. The attribute scan excludes targets
+  with an enabled `data-keyrove-skip` or a `disabled` attribute.
 - The element need not be an item. An item stays in its group's order, so the
   arrows reach it too; any other element is reached by its key alone.
 - On an item, the move happens in the item's own group: the nearest root above
   it, else the listener's element. An item that is itself a root belongs to
   the group above it. `from` is the item of that group holding focus, or `null`
   when focus was outside it.
-- On any other element, the move belongs to no group: `from` is `null`, and no
-  roving tab stop moves. A panel holding a list is best made that list's root,
-  so an arrow pressed on the panel after the jump enters the panel's own items.
+- On a non-item destination, `from` is `null` when jumping to it, and no
+  roving stop moves. If focus is already inside it, `from` is that element
+  and the result is a consumed no-op. Make a panel its inner list's root so
+  an arrow after the shortcut enters that list.
 - Pressed while focus is already inside its element, the key is a consumed
   no-op: claimed, with `to: null`.
 - The element has to be able to take focus. A panel usually needs
@@ -288,17 +273,15 @@ See [focus keys](/docs/examples/focus-keys) for the pattern at work.
 
 ### Options
 
-Every setting a root's attributes carry can be named in the options object
-instead. Both sources are read for every keypress, one field at a time, options
-first — so a group can be described in markup, in JavaScript, or in any mixture
-of the two, and a call passing no options reads exactly the markup it always
-did. [Attributes and options](/docs/attributes-and-options) is the guide to
-choosing between them.
+Use options to configure a group in JavaScript. `keyRove` reads them on each
+call, falling back to attributes and defaults for omitted settings. See
+[configuration differences](/docs/attributes-and-options#configuration-differences)
+for naming, scope and replacement rules.
 
 ```ts
-keyRove(e); // everything from the markup
-keyRove(e, { loop: true }); // items from the markup, looping from here
-keyRove(e, { items: '[role="menuitem"]' }); // nothing from the markup
+keyRove(e); // attributes and defaults
+keyRove(e, { loop: true }); // override looping only
+keyRove(e, { items: '[role="menuitem"]' }); // override item lookup only
 ```
 
 | Option           | Falls back to                  | Meaning                                                                                                                                                                        |
@@ -314,19 +297,23 @@ keyRove(e, { items: '[role="menuitem"]' }); // nothing from the markup
 | `skip`           | `data-keyrove-skip`            | Which items a move passes over: a selector or `(element) => boolean`.                                                                                                          |
 | `rovingTabindex` | `data-keyrove-roving-tabindex` | Whether the group carries one tab stop. One boolean for the group, where the attribute is read per item.                                                                       |
 
-The fallback is per _field_, not per call. With
-`keyRove(e, { keys: { next: 'KeyJ' } })` the next move answers to
-<kbd class="kbd">J</kbd> while <kbd class="kbd">Home</kbd>,
-<kbd class="kbd">End</kbd> and the page keys keep their attributes, and their
-defaults where there is no attribute. `cols` and `pageLength` are ignored below
-1, as an unparseable attribute is.
+`keys` falls back per action. `{ keys: { next: 'KeyJ' } }` changes only next;
+other actions retain their attribute or default bindings. Empty, blank and
+comma-only bindings fall back; `'none'` disables the binding.
 
-Options are read on every keypress, so an object built at the call site is as
-live as an attribute: `keyRove(e, { cols: columnsNow() })` re-folds the grid
-between presses. See [options in JavaScript](/docs/examples/javascript-options)
-for the whole thing at work, and
-[`createTypeahead`](#createtypeahead-options), which takes the same names for
-the settings it needs.
+A supplied `focusKeys` map, including `{}`, replaces the whole attribute scan.
+Its targets bypass skip checks, but disabled targets remain excluded. Selector
+targets resolve under the listener; element targets are used directly.
+
+Numeric `cols` and `pageLength` options are rounded down to whole numbers.
+Values below 1 or `NaN` fall back to the attribute, then the default if the
+attribute is invalid or below 1. Defaults are one column and ten items or rows
+per page.
+
+Supply computed values in the call, for example
+`keyRove(e, { cols: columnsNow() })`. See
+[options in JavaScript](/docs/examples/javascript-options) and the shared
+settings accepted by [`createTypeahead`](#createtypeahead-options).
 
 ### options.onMove
 
@@ -340,12 +327,10 @@ keyRove(e, {
 });
 ```
 
-`action` names the move: `'next'`, `'prev'`, `'home'`, `'end'`, `'pageUp'`,
-`'pageDown'`; in grids only, `'nextRow'`, `'prevRow'`, `'homeRow'` and
-`'endRow'`; and `'focus'` for a [focus key](#focus-keys). A cell move and a
-row move never report the same token. `from` is the item focus left, or `null`
-when the group was entered from outside or by a focus key on an element that is
-not an item, and `to` is where focus landed.
+`action` is `'next'`, `'prev'`, `'home'`, `'end'`, `'pageUp'` or `'pageDown'`;
+`'nextRow'`, `'prevRow'`, `'homeRow'` or `'endRow'` in a grid; or `'focus'`
+for a shortcut. `from` is the item focus left, or `null` on entry from outside
+or a jump to a non-item. `to` is the element that received focus.
 
 ### Return value
 
@@ -356,8 +341,8 @@ not an item, and `to` is where focus landed.
   element, or `null` for a consumed no-op, where the group owns the key but
   there is nowhere left to go, or the target did not take focus.
 
-A non-null result means "claimed", which is what lets several handlers share
-one listener without stepping on each other:
+A non-null result means the key was consumed. Chain handlers with `||` to
+pass only unhandled keys to the next one:
 
 ```ts
 element.addEventListener('keydown', (e) => keyRove(e) || myOwnHandler(e));
@@ -394,10 +379,8 @@ buffer lives in the handler, which keeps `keyRove` itself stateless. See
 | `foldDiacritics` | `true`     | Ignore accents and other combining marks on both sides of the match. Turn it off where an accent tells two items apart.                  |
 | `onMove`         | —          | Fired after focus has moved, and only then; see [`keyRove`'s option](#options-onmove).                                                   |
 
-It also takes the [group settings](#options) that bear on finding an item —
-`items`, `root`, `skip` and `rovingTabindex` — under the same names and with
-the same fallbacks, so one object configures both handlers and they cannot
-disagree about what an item is:
+It shares `items`, `root`, `skip` and `rovingTabindex` with `keyRove`, using
+the same fallback rules. Pass one configuration to both handlers:
 
 ```ts
 const config = { items: '[role="menuitem"]', loop: true };
@@ -406,15 +389,16 @@ const typeahead = createTypeahead(config);
 el.addEventListener('keydown', (e) => keyRove(e, config) || typeahead(e));
 ```
 
-The settings that are about _moves_ — `keys`, `cols`, `loop`, `orientation`,
-`pageLength` — are not among its options: a typeahead has one way to reach an
-item, its label.
+Typeahead ignores movement options: `keys`, `cols`, `loop`, `orientation`
+and `pageLength`. Its options are captured when the handler is created;
+recreate it to change them. Item queries, skip predicates and attribute
+fallbacks still read the current DOM.
 
-The label is the item's `data-keyrove-typeahead` attribute, falling back to its
-`textContent`, trimmed and with runs of whitespace collapsed, when the attribute
-is absent or empty. Items carrying `data-keyrove-skip` or `disabled` are passed
-over. The root resolves [as in `keyRove`](#roots), so the same delegated
-listener serves both.
+Labels come from `label(item)`, then `data-keyrove-typeahead`, then
+`textContent`. An empty value falls through to the next source. Text content
+is trimmed and consecutive whitespace is collapsed. Skipped and disabled
+items are excluded; a `skip` option replaces the attribute test.
+Roots resolve [as in `keyRove`](#roots).
 
 Bindings match the physical `e.code`; typeahead reads `e.key`, the character
 the key produced in the user's layout. A press is buffered only when it is
@@ -436,7 +420,7 @@ it.
 
 The handler follows the `keyRove` contract: `null` when the key was left
 untouched, `{ action: 'typeahead', from, to }` when it was consumed, with
-`to: null` when the match is the item already focused.
+`to: null` when the match is already focused or cannot receive focus.
 `onMove` fires after focus has moved and only when it actually moved, so both
 handlers can feed the same follow-focus logic. The roving tab stop moves with
 the match, as for an arrow move.
@@ -476,9 +460,9 @@ if (!matchesCombo(e, 'Space, Enter')) return null;
 
 ## initRovingTabindex(root, options?)
 
-Gives a [roving group](/docs/examples/roving-tabindex) exactly one tab stop.
-keyrove moves an existing stop and never creates one, so call this once the
-group renders, and again after any render that may have replaced its items.
+Initializes or repairs a [roving group's](/docs/examples/roving-tabindex) tab
+stop. Call it after rendering, and again after a render that may replace items.
+`keyRove` does not initialize the stop for you.
 
 ```ts
 import { initRovingTabindex } from '@mixedrays/keyrove';
@@ -486,30 +470,24 @@ import { initRovingTabindex } from '@mixedrays/keyrove';
 initRovingTabindex(list);
 ```
 
-It repairs the group rather than resetting it:
+Only the root's own roving items participate: items marked with
+`data-keyrove-roving-tabindex`, or those enabled by the options. Nested roots
+keep their own stops; initialize them separately.
 
-- The group's roving items are its own items that carry the stop:
-  `data-keyrove-item` with `data-keyrove-roving-tabindex`, or whatever the
-  options name. Items of a [nested root](#roots) belong to that root's group
-  and are left alone; call it on that root to set up its stop.
-- The `initial` option's item gets the stop, when it is one of the group's
-  navigable items, neither skipped nor disabled.
-- Failing that, a navigable item that already has `tabindex="0"` keeps the
-  stop, the first in DOM order where there are several. So the stop keyboard
-  moves carried, or the one a template put on the selected option, survives
-  the call.
-- Failing that, the first navigable item gets the stop.
-- Every other roving item gets `-1`, skipped and disabled ones included. Only
-  attributes that change are written, so a call after a render that changed
-  nothing changes nothing.
+The stop is chosen in this order:
+
+1. A valid `initial` item: one of the group's navigable roving items.
+2. The first navigable roving item that already has `tabindex="0"`.
+3. The first navigable roving item.
+
+Skipped and disabled items cannot hold the stop. All other roving items get
+`-1`, including skipped and disabled ones. Only changed attributes are written.
 
 It returns the item holding the stop, or `null` when no roving item is
 navigable. Items that do not carry the stop keep whatever `tabindex` they have.
 
-It takes the [group settings](#options) that decide what an item is — `items`,
-`root`, `skip` and `rovingTabindex` — under the same names and with the same
-fallbacks as `keyRove` and `createTypeahead`, so a group described in
-JavaScript hands every export the same object:
+It shares `items`, `root`, `skip` and `rovingTabindex` with the other helpers,
+so you can pass the same configuration:
 
 ```ts
 const config = { items: '[role="menuitem"]', rovingTabindex: true };
@@ -518,8 +496,7 @@ initRovingTabindex(menu, config);
 menu.addEventListener('keydown', (e) => keyRove(e, config));
 ```
 
-Where the item that should hold the stop is known to your code but not marked
-in the DOM, such as a listbox's selected option, name it in `initial`:
+Use `initial` to choose a stop explicitly, such as a listbox's selected option:
 
 ```ts
 initRovingTabindex(listbox, {
@@ -527,21 +504,16 @@ initRovingTabindex(listbox, {
 });
 ```
 
-`initial` wins over a stop the group already has, so pass it when you mean to
-place the stop: the first render, or a selection changed from outside the
-widget. Leave it out of the other re-renders, and the stop stays where the user
-left it. Anything that is not one of the group's navigable roving items,
-`null` included, is passed over for the rule above, so a query that found
-nothing needs no guard.
+A valid `initial` overrides the existing stop. Pass it for first setup or an
+intentional external selection change. Omit it on routine renders to preserve
+the user's position. Null, skipped, disabled or non-roving items are ignored,
+using the fallback order above.
 
 ## followFocus(event, options?)
 
-Moves a roving group's tab stop to the item focus landed in. keyRove carries
-the stop on the moves it makes, but focus also arrives by a click, by
-`element.focus()` from your code, and by <kbd class="kbd">Tab</kbd> onto a
-control inside an item. Each of those would leave the stop behind, and
-<kbd class="kbd">Tab</kbd> away and back would return somewhere else.
-`followFocus` on `focusin` covers all of them:
+Updates a roving group's tab stop when focus enters an item, including clicks,
+programmatic focus and Tab entering a control inside an item. Attach it to
+`focusin` so returning with Tab reaches the most recently focused item:
 
 ```ts
 import { followFocus, keyRove } from '@mixedrays/keyrove';
@@ -587,9 +559,9 @@ query that found nothing needs no guard.
 
 ## Attributes
 
-Every attribute below has an [option](#options) of the same name, and each
-field falls back from the option to the attribute on its own. What follows is
-the markup half; a group can name any of it in JavaScript instead.
+The table below describes attribute configuration. The [options table](#options)
+maps it to JavaScript; [configuration differences](/docs/attributes-and-options#configuration-differences)
+explains scope and replacement exceptions.
 
 On an item:
 
@@ -628,10 +600,8 @@ are enabled when bare or set to `"true"`; set one to `"false"` to disable it.
 Every `*-key` attribute takes `none` as well as a combo, which leaves its move
 with no key and its default key to the browser.
 
-The sideways defaults swap under RTL; see
-[horizontal groups and RTL](#horizontal-groups-and-rtl). The boolean
-attributes (`item`, `skip`, `root`, `loop`, `roving-tabindex`) work by
-presence, so a bare attribute is enough.
+Horizontal default arrows reverse under RTL; see
+[horizontal groups and RTL](#horizontal-groups-and-rtl).
 
 ### Constants
 
@@ -670,8 +640,8 @@ import type {
 
 ### KeyRoveEvent
 
-The shape keyrove needs from a keydown event. A native `KeyboardEvent` and
-every framework's synthetic event satisfy it.
+The required event shape. Native keyboard events and compatible framework
+events, including React synthetic events, satisfy it.
 
 ```ts
 type KeyRoveEvent = {
@@ -745,9 +715,9 @@ type Options = GroupOptions & { onMove?: (move: Move) => void };
 
 ### GroupOptions, StrideAction
 
-A group's [settings](#options), every one of them optional and every one
-falling back to the attribute it stands for. `StrideAction` is the move a key
-can be bound to — every move but `focus`, whose key sits on its destination.
+All group settings are optional; see [options](#options) for fallbacks.
+`StrideAction` includes every movement action except `focus`, whose binding
+names a destination.
 
 ```ts
 type GroupOptions = {

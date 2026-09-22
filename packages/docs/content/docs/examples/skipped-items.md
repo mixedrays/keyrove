@@ -1,21 +1,23 @@
 ---
 title: Skipped items
-description: Keeping headings, separators, and disabled entries in the DOM but out of the navigation order.
+description: Skip headings and unavailable items while preserving grid positions, or exclude disabled elements entirely.
 titleTag: Skipping disabled items and headings — keyrove
 group: Examples
 order: 17
 ---
 
-`data-keyrove-skip` marks an item as passed over: it keeps its place in the
-sequence, but no key ever lands on it. Arrow through the list; focus moves
-straight past the group headings.
+Add `data-keyrove-skip` to pass over an item during navigation while keeping
+its position in the sequence. Try the arrows here: focus skips the headings.
 
 <div data-demo="skip"></div>
 
-The headings keep `data-keyrove-item` and add `data-keyrove-skip`, so they hold
-a place in the sequence keyrove walks while focus never stops on them. Dropping
-`data-keyrove-item` from a heading also works in a list; in a grid, a skipped
-cell keeps its column while an unmarked one shifts every cell after it.
+The headings keep `data-keyrove-item` and add `data-keyrove-skip`. Removing
+`data-keyrove-item` also excludes a heading from a list, but in a grid it
+shifts the positions of later cells. A skipped cell keeps its slot.
+
+Skipping does not remove an item's native Tab stop; set its tabindex as
+needed. An explicit `focusKeys` mapping can still reach a skipped target;
+see [configuration differences](/docs/attributes-and-options#configuration-differences).
 
 ## Disabled elements
 
@@ -28,16 +30,21 @@ Anything carrying the `disabled` attribute is excluded automatically, with no
 <button data-keyrove-item tabindex="0">Duplicate</button>
 ```
 
-`disabled` only exists on form controls. A `<li>` or a `<div>` styled to look
-disabled needs `data-keyrove-skip`, and `aria-disabled="true"`, which keyrove
-does not write for you.
+Native `disabled` behavior applies to supported form controls. For a `<li>`
+or `<div>`, use `data-keyrove-skip` and `aria-disabled="true"`; keyrove does
+not write ARIA states or prevent your activation handlers from running.
 
-Unlike a skipped item, a disabled one leaves the sequence entirely, so in a grid
-it shifts the cells after it. To keep a dead cell's slot, use
-`aria-disabled="true"` with `data-keyrove-skip` instead of `disabled`.
+keyrove excludes any element carrying `disabled` from its item sequence. In
+a grid, this shifts later cells. To retain a disabled cell's slot, use
+`aria-disabled="true"` with `data-keyrove-skip` instead.
 
 ## Home and End
 
 <kbd class="kbd">Home</kbd> and <kbd class="kbd">End</kbd> respect skipping too:
 they land on the first and last _navigable_ items, not on a leading heading or a
 trailing separator.
+
+If every item is skipped, some moves currently fall back to the first or last
+item. See [the edge rules](/docs/api#edges-and-looping). To prevent that,
+return an empty `items` collection or skip calling `keyRove` until an item is
+eligible. Typeahead and roving initialization do not use this fallback.

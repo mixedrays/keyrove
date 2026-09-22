@@ -1,37 +1,29 @@
 ---
 title: Roving tabindex
-description: Opt a group into being a single tab stop, so Tab moves past it rather than through it — and what happens if you do not.
+description: Give a group one tab stop, initialize it after rendering, and keep it with keyboard, pointer and programmatic focus.
 group: Examples
 order: 16
 ---
 
-keyrove never interferes with <kbd class="kbd">Tab</kbd>, so by default a group
-behaves as its markup says: every item with `tabindex="0"` is a tab stop the
-browser walks through, and the bound keys move between the same items. Two
-navigation models over one list, neither aware of the other.
+With the default bindings, Tab visits every item with `tabindex="0"`. Roving
+tabindex gives the group one tab stop; the navigation keys move between items.
 
-That default is right for a short group and wrong for a long one: twenty items
-should not be twenty stops on the way through a page. The roving tabindex
-pattern gives the group exactly one tab stop and moves it to whichever item was
-last focused. It takes three rules:
+- Put `data-keyrove-roving-tabindex` on every item, or pass
+  `{ rovingTabindex: true }` for the group.
+- Give one navigable item `tabindex="0"` and the rest `tabindex="-1"`.
+  Choose the first item or the widget's selected item, excluding skipped and
+  disabled items.
+- On a move from a roving item, keyrove sets the previous item to `-1` and the
+  destination to `0`.
 
-- Put `data-keyrove-roving-tabindex` on every item in the group. Items without
-  it keep whatever `tabindex` you gave them.
-- Give exactly one item `tabindex="0"` and every other item `tabindex="-1"`.
-  The `0` belongs on the first item that is not skipped; on a skipped heading
-  it would take <kbd class="kbd">Tab</kbd> somewhere the arrows leave at once.
-- keyrove then moves the `0` with focus: `-1` on the item leaving, `0` on the
-  one arriving.
-
-<kbd class="kbd">Tab</kbd> into the list, arrow to an item, then
-<kbd class="kbd">Tab</kbd> away and back: focus returns to where you left it.
+Arrow to an item, then Tab away and Shift+Tab back. Focus returns to that item.
 
 <div data-demo="roving"></div>
 
 ## Setting the initial tab stop
 
-keyrove moves an existing tab stop; it does not create one. If the list is
-rendered from data, give it one once it renders:
+`keyRove` does not initialize the group's tab stop. Set it in the markup or
+call `initRovingTabindex` after rendering:
 
 ```ts
 import { initRovingTabindex } from '@mixedrays/keyrove';
@@ -39,18 +31,14 @@ import { initRovingTabindex } from '@mixedrays/keyrove';
 initRovingTabindex(list);
 ```
 
-The first item that is neither skipped nor disabled gets `tabindex="0"`, and
-every other roving item gets `-1`.
+An existing navigable roving item with `tabindex="0"` keeps the stop. If there
+are several, the first in DOM order wins. If there are none, the first roving
+item that is neither skipped nor disabled gets `0`. All other roving items
+get `-1`.
 
-Call it again after every render that may have replaced items. A re-render
-that drops the item holding the stop is the usual reason a roving group stops
-being reachable by <kbd class="kbd">Tab</kbd>. The call repairs rather than
-resets: while the item holding the stop is still there and navigable, the stop
-stays on it, so <kbd class="kbd">Tab</kbd> away and back still returns to where
-the user left off. Only when that item is gone does the stop go to the first
-item. A template that renders `tabindex="0"` on the selected item keeps it the
-same way. A [nested group](/docs/examples/nested-roots) keeps its own stop,
-untouched; call the function on its root to set that one up.
+Call the helper after a render that may replace items. It preserves a valid
+stop or repairs a missing one. Nested roots keep their own stops; initialize
+each root separately.
 
 Where the item that should start with the stop is known to your code but not
 marked in the DOM, such as a tab list's active tab, name it in `initial`:
@@ -61,24 +49,19 @@ initRovingTabindex(tabs, {
 });
 ```
 
-It takes the stop even from an item that already holds it, so pass it when you
-mean to place the stop, not on every render. An `initial` that is `null`,
-skipped, disabled or not in the group is passed over, and the call behaves as
-if it were not there.
+A valid `initial` overrides the existing stop. Use it for first setup or an
+intentional selection change, and omit it during routine render updates.
+A null, skipped, disabled or non-roving item is ignored.
 
-A group with every item at `tabindex="-1"` cannot be reached with
-<kbd class="kbd">Tab</kbd> at all, which is the one way this pattern can leave a
-page _less_ navigable than the plain tab order it replaced. Exactly one `0` per
-group, always.
+If no item has `tabindex="0"`, Tab cannot enter through the items. Keep one
+stop whenever the group has a navigable roving item.
 
 ## Focus that keyrove did not move
 
-keyrove carries the stop on the moves it makes. Focus arrives other ways too:
-a click on an item, which `tabindex="-1"` allows, `element.focus()` from your
-code, and <kbd class="kbd">Tab</kbd> onto a link or a field inside an item.
-Each of those leaves the stop where it was, so <kbd class="kbd">Tab</kbd> away
-and back returns to the old item rather than the one the user was on.
-`followFocus` on `focusin` moves the stop to wherever focus lands:
+Attach `followFocus` to `focusin` to update the stop after a click, a call to
+`element.focus()`, or Tab entering a control inside an item. It also handles
+entry from outside the group, where keyrove has no previous item to take the
+stop from:
 
 ```ts
 import { followFocus, keyRove } from '@mixedrays/keyrove';
@@ -94,7 +77,7 @@ where the group is described in JavaScript. The
 
 ## Choosing between the two
 
-Neither is more correct; they answer different questions.
+Choose the tab order that fits the widget:
 
 |                            | Plain tab stops             | Roving tabindex                            |
 | -------------------------- | --------------------------- | ------------------------------------------ |
@@ -103,13 +86,11 @@ Neither is more correct; they answer different questions.
 | Cost to the page           | One stop per item           | One stop per group                         |
 | Setup                      | `tabindex="0"` on each item | One `0`, the rest `-1`, plus the attribute |
 
-Reach for plain tab stops when the items are few, or when each one is a
-destination a user might reasonably tab to: a row of three toolbar buttons, a
-short menu. Reach for roving tabindex when the group is long, or when it is one
-control conceptually rather than many: a [listbox](/docs/examples/listbox), a
-[tree](/docs/examples/tree-view), a grid, a tab list. The
-[ARIA authoring practices](https://www.w3.org/WAI/ARIA/apg/practices/keyboard-interface/)
-describe the second arrangement for composite widgets, and it is also what makes
-[nested groups](/docs/examples/nested-roots) escapable:
-<kbd class="kbd">Tab</kbd> moves from the inner group to the next thing without
-any code of yours.
+Use plain tab stops when each item should be a separate destination in the
+page's tab order. Use roving tabindex for a composite control such as a
+[listbox](/docs/examples/listbox), [tree](/docs/examples/tree-view), grid or
+tab list. See the
+[ARIA keyboard practices](https://www.w3.org/WAI/ARIA/apg/practices/keyboard-interface/)
+for widget-specific guidance. With roving tabindex,
+[Tab can leave a nested group](/docs/examples/nested-roots#getting-back-out)
+without an extra exit handler.
