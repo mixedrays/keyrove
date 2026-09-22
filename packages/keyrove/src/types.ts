@@ -57,6 +57,10 @@ export type KeyRoveEvent = {
   // Whether an input method is mid-composition (`KeyboardEvent.isComposing`).
   // Optional like the flags: absent reads as "not composing".
   isComposing?: boolean;
+  // Whether a handler has already claimed the press (`Event.defaultPrevented`)
+  // — another keyrove handler, or one of your own. Optional like the flags:
+  // absent reads as "not claimed".
+  defaultPrevented?: boolean;
   // The produced character (`KeyboardEvent.key`). Only typeahead reads it —
   // matching typed text needs the layout-dependent character, where bindings
   // deliberately stay on the physical `code`. Optional: an event without it

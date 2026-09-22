@@ -53,8 +53,9 @@ const foldMarks = (text: string) =>
  * `label` option, falling back to the `data-keyrove-typeahead` attribute and
  * then to trimmed `textContent` — starts with it, ignoring case and, by
  * default, accents and other combining marks. Typing inside editable elements
- * is never captured, and modified presses (Ctrl/Alt/Meta) are left to their
- * shortcuts. In `cycle` mode a single character moves to the next match after
+ * is never captured, modified presses (Ctrl/Alt/Meta) are left to their
+ * shortcuts, and a press an earlier handler already claimed with
+ * `preventDefault()` is left alone, buffer included. In `cycle` mode a single character moves to the next match after
  * the focused item instead, wrapping, and repeating it cycles through those
  * matches rather than growing the buffer.
  *
@@ -95,6 +96,10 @@ export const createTypeahead = ({
   let lastRoot: Element | null = null;
 
   return (e: KeyRoveEvent): TypeaheadResult | null => {
+    // A press another handler has claimed is spent, as for `keyRove`, and
+    // never reaches the buffer.
+    if (e.defaultPrevented) return null;
+
     // A single-character `key` is the produced character itself — exactly the
     // printable keys. Navigation and function keys ("ArrowDown", "F6") are
     // longer names, and an event without `key` cannot typeahead at all. A

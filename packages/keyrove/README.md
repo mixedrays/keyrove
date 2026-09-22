@@ -427,6 +427,11 @@ non-null result means the key is claimed, so handlers chain with `||`:
 element.addEventListener('keydown', (e) => keyRove(e) || myOwnHandler(e));
 ```
 
+An event an earlier handler already consumed with `preventDefault()` returns
+`null` without moving focus, so nested listeners that both call keyrove move
+focus once per press. keyrove never stops propagation. Check
+`e.defaultPrevented` in your own handler if it should skip consumed keys too.
+
 `toggleTabIndex({ root, isActive })` is exported for cases where you manage one
 element's tab stop yourself. For a whole roving group,
 `initRovingTabindex(root, options?)` keeps exactly one stop, and

@@ -306,4 +306,90 @@ describe('keyRove', () => {
       });
     });
   });
+
+  describe('an event already consumed', () => {
+    // Two groups' worth of listeners over one list, as a component inside an
+    // app shell wires them: both call keyRove on the same bubbling event.
+    const renderNested = (onMove = vi.fn()) => {
+      const outer = document.createElement('div');
+      const inner = document.createElement('div');
+      inner.setAttribute('data-keyrove-root', '');
+      inner.append(createItem('a'), createItem('b'), createItem('c'));
+      outer.appendChild(inner);
+      document.body.appendChild(outer);
+      const results: RoveResult[] = [];
+      for (const listener of [inner, outer]) {
+        listener.addEventListener('keydown', (e) =>
+          results.push(keyRove(e, { onMove })),
+        );
+      }
+
+      return { outer, inner, results };
+    };
+
+    const byId = (id: string) => document.getElementById(id)!;
+
+    it('moves once when two ancestors call keyRove on the same press', () => {
+      const onMove = vi.fn();
+      const { results } = renderNested(onMove);
+      byId('a').focus();
+
+      pressKey('ArrowDown');
+
+      expect(activeId()).toBe('b');
+      expect(onMove).toHaveBeenCalledTimes(1);
+      expect(results).toEqual([
+        { action: 'next', from: byId('a'), to: byId('b') },
+        null,
+      ]);
+    });
+
+    it('leaves a key alone that a handler below canceled', () => {
+      const results: RoveResult[] = [];
+      renderList([createItem('a'), createItem('b')], {
+        onResult: (r) => results.push(r),
+      });
+      byId('a').addEventListener('keydown', (e) => e.preventDefault());
+      byId('a').focus();
+
+      pressKey('ArrowDown');
+
+      expect(activeId()).toBe('a');
+      expect(results).toEqual([null]);
+    });
+
+    it('still lets an ancestor handle a key the handler below left untouched', () => {
+      const { outer, results } = renderNested();
+      const outside = createItem('outside', { focusKey: 'KeyO' });
+      outer.appendChild(outside);
+      byId('a').focus();
+
+      // The focus key sits outside the inner listener's element, so only the
+      // outer listener reaches it.
+      pressKey('KeyO');
+
+      expect(activeId()).toBe('outside');
+      expect(results).toEqual([
+        null,
+        { action: 'focus', from: byId('a'), to: outside },
+      ]);
+    });
+
+    it('reads a hand-built event without the flag as not consumed', () => {
+      const list = renderList([createItem('a'), createItem('b')]);
+      byId('a').focus();
+      const event = {
+        code: 'ArrowDown',
+        target: byId('a'),
+        currentTarget: list,
+        preventDefault: vi.fn(),
+      };
+
+      expect(keyRove(event)?.to).toBe(byId('b'));
+      expect(
+        keyRove({ ...event, target: byId('b'), defaultPrevented: true }),
+      ).toBeNull();
+      expect(activeId()).toBe('b');
+    });
+  });
 });

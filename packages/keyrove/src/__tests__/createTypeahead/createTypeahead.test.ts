@@ -456,6 +456,55 @@ describe('createTypeahead', () => {
     });
   });
 
+  describe('an event already consumed', () => {
+    it('leaves a canceled press alone, buffer included', () => {
+      const items = [
+        createItem('a', 'Alpha'),
+        createItem('b', 'Bravo'),
+        createItem('e', 'Echo'),
+      ];
+      const { results } = renderList(items);
+      const cancelOnce = (e: Event) => {
+        e.preventDefault();
+        items[0].removeEventListener('keydown', cancelOnce);
+      };
+      items[0].addEventListener('keydown', cancelOnce);
+      items[0].focus();
+
+      pressKey('b');
+      expect(activeId()).toBe('a');
+
+      // Had "b" joined the buffer, "be" would match nothing.
+      pressKey('e');
+      expect(activeId()).toBe('e');
+      expect(results).toEqual([
+        null,
+        { action: 'typeahead', from: items[0], to: items[2] },
+      ]);
+    });
+
+    it('moves once when two ancestors run typeahead on the same press', () => {
+      const inner = document.createElement('div');
+      inner.append(
+        createItem('a', 'Sa'),
+        createItem('b', 'Sb'),
+        createItem('c', 'Sc'),
+      );
+      const outer = document.createElement('div');
+      outer.appendChild(inner);
+      document.body.appendChild(outer);
+      for (const listener of [inner, outer]) {
+        const typeahead = createTypeahead({ matchMode: 'cycle' });
+        listener.addEventListener('keydown', (e) => typeahead(e));
+      }
+      document.getElementById('a')!.focus();
+
+      pressKey('s');
+
+      expect(activeId()).toBe('b');
+    });
+  });
+
   describe('inside a shadow root', () => {
     it('cycles on from the focused item', () => {
       const host = document.createElement('div');

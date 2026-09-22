@@ -26,15 +26,21 @@ export * from './attributes.js';
  * `data-keyrove-*` attribute it stands for, so passing none navigates a
  * marked-up group exactly as before; see {@link Options}.
  * @param options.onMove - Fired after focus moved — only when it actually did.
- * @returns `null` when the key was left untouched; `{ action, from, to }` when
- * it was consumed, with `to: null` for a consumed no-op at an edge. A non-null
- * result means the key is claimed, so handlers chain with `||`:
+ * @returns `null` when the key was left untouched, which includes a press an
+ * earlier handler already claimed with `preventDefault()`; `{ action, from,
+ * to }` when it was consumed, with `to: null` for a consumed no-op at an edge.
+ * A non-null result means the key is claimed, so handlers chain with `||`:
  * `keyRove(e) || myOwnHandler(e)`.
  */
 export const keyRove = (
   e: KeyRoveEvent,
   options: Options = {},
 ): MoveResult | null => {
+  // A press another handler has claimed is spent: a keyRove further up the
+  // tree would otherwise read the focus the first one just moved, and move
+  // again. Propagation is left alone for listeners that only observe.
+  if (e.defaultPrevented) return null;
+
   // Mid-composition, every press belongs to the input method: arrows walk its
   // candidate list and a chord can be part of the conversion. Composition
   // happens only in an editable host, so past the typing guard below this

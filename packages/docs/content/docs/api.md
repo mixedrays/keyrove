@@ -218,7 +218,7 @@ The roving stop is restored and `onMove` does not fire.
 Unbound keys keep their browser behavior and remain available to your
 handlers. <kbd class="kbd">Tab</kbd>, <kbd class="kbd">Shift</kbd>+<kbd class="kbd">Tab</kbd>, <kbd class="kbd">Enter</kbd>, <kbd class="kbd">Space</kbd> and <kbd class="kbd">Escape</kbd> are unbound by default.
 The [return value](#return-value) tells your handler whether keyrove consumed
-the key.
+the key. A key another handler already consumed is left alone.
 
 ### Edges and looping
 
@@ -390,6 +390,7 @@ focus left, or `null` when no item was focused or the destination is a non-item.
 `keyRove` reports what it did with the key, so handlers compose:
 
 - `null`: the key was not keyrove's and is untouched, browser default included.
+  This includes a key another handler already consumed.
 - `{ action, from, to }`: the key was consumed. `to` is the newly focused
   element, or `null` for a consumed no-op, where the group owns the key but
   there is nowhere left to go, or the target did not take focus.
@@ -402,6 +403,14 @@ element.addEventListener('keydown', (e) => keyRove(e) || myOwnHandler(e));
 ```
 
 The [listbox](/docs/examples/listbox) chains three handlers this way.
+
+A key is already consumed when an earlier handler called `preventDefault()`
+on the event. `keyRove` and typeahead return `null` for it without moving
+focus, so a component and an app shell can both call keyrove on the same
+bubbling event and focus moves once. keyrove never stops propagation, so
+ancestor listeners still receive the event. In a `||` chain, `null` still
+passes it to your next handler; check `e.defaultPrevented` there if your
+handler should skip consumed keys too.
 
 ## rove(element, action, options?)
 
@@ -516,7 +525,8 @@ the buffer, so a mistyped prefix matches nothing more until the reset clears
 it.
 
 The handler follows the `keyRove` contract: `null` when the key was left
-untouched, `{ action: 'typeahead', from, to }` when it was consumed, with
+untouched or [already consumed](#return-value), which leaves the buffer
+unchanged, and `{ action: 'typeahead', from, to }` when it was consumed, with
 `to: null` when the match is already focused or cannot receive focus.
 `onMove` fires after focus has moved and only when it actually moved, so both
 handlers can feed the same follow-focus logic. The roving tab stop moves with
@@ -826,14 +836,16 @@ type KeyRoveEvent = {
   shiftKey?: boolean;
   metaKey?: boolean;
   isComposing?: boolean;
+  defaultPrevented?: boolean;
   key?: string;
 };
 ```
 
-The modifier flags, `isComposing` and `key` are optional so a hand-built event
-object still qualifies. A missing flag reads as "not held" and a missing
-`isComposing` as "not composing", so an object of your own that bridges events
-must forward them, or every press matches as unmodified. Only
+The modifier flags, `isComposing`, `defaultPrevented` and `key` are optional so
+a hand-built event object still qualifies. A missing flag reads as "not held",
+a missing `isComposing` as "not composing" and a missing `defaultPrevented` as
+not [consumed](#return-value). An object of your own that bridges events must
+forward them, or every press matches as unmodified and unconsumed. Only
 [typeahead](#createtypeahead-options) reads `key`; an event without it
 navigates but never typeaheads.
 
