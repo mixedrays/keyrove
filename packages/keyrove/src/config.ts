@@ -183,7 +183,7 @@ const readExplicitBinding =
  * declared as it is on the element beside the key; an element a map names is
  * named outright, and the group's `skip` has no say over it.
  */
-const readFocusKeys = (
+export const readFocusKeys = (
   scope: Element,
   { focusKeys }: GroupOptions,
 ): FocusKey[] => {
@@ -230,17 +230,16 @@ export const rovingTest = ({ rovingTabindex }: GroupOptions): IsRoving =>
   rovingTabindex === undefined ? attributeRoving : () => rovingTabindex;
 
 /**
- * Every setting one keypress needs, read once for the root it resolved in.
- * `scope` is the listener's reach, which only the focus keys span.
+ * Every setting one move needs, read once for the root it resolved in. The
+ * focus keys are read apart, by {@link readFocusKeys}: they span the
+ * listener's reach rather than the root, and only a keypress looks them up.
  */
 export const readConfig = (
   root: Element,
-  scope: Element,
   options: GroupOptions,
 ): GroupConfig => ({
   layout: readLayout(root, options),
   explicit: readExplicitBinding(root, options),
-  focus: readFocusKeys(scope, options),
   // Resolved on demand: read only when an unbound `next`/`prev` default on a
   // horizontal axis could flip, never otherwise.
   rtl: () => isRtl(root),

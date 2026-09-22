@@ -67,6 +67,7 @@ items or adding a column count requires no navigation instance to update.
 | Focus shortcuts      | Focus an item or panel from anywhere under the listener                      | [Focus keys](/docs/examples/focus-keys)             |
 | Typeahead            | Add `createTypeahead()` to focus items by typing their labels                | [Typeahead](/docs/examples/typeahead)               |
 | Trees                | Navigate visible rows; your handlers expand and collapse branches            | [Tree view](/docs/examples/tree-view)               |
+| Moves from code      | Call `rove(list, 'next')` from a button, gamepad or remote                   | [`rove`](/docs/api#rove-element-action-options)     |
 
 Text fields, selects and editable content keep their editing keys. See
 [editable targets](/docs/examples/editable-targets) for the rules and exceptions.

@@ -179,14 +179,13 @@ export type Options = GroupOptions & {
 };
 
 /**
- * Every setting one keypress needs, resolved for the root it is navigating:
+ * Every setting one move needs, resolved for the root it is navigating:
  * options where they name a field, the root's attributes where they do not.
  * The layers below take these as given and never read a source of their own.
  */
 export type GroupConfig = {
   layout: Layout;
   explicit: ExplicitBinding;
-  focus: FocusKey[];
   rtl: () => boolean;
   pageLength: number;
   readItems: ReadItems;
@@ -377,7 +376,8 @@ export type Group = {
  * handler's result comes back exactly typed.
  */
 export type MoveFocusArgs<Action extends string> = {
-  e: Pick<KeyRoveEvent, 'preventDefault'>;
+  /** The keypress to claim. A move made from code has none. */
+  e?: Pick<KeyRoveEvent, 'preventDefault'>;
   action: Action;
   from: Element | null;
   to: Element | null | undefined;

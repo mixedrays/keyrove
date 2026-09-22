@@ -205,7 +205,8 @@ const carryStop = (from: Element, to: Element) => {
  *
  * Call it only once a handler has decided the press is its own:
  * `preventDefault` is unconditional here, because the group owns its keys up
- * to its own boundary and the page must not scroll instead. A missing `to`, or
+ * to its own boundary and the page must not scroll instead. A move made from
+ * code passes no event, and has no key to claim. A missing `to`, or
  * one that is the focused item already, is a consumed no-op — focus and the
  * tab stop stay put, `onMove` stays quiet, and the result carries `to: null`.
  * Otherwise the roving tab stop follows when `isRoving` accepts the item being
@@ -223,7 +224,7 @@ export const moveFocus = <Action extends string>({
   isRoving = attributeRoving,
   onMove,
 }: MoveFocusArgs<Action>): ActionResult<Action> => {
-  e.preventDefault();
+  e?.preventDefault();
 
   if (!to || to === from) return { action, from, to: null };
 

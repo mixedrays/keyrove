@@ -52,6 +52,8 @@ pnpm add @mixedrays/keyrove
   content their native keys. Checkbox and button inputs still navigate.
 - **Typeahead:** find items by label with case and accent handling, prefix
   matching or repeated-character cycling.
+- **Moves from code:** run any move from a button, gamepad or remote with
+  `rove(list, 'next')`; see [Moves without a keypress](#moves-without-a-keypress).
 
 ## Usage
 
@@ -359,7 +361,8 @@ while its attribute applies per item. See
 | `data-keyrove-orientation`     | `orientation`    | root | —           | `horizontal` maps a list's default keys to `ArrowRight`/`ArrowLeft`, RTL-aware.                                                   |
 | `data-keyrove-typeahead`       | `label`          | item | text        | Label for type-to-focus, when the item's own text is not it. As an option: `(item) => string`.                                    |
 
-`keyRove` takes every option but `label`. `createTypeahead` takes `items`,
+`keyRove` takes every option but `label`. `rove` takes the same options and
+ignores `keys` and `focusKeys`. `createTypeahead` takes `items`,
 `root`, `skip`, `rovingTabindex` and `label` — the settings that bear on
 finding an item. `initRovingTabindex` and `followFocus` take the same four
 without `label`.
@@ -409,6 +412,20 @@ element.addEventListener('keydown', (e) => keyRove(e) || myOwnHandler(e));
 element's tab stop yourself. For a whole roving group,
 `initRovingTabindex(root, options?)` keeps exactly one stop, and
 `followFocus(event, options?)` moves it with focus keyRove did not move.
+
+## Moves without a keypress
+
+`rove(element, action, options?)` moves focus by action name. Use it for
+on-screen buttons, gamepads and remotes. Key bindings do not affect it, and it
+returns the same result as `keyRove`:
+
+```ts
+nextButton.addEventListener('click', () => rove(results, 'next'));
+```
+
+The move starts from the focused item. If focus is elsewhere, such as on the
+button, a roving group starts from its tab stop. Otherwise, `next` enters at
+the first item and `prev` at the last.
 
 ## License
 

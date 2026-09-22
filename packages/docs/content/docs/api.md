@@ -9,6 +9,7 @@ order: 4
 | ------------------------------------------------------------------------ | ------------------------------------------------- |
 | [`keyRove(event, options?)`](#keyrove-event-options)                     | Handles a keydown and reports the focus move.     |
 | [`options`](#options)                                                    | Configures the group in JavaScript.               |
+| [`rove(element, action, options?)`](#rove-element-action-options)        | Moves focus by action name, without a keypress.   |
 | [`createTypeahead(options?)`](#createtypeahead-options)                  | Creates a type-to-focus handler.                  |
 | [`matchesCombo(event, combo)`](#matchescombo-event-combo)                | Tests a key combination in your own handlers.     |
 | [`initRovingTabindex(root, options?)`](#initrovingtabindex-root-options) | Initializes or repairs a group's roving tab stop. |
@@ -349,6 +350,50 @@ element.addEventListener('keydown', (e) => keyRove(e) || myOwnHandler(e));
 ```
 
 The [listbox](/docs/examples/listbox) chains three handlers this way.
+
+## rove(element, action, options?)
+
+Moves focus by action name, without a keypress. Use it for on-screen next and
+previous buttons, gamepads and remotes, or to focus a group's first item with
+`rove(list, 'home')`.
+
+```ts
+import { rove } from '@mixedrays/keyrove';
+
+nextButton.addEventListener('click', () => rove(results, 'next'));
+prevButton.addEventListener('click', () => rove(results, 'prev'));
+```
+
+`action` is a [stride action](#groupoptions-strideaction): `'next'`, `'prev'`,
+`'home'`, `'end'`, `'pageUp'` or `'pageDown'`, plus `'nextRow'`, `'prevRow'`,
+`'homeRow'` and `'endRow'` in a grid. Key bindings do not affect it. To focus
+a specific element, call `element.focus()`, and attach
+[`followFocus`](#followfocus-event-options) to a roving group.
+
+The group is found as for a keypress, with `element` as both target and
+listener: the nearest [root](#roots) at or above `element`, else `element`
+itself.
+
+The move starts from, in this order:
+
+1. The focused item. The move matches its key exactly: same result, roving
+   stop and `onMove`.
+2. In a roving group, the item holding the tab stop. A button takes focus when
+   pressed, so this lets repeated presses continue from the user's position.
+3. Otherwise, the move enters the group. `home`, `next`, `nextRow` and
+   `pageDown` go to the first navigable item; `end`, `prev`, `prevRow` and
+   `pageUp` go to the last. `homeRow` and `endRow` do nothing.
+
+Row actions apply only to grids; in a list they do nothing.
+
+It accepts the same [options](#options) as `keyRove`, including `onMove`, and
+ignores `keys` and `focusKeys`.
+
+It returns `{ action, from, to }`, as a keypress does (see
+[Return value](#return-value)). `from` is `null` when the move entered the
+group. `to` is `null` when there was nowhere to go or the target did not take
+focus. It returns `null` when there is no move to make: no group, no item to
+enter, or a row action in a list.
 
 ## createTypeahead(options?)
 

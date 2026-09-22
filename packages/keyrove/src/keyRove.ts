@@ -1,5 +1,5 @@
 import { buildBindings } from './bindings.js';
-import { readConfig, rootTest } from './config.js';
+import { readConfig, readFocusKeys, rootTest } from './config.js';
 import {
   holdsFocus,
   listenerElement,
@@ -59,7 +59,7 @@ export const keyRove = (
   // groups and out of nested roots — so its lookup spans the listener's
   // element, not the root.
   const scope = listenerElement(e.currentTarget) ?? root;
-  const config = readConfig(root, scope, options);
+  const config = readConfig(root, options);
   const { onMove } = options;
 
   // First match wins: one keypress resolves to at most one action, and the
@@ -67,7 +67,7 @@ export const keyRove = (
   // bindings over the defaults.
   const binding = buildBindings({
     explicit: config.explicit,
-    focus: config.focus,
+    focus: readFocusKeys(scope, options),
     layout: config.layout,
     rtl: config.rtl,
   }).find(({ combo }) => matchesCombo(e, combo));

@@ -119,5 +119,9 @@ attribute fallbacks still read the current DOM.
 [`followFocus`](/docs/api#followfocus-event-options) share the same four group
 options. Use them to initialize the tab stop and keep it with focus.
 
+[`rove`](/docs/api#rove-element-action-options) accepts the same options as
+`keyRove` and ignores `keys` and `focusKeys`. Pass the same configuration to
+move from code: `rove(el, 'next', config)`.
+
 [Options in JavaScript](/docs/examples/javascript-options) shows a complete
 menu configured this way.
