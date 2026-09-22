@@ -83,6 +83,13 @@ and individual sections, with heading IDs allocated by the same parser as the
 rendered pages; landing and `noindex` pages are excluded. Titles and headings
 rank above body matches, with prefix matching and typo tolerance enabled.
 
+The results are a keyrove group: the site navigating with its own library.
+Each result is a link, `initRovingTabindex` gives the list one tab stop after
+every render, `keyRove` moves focus between the links and `followFocus` keeps
+the stop in step. keyrove leaves a text field its caret keys, so the box
+focuses an end of the list itself to hand focus over, and a character typed on
+a result sends focus back to the box.
+
 The Vite plugin generates the index in development and production. Markdown
 edits invalidate the development cache and reload the page, including search.
 Run the search indexing tests with `pnpm --filter @mixedrays/keyrove/docs test`.
