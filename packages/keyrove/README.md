@@ -284,7 +284,9 @@ list.addEventListener('focusin', (e) => followFocus(e));
 ```
 
 See [roving tabindex](https://keyrove.pages.dev/docs/examples/roving-tabindex)
-for initialization and focus tracking.
+for initialization and focus tracking, and the
+[complete roving setup](https://keyrove.pages.dev/docs/installation#complete-roving-setup)
+for navigation, a tab stop, focus tracking and typeahead in one example.
 
 ## Typeahead
 

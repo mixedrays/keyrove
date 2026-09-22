@@ -500,7 +500,9 @@ el.addEventListener('keydown', (e) => keyRove(e, config) || typeahead(e));
 Typeahead ignores movement options: `keys`, `cols`, `loop`, `orientation`
 and `pageLength`. Its options are captured when the handler is created;
 recreate it to change them. Item queries, skip predicates and attribute
-fallbacks still read the current DOM.
+fallbacks still read the current DOM. The
+[complete roving setup](/docs/installation#complete-roving-setup) shows it
+beside navigation, initialization and focus tracking.
 
 Labels come from `label(item)`, then `data-keyrove-typeahead`, then
 `textContent`. An empty value falls through to the next source. Text content
@@ -617,7 +619,9 @@ initRovingTabindex(listbox, {
 A valid `initial` overrides the existing stop. Pass it for first setup or an
 intentional external selection change. Omit it on routine renders to preserve
 the user's position. Null, skipped, disabled or non-roving items are ignored,
-using the fallback order above.
+using the fallback order above. The
+[complete roving setup](/docs/installation#complete-roving-setup) shows where
+each call belongs.
 
 ## followFocus(event, options?)
 
@@ -648,7 +652,9 @@ list.addEventListener('focusin', (e) => followFocus(e));
 It returns the item now holding the stop, or `null` when focus is in no item
 that carries one. It takes the same [group settings](#options) as
 [`initRovingTabindex`](#initrovingtabindex-root-options): `items`, `root`,
-`skip` and `rovingTabindex`.
+`skip` and `rovingTabindex`. See the
+[complete roving setup](/docs/installation#complete-roving-setup) for all
+the helpers wired together.
 
 ## toggleTabIndex({ root, isActive })
 

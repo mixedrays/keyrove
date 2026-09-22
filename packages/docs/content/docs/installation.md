@@ -44,7 +44,8 @@ list.addEventListener('keydown', (e) => keyRove(e));
 
 Give non-native items `tabindex="0"` so they can receive focus. With the default
 bindings, <kbd class="kbd">Tab</kbd> visits each item. For one tab stop per group, use
-[roving tabindex](/docs/examples/roving-tabindex).
+[roving tabindex](/docs/examples/roving-tabindex); the
+[complete roving setup](#complete-roving-setup) below puts every piece together.
 
 Lists use <kbd class="kbd">↑</kbd>/<kbd class="kbd">↓</kbd> by default. Set `data-keyrove-next-key` and
 `data-keyrove-prev-key` on the root to [change the keys](/docs/examples/custom-keys).
@@ -207,3 +208,79 @@ document.querySelector('#panel').addEventListener('keydown', (e) => keyRove(e));
 
 Roots can also nest. Each inner group uses its own keys and settings; see
 [nested roots](/docs/examples/nested-roots).
+
+## Complete roving setup
+
+A group with one tab stop combines four pieces: navigation, an initial tab
+stop, focus tracking and, optionally, typeahead. This recipe wires them to one
+configuration object:
+
+```html
+<div id="choices">
+  <button>Inbox</button>
+  <button>Drafts</button>
+  <button>Sent</button>
+</div>
+```
+
+```ts
+import {
+  createTypeahead,
+  followFocus,
+  initRovingTabindex,
+  keyRove,
+} from '@mixedrays/keyrove';
+
+const list = document.querySelector<HTMLElement>('#choices')!;
+const config = { items: 'button', rovingTabindex: true };
+
+// Created once, so its buffer lasts between keypresses.
+const typeahead = createTypeahead(config);
+
+initRovingTabindex(list, config);
+
+list.addEventListener('keydown', (e) => keyRove(e, config) || typeahead(e));
+list.addEventListener('focusin', (e) => followFocus(e, config));
+```
+
+- `initRovingTabindex` gives the first button `tabindex="0"` and the others
+  `-1`, so <kbd class="kbd">Tab</kbd> enters the group once.
+- `keyRove` moves focus with the arrows, <kbd class="kbd">Home</kbd>,
+  <kbd class="kbd">End</kbd> and the page keys, and carries the tab stop with
+  each move.
+- `followFocus` moves the tab stop when focus arrives another way: a click,
+  `element.focus()`, or <kbd class="kbd">Tab</kbd> onto a control inside an
+  item.
+- `typeahead` focuses the first button whose label starts with the typed text.
+  Without typeahead, remove `createTypeahead` from the import, the `typeahead`
+  line and `|| typeahead(e)`.
+
+Every helper receives the same `config`, so they agree on which elements are
+items and that the group has one tab stop.
+
+### After rendering
+
+Call `initRovingTabindex(list, config)` again after a render that may add,
+remove or replace items. It keeps a stop that is still valid and repairs a
+missing one. The listeners stay attached to `list`, so add them once, outside
+the render. In a framework, make the call from the hook that runs after each
+render.
+
+### Choosing the first stop
+
+Pass `initial` when your code knows which item should start with the stop,
+such as the one your app shows as selected:
+
+```ts
+initRovingTabindex(list, {
+  ...config,
+  initial: list.querySelector('.selected'),
+});
+```
+
+`initial` overrides the current stop. Use it on first setup or when your app
+changes the selection, and leave it out of the post-render call; otherwise
+every render sends the stop back and the user loses their place.
+
+This recipe covers focus movement only. Roles, labels and selection belong to
+the widget; the [listbox](/docs/examples/listbox) adds them to these pieces.

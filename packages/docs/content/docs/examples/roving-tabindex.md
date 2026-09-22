@@ -77,6 +77,10 @@ alone, gives no stop to a skipped item, and takes the same options object
 where the group is described in JavaScript. The
 [listbox](/docs/examples/listbox) uses it for clicks.
 
+The [complete roving setup](/docs/installation#complete-roving-setup) wires
+initialization, navigation, focus tracking and typeahead to one
+configuration object.
+
 ## Choosing between the two
 
 Choose the tab order that fits the widget:
