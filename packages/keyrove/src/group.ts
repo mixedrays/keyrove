@@ -51,6 +51,9 @@ export const holdsFocus = (element: Element): boolean => {
   return !!active && element.contains(active);
 };
 
+// `Node.DOCUMENT_NODE`, spelled out so reading it needs no global `Node`.
+const DOCUMENT_NODE = 9;
+
 /**
  * The element a listener sits on. A listener on the document, or the window,
  * has no element of its own, so the document element stands in: `<html>`
@@ -60,10 +63,15 @@ export const listenerElement = (
   listener: EventTarget | null | undefined,
 ): Element | null => {
   if (!listener) return null;
-  if ('documentElement' in listener) {
+
+  // Told apart by values, not by which properties exist: a form exposes its
+  // controls as named properties, so `<input name="document">` makes
+  // `'document' in form` true. A control can stand in for `nodeType` or
+  // `window` too, but it is an element, never 9 or the form itself.
+  if ((listener as Node).nodeType === DOCUMENT_NODE) {
     return (listener as Document).documentElement;
   }
-  if ('document' in listener) {
+  if ((listener as Window).window === listener) {
     return (listener as Window).document.documentElement;
   }
 

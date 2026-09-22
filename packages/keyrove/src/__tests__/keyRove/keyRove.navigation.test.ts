@@ -275,5 +275,45 @@ describe('keyRove', () => {
         expect(activeId()).toBe('b');
       },
     );
+
+    // A form exposes each named control as a property of its own. jsdom does
+    // not, so the property a browser would add is defined by hand.
+    const formWithControl = (name: string, ...children: Element[]) => {
+      const form = document.createElement('form');
+      const control = document.createElement('input');
+      control.type = 'hidden';
+      control.name = name;
+      form.append(control, ...children);
+      Object.defineProperty(form, name, { value: control, configurable: true });
+      document.body.appendChild(form);
+      form.addEventListener('keydown', (e) => keyRove(e));
+
+      return form;
+    };
+
+    it.each(['document', 'documentElement', 'nodeType', 'window'])(
+      'navigates under a form listener with a control named %s',
+      (name) => {
+        formWithControl(name, createItem('a'), createItem('b'));
+        document.getElementById('a')!.focus();
+
+        pressKey('ArrowDown');
+
+        expect(activeId()).toBe('b');
+      },
+    );
+
+    it('reaches focus keys anywhere under such a form, past an inner root', () => {
+      const inner = document.createElement('div');
+      inner.setAttribute(KEYROVE_ATTR_ROOT, '');
+      inner.append(createItem('a'), createItem('b'));
+      const outside = createItem('outside', { focusKey: 'ctrl+KeyO' });
+      formWithControl('document', inner, outside);
+      document.getElementById('a')!.focus();
+
+      pressKey('KeyO', undefined, { ctrlKey: true });
+
+      expect(activeId()).toBe('outside');
+    });
   });
 });
