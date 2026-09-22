@@ -7,7 +7,9 @@ import {
   LayoutGrid,
   Menu,
   Moon,
+  Search,
   Sun,
+  X,
   type IconNode,
 } from 'lucide';
 
@@ -55,6 +57,8 @@ const fromLucide = (node: IconNode): IconDef => ({
 });
 
 const ICONS = {
+  search: fromLucide(Search),
+  close: fromLucide(X),
   menu: fromLucide(Menu),
   book: fromLucide(BookOpen),
   keyboard: fromLucide(Keyboard),

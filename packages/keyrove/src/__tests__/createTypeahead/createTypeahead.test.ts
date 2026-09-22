@@ -456,6 +456,79 @@ describe('createTypeahead', () => {
     });
   });
 
+  describe('an event already consumed', () => {
+    it('leaves a canceled press alone, buffer included', () => {
+      const items = [
+        createItem('a', 'Alpha'),
+        createItem('b', 'Bravo'),
+        createItem('e', 'Echo'),
+      ];
+      const { results } = renderList(items);
+      const cancelOnce = (e: Event) => {
+        e.preventDefault();
+        items[0].removeEventListener('keydown', cancelOnce);
+      };
+      items[0].addEventListener('keydown', cancelOnce);
+      items[0].focus();
+
+      pressKey('b');
+      expect(activeId()).toBe('a');
+
+      // Had "b" joined the buffer, "be" would match nothing.
+      pressKey('e');
+      expect(activeId()).toBe('e');
+      expect(results).toEqual([
+        null,
+        { action: 'typeahead', from: items[0], to: items[2] },
+      ]);
+    });
+
+    it('moves once when two ancestors run typeahead on the same press', () => {
+      const inner = document.createElement('div');
+      inner.append(
+        createItem('a', 'Sa'),
+        createItem('b', 'Sb'),
+        createItem('c', 'Sc'),
+      );
+      const outer = document.createElement('div');
+      outer.appendChild(inner);
+      document.body.appendChild(outer);
+      for (const listener of [inner, outer]) {
+        const typeahead = createTypeahead({ matchMode: 'cycle' });
+        listener.addEventListener('keydown', (e) => typeahead(e));
+      }
+      document.getElementById('a')!.focus();
+
+      pressKey('s');
+
+      expect(activeId()).toBe('b');
+    });
+  });
+
+  describe('inside a shadow root', () => {
+    it('cycles on from the focused item', () => {
+      const host = document.createElement('div');
+      document.body.appendChild(host);
+      const shadow = host.attachShadow({ mode: 'open' });
+      const list = document.createElement('div');
+      list.append(
+        createItem('a', 'Sa'),
+        createItem('b', 'Sb'),
+        createItem('c', 'Sc'),
+      );
+      shadow.appendChild(list);
+      const typeahead = createTypeahead({ matchMode: 'cycle' });
+      list.addEventListener('keydown', (e) => typeahead(e));
+      shadow.getElementById('b')!.focus();
+
+      pressKey('s', { from: shadow.activeElement! });
+      expect(shadow.activeElement?.id).toBe('c');
+
+      pressKey('s', { from: shadow.activeElement! });
+      expect(shadow.activeElement?.id).toBe('a');
+    });
+  });
+
   describe('labels', () => {
     it('prefers the typeahead attribute over the text', () => {
       renderList([
@@ -684,6 +757,64 @@ describe('createTypeahead', () => {
           to: document.getElementById('c'),
         },
       ]);
+    });
+  });
+
+  describe('a match that does not take focus', () => {
+    it('is a consumed no-op that leaves the roving stop alone', () => {
+      const onMove = vi.fn();
+      const items = [
+        createItem('a', 'Drafts', { roving: true }),
+        createItem('b', 'Sent', { roving: true, tabindex: '-1' }),
+      ];
+      const { results } = renderList(items, { options: { onMove } });
+      // Inert or hidden in a browser: focusable by its attributes, and still
+      // refusing focus.
+      vi.spyOn(items[1], 'focus').mockImplementation(() => {});
+      items[0].focus();
+
+      const event = pressKey('s');
+
+      expect(activeId()).toBe('a');
+      expect(event.defaultPrevented).toBe(true);
+      expect(onMove).not.toHaveBeenCalled();
+      expect(results).toEqual([
+        { action: 'typeahead', from: items[0], to: null },
+      ]);
+      expect(items.map((item) => item.getAttribute('tabindex'))).toEqual([
+        '0',
+        '-1',
+      ]);
+    });
+  });
+
+  describe('across nested groups', () => {
+    it("moves the matched item's own group stop and keeps the outer one", () => {
+      const inner = document.createElement('div');
+      inner.setAttribute(KEYROVE_ATTR_ROOT, '');
+      inner.append(
+        createItem('b', 'Beta', { roving: true }),
+        createItem('c', 'Gamma', { roving: true, tabindex: '-1' }),
+      );
+      const outer = [
+        createItem('a', 'Alpha', { roving: true }),
+        inner,
+        createItem('d', 'Delta', { roving: true, tabindex: '-1' }),
+      ];
+      const { container } = renderList(outer);
+      document.getElementById('a')!.focus();
+
+      pressKey('g');
+
+      expect(activeId()).toBe('c');
+      expect(
+        Object.fromEntries(
+          Array.from(container.querySelectorAll('[tabindex]')).map((el) => [
+            el.id,
+            el.getAttribute('tabindex'),
+          ]),
+        ),
+      ).toEqual({ a: '0', b: '-1', c: '0', d: '-1' });
     });
   });
 });

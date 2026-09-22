@@ -30,8 +30,12 @@ Run from the repo root:
 | `pnpm lint`       | Checks formatting across the workspace with Prettier. |
 | `pnpm format`     | Rewrites files to Prettier style.                     |
 | `pnpm build`      | Builds every package.                                 |
+| `pnpm bench`      | Times `keyRove` in headless Chrome.                   |
 | `pnpm typecheck`  | Type-checks every package.                            |
 | `pnpm preview`    | Serves the built docs site.                           |
+
+The benchmark's method and recorded results are in
+[packages/keyrove/bench](packages/keyrove/bench/README.md).
 
 Any script can be aimed at one package with a filter:
 
@@ -70,6 +74,25 @@ pages.
 The served markdown is not the file verbatim: frontmatter is site plumbing, so
 it is replaced by the `title` as an H1 and the `description` as a blockquote,
 leaving a document that stands on its own when fetched in isolation.
+
+### Documentation search
+
+The header search button and `Cmd+K` / `Ctrl+K` open a native dialog. MiniSearch
+and `search-index.json` load on first use. The index contains docs page leads
+and individual sections, with heading IDs allocated by the same parser as the
+rendered pages; landing and `noindex` pages are excluded. Titles and headings
+rank above body matches, with prefix matching and typo tolerance enabled.
+
+The results are a keyrove group: the site navigating with its own library.
+Each result is a link, `initRovingTabindex` gives the list one tab stop after
+every render, `keyRove` moves focus between the links and `followFocus` keeps
+the stop in step. keyrove leaves a text field its caret keys, so the box
+focuses an end of the list itself to hand focus over, and a character typed on
+a result sends focus back to the box.
+
+The Vite plugin generates the index in development and production. Markdown
+edits invalidate the development cache and reload the page, including search.
+Run the search indexing tests with `pnpm --filter @mixedrays/keyrove/docs test`.
 
 ### Live demos
 

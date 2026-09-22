@@ -1,16 +1,14 @@
 ---
 title: Options in JavaScript
-description: Describe a group in an options object instead of in markup — the way to navigate components whose HTML you do not write.
+description: Configure a menu with JavaScript options using its existing roles and markup.
 titleTag: Configuring keyboard navigation in JavaScript — keyrove
 group: Examples
 order: 22
 ---
 
-Every page so far describes a group in its markup. This one describes the same
-kind of group in JavaScript, which is what you need when the markup is not
-yours to change: a component library's menu, a CMS's output, a widget rendered
-by something else. Nothing below carries a single `data-keyrove-*` attribute —
-the group is named by the role its items already have.
+Use options to navigate markup from a component library, CMS or other code
+you cannot change. This menu has no `data-keyrove-*` attributes; its options
+select items by their existing role.
 
 <div data-demo="menu"></div>
 
@@ -30,32 +28,26 @@ document
   .addEventListener('keydown', (e) => keyRove(e, config) || typeahead(e));
 ```
 
-<kbd class="kbd">↑</kbd> <kbd class="kbd">↓</kbd> move and wrap at the ends,
-typing a letter jumps to an entry, <kbd class="kbd">Tab</kbd> leaves the menu
-in one press, and _Export as PDF_ is out of the order because it is
-`disabled` — none of which the markup says.
+<kbd class="kbd">↑</kbd>/<kbd class="kbd">↓</kbd> move between items and wrap at the ends. Typing finds an entry, and
+<kbd class="kbd">Tab</kbd> leaves the menu. The options configure navigation; the markup supplies
+roles, an initial tab stop and the `disabled` attribute on _Export as PDF_.
 
 ## What is coming from where
 
-Nothing, in this one: every setting the menu has is in that object. The general
-rule is that the two sources are read field by field, options first, so a
-setting left out falls back to its attribute — `keyRove(e, { loop: true })`
-loops a group whose items still come from the markup.
-[Attributes and options](/docs/attributes-and-options) is the whole model, and
-the [API reference](/docs/api#options) lists every field.
+Options override attributes one setting at a time. For example,
+`keyRove(e, { loop: true })` enables looping while still finding items from
+markup. See [attributes and options](/docs/attributes-and-options) for
+replacement rules and the [API reference](/docs/api#options) for every field.
 
 ## One object, both handlers
 
-`createTypeahead` takes the settings that bear on finding an item — `items`,
-`root`, `skip` and `rovingTabindex` — under the same names, so the object above
-configures both handlers and they cannot disagree about what an item is. Typing
-_p_ in the demo reaches _Post to Slack_ through the same `items` selector the
-arrows walk.
+Pass the same `items`, `root`, `skip` and `rovingTabindex` settings to both
+handlers. In the demo, typing <kbd class="kbd">P</kbd> reaches _Post to Slack_ through the same
+selector the arrows use.
 
-The settings that are about _moves_ — the keys, the columns, looping — are not
-part of its options: a typeahead has one way to reach an item, its label. It
-takes a [`label`](/docs/api#createtypeahead-options) of its own instead, for
-where the text to match is not the item's own text.
+Typeahead ignores movement settings such as keys, columns and looping. Use its
+[`label`](/docs/api#createtypeahead-options) option when an item's text is not
+its search label. Create the handler once per listener.
 
 ## Items, by selector or by hand
 
@@ -79,10 +71,7 @@ keyRove(e, { items: '.cell', skip: '.cell-empty', cols: 4 });
 
 ## Where this belongs
 
-Reach for options where the markup is not yours, or where a setting is computed
-— `keyRove(e, { items: '.cell', cols: columnsNow() })` re-folds a grid between
-keypresses, since the object is read fresh on every one. For markup you do own,
-the attributes usually read better:
-[responsive grid](/docs/examples/responsive-grid) tracks a column count without
-an options object at all, by writing the attribute its layout implies.
-[Attributes and options](/docs/attributes-and-options) weighs the two.
+Use options when you cannot edit the markup or need a computed setting:
+`keyRove(e, { items: '.cell', cols: columnsNow() })` reads the column count on
+each call. For CSS grids, `cols: 'auto'` or `data-keyrove-cols="auto"` reads it
+from the layout; see [responsive grid](/docs/examples/responsive-grid).

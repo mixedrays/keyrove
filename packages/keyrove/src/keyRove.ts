@@ -1,15 +1,18 @@
 import { buildBindings } from './bindings.js';
-import { readConfig, rootTest } from './config.js';
+import { crossBoundary } from './boundary.js';
+import { readConfig, readFocusKeys, rootTest } from './config.js';
 import {
+  attributeRoot,
   holdsFocus,
   listenerElement,
   moveFocus,
   readGroup,
   resolveRoot,
+  stopSource,
 } from './group.js';
 import { resolveTarget } from './position.js';
 import { hasCommandModifier, isEditableTarget, matchesCombo } from './utils.js';
-import type { KeyRoveEvent, MoveResult, Options } from './types.js';
+import type { KeyRoveEvent, KeyRoveOptions, MoveResult } from './types.js';
 
 // The attribute constants ship alongside the handler that reads them, so
 // consumers can spread them into markup; see `attributes.ts`.
@@ -21,17 +24,23 @@ export * from './attributes.js';
  * @param options - The group's settings, where you would rather name them here
  * than in markup, and `onMove`. Every setting falls back on its own to the
  * `data-keyrove-*` attribute it stands for, so passing none navigates a
- * marked-up group exactly as before; see {@link Options}.
+ * marked-up group exactly as before; see {@link KeyRoveOptions}.
  * @param options.onMove - Fired after focus moved — only when it actually did.
- * @returns `null` when the key was left untouched; `{ action, from, to }` when
- * it was consumed, with `to: null` for a consumed no-op at an edge. A non-null
- * result means the key is claimed, so handlers chain with `||`:
+ * @returns `null` when the key was left untouched, which includes a press an
+ * earlier handler already claimed with `preventDefault()`; `{ action, from,
+ * to }` when it was consumed, with `to: null` for a consumed no-op at an edge.
+ * A non-null result means the key is claimed, so handlers chain with `||`:
  * `keyRove(e) || myOwnHandler(e)`.
  */
 export const keyRove = (
   e: KeyRoveEvent,
-  options: Options = {},
+  options: KeyRoveOptions = {},
 ): MoveResult | null => {
+  // A press another handler has claimed is spent: a keyRove further up the
+  // tree would otherwise read the focus the first one just moved, and move
+  // again. Propagation is left alone for listeners that only observe.
+  if (e.defaultPrevented) return null;
+
   // Mid-composition, every press belongs to the input method: arrows walk its
   // candidate list and a chord can be part of the conversion. Composition
   // happens only in an editable host, so past the typing guard below this
@@ -59,7 +68,7 @@ export const keyRove = (
   // groups and out of nested roots — so its lookup spans the listener's
   // element, not the root.
   const scope = listenerElement(e.currentTarget) ?? root;
-  const config = readConfig(root, scope, options);
+  const config = readConfig(root, options);
   const { onMove } = options;
 
   // First match wins: one keypress resolves to at most one action, and the
@@ -67,7 +76,7 @@ export const keyRove = (
   // bindings over the defaults.
   const binding = buildBindings({
     explicit: config.explicit,
-    focus: config.focus,
+    focus: readFocusKeys(scope, options),
     layout: config.layout,
     rtl: config.rtl,
   }).find(({ combo }) => matchesCombo(e, combo));
@@ -105,6 +114,33 @@ export const keyRove = (
     });
   }
 
+  // A boundary move lands in the group next to this one — around it, or
+  // nested in the focused item — and it is that group's stop that moves. It
+  // claims its key only where there is somewhere to go: the keys it suits,
+  // Escape and Enter, are otherwise the page's.
+  if (binding.intent === 'exit' || binding.intent === 'enter') {
+    const crossing = crossBoundary(
+      binding.intent,
+      root,
+      scope,
+      focused,
+      config,
+      isRoot ?? attributeRoot,
+    );
+
+    if (!crossing) return null;
+
+    return moveFocus({
+      e,
+      action: binding.intent,
+      from: focused,
+      to: crossing.to,
+      isRoving: config.isRoving,
+      stopFrom: crossing.stopFrom,
+      onMove,
+    });
+  }
+
   // Most moves only act once focus is genuinely inside an item, whatever key
   // they are bound to: they move *within* a group, they are not a way into
   // one. The directional moves deliberately are — which is how a group is
@@ -136,6 +172,14 @@ export const keyRove = (
     from: focused,
     to: target,
     isRoving: config.isRoving,
+    stopFrom: stopSource(
+      group,
+      focused,
+      target,
+      config.readItems,
+      isRoot ?? attributeRoot,
+      config.isRoving,
+    ),
     onMove,
   });
 };

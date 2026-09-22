@@ -4,9 +4,8 @@
 [![minzipped size](https://img.shields.io/bundlejs/size/%40mixedrays%2Fkeyrove?color=4f46e5&label=minzipped%20size)](https://bundlejs.com/?q=%40mixedrays%2Fkeyrove)
 [![license](https://img.shields.io/npm/l/@mixedrays/keyrove?color=4f46e5)](https://github.com/mixedrays/keyrove/blob/main/LICENSE)
 
-Framework-agnostic keyboard navigation for lists, grids and trees, driven by
-`data-*` attributes or a plain options object. Any key can move focus — arrows
-are only the default — and native <kbd>Tab</kbd> navigation keeps working.
+Keyboard navigation for lists, grids and trees. Configure it with data
+attributes or JavaScript options, in any framework.
 
 ## Getting started
 
@@ -31,9 +30,8 @@ import { keyRove } from '@mixedrays/keyrove';
 document.querySelector('#menu').addEventListener('keydown', (e) => keyRove(e));
 ```
 
-Where the markup is not yours to change — a component library's menu, a CMS's
-output — every attribute has an option of the same name, so the same list can
-be described in the call instead:
+Use an `items` option when you cannot add attributes to the markup. This
+selects the same list items without `data-keyrove-item`; keep their tabindex:
 
 ```ts
 document
@@ -41,10 +39,13 @@ document
   .addEventListener('keydown', (e) => keyRove(e, { items: 'li' }));
 ```
 
-`keyRove` takes anything shaped like a keydown event, so React, Vue and Svelte
-synthetic events work without an adapter. The
-[installation guide](https://keyrove.pages.dev/docs/installation) shows the
-wiring in each framework.
+Options override attributes one setting at a time, with
+[scope and replacement differences](https://keyrove.pages.dev/docs/attributes-and-options#configuration-differences).
+
+`keyRove` accepts native keyboard events and compatible framework events,
+including React synthetic events. The
+[installation guide](https://keyrove.pages.dev/docs/installation) shows setup
+for vanilla JavaScript, React, Vue and Svelte.
 
 ## Documentation
 

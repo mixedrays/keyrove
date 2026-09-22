@@ -1,6 +1,6 @@
 {
   "name": "@mixedrays/keyrove/docs",
-  "version": "2.7.0",
+  "version": "2.8.0",
   "private": true,
   "description": "Documentation site and landing page for keyrove.",
   "license": "MIT",
@@ -9,10 +9,12 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
+    "test": "node --test tests/*.test.ts",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@mixedrays/keyrove": "workspace:*"
+    "@mixedrays/keyrove": "workspace:*",
+    "minisearch": "^7.2.0"
   },
   "devDependencies": {
     "@shikijs/markdown-it": "^4.4.3",

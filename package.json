@@ -19,6 +19,7 @@
     "lint": "prettier --check .",
     "format": "prettier --write .",
     "build": "pnpm -r build",
+    "bench": "pnpm --filter @mixedrays/keyrove bench",
     "typecheck": "pnpm -r typecheck",
     "preview": "pnpm --filter @mixedrays/keyrove/docs preview",
     "release": "pnpm --filter @mixedrays/keyrove release"

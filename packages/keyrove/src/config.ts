@@ -20,8 +20,9 @@ import {
   KEYROVE_ATTR_PAGE_LENGTH,
 } from './attributes.js';
 import { attributeItems, attributeRoving } from './group.js';
+import { keyAttribute } from './keyAttribute.js';
 import { attributeSkip } from './position.js';
-import { hasEnabledAttribute, parseAttributeInt } from './utils.js';
+import { hasEnabledAttribute, isComboSet, parseAttributeInt } from './utils.js';
 import type {
   ExplicitBinding,
   FocusKey,
@@ -66,6 +67,51 @@ const count = (value: number | undefined): number | undefined => {
   return whole >= 1 ? whole : undefined;
 };
 
+// A track in a resolved `grid-template-columns`: a size in pixels.
+const TRACK = /^\d*\.?\d+px$/;
+
+/**
+ * The columns a grid container lays out: the tracks of its resolved
+ * `grid-template-columns`, which lists every track as a pixel size however the
+ * rule was written, `repeat(auto-fill, …)` included. Named lines
+ * (`[full-start]`) are not tracks.
+ *
+ * A value that is not a list of pixel sizes counts nothing — `none` on a root
+ * that is no grid, or the declared value where nothing is laid out — and
+ * neither does an environment without `getComputedStyle`: the group is then a
+ * list.
+ */
+const countTracks = (root: Element): number => {
+  if (typeof getComputedStyle === 'undefined') return 1;
+
+  const tracks = getComputedStyle(root)
+    .getPropertyValue('grid-template-columns')
+    .replace(/\[[^\]]*\]/g, ' ')
+    .trim()
+    .split(/\s+/);
+
+  return tracks.every((track) => TRACK.test(track)) ? tracks.length : 1;
+};
+
+/**
+ * The group's column count. `auto`, from either source and in any case in the
+ * attribute, counts the tracks on screen on every keypress; a number is taken
+ * as it stands, where it is usable.
+ */
+const readColumns = (root: Element, cols: GroupOptions['cols']): number => {
+  if (cols === 'auto') return countTracks(root);
+
+  const option = count(cols);
+
+  if (option) return option;
+
+  if (root.getAttribute(KEYROVE_ATTR_COLS)?.trim().toLowerCase() === 'auto') {
+    return countTracks(root);
+  }
+
+  return parseAttributeInt(root, KEYROVE_ATTR_COLS, 1);
+};
+
 /**
  * Whether an element is a group's root, where a `root` selector names one.
  * Undefined otherwise, which leaves `resolveRoot` reading the attribute.
@@ -85,7 +131,7 @@ const readLayout = (
   root: Element,
   { cols, orientation, loop }: GroupOptions,
 ): Layout => {
-  const columns = count(cols) ?? parseAttributeInt(root, KEYROVE_ATTR_COLS, 1);
+  const columns = readColumns(root, cols);
 
   if (columns > 1) {
     return { kind: 'grid', cols: columns, horizontal: true, loop: false };
@@ -110,14 +156,15 @@ const readLayout = (
  * naming `next` leaves every other move to its attribute. Every move's
  * attribute is named after it, so the name is derived rather than listed —
  * `nextRow` reads `data-keyrove-next-row-key`.
+ *
+ * A value naming no combo is unset in either source: an empty, blank or
+ * comma-only option falls through to the attribute, and such an attribute to
+ * the default.
  */
 const readExplicitBinding =
   (root: Element, { keys }: GroupOptions): ExplicitBinding =>
   (intent) =>
-    keys?.[intent] ??
-    root.getAttribute(
-      `data-keyrove-${intent.replace(/[A-Z]/g, '-$&').toLowerCase()}-key`,
-    );
+    [keys?.[intent], root.getAttribute(keyAttribute(intent))].find(isComboSet);
 
 /**
  * The focus keys in reach of a keypress: the `focusKeys` map where one is
@@ -132,7 +179,7 @@ const readExplicitBinding =
  * declared as it is on the element beside the key; an element a map names is
  * named outright, and the group's `skip` has no say over it.
  */
-const readFocusKeys = (
+export const readFocusKeys = (
   scope: Element,
   { focusKeys }: GroupOptions,
 ): FocusKey[] => {
@@ -179,17 +226,16 @@ export const rovingTest = ({ rovingTabindex }: GroupOptions): IsRoving =>
   rovingTabindex === undefined ? attributeRoving : () => rovingTabindex;
 
 /**
- * Every setting one keypress needs, read once for the root it resolved in.
- * `scope` is the listener's reach, which only the focus keys span.
+ * Every setting one move needs, read once for the root it resolved in. The
+ * focus keys are read apart, by {@link readFocusKeys}: they span the
+ * listener's reach rather than the root, and only a keypress looks them up.
  */
 export const readConfig = (
   root: Element,
-  scope: Element,
   options: GroupOptions,
 ): GroupConfig => ({
   layout: readLayout(root, options),
   explicit: readExplicitBinding(root, options),
-  focus: readFocusKeys(scope, options),
   // Resolved on demand: read only when an unbound `next`/`prev` default on a
   // horizontal axis could flip, never otherwise.
   rtl: () => isRtl(root),

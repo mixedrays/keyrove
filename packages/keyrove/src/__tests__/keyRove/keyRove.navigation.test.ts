@@ -146,6 +146,112 @@ describe('keyRove', () => {
 
       expect(activeId()).toBe('b');
     });
+
+    describe('when every item is skipped', () => {
+      // The same group skipped two ways: by attribute, and by the `skip`
+      // option over otherwise plain items.
+      const render = (
+        via: 'attribute' | 'option',
+        containerAttrs: Record<string, string> = {},
+      ) => {
+        const results: RoveResult[] = [];
+        const container = renderList(
+          ['a', 'b', 'c'].map((id) =>
+            createItem(id, { skip: via === 'attribute' }),
+          ),
+          {
+            containerAttrs,
+            options: via === 'option' ? { skip: () => true } : undefined,
+            onResult: (r) => results.push(r),
+          },
+        );
+
+        return { container, results };
+      };
+
+      describe.each(['attribute', 'option'] as const)('by %s', (via) => {
+        it.each(['ArrowDown', 'ArrowUp'])(
+          'leaves %s untouched from outside the group',
+          (code) => {
+            const { container, results } = render(via);
+            container.setAttribute('tabindex', '0');
+            container.focus();
+
+            const event = pressKey(code, container);
+
+            expect(document.activeElement).toBe(container);
+            expect(event.defaultPrevented).toBe(false);
+            expect(results).toEqual([null]);
+          },
+        );
+
+        it('leaves entry untouched in a looping list too', () => {
+          const { container, results } = render(via, {
+            'data-keyrove-loop': '',
+          });
+          container.setAttribute('tabindex', '0');
+          container.focus();
+
+          const event = pressKey('ArrowUp', container);
+
+          expect(event.defaultPrevented).toBe(false);
+          expect(results).toEqual([null]);
+        });
+
+        it.each([
+          ['a list', {}],
+          ['a looping list', { 'data-keyrove-loop': '' }],
+        ])(
+          'consumes every move from a focused item in %s without moving',
+          (_, containerAttrs) => {
+            const { results } = render(via, containerAttrs);
+            const b = document.getElementById('b')!;
+            b.focus();
+
+            for (const code of [
+              'ArrowDown',
+              'ArrowUp',
+              'Home',
+              'End',
+              'PageDown',
+              'PageUp',
+            ]) {
+              const event = pressKey(code);
+
+              expect(activeId(), code).toBe('b');
+              expect(event.defaultPrevented, code).toBe(true);
+            }
+            expect(results).toEqual(
+              Array.from({ length: 6 }, (_, i) => ({
+                action: ['next', 'prev', 'home', 'end', 'pageDown', 'pageUp'][
+                  i
+                ],
+                from: b,
+                to: null,
+              })),
+            );
+          },
+        );
+
+        it('consumes every move from a focused cell in a grid without moving', () => {
+          render(via, { 'data-keyrove-cols': '2' });
+          document.getElementById('a')!.focus();
+
+          for (const [code, modifiers] of [
+            ['ArrowRight'],
+            ['ArrowDown'],
+            ['End'],
+            ['End', { ctrlKey: true }],
+            ['PageDown'],
+          ] as const) {
+            const event = pressKey(code, undefined, modifiers);
+
+            expect(activeId(), code).toBe('a');
+            expect(event.defaultPrevented, code).toBe(true);
+          }
+        });
+      });
+    });
   });
 
   describe('disabled items', () => {
@@ -275,5 +381,144 @@ describe('keyRove', () => {
         expect(activeId()).toBe('b');
       },
     );
+
+    // A form exposes each named control as a property of its own. jsdom does
+    // not, so the property a browser would add is defined by hand.
+    const formWithControl = (name: string, ...children: Element[]) => {
+      const form = document.createElement('form');
+      const control = document.createElement('input');
+      control.type = 'hidden';
+      control.name = name;
+      form.append(control, ...children);
+      Object.defineProperty(form, name, { value: control, configurable: true });
+      document.body.appendChild(form);
+      form.addEventListener('keydown', (e) => keyRove(e));
+
+      return form;
+    };
+
+    it.each(['document', 'documentElement', 'nodeType', 'window'])(
+      'navigates under a form listener with a control named %s',
+      (name) => {
+        formWithControl(name, createItem('a'), createItem('b'));
+        document.getElementById('a')!.focus();
+
+        pressKey('ArrowDown');
+
+        expect(activeId()).toBe('b');
+      },
+    );
+
+    it('reaches focus keys anywhere under such a form, past an inner root', () => {
+      const inner = document.createElement('div');
+      inner.setAttribute(KEYROVE_ATTR_ROOT, '');
+      inner.append(createItem('a'), createItem('b'));
+      const outside = createItem('outside', { focusKey: 'ctrl+KeyO' });
+      formWithControl('document', inner, outside);
+      document.getElementById('a')!.focus();
+
+      pressKey('KeyO', undefined, { ctrlKey: true });
+
+      expect(activeId()).toBe('outside');
+    });
+  });
+
+  describe('inside a shadow root', () => {
+    // A list and its listener inside an open shadow root, as a web component
+    // wires them. The document sees only the host as focused.
+    const renderShadow = (html: string) => {
+      const host = document.createElement('div');
+      document.body.appendChild(host);
+      const shadow = host.attachShadow({ mode: 'open' });
+      shadow.innerHTML = `<div id="list">${html}</div>`;
+      const results: RoveResult[] = [];
+      shadow
+        .getElementById('list')!
+        .addEventListener('keydown', (e) => results.push(keyRove(e)));
+
+      const byId = (id: string) => shadow.getElementById(id)!;
+      const press = (code: string) => pressKey(code, shadow.activeElement!);
+      const named = () =>
+        results.map(
+          (result) =>
+            result && {
+              action: result.action,
+              from: result.from?.id ?? null,
+              to: result.to?.id ?? null,
+            },
+        );
+
+      return { shadow, byId, press, named };
+    };
+
+    const ITEMS = `
+      <button id="a" data-keyrove-item>A</button>
+      <button id="b" data-keyrove-item>B</button>
+      <button id="c" data-keyrove-item>C</button>
+    `;
+
+    it('moves from the focused item, and back', () => {
+      const { shadow, byId, press, named } = renderShadow(ITEMS);
+      byId('a').focus();
+
+      press('ArrowDown');
+      expect(shadow.activeElement?.id).toBe('b');
+
+      press('ArrowDown');
+      expect(shadow.activeElement?.id).toBe('c');
+
+      press('ArrowUp');
+      expect(shadow.activeElement?.id).toBe('b');
+      expect(named()).toEqual([
+        { action: 'next', from: 'a', to: 'b' },
+        { action: 'next', from: 'b', to: 'c' },
+        { action: 'prev', from: 'c', to: 'b' },
+      ]);
+    });
+
+    it('goes Home and End from the focused item', () => {
+      const { shadow, byId, press, named } = renderShadow(ITEMS);
+      byId('b').focus();
+
+      press('End');
+      expect(shadow.activeElement?.id).toBe('c');
+
+      press('End');
+      expect(shadow.activeElement?.id).toBe('c');
+
+      press('Home');
+      expect(shadow.activeElement?.id).toBe('a');
+      expect(named()).toEqual([
+        { action: 'end', from: 'b', to: 'c' },
+        { action: 'end', from: 'c', to: null },
+        { action: 'home', from: 'c', to: 'a' },
+      ]);
+    });
+
+    it('navigates from the item holding focus in a descendant', () => {
+      const { shadow, byId, press, named } = renderShadow(`
+        <div id="a" data-keyrove-item tabindex="-1"><button id="control">A</button></div>
+        <button id="b" data-keyrove-item>B</button>
+      `);
+      byId('control').focus();
+
+      press('ArrowDown');
+
+      expect(shadow.activeElement?.id).toBe('b');
+      expect(named()).toEqual([{ action: 'next', from: 'a', to: 'b' }]);
+    });
+
+    it('leaves exit alone on a focused root that is an item of the group around it', () => {
+      const { byId, press, named } = renderShadow(`
+        <div id="panel" data-keyrove-item data-keyrove-root data-keyrove-exit-key="Escape" tabindex="0">
+          <button id="p0" data-keyrove-item>p0</button>
+        </div>
+        <button id="b" data-keyrove-item>B</button>
+      `);
+      byId('panel').focus();
+
+      expect(press('Escape').defaultPrevented).toBe(false);
+      expect(named()).toEqual([null]);
+    });
   });
 });

@@ -25,14 +25,27 @@ export type KnownCode =
   | 'PageDown';
 
 /**
- * A `KeyboardEvent.code`.
+ * A `KeyboardEvent.code`: the physical key an event carries. A binding, which
+ * can add modifiers and list several keys, is a {@link KeyCombo}.
  *
  * The `(string & {})` arm keeps this assignable from a plain `string` — which
- * is how both the DOM and React type `code`, and what a `data-keyrove-*-key`
- * attribute yields — while editors still complete the codes keyrove acts on.
- * It documents intent and aids autocomplete; it does not validate.
+ * is how both the DOM and React type `code` — while editors still complete
+ * the codes keyrove acts on. It documents intent and aids autocomplete; it
+ * does not validate.
  */
 export type KeyRoveCode = KnownCode | (string & {});
+
+/**
+ * A key binding: one combo, `"KeyJ"` or `"ctrl+ArrowDown"`, or a
+ * comma-separated list of them, `"ArrowDown, KeyJ"`. Each combo is optional
+ * modifiers followed by a {@link KeyRoveCode}; see `matchesCombo` for the
+ * grammar.
+ *
+ * Open like {@link KeyRoveCode}, and for the same reasons: bindings also
+ * arrive as attribute values and from outside data, as plain strings. It
+ * documents intent and aids autocomplete; it does not validate.
+ */
+export type KeyCombo = KnownCode | (string & {});
 
 /**
  * The shape keyrove needs from a keydown event.
@@ -57,6 +70,10 @@ export type KeyRoveEvent = {
   // Whether an input method is mid-composition (`KeyboardEvent.isComposing`).
   // Optional like the flags: absent reads as "not composing".
   isComposing?: boolean;
+  // Whether a handler has already claimed the press (`Event.defaultPrevented`)
+  // — another keyrove handler, or one of your own. Optional like the flags:
+  // absent reads as "not claimed".
+  defaultPrevented?: boolean;
   // The produced character (`KeyboardEvent.key`). Only typeahead reads it —
   // matching typed text needs the layout-dependent character, where bindings
   // deliberately stay on the physical `code`. Optional: an event without it
@@ -88,12 +105,21 @@ export type StrideAction =
   | 'pageDown';
 
 /**
- * Everything a keypress can resolve to: the strides, plus `focus` — an element
- * named outright by its own `data-keyrove-focus-key`, item or not, reached from
- * anywhere under the listener rather than from a position. It is the one move
- * whose `*-key` attribute sits on its destination, and the one with no default.
+ * The moves across a nested root's boundary: `exit`, from inside a nested
+ * group to the group around it, and `enter`, from an item into the group
+ * nested inside it. Bound on a root like the strides, but with no default key:
+ * the keys they suit, Escape and Enter, already mean something to the page.
  */
-export type MoveAction = StrideAction | 'focus';
+export type BoundaryAction = 'exit' | 'enter';
+
+/**
+ * Everything a keypress can resolve to: the strides, the boundary moves, plus
+ * `focus` — an element named outright by its own `data-keyrove-focus-key`,
+ * item or not, reached from anywhere under the listener rather than from a
+ * position. It is the one move whose `*-key` attribute sits on its
+ * destination.
+ */
+export type MoveAction = StrideAction | 'exit' | 'enter' | 'focus';
 
 /**
  * The shape every handler returns for a consumed keypress, parameterised by
@@ -138,8 +164,11 @@ export type GroupOptions = {
    * in when nothing above the target matches.
    */
   root?: string;
-  /** Columns. Above 1 the group is a grid. Defaults to the cols attribute. */
-  cols?: number;
+  /**
+   * Columns. Above 1 the group is a grid. `'auto'` counts the tracks of the
+   * root's CSS grid on every keypress. Defaults to the cols attribute.
+   */
+  cols?: number | 'auto';
   /**
    * Whether `next`/`prev` wrap at the ends. Lists only, as for the attribute.
    */
@@ -149,15 +178,17 @@ export type GroupOptions = {
   /** Rows per page jump — items, in a list. Defaults to 10. */
   pageLength?: number;
   /**
-   * The combo each move answers to: `{ next: 'KeyJ', prev: 'KeyK' }`. Read
-   * move by move, so a move left out keeps its attribute and then its default
-   * key.
+   * The combo each move answers to, or a comma-separated list of them:
+   * `{ next: 'ArrowDown, KeyJ', prev: 'KeyK' }`. Read move by move, so a move
+   * left out keeps its attribute and then its default key. `'none'` binds a
+   * move to no key, freeing its default. `exit` and `enter` have no default,
+   * and move across a nested root's boundary: `{ exit: 'Escape' }`.
    */
-  keys?: Partial<Record<StrideAction, KeyRoveCode>>;
+  keys?: Partial<Record<StrideAction | 'exit' | 'enter', KeyCombo | 'none'>>;
   /**
-   * Elements reachable by a combo of their own: combo → the element, or a
-   * selector resolved within the listener's reach. Replaces the focus-key
-   * scan rather than adding to it.
+   * Elements reachable by a combo of their own: a {@link KeyCombo} → the
+   * element, or a selector resolved within the listener's reach. Replaces the
+   * focus-key scan rather than adding to it.
    */
   focusKeys?: Record<string, string | Element>;
   /** Which items a move passes over. Defaults to the skip attribute. */
@@ -169,20 +200,63 @@ export type GroupOptions = {
   rovingTabindex?: boolean;
 };
 
-export type Options = GroupOptions & {
+/** What `keyRove` and `rove` take: the group's settings, and `onMove`. */
+export type KeyRoveOptions = GroupOptions & {
   /** Fired after focus has moved — and only when it actually moved. */
   onMove?: (move: Move) => void;
 };
 
+/** {@link KeyRoveOptions} under its earlier name, kept for existing imports. */
+export type Options = KeyRoveOptions;
+
+/** Group settings that can be written as attributes on a root. */
+export type RootAttributeOptions = Pick<
+  GroupOptions,
+  'cols' | 'loop' | 'orientation' | 'pageLength' | 'keys'
+>;
+
+/** Settings on one item, rather than on the whole group. */
+export type ItemAttributeOptions = {
+  skip?: boolean;
+  rovingTabindex?: boolean;
+  focusKey?: KeyCombo;
+  typeahead?: string;
+};
+
+/** The attribute spelling of a camel-cased action. */
+type KebabCase<S extends string> = S extends `${infer Head}${infer Tail}`
+  ? `${Head extends Lowercase<Head> ? Head : `-${Lowercase<Head>}`}${KebabCase<Tail>}`
+  : S;
+
+export type KeyAttributeName =
+  `data-keyrove-${KebabCase<keyof NonNullable<GroupOptions['keys']>>}-key`;
+
+/** A spreadable root marker and the settings supplied to its builder. */
+export type RootAttributes = {
+  'data-keyrove-root': 'true';
+  'data-keyrove-cols'?: string;
+  'data-keyrove-loop'?: string;
+  'data-keyrove-orientation'?: string;
+  'data-keyrove-page-length'?: string;
+} & Partial<Record<KeyAttributeName, string>>;
+
+/** A spreadable item marker and the settings supplied to its builder. */
+export type ItemAttributes = {
+  'data-keyrove-item': 'true';
+  'data-keyrove-skip'?: string;
+  'data-keyrove-roving-tabindex'?: string;
+  'data-keyrove-focus-key'?: string;
+  'data-keyrove-typeahead'?: string;
+};
+
 /**
- * Every setting one keypress needs, resolved for the root it is navigating:
+ * Every setting one move needs, resolved for the root it is navigating:
  * options where they name a field, the root's attributes where they do not.
  * The layers below take these as given and never read a source of their own.
  */
 export type GroupConfig = {
   layout: Layout;
   explicit: ExplicitBinding;
-  focus: FocusKey[];
   rtl: () => boolean;
   pageLength: number;
   readItems: ReadItems;
@@ -217,6 +291,12 @@ export type TypeaheadOptions = Pick<
    * starting with it, wrapping, so repeats cycle. Defaults to `'prefix'`.
    */
   matchMode?: 'prefix' | 'cycle';
+  /**
+   * Whether accents and other combining marks are ignored on both sides of
+   * the match, so "e" reaches "Émilie" and "É" reaches "emilie". Turn it off
+   * where an accent tells two items apart. Defaults to `true`.
+   */
+  foldDiacritics?: boolean;
   /** Fired after focus has moved — and only when it actually moved. */
   onMove?: (move: TypeaheadMove) => void;
 };
@@ -233,6 +313,30 @@ export type TypeaheadResult = ActionResult<'typeahead'>;
 
 /** The argument a typeahead `onMove` receives: a move that actually happened. */
 export type TypeaheadMove = TypeaheadResult & { to: Element };
+
+/**
+ * What `initRovingTabindex` and `followFocus` take: the group settings that
+ * decide which elements are a group's roving items. The same fields {@link GroupOptions}
+ * names, falling back the same way, so one object serves every export.
+ */
+export type RovingTabindexOptions = Pick<
+  GroupOptions,
+  'items' | 'root' | 'skip' | 'rovingTabindex'
+>;
+
+/**
+ * What `initRovingTabindex` takes: the group settings, and the item the stop
+ * should go to.
+ */
+export type InitRovingTabindexOptions = RovingTabindexOptions & {
+  /**
+   * The item to hold the stop, such as a listbox's selected option. It wins
+   * over a stop the group already has. Nullish, or anything that is not one of
+   * the group's navigable roving items, is passed over for the usual rule, so
+   * a query that found nothing needs no guard.
+   */
+  initial?: Element | null;
+};
 
 /**
  * How a group folds its DOM-ordered sequence — read once off the root and
@@ -258,18 +362,21 @@ export type Layout = {
  * move only within a group. A property of the move, not of the key it is bound
  * to. A focus row carries its target outright — the element that declared the
  * key — and always enters: it names a destination, not a step from a position.
+ * A boundary row never enters: it goes from the group focus is in to the one
+ * next to it, and decides for itself what it needs to be in.
  */
 export type Binding =
   | { combo: string; intent: StrideAction; enters: boolean }
+  | { combo: string; intent: BoundaryAction; enters: false }
   | { combo: string; intent: 'focus'; enters: true; target: Element };
 
 /**
  * Looks up the combo explicitly bound to a move, straight off the root's
  * `*-key` attribute — nullish where the attribute is unset and the move keeps
- * its default key.
+ * its default key, and `none` where the move is bound to no key.
  */
 export type ExplicitBinding = (
-  intent: StrideAction,
+  intent: StrideAction | BoundaryAction,
 ) => string | null | undefined;
 
 /** A focus key as read off an element: its combo, and the element it focuses. */
@@ -296,8 +403,8 @@ export type IsRoving = (from: Element) => boolean;
 
 export type BuildBindingsArgs = {
   /**
-   * Asked only about the moves in the layout's default table, so a move the
-   * layout lacks is never looked up.
+   * Asked only about the moves in the layout's default table and the boundary
+   * moves, so a move the layout lacks is never looked up.
    */
   explicit: ExplicitBinding;
   /**
@@ -343,7 +450,8 @@ export type Group = {
  * handler's result comes back exactly typed.
  */
 export type MoveFocusArgs<Action extends string> = {
-  e: Pick<KeyRoveEvent, 'preventDefault'>;
+  /** The keypress to claim. A move made from code has none. */
+  e?: Pick<KeyRoveEvent, 'preventDefault'>;
   action: Action;
   from: Element | null;
   to: Element | null | undefined;
@@ -352,5 +460,12 @@ export type MoveFocusArgs<Action extends string> = {
    * the roving-tabindex attribute.
    */
   isRoving?: IsRoving;
+  /**
+   * The item the roving stop is carried from, where that is not `from`: a
+   * move onto a nested group's item, or across a nested root's boundary,
+   * lands in another group, whose own stop moves while the group focus left
+   * keeps its. Nullish carries nothing.
+   */
+  stopFrom?: Element | null;
   onMove?: (move: ActionResult<Action> & { to: Element }) => void;
 };

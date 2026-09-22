@@ -1,73 +1,45 @@
 ---
 title: Responsive grid
-description: Let a container query decide the column count and hand it to keyrove before each keypress, so rows fold the way the layout does.
+description: Read a CSS grid’s column count on each keypress with data-keyrove-cols="auto".
 titleTag: Keyboard navigation for a responsive grid — keyrove
 group: Examples
 order: 15
 ---
 
-A grid rarely keeps one column count. Six across on a desktop becomes three on
-a tablet and two on a phone, and `data-keyrove-cols` has to say which of those
-is on screen right now: it is what keyrove
-[folds rows by](/docs/examples/grid), and a stale value sends
-<kbd class="kbd">↓</kbd> to the wrong cell.
+Set `data-keyrove-cols="auto"` on the grid container to read its column count
+from CSS on every keypress. Navigation then follows layout changes without
+copying breakpoints into JavaScript.
 
-Rather than spelling the breakpoints out a second time in JavaScript, let the
-stylesheet own them and read the result back. A
-[container query](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_containment/Container_queries)
-sets one custom property, `--cols`, and both the grid's layout and keyrove
-follow it. Drag the corner of the panel to narrow it, or narrow the window, then
-arrow around: the rows fold as the columns do. The log names the month focus
-landed on, so the count is readable without counting cells — six columns across,
-<kbd class="kbd">↓</kbd> takes January to July; two columns across, the same key
-takes it to March.
+This demo uses a
+[container query](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_containment/Container_queries).
+Drag the panel's corner or narrow the window, then try the arrows. With six
+columns, <kbd class="kbd">↓</kbd> moves from January to July; with two, it moves to March.
 
 <div data-demo="responsive" data-demo-class="resize-x overflow-hidden min-w-64 max-w-full"></div>
 
 ```ts
 import { keyRove } from '@mixedrays/keyrove';
 
-const months = document.querySelector('#months');
+// <div id="months" data-keyrove-cols="auto">
+document
+  .querySelector('#months')
+  .addEventListener('keydown', (e) => keyRove(e));
+```
 
-months.addEventListener('keydown', (e) => {
-  months.setAttribute(
-    'data-keyrove-cols',
-    getComputedStyle(months).getPropertyValue('--cols'),
-  );
-  keyRove(e);
-});
+Or, where the markup is not yours, as an option:
+
+```ts
+keyRove(e, { items: '.month', cols: 'auto' });
 ```
 
 The demo's grid carries `data-keyrove-root` only because the site's listener
 sits on the panel around it. With the listener on the grid itself, as above, the
 attribute is not needed.
 
-## One line before the call
+## Counted on every keypress
 
-`keyRove(e)` is unchanged. The line above it copies `--cols` into
-`data-keyrove-cols`, and because keyrove reads the attribute fresh on every
-keypress, refreshing it in the same handler is all the synchronisation there is:
-no resize listener, no observer to disconnect, nothing that can be stale by the
-time it is read. `getComputedStyle` resolves one property on one element once
-per keypress, which costs nothing you would notice.
-
-If something else needs the attribute right _between_ keypresses, a test
-asserting on it or another script reading it, a `ResizeObserver` on the panel
-makes the same copy whenever the size changes, and once when it starts
-observing:
-
-```ts
-const picker = document.querySelector('#month-picker');
-
-const syncColumns = () => {
-  months.setAttribute(
-    'data-keyrove-cols',
-    getComputedStyle(months).getPropertyValue('--cols'),
-  );
-};
-
-new ResizeObserver(syncColumns).observe(picker);
-```
+`auto` reads the root's computed `grid-template-columns` during each call.
+No resize listener or observer is needed to keep the count current.
 
 ## The stylesheet owns the breakpoints
 
@@ -77,25 +49,45 @@ grid inside sets `--cols` and lays itself out with
 rule changes the property and nothing else. Add a breakpoint, or move one, and
 navigation follows without a JavaScript edit.
 
-The query measures the panel, not the viewport, so the same grid dropped into a
-sidebar gets the sidebar's column count, which a media query could not give it.
-The container is the panel rather than the grid because an element cannot query
-its own size.
+The query measures the panel's width, so the grid also adapts when placed in a
+sidebar. The panel is the query container because an element cannot query its
+own size.
 
 ## When the count is implicit
 
-A grid built on `repeat(auto-fill, minmax(8rem, 1fr))` has no `--cols` to read;
-the browser decides how many tracks fit. Count them instead: the computed
-`grid-template-columns` of a grid container lists one size per column, however
-the rule was written.
+A grid built on `repeat(auto-fill, minmax(8rem, 1fr))` never states a count;
+the browser decides how many tracks fit. `auto` needs nothing more for it: the
+computed value lists the tracks the browser made, so they are counted the same
+way.
+
+## What auto counts
+
+- The root must be the grid container, with one item per cell in DOM order.
+  Each item must span one track. Spanning items, subgrids and row wrappers do
+  not match this navigation model, including when `items` selects descendants.
+- Named lines, such as `[full-start]`, are not counted as columns.
+- If the computed value does not resolve to a list of pixel track sizes, the
+  count falls back to one and the group navigates as a list. This includes a
+  flex container or a grid that is not laid out.
+
+## Layouts that are not grids
+
+A `flex-wrap` row has no track list to count, so `auto` sees one column. Copy
+the count in yourself instead, right before the call. Here the stylesheet
+publishes it as `--cols`:
 
 ```ts
 months.addEventListener('keydown', (e) => {
-  const tracks = getComputedStyle(months).gridTemplateColumns.split(' ');
-
-  months.setAttribute('data-keyrove-cols', String(tracks.length));
+  months.setAttribute(
+    'data-keyrove-cols',
+    getComputedStyle(months).getPropertyValue('--cols'),
+  );
   keyRove(e);
 });
 ```
 
-Same listener, same timing; only where the number comes from has changed.
+keyrove reads the attribute fresh on every keypress, so refreshing it in the
+same handler is all the synchronisation this needs. If something else needs
+the attribute between keypresses, such as a test asserting on it, a
+`ResizeObserver` on the container can make the same copy whenever the size
+changes.

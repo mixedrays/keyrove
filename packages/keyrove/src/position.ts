@@ -56,10 +56,11 @@ export const resolveTarget = ({
 }: ResolveTargetArgs): Element | null | undefined => {
   const scan = scanner(isSkipped);
   const lastIndex = elements.length - 1;
-  // The group's ends. When every item is skipped they fall back to the very
-  // first and last, so a move still lands somewhere.
-  const first = () => scan(elements, 0, 1) || elements[0];
-  const last = () => scan(elements, lastIndex, -1) || elements[lastIndex];
+  // The group's ends: its first and last navigable items. When every item is
+  // skipped there are none, and a move that goes by the ends lands nowhere —
+  // a skipped item is never a destination, whichever move is asking.
+  const first = () => scan(elements, 0, 1);
+  const last = () => scan(elements, lastIndex, -1);
 
   if (fromIndex < 0) return intent === 'prev' && loop ? last() : first();
 
@@ -87,8 +88,8 @@ export const resolveTarget = ({
       return last();
     case 'homeRow':
     case 'endRow': {
-      // Unlike `home`/`end`, a row end never falls back to a skipped cell: a
-      // row of nothing but skipped cells is a consumed no-op.
+      // A row end goes by its own row alone: a row of nothing but skipped
+      // cells is a consumed no-op, even where other rows have cells to land on.
       const rowStart = fromIndex - (fromIndex % cols);
       const row = elements.slice(rowStart, rowStart + cols);
 

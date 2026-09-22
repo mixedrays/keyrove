@@ -83,7 +83,14 @@ const renderHeader = (resolveHref: HrefResolver, page: Page) => {
           ${link(resolveHref('/'), `${icon('keyboard', 'size-6')}keyrove`, 'wordmark')}
         </div>
         <div class="flex items-center gap-1 sm:gap-4">
-          <nav class="hidden items-center gap-4 text-sm sm:flex sm:gap-6">
+          <button type="button" class="search-trigger" data-search-open hidden
+            aria-label="Search documentation" aria-haspopup="dialog" aria-controls="docs-search"
+            aria-keyshortcuts="Meta+k Control+k">
+            ${icon('search', 'size-4')}
+            <span class="hidden lg:inline">Search</span>
+            <kbd class="hidden sm:inline" data-search-shortcut>Ctrl K</kbd>
+          </button>
+          <nav class="hidden items-center gap-4 text-sm md:flex md:gap-6">
             ${link(resolveHref('/docs/introduction'), `${icon('book', 'size-4')}Docs`, 'header-link')}
             ${link(resolveHref('/docs/examples/basic'), `${icon('grid', 'size-4')}Examples`, 'header-link')}
             ${link(resolveHref('/docs/api'), `${icon('braces', 'size-4')}API`, 'header-link')}
@@ -96,7 +103,7 @@ const renderHeader = (resolveHref: HrefResolver, page: Page) => {
           <!-- The nav is hidden on narrow screens, so the repo keeps an
                icon-only stop in the header there rather than dropping out of
                it entirely. -->
-          ${link(META.repoUrl, icon('github', 'size-4'), 'icon-button sm:hidden', ' aria-label="keyrove on GitHub"')}
+          ${link(META.repoUrl, icon('github', 'size-4'), 'icon-button md:hidden', ' aria-label="keyrove on GitHub"')}
           <!-- Both glyphs ship; style.css shows one per theme. Picking in
                script would mean an empty button until the bundle ran, and the
                theme is not known until the inline head script has run anyway. -->
@@ -110,6 +117,28 @@ const renderHeader = (resolveHref: HrefResolver, page: Page) => {
       </div>
     </header>`;
 };
+
+const renderSearch =
+  () => `<dialog id="docs-search" class="search-dialog" aria-labelledby="search-title">
+  <div class="search-panel">
+    <h2 id="search-title" class="sr-only">Search documentation</h2>
+    <div class="search-input-row">
+      ${icon('search', 'size-5')}
+      <label for="search-input" class="sr-only">Search documentation</label>
+      <input id="search-input" type="text" autofocus
+        placeholder="Search documentation…" autocomplete="off" spellcheck="false"
+        aria-describedby="search-help" enterkeyhint="go" />
+      <button type="button" class="icon-button" data-search-close aria-label="Close search">
+        ${icon('close', 'size-4')}
+      </button>
+    </div>
+    <!-- keyrove moves focus to native links; the input is not a combobox. -->
+    <ul id="search-results" class="search-results" aria-label="Search results"></ul>
+    <p class="search-status" data-search-status role="status" aria-live="polite" aria-atomic="true"></p>
+    <button type="button" class="search-retry" data-search-retry hidden>Retry search</button>
+    <p id="search-help" class="search-help"><span><kbd class="kbd">↑</kbd> <kbd class="kbd">↓</kbd> to select</span><span><kbd class="kbd">Enter</kbd> to open</span><span><kbd class="kbd">Esc</kbd> to close</span></p>
+  </div>
+</dialog>`;
 
 const renderSidebar = (
   nav: NavGroup[],
@@ -418,6 +447,6 @@ export const renderPage = (template: string, render: PageRender) => {
     template
       .replace(SLOTS.head, head)
       .replace(SLOTS.styles, renderStylesheet(render.stylesheet))
-      .replace(SLOTS.body, body),
+      .replace(SLOTS.body, `${body}${renderSearch()}`),
   );
 };

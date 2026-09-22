@@ -1,20 +1,18 @@
 ---
 title: Custom keys
-description: Arrows are the default, not the rule — rebinding any move to any key combo.
+description: Change navigation keys, add modifier combinations, bind several keys to one move, or disable a binding.
 titleTag: Custom key bindings for navigation — keyrove
 group: Examples
 order: 12
 ---
 
-Nothing about keyrove is tied to the arrow keys. The keys that move focus are
-attributes on the root, and `ArrowDown` / `ArrowUp` are only what they fall
-back to. `data-keyrove-next-key` and `data-keyrove-prev-key` rebind them to any
-[`KeyboardEvent.code`](https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/code),
-with or without [modifiers](#modifiers).
+Set `data-keyrove-next-key` and `data-keyrove-prev-key` on the root to change
+the navigation keys. Values are
+[`KeyboardEvent.code`](https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/code)
+values, with optional [modifiers](#modifiers).
 
-A toolbar, for one, navigates left-to-right rather than up-and-down.
-<kbd class="kbd">←</kbd> <kbd class="kbd">→</kbd> move between the buttons here;
-the up and down arrows are left to scroll the page.
+This toolbar uses <kbd class="kbd">←</kbd>/<kbd class="kbd">→</kbd> to move between buttons. <kbd class="kbd">↑</kbd>/<kbd class="kbd">↓</kbd> keep their
+browser behavior.
 
 <div data-demo="keys" data-demo-class="flex flex-wrap gap-1"></div>
 
@@ -24,18 +22,12 @@ the up and down arrows are left to scroll the page.
 </div>
 ```
 
-Rebinding is a markup change and nothing else. The `keyRove(e)` call is
-identical whatever the group answers to, and only the bound keys are acted on:
-with <kbd class="kbd">←</kbd> <kbd class="kbd">→</kbd> bound, the up and down
-arrows go back to scrolling the page, and <kbd class="kbd">Tab</kbd> was never
-bound in the first place. The log is where to check that: press
-<kbd class="kbd">↓</kbd> in the toolbar and it goes down as a key keyrove did
-not handle, left to the browser to scroll with.
+The handler stays `keyRove(e)`. Only bound keys are handled. Press <kbd class="kbd">↓</kbd> in the
+toolbar to see an unhandled key in the log; the browser can still scroll.
 
 ## Horizontal lists
 
-For this exact pair there is a shorter spelling that also respects the text
-direction:
+For <kbd class="kbd">←</kbd>/<kbd class="kbd">→</kbd> navigation that follows text direction, use:
 
 ```html
 <div data-keyrove-orientation="horizontal">…</div>
@@ -73,6 +65,28 @@ of supported keys to choose from:
 Each root is read on its own, so two groups on the same page can answer to
 different keys with one delegated listener serving both.
 
+## Several keys for one move
+
+A binding replaces the default, so the vim-style list above gives up the
+arrows: <kbd class="kbd">↓</kbd> goes back to scrolling the page. To keep them,
+list both, separated by commas. The move answers to any key in the list:
+
+```html
+<ul
+  data-keyrove-next-key="ArrowDown, KeyJ"
+  data-keyrove-prev-key="ArrowUp, KeyK"
+>
+  …
+</ul>
+```
+
+```ts
+keyRove(e, { keys: { next: 'ArrowDown, KeyJ', prev: 'ArrowUp, KeyK' } });
+```
+
+A list is as literal as a single combo, so the arrow you keep is the one you
+name. Nothing flips under RTL, and nothing is added back for you.
+
 ## Modifiers
 
 Prefix the code with any of `mod+`, `ctrl+`, `alt+`, `shift+`, `meta+`; the
@@ -89,7 +103,7 @@ elsewhere:
 </ul>
 ```
 
-Matching is exact in both directions. A bare `KeyJ` means "J with nothing else
+Matching is exact in both directions. A bare `KeyJ` means "<kbd class="kbd">J</kbd> with nothing else
 held", so <kbd class="kbd">Ctrl</kbd>+<kbd class="kbd">J</kbd> keeps its
 browser default, and a `ctrl+KeyJ` binding never fires on a plain
 <kbd class="kbd">J</kbd>. The full grammar is in the
@@ -101,12 +115,10 @@ These are `KeyboardEvent.code` values, physical keys, not `KeyboardEvent.key`
 values: `KeyW` rather than `w`. The code does not change with the keyboard
 layout, so a binding chosen for QWERTY lands on the same physical key on AZERTY.
 
-That cuts both ways, and it is the thing to weigh when picking a letter: a
-binding is to a _position_ on the keyboard. `KeyJ` and `KeyK` sit under the
-right hand on QWERTY, which is the whole point of the vim bindings; on Dvorak
-those same positions are `c` and `t`.
+Choose letter bindings with keyboard layout in mind. For example, the physical
+positions `KeyJ` and `KeyK` produce `c` and `t` on Dvorak.
 
-## Home, End and the page keys
+## <kbd class="kbd">Home</kbd>, <kbd class="kbd">End</kbd> and the page keys
 
 <kbd class="kbd">Home</kbd>, <kbd class="kbd">End</kbd>,
 <kbd class="kbd">PageUp</kbd> and <kbd class="kbd">PageDown</kbd> are defaults
@@ -131,6 +143,35 @@ same [rules](/docs/api#keys):
 Whatever they are bound to, these moves act only once focus is inside an item.
 Only the directional keys
 [enter a group](/docs/api#consumed-and-untouched-keys).
+
+## Switching a move off
+
+Some groups should not have every move. The
+[APG toolbar](https://www.w3.org/WAI/ARIA/apg/patterns/toolbar/) has no page
+keys, so <kbd class="kbd">PageDown</kbd> on one of its buttons should scroll
+the page, not jump to the last button. `none` binds a move to no key and
+hands its default back to the browser:
+
+```html
+<div
+  role="toolbar"
+  data-keyrove-orientation="horizontal"
+  data-keyrove-page-up-key="none"
+  data-keyrove-page-down-key="none"
+>
+  …
+</div>
+```
+
+```ts
+keyRove(e, {
+  orientation: 'horizontal',
+  keys: { pageUp: 'none', pageDown: 'none' },
+});
+```
+
+Every other move keeps its key. An empty attribute is not the same thing: it
+counts as unset, so the move keeps its default.
 
 ## Grids
 
@@ -173,14 +214,10 @@ listener and outranks the root's bindings.
 
 ## Editable elements are exempt
 
-A key pressed inside a text field, `select` or `contenteditable` region is never
-handled, whatever it is bound to. Arrows and
-<kbd class="kbd">Home</kbd>/<kbd class="kbd">End</kbd> keep moving the caret,
-and a `KeyJ` binding does not swallow typing "j" into a field inside an item;
-navigation resumes once focus leaves the field. Which targets count, and the one
-exception for a chorded focus key, are in the
-[API reference](/docs/api#editable-targets);
-[editable targets](/docs/examples/editable-targets) shows the rule at work.
+Movement bindings do not run inside text fields, selects or editable content.
+Those elements keep their editing keys. Modified focus shortcuts are an
+exception; see [editable targets](/docs/examples/editable-targets) and the
+[API rules](/docs/api#editable-targets).
 
 ## A binding worth avoiding
 

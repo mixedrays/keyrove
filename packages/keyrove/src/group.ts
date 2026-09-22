@@ -40,16 +40,30 @@ export const attributeRoving: IsRoving = (from) =>
   hasEnabledAttribute(from, KEYROVE_ATTR_ROVING_TABINDEX);
 
 /**
+ * The focused element as `element`'s own tree sees it. Inside a shadow root
+ * the document sees only the host, so the shadow root is asked instead; focus
+ * in a shadow tree further down shows up as that tree's host, which is still
+ * inside whatever contains it.
+ */
+export const activeElementOf = (element: Element): Element | null =>
+  (element.getRootNode() as Partial<DocumentOrShadowRoot>).activeElement ??
+  null;
+
+/**
  * Whether the focused element is this element or inside it — `:focus-within`,
  * asked of the tree rather than of the selector engine. Focus moves without
  * mutating the DOM, and a cached selector result can go stale where a walk
- * cannot.
+ * cannot. An item that hands its focus on to a control of its own holds it
+ * too.
  */
 export const holdsFocus = (element: Element): boolean => {
-  const active = element.ownerDocument.activeElement;
+  const active = activeElementOf(element);
 
   return !!active && element.contains(active);
 };
+
+// `Node.DOCUMENT_NODE`, spelled out so reading it needs no global `Node`.
+const DOCUMENT_NODE = 9;
 
 /**
  * The element a listener sits on. A listener on the document, or the window,
@@ -60,10 +74,15 @@ export const listenerElement = (
   listener: EventTarget | null | undefined,
 ): Element | null => {
   if (!listener) return null;
-  if ('documentElement' in listener) {
+
+  // Told apart by values, not by which properties exist: a form exposes its
+  // controls as named properties, so `<input name="document">` makes
+  // `'document' in form` true. A control can stand in for `nodeType` or
+  // `window` too, but it is an element, never 9 or the form itself.
+  if ((listener as Node).nodeType === DOCUMENT_NODE) {
     return (listener as Document).documentElement;
   }
-  if ('document' in listener) {
+  if ((listener as Window).window === listener) {
     return (listener as Window).document.documentElement;
   }
 
@@ -118,16 +137,133 @@ export const readGroup = (
 };
 
 /**
+ * The group an item of `root` belongs to: the nearest root above its
+ * *parent*, short of `root` itself, else `root`. The resolution a focus key's
+ * move uses, so an item that is itself a root belongs to the group around it.
+ */
+const ownerRoot = (item: Element, root: Element, isRoot: IsRoot): Element => {
+  for (
+    let element = item.parentElement;
+    element && element !== root;
+    element = element.parentElement
+  ) {
+    if (isRoot(element)) return element;
+  }
+
+  return root;
+};
+
+/**
+ * The items a root governs itself: its items, less those of a root nested
+ * inside it, which belong to that root (see `ownerRoot`).
+ *
+ * Deliberately not `readGroup`'s items, which keep a nested root's items so
+ * the outer order runs straight through them. This is the set one group's
+ * roving tab stop is shared across: exactly one `0` among them, and a nested
+ * group's stop left alone.
+ */
+export const ownItems = (
+  root: Element,
+  readItems: ReadItems = attributeItems,
+  isRoot: IsRoot = attributeRoot,
+): Element[] =>
+  readItems(root).filter((item) => ownerRoot(item, root, isRoot) === root);
+
+/**
+ * The item holding a group's roving tab stop: the first of its own items that
+ * carries the stop and has `tabindex="0"`, disabled ones aside. `null` where
+ * the group has none.
+ */
+export const stopHolder = (
+  root: Element,
+  readItems: ReadItems = attributeItems,
+  isRoot: IsRoot = attributeRoot,
+  isRoving: IsRoving = attributeRoving,
+): Element | null =>
+  ownItems(root, readItems, isRoot).find(
+    (item) =>
+      isRoving(item) &&
+      item.getAttribute('tabindex') === '0' &&
+      !item.hasAttribute('disabled'),
+  ) ?? null;
+
+/**
+ * The item a move from `from` to `to`, both items of `root`, carries the
+ * roving tab stop from. `root`'s order runs on through the items of a root
+ * nested in it, but each group keeps a stop of its own: a move within one
+ * group carries it from `from`, and a move into another carries that group's
+ * own stop, leaving the stop of the group focus left where it is. `null`
+ * where there is no `from`, or the group moved into has no stop to carry.
+ */
+export const stopSource = (
+  root: Element,
+  from: Element | null,
+  to: Element | null | undefined,
+  readItems: ReadItems = attributeItems,
+  isRoot: IsRoot = attributeRoot,
+  isRoving: IsRoving = attributeRoving,
+): Element | null => {
+  if (!from || !to) return from;
+
+  const group = ownerRoot(to, root, isRoot);
+
+  return ownerRoot(from, root, isRoot) === group
+    ? from
+    : stopHolder(group, readItems, isRoot, isRoving);
+};
+
+/**
+ * Gives `stop` the group's one `tabindex="0"` and every other of its roving
+ * `items` `-1` — or all of them `-1` where there is no stop. Only attributes
+ * that change are written, so a group already in order takes no mutations.
+ */
+export const placeStop = (items: Element[], stop: Element | null) => {
+  for (const item of items) {
+    const isActive = item === stop;
+
+    if (item.getAttribute('tabindex') !== (isActive ? '0' : '-1')) {
+      toggleTabIndex({ root: item, isActive });
+    }
+  }
+};
+
+/**
+ * Moves the roving tab stop from one item to another, and hands back how to
+ * put both `tabindex` values back exactly as they were — absent included.
+ */
+const carryStop = (from: Element, to: Element) => {
+  const before = [from, to].map(
+    (element) => [element, element.getAttribute('tabindex')] as const,
+  );
+
+  toggleTabIndex({ root: from, isActive: false });
+  toggleTabIndex({ root: to, isActive: true });
+
+  return () => {
+    for (const [element, value] of before) {
+      if (value === null) element.removeAttribute('tabindex');
+      else element.setAttribute('tabindex', value);
+    }
+  };
+};
+
+/**
  * Claims the key and lands focus on `to`, reporting the move.
  *
  * Call it only once a handler has decided the press is its own:
  * `preventDefault` is unconditional here, because the group owns its keys up
- * to its own boundary and the page must not scroll instead. A missing `to`, or
+ * to its own boundary and the page must not scroll instead. A move made from
+ * code passes no event, and has no key to claim. A missing `to`, or
  * one that is the focused item already, is a consumed no-op — focus and the
  * tab stop stay put, `onMove` stays quiet, and the result carries `to: null`.
- * Otherwise the roving tab stop follows when `isRoving` accepts the item being
- * left — by default, when it carries the attribute — `to` is focused, and
- * `onMove` fires with the move that happened.
+ * Otherwise the roving tab stop follows when `isRoving` accepts the item it is
+ * carried from — by default, when it carries the attribute — `to` is focused,
+ * and `onMove` fires with the move that happened. That item is `from`, unless
+ * `stopFrom` names another: a move into another group carries that group's
+ * own stop, found by `stopSource` or at a boundary crossing.
+ *
+ * A `to` that does not take focus — not focusable, inert, hidden — is the same
+ * consumed no-op, with the tab stop put back where it was.
  */
 export const moveFocus = <Action extends string>({
   e,
@@ -135,18 +271,29 @@ export const moveFocus = <Action extends string>({
   from,
   to,
   isRoving = attributeRoving,
+  stopFrom = from,
   onMove,
 }: MoveFocusArgs<Action>): ActionResult<Action> => {
-  e.preventDefault();
+  e?.preventDefault();
 
   if (!to || to === from) return { action, from, to: null };
 
-  if (from && isRoving(from)) {
-    toggleTabIndex({ root: from, isActive: false });
-    toggleTabIndex({ root: to, isActive: true });
-  }
+  // The stop moves before focus does: `tabindex="0"` is what makes a bare item
+  // focusable in the first place.
+  const putBack =
+    stopFrom && stopFrom !== to && isRoving(stopFrom)
+      ? carryStop(stopFrom, to)
+      : undefined;
 
   (to as HTMLElement).focus();
+
+  // `focus()` fails silently, so whether focus landed on `to` or inside it is
+  // read off the tree.
+  if (!holdsFocus(to)) {
+    putBack?.();
+
+    return { action, from, to: null };
+  }
 
   const move = { action, from, to };
   onMove?.(move);

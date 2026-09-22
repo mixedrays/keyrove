@@ -1,5 +1,4 @@
 import {
-  KEYROVE_ATTR_COLS,
   KEYROVE_ATTR_FOCUS_KEY,
   KEYROVE_ATTR_ITEM,
   KEYROVE_ATTR_ROOT,
@@ -7,6 +6,7 @@ import {
   type GroupOptions,
   type MoveResult,
   createTypeahead,
+  followFocus,
   keyRove,
   matchesCombo,
   toggleTabIndex,
@@ -275,44 +275,13 @@ const createHistory = (demo: HTMLElement): Log | null => {
 };
 
 /**
- * Escape, out of a nested group.
- *
- * Navigation stops at the nearest root, so no key pressed inside a nested group
- * reaches the group around it — getting back out is the app's job. This is the
- * smallest version of it: hand focus to the item beside the group.
- */
-const wireGroupExit = (surface: HTMLElement) => {
-  const groups = surface.querySelectorAll<HTMLElement>(
-    `[${KEYROVE_ATTR_ROOT}]`,
-  );
-
-  for (const group of groups) {
-    group.addEventListener('keydown', (e) => {
-      if (!matchesCombo(e, 'Escape')) return;
-
-      const exit = [
-        group.nextElementSibling,
-        group.previousElementSibling,
-      ].find(
-        (el): el is HTMLElement =>
-          el instanceof HTMLElement &&
-          el.hasAttribute(KEYROVE_ATTR_ITEM) &&
-          !el.hasAttribute(KEYROVE_ATTR_SKIP),
-      );
-
-      exit?.focus();
-    });
-  }
-};
-
-/**
  * Picking, for the listbox demo.
  *
  * Selection is the widget's state rather than keyrove's, so this is the page's
  * own snippet made live: Space or Enter picks the focused option, a click picks
- * and carries the roving tab stop with it, and either is reported to the log
- * beside the moves. Returns the keydown half, to chain after navigation and
- * typeahead.
+ * it, and either is reported to the log beside the moves. `followFocus` carries
+ * the roving tab stop to wherever focus lands, the click included. Returns the
+ * keydown half, to chain after navigation and typeahead.
  */
 const wireSelection = (surface: HTMLElement, log: Log): Handler => {
   const OPTION = '[role="option"]';
@@ -323,13 +292,12 @@ const wireSelection = (surface: HTMLElement, log: Log): Handler => {
     }
   };
 
+  surface.addEventListener('focusin', (e) => followFocus(e));
+
   surface.addEventListener('click', (e) => {
     const option = (e.target as Element).closest(OPTION);
     if (!option) return;
 
-    const stop = surface.querySelector('[tabindex="0"]');
-    toggleTabIndex({ root: stop, isActive: false });
-    toggleTabIndex({ root: option, isActive: true });
     select(option);
 
     // No key to name: the pointer did this one.
@@ -337,7 +305,7 @@ const wireSelection = (surface: HTMLElement, log: Log): Handler => {
   });
 
   return (e) => {
-    if (!matchesCombo(e, 'Space') && !matchesCombo(e, 'Enter')) return null;
+    if (!matchesCombo(e, 'Space, Enter')) return null;
 
     const option = (e.target as Element).closest(OPTION);
     if (!option) return null;
@@ -599,25 +567,6 @@ const firstItem = (surface: HTMLElement, { items: named }: GroupOptions) => {
   );
 };
 
-/**
- * Columns decided by CSS.
- *
- * The responsive demo lets a container query choose its column count and
- * publishes it as `--cols` on the grid. keyrove reads `data-keyrove-cols`, so
- * the attribute is brought level with the property right before each keypress
- * — the line the page's own snippet shows — rather than watched for resizes.
- * The grid is a descendant of the surface rather than the surface itself
- * because the query needs a container above the element it lays out.
- */
-const syncColumns = (surface: HTMLElement) => {
-  const grids = surface.querySelectorAll<HTMLElement>(`[${KEYROVE_ATTR_COLS}]`);
-
-  for (const grid of grids) {
-    const cols = getComputedStyle(grid).getPropertyValue('--cols');
-    if (cols) grid.setAttribute(KEYROVE_ATTR_COLS, cols);
-  }
-};
-
 /** Wires every demo on the current page. */
 export const mountDemos = () => {
   const demos = Array.from(document.querySelectorAll<HTMLElement>('.demo'));
@@ -648,8 +597,6 @@ export const mountDemos = () => {
     // The first handler to claim the key ends the chain, which is the `||` of
     // the pages' own snippets.
     surface.addEventListener('keydown', (e) => {
-      syncColumns(surface);
-
       // The first handler to claim the key ends the chain, which is the `||`
       // of the pages' own snippets — kept rather than discarded, because what
       // it answered with is what the history has to report.
@@ -661,7 +608,6 @@ export const mountDemos = () => {
 
       log.keydown(e, claimed);
     });
-    wireGroupExit(surface);
 
     // The demo a page opens with starts focused, so the keys it documents work
     // on arrival rather than after a Tab or a click. Only the first one: focus

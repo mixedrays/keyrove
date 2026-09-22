@@ -81,16 +81,47 @@ describe('resolveTarget', () => {
       );
     });
 
-    it('falls back to the real ends when everything is skipped', () => {
+    it('lands nowhere when everything is skipped', () => {
       const elements = buildElements(3, [0, 1, 2]);
 
-      expect(idOf(resolve({ intent: 'home', fromIndex: 1, elements }))).toBe(
-        'e0',
-      );
-      expect(idOf(resolve({ intent: 'end', fromIndex: 1, elements }))).toBe(
-        'e2',
-      );
+      expect(resolve({ intent: 'home', fromIndex: 1, elements })).toBeFalsy();
+      expect(resolve({ intent: 'end', fromIndex: 1, elements })).toBeFalsy();
     });
+  });
+
+  describe('when every element is skipped', () => {
+    // A skipped element is never a destination, not even as a group's end:
+    // every move that goes by the ends has nowhere to land.
+    const elements = buildElements(6, [0, 1, 2, 3, 4, 5]);
+
+    it.each([
+      ['a list', LIST],
+      ['a looping list', LOOP],
+      ['a grid', GRID],
+    ])(
+      'lands nowhere in %s, from nothing focused or a skipped item',
+      (_, layout) => {
+        for (const intent of [
+          'next',
+          'prev',
+          'nextRow',
+          'prevRow',
+          'home',
+          'end',
+          'homeRow',
+          'endRow',
+          'pageUp',
+          'pageDown',
+        ] as const) {
+          for (const fromIndex of [-1, 0, 2, 5]) {
+            expect(
+              resolve({ intent, fromIndex, elements, layout, pageLength: 1 }),
+              `${intent} from ${fromIndex}`,
+            ).toBeFalsy();
+          }
+        }
+      },
+    );
   });
 
   describe('next / prev in a list', () => {

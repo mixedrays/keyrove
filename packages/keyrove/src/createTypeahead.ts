@@ -10,7 +10,13 @@
 
 import { KEYROVE_ATTR_TYPEAHEAD } from './attributes.js';
 import { itemsReader, rootTest, skipTest, rovingTest } from './config.js';
-import { moveFocus, readGroup, resolveRoot } from './group.js';
+import {
+  attributeRoot,
+  moveFocus,
+  readGroup,
+  resolveRoot,
+  stopSource,
+} from './group.js';
 import { hasCommandModifier, isEditableTarget } from './utils.js';
 import type {
   KeyRoveEvent,
@@ -30,18 +36,28 @@ const getLabel = (item: Element, label?: (item: Element) => string) =>
   item.textContent?.replace(/\s+/g, ' ').trim() ||
   '';
 
+// What typed text and labels are compared as. Case always folds; with
+// `foldDiacritics`, so do combining marks — decomposed (NFD) and dropped — so
+// "e" reaches "Émilie" and "É" reaches "emilie". A letter with no
+// decomposition, like ø, ł or ß, stays itself. Lower-cased first, since
+// lower-casing can itself add a mark: "İ" becomes "i" plus a dot above.
+const lowerCase = (text: string) => text.toLowerCase();
+const foldMarks = (text: string) =>
+  text.toLowerCase().normalize('NFD').replace(/\p{M}/gu, '');
+
 /**
  * Creates a keydown handler that focuses items as their labels are typed.
  *
  * Printable characters accumulate in a buffer (reset after `resetMs` of
  * silence), and focus moves to the first navigable item whose label — the
  * `label` option, falling back to the `data-keyrove-typeahead` attribute and
- * then to trimmed `textContent` — starts with it, case-insensitively. Typing
- * inside editable elements is never captured, and modified presses
- * (Ctrl/Alt/Meta) are left to their shortcuts. In `cycle` mode a single
- * character moves to the next match after the focused item instead, wrapping,
- * and repeating it cycles through those matches rather than growing the
- * buffer.
+ * then to trimmed `textContent` — starts with it, ignoring case and, by
+ * default, accents and other combining marks. Typing inside editable elements
+ * is never captured, modified presses (Ctrl/Alt/Meta) are left to their
+ * shortcuts, and a press an earlier handler already claimed with
+ * `preventDefault()` is left alone, buffer included. In `cycle` mode a single character moves to the next match after
+ * the focused item instead, wrapping, and repeating it cycles through those
+ * matches rather than growing the buffer.
  *
  * Which elements are items, which of them are passed over, what scopes a group
  * and whether it carries one tab stop are settings of the group rather than of
@@ -51,6 +67,8 @@ const getLabel = (item: Element, label?: (item: Element) => string) =>
  * @param options.resetMs - Buffer lifetime between keystrokes. Default 500.
  * @param options.matchMode - Whether repeated characters extend the prefix
  * (`'prefix'`) or cycle through its matches (`'cycle'`). Default `'prefix'`.
+ * @param options.foldDiacritics - Whether accents and other combining marks
+ * are ignored on both sides, so "e" matches "Émilie". Default `true`.
  * @param options.onMove - Fired after focus moved — only when it actually did.
  * @returns A handler with the `keyRove` contract: `null` when the key was
  * left untouched; `{ action: 'typeahead', from, to }` when it was consumed,
@@ -61,9 +79,12 @@ export const createTypeahead = ({
   label,
   resetMs = 500,
   matchMode = 'prefix',
+  foldDiacritics = true,
   onMove,
   ...group
 }: TypeaheadOptions = {}) => {
+  const fold = foldDiacritics ? foldMarks : lowerCase;
+
   // The group's settings cannot change for the life of the handler, so they
   // are resolved once here rather than on every keystroke.
   const isRoot = rootTest(group);
@@ -75,6 +96,10 @@ export const createTypeahead = ({
   let lastRoot: Element | null = null;
 
   return (e: KeyRoveEvent): TypeaheadResult | null => {
+    // A press another handler has claimed is spent, as for `keyRove`, and
+    // never reaches the buffer.
+    if (e.defaultPrevented) return null;
+
     // A single-character `key` is the produced character itself — exactly the
     // printable keys. Navigation and function keys ("ArrowDown", "F6") are
     // longer names, and an event without `key` cannot typeahead at all. A
@@ -104,8 +129,13 @@ export const createTypeahead = ({
     // buttons. Mid-buffer it types on, so multi-word labels stay reachable.
     if (e.key === ' ' && !buffer) return null;
 
+    // Folded, a lone combining mark is nothing at all, and an empty buffer
+    // would match every label, so the key is left to the page.
+    const character = fold(e.key);
+
+    if (!character) return null;
+
     lastPressTime = now;
-    const character = e.key.toLowerCase();
 
     // Cycling keeps a repeated character a one-character prefix instead of
     // growing the buffer, so "s", "s" goes on naming the S items.
@@ -123,8 +153,7 @@ export const createTypeahead = ({
         : 0;
     const target = [...items.slice(start), ...items.slice(0, start)].find(
       (item) =>
-        !isSkipped(item) &&
-        getLabel(item, label).toLowerCase().startsWith(buffer),
+        !isSkipped(item) && fold(getLabel(item, label)).startsWith(buffer),
     );
 
     // No match leaves the key untouched — the character still joined the
@@ -132,13 +161,22 @@ export const createTypeahead = ({
     if (!target) return null;
 
     // A match that is the focused item already is a consumed no-op, matching
-    // keyRove's edge no-ops; otherwise the roving stop moves with focus.
+    // keyRove's edge no-ops; otherwise the roving stop moves with focus,
+    // within the matched item's own group.
     return moveFocus({
       e,
       action: 'typeahead',
       from: focused,
       to: target,
       isRoving,
+      stopFrom: stopSource(
+        root,
+        focused,
+        target,
+        readItems,
+        isRoot ?? attributeRoot,
+        isRoving,
+      ),
       onMove,
     });
   };

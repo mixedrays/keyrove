@@ -95,6 +95,26 @@ describe('keyRove', () => {
       expect(activeId()).toBe('b');
     });
 
+    it.each([
+      ['an empty', ''],
+      ['a blank', '  '],
+    ])(
+      'reads %s option value as unset, deferring to the attribute',
+      (_, value) => {
+        renderList([createItem('a'), createItem('b')], {
+          containerAttrs: { [KEYROVE_ATTR_NEXT_KEY]: 'KeyJ' },
+          options: { keys: { next: value } },
+        });
+        document.getElementById('a')!.focus();
+
+        pressKey('ArrowDown');
+        expect(activeId()).toBe('a');
+
+        pressKey('KeyJ');
+        expect(activeId()).toBe('b');
+      },
+    );
+
     it('leaves the moves an option does not name to their attributes', () => {
       renderList([createItem('a'), createItem('b'), createItem('c')], {
         options: { keys: { next: 'KeyJ' } },
@@ -289,6 +309,34 @@ describe('keyRove', () => {
       pressKey('ArrowDown');
 
       expect(activeId()).toBe('b');
+    });
+
+    it('answers to every combo a key lists', () => {
+      renderMenu(`${menuItems('a', 'b')}<div id="panel" tabindex="-1"></div>`, {
+        items: '[role="menuitem"]',
+        focusKeys: { 'F6, ctrl+KeyE': '#panel' },
+      });
+
+      document.getElementById('a')!.focus();
+      pressKey('F6');
+      expect(activeId()).toBe('panel');
+
+      document.getElementById('a')!.focus();
+      pressKey('KeyE', undefined, { ctrlKey: true });
+      expect(activeId()).toBe('panel');
+    });
+
+    it('ignores a blank combo', () => {
+      renderMenu(`${menuItems('a', 'b')}<div id="panel" tabindex="-1"></div>`, {
+        items: '[role="menuitem"]',
+        focusKeys: { ' ': '#panel' },
+      });
+      document.getElementById('a')!.focus();
+
+      const event = pressKey('');
+
+      expect(event.defaultPrevented).toBe(false);
+      expect(activeId()).toBe('a');
     });
 
     it('ignores a selector matching nothing', () => {
