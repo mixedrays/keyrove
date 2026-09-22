@@ -30,8 +30,12 @@ Run from the repo root:
 | `pnpm lint`       | Checks formatting across the workspace with Prettier. |
 | `pnpm format`     | Rewrites files to Prettier style.                     |
 | `pnpm build`      | Builds every package.                                 |
+| `pnpm bench`      | Times `keyRove` in headless Chrome.                   |
 | `pnpm typecheck`  | Type-checks every package.                            |
 | `pnpm preview`    | Serves the built docs site.                           |
+
+The benchmark's method and recorded results are in
+[packages/keyrove/bench](packages/keyrove/bench/README.md).
 
 Any script can be aimed at one package with a filter:
 
