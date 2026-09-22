@@ -88,12 +88,21 @@ export type StrideAction =
   | 'pageDown';
 
 /**
- * Everything a keypress can resolve to: the strides, plus `focus` — an element
- * named outright by its own `data-keyrove-focus-key`, item or not, reached from
- * anywhere under the listener rather than from a position. It is the one move
- * whose `*-key` attribute sits on its destination, and the one with no default.
+ * The moves across a nested root's boundary: `exit`, from inside a nested
+ * group to the group around it, and `enter`, from an item into the group
+ * nested inside it. Bound on a root like the strides, but with no default key:
+ * the keys they suit, Escape and Enter, already mean something to the page.
  */
-export type MoveAction = StrideAction | 'focus';
+export type BoundaryAction = 'exit' | 'enter';
+
+/**
+ * Everything a keypress can resolve to: the strides, the boundary moves, plus
+ * `focus` — an element named outright by its own `data-keyrove-focus-key`,
+ * item or not, reached from anywhere under the listener rather than from a
+ * position. It is the one move whose `*-key` attribute sits on its
+ * destination.
+ */
+export type MoveAction = StrideAction | 'exit' | 'enter' | 'focus';
 
 /**
  * The shape every handler returns for a consumed keypress, parameterised by
@@ -155,9 +164,10 @@ export type GroupOptions = {
    * The combo each move answers to, or a comma-separated list of them:
    * `{ next: 'ArrowDown, KeyJ', prev: 'KeyK' }`. Read move by move, so a move
    * left out keeps its attribute and then its default key. `'none'` binds a
-   * move to no key, freeing its default.
+   * move to no key, freeing its default. `exit` and `enter` have no default,
+   * and move across a nested root's boundary: `{ exit: 'Escape' }`.
    */
-  keys?: Partial<Record<StrideAction, KeyRoveCode | 'none'>>;
+  keys?: Partial<Record<StrideAction | 'exit' | 'enter', KeyRoveCode | 'none'>>;
   /**
    * Elements reachable by a combo of their own: combo, or a comma-separated
    * list of them, → the element, or a selector resolved within the listener's
@@ -291,9 +301,12 @@ export type Layout = {
  * move only within a group. A property of the move, not of the key it is bound
  * to. A focus row carries its target outright — the element that declared the
  * key — and always enters: it names a destination, not a step from a position.
+ * A boundary row never enters: it goes from the group focus is in to the one
+ * next to it, and decides for itself what it needs to be in.
  */
 export type Binding =
   | { combo: string; intent: StrideAction; enters: boolean }
+  | { combo: string; intent: BoundaryAction; enters: false }
   | { combo: string; intent: 'focus'; enters: true; target: Element };
 
 /**
@@ -302,7 +315,7 @@ export type Binding =
  * its default key, and `none` where the move is bound to no key.
  */
 export type ExplicitBinding = (
-  intent: StrideAction,
+  intent: StrideAction | BoundaryAction,
 ) => string | null | undefined;
 
 /** A focus key as read off an element: its combo, and the element it focuses. */
@@ -329,8 +342,8 @@ export type IsRoving = (from: Element) => boolean;
 
 export type BuildBindingsArgs = {
   /**
-   * Asked only about the moves in the layout's default table, so a move the
-   * layout lacks is never looked up.
+   * Asked only about the moves in the layout's default table and the boundary
+   * moves, so a move the layout lacks is never looked up.
    */
   explicit: ExplicitBinding;
   /**
@@ -386,5 +399,11 @@ export type MoveFocusArgs<Action extends string> = {
    * the roving-tabindex attribute.
    */
   isRoving?: IsRoving;
+  /**
+   * The item the roving stop is carried from, where that is not `from`: a
+   * move across a nested root's boundary lands in another group, whose own
+   * stop moves while the group focus left keeps its. Nullish carries nothing.
+   */
+  stopFrom?: Element | null;
   onMove?: (move: ActionResult<Action> & { to: Element }) => void;
 };

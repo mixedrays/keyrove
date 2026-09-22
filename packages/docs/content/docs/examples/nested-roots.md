@@ -9,9 +9,9 @@ order: 18
 Put `data-keyrove-root` on an inner group to give it its own keys, columns
 and page size.
 
-In this menu, Up/Down move between actions. Up from _Reply_ enters the
-reaction row, where Left/Right move between reactions. The demo's Escape
-handler returns focus to the menu.
+In this menu, <kbd class="kbd">↑</kbd>/<kbd class="kbd">↓</kbd> move between actions. <kbd class="kbd">↑</kbd> from _Reply_ enters the
+reaction row, where <kbd class="kbd">←</kbd>/<kbd class="kbd">→</kbd> move between reactions. <kbd class="kbd">Escape</kbd> returns focus to
+the menu.
 
 <div data-demo="nested"></div>
 
@@ -64,8 +64,8 @@ attribute-selected item sequences separate, place them in sibling roots.
 ## Getting back out
 
 Inside a nested root, only that root's movement bindings apply. Unbound keys
-do not fall through to the outer group. In the reaction row, Down is unhandled
-(grey in the log); Left at the first reaction is consumed without moving
+do not fall through to the outer group. In the reaction row, <kbd class="kbd">↓</kbd> is unhandled
+(grey in the log); <kbd class="kbd">←</kbd> at the first reaction is consumed without moving
 (amber).
 
 Provide a way to leave the inner group:
@@ -75,22 +75,62 @@ Provide a way to leave the inner group:
    [roving tabindex](/docs/examples/roving-tabindex) on each group,
    <kbd class="kbd">Tab</kbd> moves group to group and
    <kbd class="kbd">Shift</kbd>+<kbd class="kbd">Tab</kbd> back. No code.
-2. **A key of your own.** Any code the roots have not bound is free. The demo
-   binds <kbd class="kbd">Escape</kbd> on the reaction row and hands focus to
-   the item beside it:
+2. **An exit key.** The demo binds <kbd class="kbd">Escape</kbd> on the
+   reaction row:
 
-   ```ts
-   reactions.addEventListener('keydown', (e) => {
-     if (e.code !== 'Escape') return;
-
-     reactions.nextElementSibling.focus();
-   });
+   ```html
+   <li
+     data-keyrove-root
+     data-keyrove-next-key="ArrowRight"
+     data-keyrove-prev-key="ArrowLeft"
+     data-keyrove-exit-key="Escape"
+   >
+     <button data-keyrove-item tabindex="0">👍</button>
+     …
+   </li>
    ```
 
+   Exit focuses the outer item containing the root, or the nearest eligible
+   item after it, then before it. Here, the reaction row has no containing
+   item, so <kbd class="kbd">Escape</kbd> focuses _Reply_. Each root finds its destination from the
+   DOM, so several reaction rows can use the same binding. If there is no
+   destination, <kbd class="kbd">Escape</kbd> remains unhandled.
+
 3. **A [focus key](/docs/examples/focus-keys) on an item of the outer group.**
-   `data-keyrove-focus-key` is heard as far as the listener reaches, nested
-   roots included, so one press lands on that item from anywhere inside the
-   inner group. No listener on the inner root, and no code.
+   `data-keyrove-focus-key` works from anywhere under the listener, nested
+   roots included. Use it to return to a fixed destination.
+
+## Getting in
+
+Outer arrow navigation can reach items inside nested roots, as in the reaction
+row above. When an outer item contains its own group, bind an enter key on the
+outer root to focus that group's items:
+
+```html
+<ul id="messages" data-keyrove-enter-key="Enter">
+  <li data-keyrove-item tabindex="0">
+    Build failed
+    <div data-keyrove-root data-keyrove-exit-key="Escape">
+      <button data-keyrove-item tabindex="0">Retry</button>
+      <button data-keyrove-item tabindex="0">View logs</button>
+    </div>
+  </li>
+</ul>
+```
+
+<kbd class="kbd">Enter</kbd> focuses the first nested root's navigable roving tab stop, or its first
+navigable item. <kbd class="kbd">Escape</kbd> returns to the containing item. Skipped and disabled
+items are excluded.
+
+To remember the last focused button, set up
+[roving tabindex](/docs/examples/roving-tabindex) in each group. Enter and exit
+preserve the stop in the group being left. The markup above uses ordinary tab
+stops, so <kbd class="kbd">Enter</kbd> starts at _Retry_ each time.
+
+Neither action has a default binding. You can also use
+`keys: { enter: 'Enter', exit: 'Escape' }`. When no destination is found, the
+key remains available to the browser and your handlers. See the
+[API reference](/docs/api#exit-and-enter) for target and focus rules.
 
 ## Nesting, or two roots side by side
 

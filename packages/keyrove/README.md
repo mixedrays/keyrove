@@ -177,6 +177,22 @@ default back to the browser, so a toolbar, which has no page moves, leaves
 </div>
 ```
 
+Bind enter and exit keys to move between nested groups. Neither has a default:
+
+- `data-keyrove-exit-key` on the inner root, or `keys.exit`, focuses an eligible
+  outer item: the containing item, then the nearest after the root, then before.
+- `data-keyrove-enter-key` on the outer root, or `keys.enter`, focuses the first
+  nested root's navigable roving tab stop, or its first navigable item.
+
+```html
+<li data-keyrove-root data-keyrove-exit-key="Escape">…</li>
+```
+
+Both exclude skipped and disabled targets. If no destination is found, the key
+remains unhandled. See [nested roots](https://keyrove.pages.dev/docs/examples/nested-roots)
+for setup and [exit and enter](https://keyrove.pages.dev/docs/api#exit-and-enter)
+for focus and tab-stop behavior.
+
 At the ends of a list the bound keys are consumed but focus stays put. Add
 `data-keyrove-loop` on the root and next on the last item wraps to the first,
 and vice versa. Grids keep their edges — they never wrap.
@@ -356,6 +372,8 @@ while its attribute applies per item. See
 | `data-keyrove-end-row-key`     | `keys.endRow`    | root | `End`       | Combo for the focused row's last cell. Grids only.                                                                                |
 | `data-keyrove-page-up-key`     | `keys.pageUp`    | root | `PageUp`    | Combo for the page jump back.                                                                                                     |
 | `data-keyrove-page-down-key`   | `keys.pageDown`  | root | `PageDown`  | Combo for the page jump forward.                                                                                                  |
+| `data-keyrove-exit-key`        | `keys.exit`      | root | —           | Combo leaving this nested root for the group around it.                                                                           |
+| `data-keyrove-enter-key`       | `keys.enter`     | root | —           | Combo entering the root nested in the focused item.                                                                               |
 | `data-keyrove-focus-key`       | `focusKeys`      | any  | —           | Combo focusing this element, from anywhere under the listener, e.g. `ctrl+shift+KeyE`. As an option: combo → element or selector. |
 | `data-keyrove-loop`            | `loop`           | root | —           | Next/prev wrap past the ends of a list. Grids never wrap.                                                                         |
 | `data-keyrove-orientation`     | `orientation`    | root | —           | `horizontal` maps a list's default keys to `ArrowRight`/`ArrowLeft`, RTL-aware.                                                   |
@@ -396,8 +414,9 @@ or targets that cannot take focus, do not trigger it.
 
 `action` names the move: `'next'`, `'prev'`, `'home'`, `'end'`, `'pageUp'`,
 `'pageDown'`; the grid actions `'nextRow'`, `'prevRow'`, `'homeRow'`, `'endRow'`;
-or `'focus'` for a shortcut. `from` is the previous item, or `null` when
-entering from outside or jumping to a non-item. `to` is the destination.
+`'exit'` and `'enter'` between nested groups; or `'focus'` for a shortcut.
+`from` is the previous item, or `null` when no item was focused or the destination
+is a non-item. `to` is the destination.
 
 `keyRove` returns `null` when it left the key untouched, and
 `{ action, from, to }` when it consumed it — with `to: null` for a consumed

@@ -10,8 +10,8 @@ Movement bindings leave editable fields their native keys. Arrows can move a
 caret or change a value, and letter bindings do not capture typed text. Modified
 focus shortcuts are the [exception](#the-one-exception).
 
-Arrow between the demo's rows, then Tab into a control. Text fields keep their
-editing behavior, _Font size_ keeps its slider keys, and Down on the checkbox
+Arrow between the demo's rows, then <kbd class="kbd">Tab</kbd> into a control. Text fields keep their
+editing behavior, _Font size_ keeps its slider keys, and <kbd class="kbd">↓</kbd> on the checkbox
 moves to the next row. The log shows navigation in green and unhandled keys
 in grey.
 
@@ -52,10 +52,10 @@ chained after it also receives the event.
 
 ## The one exception
 
-A [focus key](/docs/examples/focus-keys) with Ctrl, Alt or Meta can move focus
-from an editable field. Bare keys and Shift-only combinations remain available
+A [focus key](/docs/examples/focus-keys) with <kbd class="kbd">Ctrl</kbd>, <kbd class="kbd">Alt</kbd> or <kbd class="kbd">Meta</kbd> can move focus
+from an editable field. Bare keys and <kbd class="kbd">Shift</kbd>-only combinations remain available
 for typing. Choose shortcuts carefully: some modifiers also produce text,
-including AltGr reported as Ctrl+Alt.
+including <kbd class="kbd">AltGr</kbd> reported as <kbd class="kbd">Ctrl</kbd>+<kbd class="kbd">Alt</kbd>.
 
 [Typeahead](/docs/examples/typeahead) never captures typing inside a field.
 

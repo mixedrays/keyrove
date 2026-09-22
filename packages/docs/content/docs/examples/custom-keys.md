@@ -11,7 +11,7 @@ the navigation keys. Values are
 [`KeyboardEvent.code`](https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/code)
 values, with optional [modifiers](#modifiers).
 
-This toolbar uses Left/Right to move between buttons. Up/Down keep their
+This toolbar uses <kbd class="kbd">←</kbd>/<kbd class="kbd">→</kbd> to move between buttons. <kbd class="kbd">↑</kbd>/<kbd class="kbd">↓</kbd> keep their
 browser behavior.
 
 <div data-demo="keys" data-demo-class="flex flex-wrap gap-1"></div>
@@ -22,12 +22,12 @@ browser behavior.
 </div>
 ```
 
-The handler stays `keyRove(e)`. Only bound keys are handled. Press Down in the
+The handler stays `keyRove(e)`. Only bound keys are handled. Press <kbd class="kbd">↓</kbd> in the
 toolbar to see an unhandled key in the log; the browser can still scroll.
 
 ## Horizontal lists
 
-For Left/Right navigation that follows text direction, use:
+For <kbd class="kbd">←</kbd>/<kbd class="kbd">→</kbd> navigation that follows text direction, use:
 
 ```html
 <div data-keyrove-orientation="horizontal">…</div>
@@ -103,7 +103,7 @@ elsewhere:
 </ul>
 ```
 
-Matching is exact in both directions. A bare `KeyJ` means "J with nothing else
+Matching is exact in both directions. A bare `KeyJ` means "<kbd class="kbd">J</kbd> with nothing else
 held", so <kbd class="kbd">Ctrl</kbd>+<kbd class="kbd">J</kbd> keeps its
 browser default, and a `ctrl+KeyJ` binding never fires on a plain
 <kbd class="kbd">J</kbd>. The full grammar is in the
@@ -118,7 +118,7 @@ layout, so a binding chosen for QWERTY lands on the same physical key on AZERTY.
 Choose letter bindings with keyboard layout in mind. For example, the physical
 positions `KeyJ` and `KeyK` produce `c` and `t` on Dvorak.
 
-## Home, End and the page keys
+## <kbd class="kbd">Home</kbd>, <kbd class="kbd">End</kbd> and the page keys
 
 <kbd class="kbd">Home</kbd>, <kbd class="kbd">End</kbd>,
 <kbd class="kbd">PageUp</kbd> and <kbd class="kbd">PageDown</kbd> are defaults

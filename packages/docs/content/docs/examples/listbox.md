@@ -10,7 +10,7 @@ This single-select listbox combines navigation, roving tabindex and typeahead.
 The widget supplies ARIA roles, selection and click handling.
 
 <kbd class="kbd">Tab</kbd> into it and arrow around, type a first letter to
-jump, then press <kbd class="kbd">Enter</kbd> to pick. Space also selects
+jump, then press <kbd class="kbd">Enter</kbd> to pick. <kbd class="kbd">Space</kbd> also selects
 when typeahead is inactive; wait 500 ms after typing to use it. Clicking picks
 too. <kbd class="kbd">Tab</kbd> away and back, and focus returns to where you
 left it.
@@ -86,9 +86,9 @@ The log distinguishes selection from focus movement.
   before the widget's own keys, so a letter jumps and a bound key never becomes
   typing. See [typeahead](/docs/examples/typeahead).
 - **Picking.** `pick` runs after navigation and typeahead. It uses
-  `matchesCombo` for exact Space/Enter matching, so Ctrl+Space remains
+  `matchesCombo` for exact <kbd class="kbd">Space</kbd>/<kbd class="kbd">Enter</kbd> matching, so <kbd class="kbd">Ctrl</kbd>+<kbd class="kbd">Space</kbd> remains
   unhandled. It returns `null` for other keys, allowing another handler to
-  follow it. Typeahead consumes Space when it extends a matching prefix;
+  follow it. Typeahead consumes <kbd class="kbd">Space</kbd> when it extends a matching prefix;
   otherwise, `pick` handles it.
 - **The mouse.** `followFocus` updates the roving stop on `focusin`, including
   focus from clicks or code. The click handler then selects the option.

@@ -33,7 +33,7 @@ const menu = document.querySelector<HTMLElement>('#menu')!;
 menu.addEventListener('keydown', (e) => keyRove(e, { items: 'li' }));
 ```
 
-This list supports arrows, Home, End and page jumps. Tab still visits each
+This list supports arrows, <kbd class="kbd">Home</kbd>, <kbd class="kbd">End</kbd> and page jumps. <kbd class="kbd">Tab</kbd> still visits each
 item. You can [change the keys](#which-keys-move-focus) and configure the group
 with [attributes, options, or both](#where-a-group-is-described).
 
@@ -53,21 +53,21 @@ items or adding a column count requires no navigation instance to update.
 
 ## What it handles
 
-| Feature              | Behavior                                                                     | Example                                             |
-| -------------------- | ---------------------------------------------------------------------------- | --------------------------------------------------- |
-| Lists                | Up/Down move one item in DOM order                                           | [Basic list](/docs/examples/basic)                  |
-| Grids                | Up/Down move a row; Left/Right move a cell                                   | [Grid](/docs/examples/grid)                         |
-| First and last items | Home/End jump to list ends or grid row ends; Ctrl+Home/End jump to grid ends | [Grid](/docs/examples/grid)                         |
-| Page jumps           | PageUp/PageDown move 10 items or rows by default                             | [Page length](/docs/examples/basic#page-length)     |
-| Horizontal lists     | Left/Right follow the text direction                                         | [Horizontal lists](/docs/examples/horizontal-lists) |
-| Looping              | Next/previous wrap at list ends                                              | [Looping lists](/docs/examples/looping-lists)       |
-| Roving tabindex      | One tab stop follows focus within a group                                    | [Roving tabindex](/docs/examples/roving-tabindex)   |
-| Skipped items        | Pass over items marked with `data-keyrove-skip` or `disabled`                | [Skipped items](/docs/examples/skipped-items)       |
-| Nested groups        | Each group uses its own keys and settings                                    | [Nested roots](/docs/examples/nested-roots)         |
-| Focus shortcuts      | Focus an item or panel from anywhere under the listener                      | [Focus keys](/docs/examples/focus-keys)             |
-| Typeahead            | Add `createTypeahead()` to focus items by typing their labels                | [Typeahead](/docs/examples/typeahead)               |
-| Trees                | Navigate visible rows; your handlers expand and collapse branches            | [Tree view](/docs/examples/tree-view)               |
-| Moves from code      | Call `rove(list, 'next')` from a button, gamepad or remote                   | [`rove`](/docs/api#rove-element-action-options)     |
+| Feature              | Behavior                                                                                                                                                                                        | Example                                             |
+| -------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------- |
+| Lists                | <kbd class="kbd">↑</kbd>/<kbd class="kbd">↓</kbd> move one item in DOM order                                                                                                                    | [Basic list](/docs/examples/basic)                  |
+| Grids                | <kbd class="kbd">↑</kbd>/<kbd class="kbd">↓</kbd> move a row; <kbd class="kbd">←</kbd>/<kbd class="kbd">→</kbd> move a cell                                                                     | [Grid](/docs/examples/grid)                         |
+| First and last items | <kbd class="kbd">Home</kbd>/<kbd class="kbd">End</kbd> jump to list ends or grid row ends; <kbd class="kbd">Ctrl</kbd>+<kbd class="kbd">Home</kbd>/<kbd class="kbd">End</kbd> jump to grid ends | [Grid](/docs/examples/grid)                         |
+| Page jumps           | <kbd class="kbd">PageUp</kbd>/<kbd class="kbd">PageDown</kbd> move 10 items or rows by default                                                                                                  | [Page length](/docs/examples/basic#page-length)     |
+| Horizontal lists     | <kbd class="kbd">←</kbd>/<kbd class="kbd">→</kbd> follow the text direction                                                                                                                     | [Horizontal lists](/docs/examples/horizontal-lists) |
+| Looping              | Next/previous wrap at list ends                                                                                                                                                                 | [Looping lists](/docs/examples/looping-lists)       |
+| Roving tabindex      | One tab stop follows focus within a group                                                                                                                                                       | [Roving tabindex](/docs/examples/roving-tabindex)   |
+| Skipped items        | Pass over items marked with `data-keyrove-skip` or `disabled`                                                                                                                                   | [Skipped items](/docs/examples/skipped-items)       |
+| Nested groups        | Each group has its own keys, with optional enter and exit bindings                                                                                                                              | [Nested roots](/docs/examples/nested-roots)         |
+| Focus shortcuts      | Focus an item or panel from anywhere under the listener                                                                                                                                         | [Focus keys](/docs/examples/focus-keys)             |
+| Typeahead            | Add `createTypeahead()` to focus items by typing their labels                                                                                                                                   | [Typeahead](/docs/examples/typeahead)               |
+| Trees                | Navigate visible rows; your handlers expand and collapse branches                                                                                                                               | [Tree view](/docs/examples/tree-view)               |
+| Moves from code      | Call `rove(list, 'next')` from a button, gamepad or remote                                                                                                                                      | [`rove`](/docs/api#rove-element-action-options)     |
 
 Text fields, selects and editable content keep their editing keys. See
 [editable targets](/docs/examples/editable-targets) for the rules and exceptions.
@@ -105,32 +105,32 @@ Lists use `ArrowDown` for next and `ArrowUp` for previous by default. Set
 </ul>
 ```
 
-Here, J and K move focus, and the arrows return to their browser defaults.
-Each group can have different bindings. Home, End, PageUp and PageDown can also
+Here, <kbd class="kbd">J</kbd> and <kbd class="kbd">K</kbd> move focus, and the arrows return to their browser defaults.
+Each group can have different bindings. <kbd class="kbd">Home</kbd>, <kbd class="kbd">End</kbd>, <kbd class="kbd">PageUp</kbd> and <kbd class="kbd">PageDown</kbd> can also
 be rebound with their own key attributes.
 
 See [custom keys](/docs/examples/custom-keys) for examples and the
 [API reference](/docs/api#keys) for defaults, syntax and precedence.
 
-## Tab still works
+## <kbd class="kbd">Tab</kbd> still works
 
 keyrove uses `element.focus()`, preserving the browser's focus styling,
 scrolling and focus announcements. An item also counts as focused when a link,
 button or other element inside it has focus.
 
-With the default bindings, Tab, Shift+Tab, Enter, Space and Escape keep their
+With the default bindings, <kbd class="kbd">Tab</kbd>, <kbd class="kbd">Shift</kbd>+<kbd class="kbd">Tab</kbd>, <kbd class="kbd">Enter</kbd>, <kbd class="kbd">Space</kbd> and <kbd class="kbd">Escape</kbd> keep their
 usual behavior. Items with `tabindex="0"` remain ordinary tab stops, reachable
-with both Tab and the bound navigation keys.
+with both <kbd class="kbd">Tab</kbd> and the bound navigation keys.
 
 For a single tab stop per group, use
-[roving tabindex](/docs/examples/roving-tabindex). Tab enters and leaves the
+[roving tabindex](/docs/examples/roving-tabindex). <kbd class="kbd">Tab</kbd> enters and leaves the
 group, while the bound keys move between its items.
 
 ## What it leaves to you
 
 - **Roles and ARIA.** Set the roles, labels and states your widget needs.
   keyrove does not write `role`, `aria-selected` or `aria-activedescendant`.
-- **Selection and activation.** Decide what clicks, Enter and Space do, and
+- **Selection and activation.** Decide what clicks, <kbd class="kbd">Enter</kbd> and <kbd class="kbd">Space</kbd> do, and
   add your own handlers. They are unbound by default.
 - **Initial tab stops.** Make items focusable in your markup. For a roving
   group, give one item `tabindex="0"` and the others `-1`, or call

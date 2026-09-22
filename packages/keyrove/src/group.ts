@@ -154,6 +154,24 @@ export const ownItems = (
   });
 
 /**
+ * The item holding a group's roving tab stop: the first of its own items that
+ * carries the stop and has `tabindex="0"`, disabled ones aside. `null` where
+ * the group has none.
+ */
+export const stopHolder = (
+  root: Element,
+  readItems: ReadItems = attributeItems,
+  isRoot: IsRoot = attributeRoot,
+  isRoving: IsRoving = attributeRoving,
+): Element | null =>
+  ownItems(root, readItems, isRoot).find(
+    (item) =>
+      isRoving(item) &&
+      item.getAttribute('tabindex') === '0' &&
+      !item.hasAttribute('disabled'),
+  ) ?? null;
+
+/**
  * Gives `stop` the group's one `tabindex="0"` and every other of its roving
  * `items` `-1` — or all of them `-1` where there is no stop. Only attributes
  * that change are written, so a group already in order takes no mutations.
@@ -211,7 +229,8 @@ const carryStop = (from: Element, to: Element) => {
  * tab stop stay put, `onMove` stays quiet, and the result carries `to: null`.
  * Otherwise the roving tab stop follows when `isRoving` accepts the item being
  * left — by default, when it carries the attribute — `to` is focused, and
- * `onMove` fires with the move that happened.
+ * `onMove` fires with the move that happened. A move into another group
+ * names the item its stop is carried from in `stopFrom` instead.
  *
  * A `to` that does not take focus — not focusable, inert, hidden — is the same
  * consumed no-op, with the tab stop put back where it was.
@@ -222,6 +241,7 @@ export const moveFocus = <Action extends string>({
   from,
   to,
   isRoving = attributeRoving,
+  stopFrom = from,
   onMove,
 }: MoveFocusArgs<Action>): ActionResult<Action> => {
   e?.preventDefault();
@@ -230,7 +250,10 @@ export const moveFocus = <Action extends string>({
 
   // The stop moves before focus does: `tabindex="0"` is what makes a bare item
   // focusable in the first place.
-  const putBack = from && isRoving(from) ? carryStop(from, to) : undefined;
+  const putBack =
+    stopFrom && stopFrom !== to && isRoving(stopFrom)
+      ? carryStop(stopFrom, to)
+      : undefined;
 
   (to as HTMLElement).focus();
 

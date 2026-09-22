@@ -5,7 +5,7 @@ group: Examples
 order: 16
 ---
 
-With the default bindings, Tab visits every item with `tabindex="0"`. Roving
+With the default bindings, <kbd class="kbd">Tab</kbd> visits every item with `tabindex="0"`. Roving
 tabindex gives the group one tab stop; the navigation keys move between items.
 
 - Put `data-keyrove-roving-tabindex` on every item, or pass
@@ -16,7 +16,7 @@ tabindex gives the group one tab stop; the navigation keys move between items.
 - On a move from a roving item, keyrove sets the previous item to `-1` and the
   destination to `0`.
 
-Arrow to an item, then Tab away and Shift+Tab back. Focus returns to that item.
+Arrow to an item, then <kbd class="kbd">Tab</kbd> away and <kbd class="kbd">Shift</kbd>+<kbd class="kbd">Tab</kbd> back. Focus returns to that item.
 
 <div data-demo="roving"></div>
 
@@ -53,13 +53,13 @@ A valid `initial` overrides the existing stop. Use it for first setup or an
 intentional selection change, and omit it during routine render updates.
 A null, skipped, disabled or non-roving item is ignored.
 
-If no item has `tabindex="0"`, Tab cannot enter through the items. Keep one
+If no item has `tabindex="0"`, <kbd class="kbd">Tab</kbd> cannot enter through the items. Keep one
 stop whenever the group has a navigable roving item.
 
 ## Focus that keyrove did not move
 
 Attach `followFocus` to `focusin` to update the stop after a click, a call to
-`element.focus()`, or Tab entering a control inside an item. It also handles
+`element.focus()`, or <kbd class="kbd">Tab</kbd> entering a control inside an item. It also handles
 entry from outside the group, where keyrove has no previous item to take the
 stop from:
 
@@ -92,5 +92,5 @@ page's tab order. Use roving tabindex for a composite control such as a
 tab list. See the
 [ARIA keyboard practices](https://www.w3.org/WAI/ARIA/apg/practices/keyboard-interface/)
 for widget-specific guidance. With roving tabindex,
-[Tab can leave a nested group](/docs/examples/nested-roots#getting-back-out)
+[<kbd class="kbd">Tab</kbd> can leave a nested group](/docs/examples/nested-roots#getting-back-out)
 without an extra exit handler.

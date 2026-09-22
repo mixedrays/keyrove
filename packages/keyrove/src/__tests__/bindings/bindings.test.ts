@@ -1,16 +1,22 @@
 import { describe, it, expect, vi } from 'vitest';
 import { buildBindings } from '../../bindings';
-import type { BuildBindingsArgs, Layout, StrideAction } from '../../types';
+import type {
+  BoundaryAction,
+  BuildBindingsArgs,
+  Layout,
+  StrideAction,
+} from '../../types';
 
 const LIST: Layout = { kind: 'list', cols: 1, horizontal: false, loop: false };
 const GRID: Layout = { kind: 'grid', cols: 3, horizontal: true, loop: false };
 
-type Explicit = Partial<Record<StrideAction, string>>;
+type Explicit = Partial<Record<StrideAction | BoundaryAction, string>>;
 
 // The root's `*-key` attributes as a plain object, looked up per move the way
 // `keyRove` reads them off the root.
-const lookup = (explicit: Explicit) => (intent: StrideAction) =>
-  explicit[intent];
+const lookup =
+  (explicit: Explicit) => (intent: StrideAction | BoundaryAction) =>
+    explicit[intent];
 
 type BuildOverrides = Partial<Omit<BuildBindingsArgs, 'explicit' | 'rtl'>> & {
   explicit?: Explicit;
@@ -31,6 +37,9 @@ const build = ({
 
 const combos = (bindings: ReturnType<typeof build>) =>
   bindings.map(({ combo }) => combo);
+
+const intents = (bindings: ReturnType<typeof build>) =>
+  bindings.map(({ intent }) => intent);
 
 describe('buildBindings', () => {
   describe('default tables (the documented keys tables)', () => {
@@ -290,9 +299,6 @@ describe('buildBindings', () => {
   });
 
   describe('unbinding with none', () => {
-    const intents = (bindings: ReturnType<typeof build>) =>
-      bindings.map(({ intent }) => intent);
-
     it.each([
       ['a list', LIST, ['next', 'prev', 'home', 'end', 'pageUp', 'pageDown']],
       [
@@ -389,14 +395,45 @@ describe('buildBindings', () => {
       expect(rtl).toHaveBeenCalledTimes(1);
     });
 
-    it('looks up only the moves the layout has', () => {
+    it('looks up only the moves the layout has, and the boundary moves', () => {
       const explicit = vi.fn(lookup({}));
 
       buildBindings({ explicit, layout: LIST, rtl: () => false });
 
       expect(explicit.mock.calls.map(([intent]) => intent).sort()).toEqual(
-        ['end', 'home', 'next', 'pageDown', 'pageUp', 'prev'].sort(),
+        [
+          'end',
+          'enter',
+          'exit',
+          'home',
+          'next',
+          'pageDown',
+          'pageUp',
+          'prev',
+        ].sort(),
       );
+    });
+  });
+
+  describe('boundary moves', () => {
+    it('leaves exit and enter out of the table unless a root binds them', () => {
+      expect(intents(build())).not.toContain('exit');
+      expect(intents(build())).not.toContain('enter');
+      expect(
+        intents(build({ explicit: { exit: 'none', enter: ' NONE ' } })),
+      ).toEqual(intents(build()));
+    });
+
+    it('puts bound exit and enter among the explicit bindings, ahead of the defaults', () => {
+      const bindings = build({
+        explicit: { next: 'KeyJ', exit: 'Escape', enter: 'Enter, ArrowRight' },
+      });
+
+      expect(bindings.slice(0, 3)).toEqual([
+        { combo: 'KeyJ', intent: 'next', enters: true },
+        { combo: 'Escape', intent: 'exit', enters: false },
+        { combo: 'Enter, ArrowRight', intent: 'enter', enters: false },
+      ]);
     });
   });
 });

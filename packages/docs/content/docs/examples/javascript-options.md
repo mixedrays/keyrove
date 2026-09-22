@@ -28,8 +28,8 @@ document
   .addEventListener('keydown', (e) => keyRove(e, config) || typeahead(e));
 ```
 
-Up/Down move between items and wrap at the ends. Typing finds an entry, and
-Tab leaves the menu. The options configure navigation; the markup supplies
+<kbd class="kbd">↑</kbd>/<kbd class="kbd">↓</kbd> move between items and wrap at the ends. Typing finds an entry, and
+<kbd class="kbd">Tab</kbd> leaves the menu. The options configure navigation; the markup supplies
 roles, an initial tab stop and the `disabled` attribute on _Export as PDF_.
 
 ## What is coming from where
@@ -42,7 +42,7 @@ replacement rules and the [API reference](/docs/api#options) for every field.
 ## One object, both handlers
 
 Pass the same `items`, `root`, `skip` and `rovingTabindex` settings to both
-handlers. In the demo, typing P reaches _Post to Slack_ through the same
+handlers. In the demo, typing <kbd class="kbd">P</kbd> reaches _Post to Slack_ through the same
 selector the arrows use.
 
 Typeahead ignores movement settings such as keys, columns and looping. Use its

@@ -7,7 +7,7 @@ order: 20
 ---
 
 Create a typeahead handler to focus items by typing their labels. In this
-list, S focuses _Spanish_ and W immediately after it focuses _Swedish_.
+list, <kbd class="kbd">S</kbd> focuses _Spanish_ and <kbd class="kbd">W</kbd> immediately after it focuses _Swedish_.
 After a 500 ms pause, the next character starts a new prefix.
 
 <div data-demo="typeahead" data-demo-class="max-h-60 overflow-y-auto"></div>
@@ -24,7 +24,7 @@ document
 
 Call `keyRove` first so navigation bindings take precedence. It returns `null`
 for an unhandled key, letting `typeahead` process it. For example, a `KeyJ`
-navigation binding moves focus instead of adding J to the prefix.
+navigation binding moves focus instead of adding <kbd class="kbd">J</kbd> to the prefix.
 
 ## Why a factory
 
@@ -118,9 +118,9 @@ after a successful focus move.
 
 Type "swez" quickly to see each result in the log:
 
-- S and W are green: focus moves to _Spanish_, then _Swedish_.
-- E is amber: "swe" still matches the focused item, so `to` is `null`.
-- Z is grey: "swez" matches nothing, so the handler returns `null`.
+- <kbd class="kbd">S</kbd> and <kbd class="kbd">W</kbd> are green: focus moves to _Spanish_, then _Swedish_.
+- <kbd class="kbd">E</kbd> is amber: "swe" still matches the focused item, so `to` is `null`.
+- <kbd class="kbd">Z</kbd> is grey: "swez" matches nothing, so the handler returns `null`.
 
 The unmatched character stays in the buffer. Pause for 500 ms to start again.
 

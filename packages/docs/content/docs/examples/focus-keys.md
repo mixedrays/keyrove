@@ -9,8 +9,8 @@ order: 19
 Set `data-keyrove-focus-key` on an element to focus it with a shortcut from
 anywhere under the listener.
 
-Ctrl+Shift+1, 2 or 3 focuses a panel in this demo. Try a shortcut from the text
-area: focus keys with Ctrl, Alt or Meta also work inside editable fields.
+<kbd class="kbd">Ctrl</kbd>+<kbd class="kbd">Shift</kbd>+<kbd class="kbd">1</kbd>, <kbd class="kbd">2</kbd> or <kbd class="kbd">3</kbd> focuses a panel in this demo. Try a shortcut from the text
+area: focus keys with <kbd class="kbd">Ctrl</kbd>, <kbd class="kbd">Alt</kbd> or <kbd class="kbd">Meta</kbd> also work inside editable fields.
 
 <div data-demo="panes"></div>
 
@@ -22,7 +22,7 @@ document
 
 The panels are not navigation items, so arrows do not move between them.
 Each panel has its own [combo](/docs/api#combos). A bare code also works:
-`data-keyrove-focus-key="KeyE"` focuses an element with E outside editable
+`data-keyrove-focus-key="KeyE"` focuses an element with <kbd class="kbd">E</kbd> outside editable
 fields.
 
 The move reports `action: 'focus'` to `onMove` and in the
@@ -60,7 +60,7 @@ the tool you last reached, whichever way you reached it, because the
 [roving tab stop](/docs/examples/roving-tabindex) follows a jump as it follows
 an arrow.
 
-Focus keys use the bindings you choose: V for Move, O for Ellipse, I for
+Focus keys use the bindings you choose: <kbd class="kbd">V</kbd> for Move, <kbd class="kbd">O</kbd> for Ellipse, <kbd class="kbd">I</kbd> for
 Eyedropper. [Typeahead](/docs/examples/typeahead) instead matches labels.
 
 Each tool also has `aria-keyshortcuts`. The demo uses it to display the shortcut
@@ -126,15 +126,15 @@ In the demo, `ctrl+shift+Digit1` reaches out of the text area; a bare `Digit1`
 would type a "1" there and focus the panel from everywhere else.
 
 Choose shortcuts that do not conflict with editing commands or text input.
-For example, Ctrl+B can mean bold; Alt+letter can type accented characters on
-macOS; and Windows can report AltGr as Ctrl+Alt. A `ctrl+alt+` focus shortcut
+For example, <kbd class="kbd">Ctrl</kbd>+<kbd class="kbd">B</kbd> can mean bold; <kbd class="kbd">Alt</kbd>+letter can type accented characters on
+macOS; and Windows can report <kbd class="kbd">AltGr</kbd> as <kbd class="kbd">Ctrl</kbd>+<kbd class="kbd">Alt</kbd>. A `ctrl+alt+` focus shortcut
 can therefore fire during text entry. No focus key runs while `isComposing`
 is true.
 
 ## Precedence and ties
 
 Focus keys take precedence over explicit movement bindings and defaults.
-For example, an element's `Home` focus key overrides the usual Home action.
+For example, an element's `Home` focus key overrides the usual <kbd class="kbd">Home</kbd> action.
 
 When two elements declare the same combo, the first in DOM order wins.
 The attribute scan excludes skipped and disabled targets. An explicit

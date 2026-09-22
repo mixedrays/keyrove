@@ -50,7 +50,7 @@ This matches the optional arrow-key entry behavior in the
 [APG menu button](https://www.w3.org/WAI/ARIA/apg/patterns/menu-button/)
 pattern.
 
-Home, End, and the page keys still require focus inside an item.
+<kbd class="kbd">Home</kbd>, <kbd class="kbd">End</kbd>, and the page keys still require focus inside an item.
 
 ## Only next and prev wrap
 

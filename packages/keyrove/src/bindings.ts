@@ -12,6 +12,7 @@
 import { isComboSet } from './utils.js';
 import type {
   Binding,
+  BoundaryAction,
   BuildBindingsArgs,
   KnownCode,
   Layout,
@@ -29,6 +30,10 @@ type DefaultRow = [
 // The strides that enter a group from outside: the four directional moves,
 // `next`/`prev` and their row forms. Every other stride moves only within one.
 const ENTERING = /^(next|prev)/;
+
+// The moves across a nested root's boundary. They have no default key, so
+// they are in the table only where a root binds them.
+const BOUNDARY: BoundaryAction[] = ['exit', 'enter'];
 
 // The value that binds a move to no key. It is no `KeyboardEvent.code`, so it
 // can never stand for a real key, and it reads as a boolean attribute's value
@@ -98,6 +103,14 @@ export const buildBindings = ({
 
     if (!combo) defaults.push({ combo: fallback, intent, enters });
     else if (!isNone(combo)) rebound.push({ combo, intent, enters });
+  }
+
+  for (const intent of BOUNDARY) {
+    const combo = explicit(intent);
+
+    if (combo && !isNone(combo)) {
+      rebound.push({ combo, intent, enters: false });
+    }
   }
 
   // An element's own key names one element, where a root's names a group and

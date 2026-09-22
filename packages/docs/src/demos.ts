@@ -275,37 +275,6 @@ const createHistory = (demo: HTMLElement): Log | null => {
 };
 
 /**
- * Escape, out of a nested group.
- *
- * Navigation stops at the nearest root, so no key pressed inside a nested group
- * reaches the group around it — getting back out is the app's job. This is the
- * smallest version of it: hand focus to the item beside the group.
- */
-const wireGroupExit = (surface: HTMLElement) => {
-  const groups = surface.querySelectorAll<HTMLElement>(
-    `[${KEYROVE_ATTR_ROOT}]`,
-  );
-
-  for (const group of groups) {
-    group.addEventListener('keydown', (e) => {
-      if (!matchesCombo(e, 'Escape')) return;
-
-      const exit = [
-        group.nextElementSibling,
-        group.previousElementSibling,
-      ].find(
-        (el): el is HTMLElement =>
-          el instanceof HTMLElement &&
-          el.hasAttribute(KEYROVE_ATTR_ITEM) &&
-          !el.hasAttribute(KEYROVE_ATTR_SKIP),
-      );
-
-      exit?.focus();
-    });
-  }
-};
-
-/**
  * Picking, for the listbox demo.
  *
  * Selection is the widget's state rather than keyrove's, so this is the page's
@@ -639,7 +608,6 @@ export const mountDemos = () => {
 
       log.keydown(e, claimed);
     });
-    wireGroupExit(surface);
 
     // The demo a page opens with starts focused, so the keys it documents work
     // on arrival rather than after a Tab or a click. Only the first one: focus

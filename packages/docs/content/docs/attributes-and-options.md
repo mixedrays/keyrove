@@ -39,7 +39,7 @@ keyRove(e, { loop: true }); // override looping only
 keyRove(e, { items: '[role="menuitem"]' }); // override item lookup only
 ```
 
-`keys` falls back per action. With `{ keys: { next: 'KeyJ' } }`, J moves to
+`keys` falls back per action. With `{ keys: { next: 'KeyJ' } }`, <kbd class="kbd">J</kbd> moves to
 the next item; every other action keeps its attribute or default binding.
 An empty, blank or comma-only binding also falls back. Use `'none'` to disable
 an action's key.

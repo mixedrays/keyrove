@@ -6,8 +6,8 @@ group: Examples
 order: 14
 ---
 
-Set `data-keyrove-cols` above `1` to navigate a grid. Up/Down move one row in
-the same column; Left/Right move one cell in DOM order.
+Set `data-keyrove-cols` above `1` to navigate a grid. <kbd class="kbd">↑</kbd>/<kbd class="kbd">↓</kbd> move one row in
+the same column; <kbd class="kbd">←</kbd>/<kbd class="kbd">→</kbd> move one cell in DOM order.
 
 <div data-demo="grid" data-demo-class="grid grid-cols-6 gap-1.5"></div>
 
@@ -45,7 +45,7 @@ on screen.
   see [custom keys](/docs/examples/custom-keys#grids).
 
 At an edge, the key is still consumed and the log shows an amber no-op.
-Holding Down at the bottom of the grid therefore does not scroll the page.
+Holding <kbd class="kbd">↓</kbd> at the bottom of the grid therefore does not scroll the page.
 
 ## Right-to-left grids
 

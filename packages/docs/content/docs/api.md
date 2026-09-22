@@ -68,6 +68,48 @@ to disable the binding, for example `data-keyrove-page-down-key="none"`.
 The replaced key returns to the browser unless another binding handles it.
 See [custom keys](/docs/examples/custom-keys).
 
+### Exit and enter
+
+Bind `exit` on an inner root to leave it, or `enter` on the outer root to
+focus a group inside the current item. Neither action has a default key.
+
+| Bound by                 | `keys` field | Moves                                                |
+| ------------------------ | ------------ | ---------------------------------------------------- |
+| `data-keyrove-exit-key`  | `exit`       | From inside a nested root to the group around it     |
+| `data-keyrove-enter-key` | `enter`      | From the focused item into the root nested inside it |
+
+```html
+<ul data-keyrove-enter-key="Enter">
+  <li data-keyrove-item tabindex="0">
+    Build failed
+    <div data-keyrove-root data-keyrove-exit-key="Escape">
+      <button data-keyrove-item tabindex="0">Retry</button>
+      <button data-keyrove-item tabindex="0">View logs</button>
+    </div>
+  </li>
+</ul>
+```
+
+- **Exit** focuses the containing item in the outer group. If none is eligible,
+  it chooses the nearest eligible item after the root, then the nearest before
+  it. It never exits beyond the listener's element.
+- **Enter** uses the first nested root inside the focused item. It chooses
+  that group's first navigable roving item with `tabindex="0"`, or its first
+  navigable item. It does not try later roots if the first has no destination.
+- Both exclude skipped and disabled items and items belonging to deeper roots.
+- Each group keeps its own roving tab stop. A move updates an existing stop in
+  the destination group, leaving the source group's stop in place. This lets
+  enter return to the item last used in the inner group. Initialize each
+  group's stop with [roving tabindex](/docs/examples/roving-tabindex).
+
+When no destination is found, the key remains unhandled. This includes exit
+from the listener's own group and enter on an item with no nested root. If a
+chosen target cannot receive focus, the key is consumed with `to: null` and
+`onMove` does not run, as with other focus moves.
+
+The reported actions are `'exit'` and `'enter'`. See
+[nested roots](/docs/examples/nested-roots#getting-back-out) for the demo.
+
 ### Combos
 
 Every `*-key` value is a combo, or a list of them, matched by
@@ -119,7 +161,7 @@ order, and the first match wins:
 3. The defaults of the moves left unbound.
 
 An explicit binding wins over another action's default. For example,
-`data-keyrove-next-key="Home"` makes Home move to the next item instead of the
+`data-keyrove-next-key="Home"` makes <kbd class="kbd">Home</kbd> move to the next item instead of the
 first. Replaced defaults are not restored elsewhere. `none` removes a move's
 binding. Bindings for actions the layout does not support, such as row moves
 in a list, are ignored.
@@ -140,7 +182,9 @@ the listener is attached to (`currentTarget`). A listener on `document` or
 - One delegated listener can serve several roots. Inside a
   [nested root](/docs/examples/nested-roots), only that root's movement
   bindings apply; unbound keys do not fall through to the outer group.
-  [Focus keys](#focus-keys) can cross root boundaries.
+  [Focus keys](#focus-keys) can cross root boundaries, and
+  [exit and enter](#exit-and-enter) move between a nested root and the group
+  around it.
 - An item counts as focused when focus is anywhere inside it
   (`:focus-within`), so an item wrapping a link or a button is still the
   position after <kbd class="kbd">Tab</kbd> lands on that inner control.
@@ -157,17 +201,19 @@ on where focus is:
 - **Nothing in the group focused.** Only the moves that can enter a group are
   consumed: the four directional moves, which land on the first navigable item
   (the last, for prev on a looping list), and a [focus key](#focus-keys),
-  which lands on its element. Home, End, the row ends and the page moves act only
+  which lands on its element. <kbd class="kbd">Home</kbd>, <kbd class="kbd">End</kbd>, the row ends and the page moves act only
   once focus is inside an item; pressed here, they keep their browser default.
 - **A group with no items.** Movement keys keep their browser defaults.
   Focus shortcuts can still reach elements that are not items.
+- **[Exit and enter](#exit-and-enter).** Unhandled when no destination is found;
+  consumed when a target is chosen, even if it cannot receive focus.
 
 Give targets native focusability or a `tabindex`. If a target cannot take
 focus, such as a hidden or inert element, the key is consumed without moving.
 The roving stop is restored and `onMove` does not fire.
 
 Unbound keys keep their browser behavior and remain available to your
-handlers. Tab, Shift+Tab, Enter, Space and Escape are unbound by default.
+handlers. <kbd class="kbd">Tab</kbd>, <kbd class="kbd">Shift</kbd>+<kbd class="kbd">Tab</kbd>, <kbd class="kbd">Enter</kbd>, <kbd class="kbd">Space</kbd> and <kbd class="kbd">Escape</kbd> are unbound by default.
 The [return value](#return-value) tells your handler whether keyrove consumed
 the key.
 
@@ -186,7 +232,7 @@ grid's last (or first) navigable cell, whatever column the jump started in. The
 row ends are stricter: `Home` and `End` in a grid never fall back to a skipped
 cell, so a row of nothing but skipped cells is a consumed no-op.
 
-If every item is skipped, entry, Home/End, list clamping or looping, and page
+If every item is skipped, entry, <kbd class="kbd">Home</kbd>/<kbd class="kbd">End</kbd>, list clamping or looping, and page
 clamping currently fall back to the physical first or last item. Grid row
 moves and row ends do not use that fallback. Typeahead and roving
 initialization also exclude all skipped items. To prevent navigation when
@@ -205,9 +251,9 @@ their caret, value and typing keys. Editable targets include:
   so navigating from them takes nothing away: a list of checkbox rows keeps
   its arrows.
 
-A [focus key](#focus-keys) with Ctrl, Alt or Meta can run inside an editable
+A [focus key](#focus-keys) with <kbd class="kbd">Ctrl</kbd>, <kbd class="kbd">Alt</kbd> or <kbd class="kbd">Meta</kbd> can run inside an editable
 field. These shortcuts can still conflict with text input: Windows can report
-AltGr as Ctrl+Alt, so a `ctrl+alt+` focus key may fire while typing characters
+<kbd class="kbd">AltGr</kbd> as <kbd class="kbd">Ctrl</kbd>+<kbd class="kbd">Alt</kbd>, so a `ctrl+alt+` focus key may fire while typing characters
 such as € or @.
 
 When `isComposing` is true, no binding runs, including focus shortcuts. All
@@ -240,7 +286,7 @@ work.
 
 Set `data-keyrove-focus-key="ctrl+shift+KeyE"` on an element to focus it from
 anywhere under the listener, including sibling and nested roots. A combo with
-Ctrl, Alt or Meta also works inside an editable field. Bare codes work outside
+<kbd class="kbd">Ctrl</kbd>, <kbd class="kbd">Alt</kbd> or <kbd class="kbd">Meta</kbd> also works inside an editable field. Bare codes work outside
 editable targets. The reported action is `'focus'`.
 
 - Focus keys sit first in the [binding table](#precedence), so they win any
@@ -293,7 +339,7 @@ keyRove(e, { items: '[role="menuitem"]' }); // override item lookup only
 | `loop`           | `data-keyrove-loop`            | Whether next/prev wrap at the ends. Lists only.                                                                                                                                |
 | `orientation`    | `data-keyrove-orientation`     | `'horizontal'` re-points a list's default arrows; see [RTL](#horizontal-groups-and-rtl).                                                                                       |
 | `pageLength`     | `data-keyrove-page-length`     | Rows per page jump — items, in a list.                                                                                                                                         |
-| `keys`           | the `*-key` attributes         | The [combo](#combos) or combos each move answers to: `{ next: 'ArrowDown, KeyJ' }`, or `'none'` for no key. Read move by move.                                                 |
+| `keys`           | the `*-key` attributes         | The [combo](#combos) or combos each move answers to: `{ next: 'ArrowDown, KeyJ' }`, or `'none'` for no key. Read move by move. Includes [`exit` and `enter`](#exit-and-enter). |
 | `focusKeys`      | `data-keyrove-focus-key`       | Combo, or a list of them, → element or a selector resolved within the listener's reach: `{ 'F6, ctrl+KeyE': '#panel' }`. Replaces the attribute scan rather than adding to it. |
 | `skip`           | `data-keyrove-skip`            | Which items a move passes over: a selector or `(element) => boolean`.                                                                                                          |
 | `rovingTabindex` | `data-keyrove-roving-tabindex` | Whether the group carries one tab stop. One boolean for the group, where the attribute is read per item.                                                                       |
@@ -329,9 +375,10 @@ keyRove(e, {
 ```
 
 `action` is `'next'`, `'prev'`, `'home'`, `'end'`, `'pageUp'` or `'pageDown'`;
-`'nextRow'`, `'prevRow'`, `'homeRow'` or `'endRow'` in a grid; or `'focus'`
-for a shortcut. `from` is the item focus left, or `null` on entry from outside
-or a jump to a non-item. `to` is the element that received focus.
+`'nextRow'`, `'prevRow'`, `'homeRow'` or `'endRow'` in a grid; `'exit'` or
+`'enter'` between nested groups; or `'focus'` for a shortcut. `from` is the item
+focus left, or `null` when no item was focused or the destination is a non-item.
+`to` is the element that received focus.
 
 ### Return value
 
@@ -557,8 +604,8 @@ using the fallback order above.
 ## followFocus(event, options?)
 
 Updates a roving group's tab stop when focus enters an item, including clicks,
-programmatic focus and Tab entering a control inside an item. Attach it to
-`focusin` so returning with Tab reaches the most recently focused item:
+programmatic focus and <kbd class="kbd">Tab</kbd> entering a control inside an item. Attach it to
+`focusin` so returning with <kbd class="kbd">Tab</kbd> reaches the most recently focused item:
 
 ```ts
 import { followFocus, keyRove } from '@mixedrays/keyrove';
@@ -637,6 +684,8 @@ On the root, read on every keypress:
 | `data-keyrove-end-row-key`   | `End`                                                    | Last cell of the focused row. Grid only.                                                                                                                                                                                |
 | `data-keyrove-page-up-key`   | `PageUp`                                                 | Page jump back.                                                                                                                                                                                                         |
 | `data-keyrove-page-down-key` | `PageDown`                                               | Page jump forward.                                                                                                                                                                                                      |
+| `data-keyrove-exit-key`      | —                                                        | From inside this nested root to the group around it. See [exit and enter](#exit-and-enter).                                                                                                                             |
+| `data-keyrove-enter-key`     | —                                                        | From the focused item into the root nested inside it.                                                                                                                                                                   |
 
 The boolean attributes — `data-keyrove-item`, `data-keyrove-skip`,
 `data-keyrove-roving-tabindex`, `data-keyrove-root`, and `data-keyrove-loop` —
@@ -743,6 +792,8 @@ type MoveAction =
   | 'prevRow'
   | 'pageUp'
   | 'pageDown'
+  | 'exit' // from a nested root to the group around it
+  | 'enter' // from an item into the root nested inside it
   | 'focus'; // an element's own data-keyrove-focus-key
 
 // what keyRove returns for a consumed keypress
@@ -761,8 +812,8 @@ type Options = GroupOptions & { onMove?: (move: Move) => void };
 ### GroupOptions, StrideAction
 
 All group settings are optional; see [options](#options) for fallbacks.
-`StrideAction` includes every movement action except `focus`, whose binding
-names a destination.
+`StrideAction` covers movement through the item sequence. It excludes `exit`,
+`enter` and `focus`.
 
 ```ts
 type GroupOptions = {
@@ -772,13 +823,13 @@ type GroupOptions = {
   loop?: boolean;
   orientation?: 'horizontal' | 'vertical';
   pageLength?: number;
-  keys?: Partial<Record<StrideAction, KeyRoveCode | 'none'>>;
+  keys?: Partial<Record<StrideAction | 'exit' | 'enter', KeyRoveCode | 'none'>>;
   focusKeys?: Record<string, string | Element>;
   skip?: string | ((element: Element) => boolean);
   rovingTabindex?: boolean;
 };
 
-type StrideAction = Exclude<MoveAction, 'focus'>;
+type StrideAction = Exclude<MoveAction, 'exit' | 'enter' | 'focus'>;
 ```
 
 ### TypeaheadOptions, TypeaheadResult, TypeaheadMove

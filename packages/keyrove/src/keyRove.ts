@@ -1,6 +1,8 @@
 import { buildBindings } from './bindings.js';
+import { crossBoundary } from './boundary.js';
 import { readConfig, readFocusKeys, rootTest } from './config.js';
 import {
+  attributeRoot,
   holdsFocus,
   listenerElement,
   moveFocus,
@@ -101,6 +103,33 @@ export const keyRove = (
       from: holdsFocus(binding.target) ? binding.target : null,
       to: binding.target,
       isRoving: config.isRoving,
+      onMove,
+    });
+  }
+
+  // A boundary move lands in the group next to this one — around it, or
+  // nested in the focused item — and it is that group's stop that moves. It
+  // claims its key only where there is somewhere to go: the keys it suits,
+  // Escape and Enter, are otherwise the page's.
+  if (binding.intent === 'exit' || binding.intent === 'enter') {
+    const crossing = crossBoundary(
+      binding.intent,
+      root,
+      scope,
+      focused,
+      config,
+      isRoot ?? attributeRoot,
+    );
+
+    if (!crossing) return null;
+
+    return moveFocus({
+      e,
+      action: binding.intent,
+      from: focused,
+      to: crossing.to,
+      isRoving: config.isRoving,
+      stopFrom: crossing.stopFrom,
       onMove,
     });
   }

@@ -43,10 +43,10 @@ list.addEventListener('keydown', (e) => keyRove(e));
 ```
 
 Give non-native items `tabindex="0"` so they can receive focus. With the default
-bindings, Tab visits each item. For one tab stop per group, use
+bindings, <kbd class="kbd">Tab</kbd> visits each item. For one tab stop per group, use
 [roving tabindex](/docs/examples/roving-tabindex).
 
-Lists use Up/Down by default. Set `data-keyrove-next-key` and
+Lists use <kbd class="kbd">↑</kbd>/<kbd class="kbd">↓</kbd> by default. Set `data-keyrove-next-key` and
 `data-keyrove-prev-key` on the root to [change the keys](/docs/examples/custom-keys).
 Attribute names are also exported as [constants](/docs/api#constants).
 

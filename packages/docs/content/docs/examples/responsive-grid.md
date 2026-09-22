@@ -13,7 +13,7 @@ copying breakpoints into JavaScript.
 This demo uses a
 [container query](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_containment/Container_queries).
 Drag the panel's corner or narrow the window, then try the arrows. With six
-columns, Down moves from January to July; with two, it moves to March.
+columns, <kbd class="kbd">↓</kbd> moves from January to July; with two, it moves to March.
 
 <div data-demo="responsive" data-demo-class="resize-x overflow-hidden min-w-64 max-w-full"></div>
 

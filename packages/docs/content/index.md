@@ -87,24 +87,24 @@ item list to update when your content changes.
 ### <span aria-hidden="true">⌨️</span> Any key, not just arrows
 
 Bind moves to any `KeyboardEvent.code` or combo, such as `mod+KeyJ`.
-Horizontal lists use Left/Right arrows and follow the text direction.
+Horizontal lists use <kbd class="kbd">←</kbd>/<kbd class="kbd">→</kbd> arrows and follow the text direction.
 
 </div>
 <div class="feature">
 
 ### <span aria-hidden="true">↕️</span> Lists, grids and trees
 
-Lists support arrows, Home, End, page jumps and optional looping. Set a column
+Lists support arrows, <kbd class="kbd">Home</kbd>, <kbd class="kbd">End</kbd>, page jumps and optional looping. Set a column
 count for grid navigation. For trees, skip collapsed rows and add your own
 expand/collapse handlers.
 
 </div>
 <div class="feature">
 
-### <span aria-hidden="true">🎯</span> Tab is left alone
+### <span aria-hidden="true">🎯</span> <kbd class="kbd">Tab</kbd> is left alone
 
 keyrove moves DOM focus and prevents the browser's default action only for keys
-it handles. Tab, Enter and Space keep their defaults unless you bind them;
+it handles. <kbd class="kbd">Tab</kbd>, <kbd class="kbd">Enter</kbd> and <kbd class="kbd">Space</kbd> keep their defaults unless you bind them;
 text fields keep their editing keys.
 
 </div>
@@ -113,7 +113,7 @@ text fields keep their editing keys.
 ### <span aria-hidden="true">🧭</span> Roving tabindex, when you want it
 
 [Roving tabindex](/docs/examples/roving-tabindex) gives a group one tab stop
-that follows focus. Tab enters and leaves the group; the bound keys move within it.
+that follows focus. <kbd class="kbd">Tab</kbd> enters and leaves the group; the bound keys move within it.
 
 </div>
 <div class="feature">

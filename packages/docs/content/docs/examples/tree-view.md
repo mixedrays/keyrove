@@ -9,8 +9,8 @@ order: 15.5
 Use keyrove to navigate a tree's visible rows. Your widget handles opening
 and closing branches and excludes hidden rows from navigation.
 
-This sidebar uses attributes. Up/Down move between visible rows, Right opens a
-folder, and Left closes it. Folders are buttons, so Enter, Space and clicks
+This sidebar uses attributes. <kbd class="kbd">↑</kbd>/<kbd class="kbd">↓</kbd> move between visible rows, <kbd class="kbd">→</kbd> opens a
+folder, and <kbd class="kbd">←</kbd> closes it. Folders are buttons, so <kbd class="kbd">Enter</kbd>, <kbd class="kbd">Space</kbd> and clicks
 also toggle them.
 
 <div data-demo="sidebar"></div>
@@ -56,17 +56,17 @@ Hidden rows remain in the DOM. `setOpen` updates `data-keyrove-skip` after
 each toggle so navigation passes over rows inside hidden lists. See
 [skipped items](/docs/examples/skipped-items).
 
-`fold` handles Left/Right only when they change a folder's state. On a page,
+`fold` handles <kbd class="kbd">←</kbd>/<kbd class="kbd">→</kbd> only when they change a folder's state. On a page,
 or when the folder is already in the requested state, it returns `null` and
 leaves the key to the browser.
 
-## Why ← and → are not keyrove's
+## Why <kbd class="kbd">←</kbd> and <kbd class="kbd">→</kbd> are not keyrove's
 
 Expanding a branch and moving to a parent require knowledge of the tree's
 structure. Add those actions in your widget's handler, as the listbox adds
 [selection](/docs/examples/listbox#the-pieces).
 
-A vertical list leaves Left/Right unbound. `keyRove` returns `null` for them,
+A vertical list leaves <kbd class="kbd">←</kbd>/<kbd class="kbd">→</kbd> unbound. `keyRove` returns `null` for them,
 so `keyRove(e) || fold(e)` passes them to your handler.
 
 ## A full tree view
@@ -76,9 +76,9 @@ navigation from the [APG tree pattern](https://www.w3.org/WAI/ARIA/apg/patterns/
 It uses [options](/docs/examples/javascript-options) to select rows and skip
 hidden descendants directly from the DOM.
 
-- Up/Down move between visible rows; Home/End move to the first/last.
-- Right opens a closed folder or enters an open folder's first row.
-- Left closes an open folder or moves to the parent folder.
+- <kbd class="kbd">↑</kbd>/<kbd class="kbd">↓</kbd> move between visible rows; <kbd class="kbd">Home</kbd>/<kbd class="kbd">End</kbd> move to the first/last.
+- <kbd class="kbd">→</kbd> opens a closed folder or enters an open folder's first row.
+- <kbd class="kbd">←</kbd> closes an open folder or moves to the parent folder.
 - Typing finds a row by name. Clicking a folder toggles it.
 
 <div data-demo="tree"></div>
@@ -200,7 +200,7 @@ The log shows keyrove moves in green and tree actions in indigo.
 
 ## Variations
 
-- **Enter.** The APG has <kbd class="kbd">Enter</kbd> perform a row's default
+- **<kbd class="kbd">Enter</kbd>.** The APG has <kbd class="kbd">Enter</kbd> perform a row's default
   action: open the file, or open or close the folder. In the full tree that is
   one more case in `branch`, on `matchesCombo(e, 'Enter')`; the sidebar's
   buttons have it already.

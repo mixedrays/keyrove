@@ -12,9 +12,9 @@ import { readConfig, rootTest } from './config.js';
 import {
   attributeRoot,
   moveFocus,
-  ownItems,
   readGroup,
   resolveRoot,
+  stopHolder,
 } from './group.js';
 import { resolveTarget } from './position.js';
 import type { MoveResult, Options, StrideAction } from './types.js';
@@ -79,13 +79,12 @@ export const rove = (
   const { items: elements, focused } = readGroup(root, config.readItems);
   const from =
     focused ??
-    ownItems(root, config.readItems, isRoot ?? attributeRoot).find(
-      (item) =>
-        config.isRoving(item) &&
-        item.getAttribute('tabindex') === '0' &&
-        elements.includes(item),
-    ) ??
-    null;
+    stopHolder(
+      root,
+      config.readItems,
+      isRoot ?? attributeRoot,
+      config.isRoving,
+    );
   const intent = from ? action : ENTRY[action];
 
   if (!intent) return null;

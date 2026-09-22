@@ -7,8 +7,8 @@ order: 13
 ---
 
 Set `data-keyrove-orientation="horizontal"` on a list's root to use
-Left/Right. In left-to-right text, Right moves to the next item and Left to the
-previous one. Up/Down keep their browser behavior.
+<kbd class="kbd">←</kbd>/<kbd class="kbd">→</kbd>. In left-to-right text, <kbd class="kbd">→</kbd> moves to the next item and <kbd class="kbd">←</kbd> to the
+previous one. <kbd class="kbd">↑</kbd>/<kbd class="kbd">↓</kbd> keep their browser behavior.
 
 <div data-demo="orientation" data-demo-class="flex flex-wrap gap-1.5"></div>
 
@@ -18,18 +18,18 @@ document
   .addEventListener('keydown', (e) => keyRove(e));
 ```
 
-Home/End still jump to the ends, PageUp/PageDown still move a page, and Tab
+<kbd class="kbd">Home</kbd>/<kbd class="kbd">End</kbd> still jump to the ends, <kbd class="kbd">PageUp</kbd>/<kbd class="kbd">PageDown</kbd> still move a page, and <kbd class="kbd">Tab</kbd>
 keeps its default behavior. Moves follow DOM order. Lists are vertical unless
 the orientation is set to the literal value `horizontal`.
 
 ## Right to left
 
-Under `dir="rtl"`, the defaults reverse: Left is next and Right is previous.
+Under `dir="rtl"`, the defaults reverse: <kbd class="kbd">←</kbd> is next and <kbd class="kbd">→</kbd> is previous.
 This keeps navigation aligned with items laid out in right-to-left order.
 
 <div data-demo="rtl" data-demo-class="flex flex-wrap gap-1.5"></div>
 
-Compare the logs: Right reports `next` in the first bar and `prev` in the RTL
+Compare the logs: <kbd class="kbd">→</kbd> reports `next` in the first bar and `prev` in the RTL
 bar. The action names describe movement through DOM order.
 
 The direction comes from the nearest `dir` attribute at or above the root, and
@@ -65,7 +65,7 @@ the cell arrows flip.
 
 ## Wrapping a strip
 
-Add `data-keyrove-loop` to wrap next/previous at the ends. Under RTL, Left
+Add `data-keyrove-loop` to wrap next/previous at the ends. Under RTL, <kbd class="kbd">←</kbd>
 wraps forward. See [looping lists](/docs/examples/looping-lists) for entry
 behavior and the moves that do not wrap.
 
