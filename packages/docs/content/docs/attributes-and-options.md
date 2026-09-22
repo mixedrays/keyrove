@@ -74,6 +74,37 @@ The [API reference](/docs/api#options) lists every option and its fallback.
 its items. One delegated listener can serve [several groups](/docs/installation#several-groups-one-listener)
 or [nested roots](/docs/examples/nested-roots).
 
+Use the [attribute builders](/docs/api#attribute-builders) to type-check those
+settings in templates. A root configuration can also be passed directly to
+`keyRove` without renaming its fields:
+
+```tsx
+import { itemAttributes, keyRove, rootAttributes } from '@mixedrays/keyrove';
+import type { RootAttributeOptions } from '@mixedrays/keyrove';
+
+const config = {
+  loop: true,
+  keys: { next: 'KeyJ', prev: 'KeyK' },
+} satisfies RootAttributeOptions;
+
+// Settings in markup; the handler reads them on each keypress.
+<ul {...rootAttributes(config)} onKeyDown={keyRove}>
+  <li {...itemAttributes()} tabIndex={0}>
+    Inbox
+  </li>
+  <li {...itemAttributes()} tabIndex={0}>
+    Drafts
+  </li>
+</ul>;
+
+// The same settings can instead be supplied as options: keyRove(e, config).
+```
+
+`rootAttributes` covers columns, looping, orientation, page length and move
+bindings, and always marks the root. `itemAttributes` always marks the item;
+its `skip`, `rovingTabindex`, `focusKey` and `typeahead` fields describe that
+item. The builders emit explicit `"false"` values and omit `undefined` fields.
+
 **Use options when you cannot change the HTML.** Select items by existing roles
 or classes in a component library or CMS:
 

@@ -188,6 +188,46 @@ export type Options = GroupOptions & {
   onMove?: (move: Move) => void;
 };
 
+/** Group settings that can be written as attributes on a root. */
+export type RootAttributeOptions = Pick<
+  GroupOptions,
+  'cols' | 'loop' | 'orientation' | 'pageLength' | 'keys'
+>;
+
+/** Settings on one item, rather than on the whole group. */
+export type ItemAttributeOptions = {
+  skip?: boolean;
+  rovingTabindex?: boolean;
+  focusKey?: KeyRoveCode;
+  typeahead?: string;
+};
+
+/** The attribute spelling of a camel-cased action. */
+type KebabCase<S extends string> = S extends `${infer Head}${infer Tail}`
+  ? `${Head extends Lowercase<Head> ? Head : `-${Lowercase<Head>}`}${KebabCase<Tail>}`
+  : S;
+
+export type KeyAttributeName =
+  `data-keyrove-${KebabCase<keyof NonNullable<GroupOptions['keys']>>}-key`;
+
+/** A spreadable root marker and the settings supplied to its builder. */
+export type RootAttributes = {
+  'data-keyrove-root': 'true';
+  'data-keyrove-cols'?: string;
+  'data-keyrove-loop'?: string;
+  'data-keyrove-orientation'?: string;
+  'data-keyrove-page-length'?: string;
+} & Partial<Record<KeyAttributeName, string>>;
+
+/** A spreadable item marker and the settings supplied to its builder. */
+export type ItemAttributes = {
+  'data-keyrove-item': 'true';
+  'data-keyrove-skip'?: string;
+  'data-keyrove-roving-tabindex'?: string;
+  'data-keyrove-focus-key'?: string;
+  'data-keyrove-typeahead'?: string;
+};
+
 /**
  * Every setting one move needs, resolved for the root it is navigating:
  * options where they name a field, the root's attributes where they do not.

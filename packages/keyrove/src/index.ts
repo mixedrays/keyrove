@@ -1,5 +1,6 @@
 export * from './keyRove.js';
 export * from './createTypeahead.js';
+export { rootAttributes, itemAttributes } from './attributeBuilders.js';
 export { followFocus } from './followFocus.js';
 export { initRovingTabindex } from './initRovingTabindex.js';
 export { rove } from './rove.js';
@@ -9,12 +10,16 @@ export { matchesCombo, toggleTabIndex } from './utils.js';
 export type {
   GroupOptions,
   InitRovingTabindexOptions,
+  ItemAttributeOptions,
+  ItemAttributes,
   KeyRoveCode,
   KeyRoveEvent,
   Move,
   MoveAction,
   MoveResult,
   Options,
+  RootAttributeOptions,
+  RootAttributes,
   RovingTabindexOptions,
   StrideAction,
   TypeaheadMove,

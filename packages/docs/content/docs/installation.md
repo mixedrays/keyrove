@@ -57,11 +57,33 @@ and fallback rules.
 
 ## React
 
-```tsx
+Use [`rootAttributes` and `itemAttributes`](/docs/api#attribute-builders) for
+typed settings in markup. They include the root and item markers, and turn
+booleans into `"true"` or `"false"`. Hand-written attributes work too.
+
+```tsx title="Typed builders"
+import { itemAttributes, keyRove, rootAttributes } from '@mixedrays/keyrove';
+
+export const Menu = ({ items, loop = false }) => (
+  <ul {...rootAttributes({ loop })} onKeyDown={keyRove}>
+    {items.map((item) => (
+      <li key={item.id} {...itemAttributes()} tabIndex={0}>
+        {item.label}
+      </li>
+    ))}
+  </ul>
+);
+```
+
+```tsx title="Hand-written attributes"
 import { keyRove } from '@mixedrays/keyrove';
 
-export const Menu = ({ items }) => (
-  <ul onKeyDown={keyRove}>
+export const Menu = ({ items, loop = false }) => (
+  <ul
+    data-keyrove-root
+    data-keyrove-loop={loop ? 'true' : 'false'}
+    onKeyDown={keyRove}
+  >
     {items.map((item) => (
       <li key={item.id} data-keyrove-item tabIndex={0}>
         {item.label}
@@ -76,13 +98,40 @@ passed as the handler directly.
 
 ## Vue
 
-```vue
+```vue title="Typed builders"
 <script setup lang="ts">
-import { keyRove } from '@mixedrays/keyrove';
+import { itemAttributes, keyRove, rootAttributes } from '@mixedrays/keyrove';
+
+defineProps<{ items: { id: string; label: string }[]; loop?: boolean }>();
 </script>
 
 <template>
-  <ul @keydown="keyRove">
+  <ul v-bind="rootAttributes({ loop })" @keydown="keyRove">
+    <li
+      v-for="item in items"
+      :key="item.id"
+      v-bind="itemAttributes()"
+      tabindex="0"
+    >
+      {{ item.label }}
+    </li>
+  </ul>
+</template>
+```
+
+```vue title="Hand-written attributes"
+<script setup lang="ts">
+import { keyRove } from '@mixedrays/keyrove';
+
+defineProps<{ items: { id: string; label: string }[]; loop?: boolean }>();
+</script>
+
+<template>
+  <ul
+    data-keyrove-root
+    :data-keyrove-loop="loop ? 'true' : 'false'"
+    @keydown="keyRove"
+  >
     <li v-for="item in items" :key="item.id" data-keyrove-item tabindex="0">
       {{ item.label }}
     </li>
@@ -92,12 +141,38 @@ import { keyRove } from '@mixedrays/keyrove';
 
 ## Svelte
 
-```svelte
+```svelte title="Typed builders"
 <script lang="ts">
-  import { keyRove } from '@mixedrays/keyrove';
+  import { itemAttributes, keyRove, rootAttributes } from '@mixedrays/keyrove';
+
+  let { items, loop = false }: {
+    items: { id: string; label: string }[];
+    loop?: boolean;
+  } = $props();
 </script>
 
-<ul onkeydown={keyRove}>
+<ul {...rootAttributes({ loop })} onkeydown={keyRove}>
+  {#each items as item (item.id)}
+    <li {...itemAttributes()} tabindex="0">{item.label}</li>
+  {/each}
+</ul>
+```
+
+```svelte title="Hand-written attributes"
+<script lang="ts">
+  import { keyRove } from '@mixedrays/keyrove';
+
+  let { items, loop = false }: {
+    items: { id: string; label: string }[];
+    loop?: boolean;
+  } = $props();
+</script>
+
+<ul
+  data-keyrove-root
+  data-keyrove-loop={loop ? 'true' : 'false'}
+  onkeydown={keyRove}
+>
   {#each items as item (item.id)}
     <li data-keyrove-item tabindex="0">{item.label}</li>
   {/each}

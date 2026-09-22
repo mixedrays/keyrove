@@ -20,6 +20,7 @@ import {
   KEYROVE_ATTR_PAGE_LENGTH,
 } from './attributes.js';
 import { attributeItems, attributeRoving } from './group.js';
+import { keyAttribute } from './keyAttribute.js';
 import { attributeSkip } from './position.js';
 import { hasEnabledAttribute, isComboSet, parseAttributeInt } from './utils.js';
 import type {
@@ -163,12 +164,7 @@ const readLayout = (
 const readExplicitBinding =
   (root: Element, { keys }: GroupOptions): ExplicitBinding =>
   (intent) =>
-    [
-      keys?.[intent],
-      root.getAttribute(
-        `data-keyrove-${intent.replace(/[A-Z]/g, '-$&').toLowerCase()}-key`,
-      ),
-    ].find(isComboSet);
+    [keys?.[intent], root.getAttribute(keyAttribute(intent))].find(isComboSet);
 
 /**
  * The focus keys in reach of a keypress: the `focusKeys` map where one is

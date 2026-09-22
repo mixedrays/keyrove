@@ -697,6 +697,75 @@ with no key and its default key to the browser.
 Horizontal default arrows reverse under RTL; see
 [horizontal groups and RTL](#horizontal-groups-and-rtl).
 
+### Attribute builders
+
+`rootAttributes(options?)` and `itemAttributes(options?)` return plain objects
+of `data-keyrove-*` attributes with string values and literal property names
+in their types. Spread them into JSX or Svelte markup, use Vue's `v-bind`, or
+apply them with `setAttribute`; see [framework examples](/docs/installation#react).
+
+```ts
+import { rootAttributes, itemAttributes } from '@mixedrays/keyrove';
+
+rootAttributes({ cols: 3, loop: false, keys: { next: 'KeyJ, ArrowDown' } });
+// {
+//   'data-keyrove-root': 'true',
+//   'data-keyrove-cols': '3',
+//   'data-keyrove-loop': 'false',
+//   'data-keyrove-next-key': 'KeyJ, ArrowDown'
+// }
+
+itemAttributes({ skip: false, rovingTabindex: true, typeahead: 'Inbox' });
+// {
+//   'data-keyrove-item': 'true',
+//   'data-keyrove-skip': 'false',
+//   'data-keyrove-roving-tabindex': 'true',
+//   'data-keyrove-typeahead': 'Inbox'
+// }
+```
+
+Both builders always emit their enabled marker, including when called with
+no arguments. Booleans become `"true"` or `"false"`, numbers become strings,
+and `undefined` fields are omitted. They do not set `tabindex`; give each item
+a tab stop or [initialize roving tabindex](/docs/examples/roving-tabindex#setting-the-initial-tab-stop).
+
+The root input shares its fields and types with `GroupOptions`. Move bindings
+accept the same combos, comma-separated lists and `'none'`. Key codes remain
+open strings, as in `GroupOptions`; the builders do not validate their spelling.
+Per-item `skip` and `rovingTabindex` are booleans, unlike group-wide selectors
+and settings. The public input and output types are:
+
+```ts
+type RootAttributeOptions = Pick<
+  GroupOptions,
+  'cols' | 'loop' | 'orientation' | 'pageLength' | 'keys'
+>;
+
+type ItemAttributeOptions = {
+  skip?: boolean;
+  rovingTabindex?: boolean;
+  focusKey?: KeyRoveCode;
+  typeahead?: string;
+};
+
+// RootAttributes and ItemAttributes name the returned object types.
+```
+
+`items`, the `root` selector, group-wide `skip` and `rovingTabindex`, and
+`focusKeys` stay options; they have no corresponding root attribute.
+
+For plain DOM code:
+
+```ts
+for (const [name, value] of Object.entries(rootAttributes({ loop: true }))) {
+  list.setAttribute(name, value);
+}
+```
+
+The builders have no DOM dependency and can run during server rendering.
+Unused builders are tree-shaken away with the rest of the package's unused
+exports.
+
 ### Constants
 
 Every attribute name is exported as a constant, so markup built in JavaScript
@@ -723,7 +792,11 @@ import type {
   MoveAction,
   MoveResult,
   InitRovingTabindexOptions,
+  ItemAttributeOptions,
+  ItemAttributes,
   Options,
+  RootAttributeOptions,
+  RootAttributes,
   RovingTabindexOptions,
   StrideAction,
   TypeaheadMove,
