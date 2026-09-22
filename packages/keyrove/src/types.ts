@@ -151,9 +151,9 @@ export type GroupOptions = {
   /**
    * The combo each move answers to: `{ next: 'KeyJ', prev: 'KeyK' }`. Read
    * move by move, so a move left out keeps its attribute and then its default
-   * key.
+   * key. `'none'` binds a move to no key, freeing its default.
    */
-  keys?: Partial<Record<StrideAction, KeyRoveCode>>;
+  keys?: Partial<Record<StrideAction, KeyRoveCode | 'none'>>;
   /**
    * Elements reachable by a combo of their own: combo → the element, or a
    * selector resolved within the listener's reach. Replaces the focus-key
@@ -266,7 +266,7 @@ export type Binding =
 /**
  * Looks up the combo explicitly bound to a move, straight off the root's
  * `*-key` attribute — nullish where the attribute is unset and the move keeps
- * its default key.
+ * its default key, and `none` where the move is bound to no key.
  */
 export type ExplicitBinding = (
   intent: StrideAction,

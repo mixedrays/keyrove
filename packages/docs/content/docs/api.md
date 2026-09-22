@@ -63,8 +63,10 @@ follow the [reading direction](#horizontal-groups-and-rtl)):
 | `PageUp`     | `data-keyrove-page-up-key`   | Back `page-length` rows            |
 
 Set the attribute on the root and that key takes over the move. The default it
-replaced goes back to its browser behaviour, and nothing else changes. See
-[custom keys](/docs/examples/custom-keys) for worked examples.
+replaced goes back to its browser behaviour, and nothing else changes. Set it to
+`none` and the move has no key at all: a toolbar, which has no page moves, takes
+`data-keyrove-page-down-key="none"` to leave <kbd class="kbd">PageDown</kbd> to
+the page. See [custom keys](/docs/examples/custom-keys) for worked examples.
 
 ### Combos
 
@@ -95,6 +97,9 @@ Every `*-key` value is a combo, matched by
   nothing, not even a keydown with an empty `code`. An empty or blank value is
   unset: an attribute leaves the move its default key, and a `keys` value
   leaves it to the attribute.
+- `none`, trimmed and in any case, is not a combo. It binds the move to no key.
+  On a [focus key](#focus-keys) it is unset, since an element has no default
+  key to free.
 
 ### Precedence
 
@@ -109,8 +114,10 @@ So an explicit binding that names another move's default key takes the press,
 and that default stands down: with `data-keyrove-next-key="Home"`,
 <kbd class="kbd">Home</kbd> moves to the next item and nothing jumps to the
 first. A replaced default is not re-added anywhere; the freed key goes back to
-its browser behaviour. A move the layout lacks, such as a row move on a list,
-is not in the table at all, so binding it does nothing.
+its browser behaviour. `none` replaces a default with nothing: the move leaves
+the table, and its default key is freed the same way. A move the layout lacks,
+such as a row move on a list, is not in the table at all, so binding it does
+nothing.
 
 ### Roots
 
@@ -282,7 +289,7 @@ keyRove(e, { items: '[role="menuitem"]' }); // nothing from the markup
 | `loop`           | `data-keyrove-loop`            | Whether next/prev wrap at the ends. Lists only.                                                                                |
 | `orientation`    | `data-keyrove-orientation`     | `'horizontal'` re-points a list's default arrows; see [RTL](#horizontal-groups-and-rtl).                                       |
 | `pageLength`     | `data-keyrove-page-length`     | Rows per page jump — items, in a list.                                                                                         |
-| `keys`           | the `*-key` attributes         | The [combo](#combos) each move answers to: `{ next: 'KeyJ', prev: 'KeyK' }`. Read move by move.                                |
+| `keys`           | the `*-key` attributes         | The [combo](#combos) each move answers to: `{ next: 'KeyJ', prev: 'KeyK' }`, or `'none'` for no key. Read move by move.        |
 | `focusKeys`      | `data-keyrove-focus-key`       | Combo → element, or a selector resolved within the listener's reach. Replaces the attribute scan rather than adding to it.     |
 | `skip`           | `data-keyrove-skip`            | Which items a move passes over: a selector or `(element) => boolean`.                                                          |
 | `rovingTabindex` | `data-keyrove-roving-tabindex` | Whether the group carries one tab stop. One boolean for the group, where the attribute is read per item.                       |
@@ -495,6 +502,9 @@ The boolean attributes — `data-keyrove-item`, `data-keyrove-skip`,
 `data-keyrove-roving-tabindex`, `data-keyrove-root`, and `data-keyrove-loop` —
 are enabled when bare or set to `"true"`; set one to `"false"` to disable it.
 
+Every `*-key` attribute takes `none` as well as a combo, which leaves its move
+with no key and its default key to the browser.
+
 The sideways defaults swap under RTL; see
 [horizontal groups and RTL](#horizontal-groups-and-rtl). The boolean
 attributes (`item`, `skip`, `root`, `loop`, `roving-tabindex`) work by
@@ -622,7 +632,7 @@ type GroupOptions = {
   loop?: boolean;
   orientation?: 'horizontal' | 'vertical';
   pageLength?: number;
-  keys?: Partial<Record<StrideAction, KeyRoveCode>>;
+  keys?: Partial<Record<StrideAction, KeyRoveCode | 'none'>>;
   focusKeys?: Record<string, string | Element>;
   skip?: string | ((element: Element) => boolean);
   rovingTabindex?: boolean;

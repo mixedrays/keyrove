@@ -132,6 +132,35 @@ Whatever they are bound to, these moves act only once focus is inside an item.
 Only the directional keys
 [enter a group](/docs/api#consumed-and-untouched-keys).
 
+## Switching a move off
+
+Some groups should not have every move. The
+[APG toolbar](https://www.w3.org/WAI/ARIA/apg/patterns/toolbar/) has no page
+keys, so <kbd class="kbd">PageDown</kbd> on one of its buttons should scroll
+the page, not jump to the last button. `none` binds a move to no key and
+hands its default back to the browser:
+
+```html
+<div
+  role="toolbar"
+  data-keyrove-orientation="horizontal"
+  data-keyrove-page-up-key="none"
+  data-keyrove-page-down-key="none"
+>
+  …
+</div>
+```
+
+```ts
+keyRove(e, {
+  orientation: 'horizontal',
+  keys: { pageUp: 'none', pageDown: 'none' },
+});
+```
+
+Every other move keeps its key. An empty attribute is not the same thing: it
+counts as unset, so the move keeps its default.
+
 ## Grids
 
 The attributes keep their meaning in a grid, and the row and grid-wide moves get

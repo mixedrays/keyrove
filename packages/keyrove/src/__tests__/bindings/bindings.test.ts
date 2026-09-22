@@ -283,6 +283,74 @@ describe('buildBindings', () => {
     });
   });
 
+  describe('unbinding with none', () => {
+    const intents = (bindings: ReturnType<typeof build>) =>
+      bindings.map(({ intent }) => intent);
+
+    it.each([
+      ['a list', LIST, ['next', 'prev', 'home', 'end', 'pageUp', 'pageDown']],
+      [
+        'a grid',
+        GRID,
+        [
+          'next',
+          'prev',
+          'nextRow',
+          'prevRow',
+          'home',
+          'end',
+          'homeRow',
+          'endRow',
+          'pageUp',
+          'pageDown',
+        ],
+      ],
+    ] as const)(
+      'drops each move of %s from the table, key and all',
+      (_, layout, moves) => {
+        const full = build({ layout });
+
+        for (const intent of moves) {
+          const bindings = build({ layout, explicit: { [intent]: 'none' } });
+          const freed = full.find((binding) => binding.intent === intent)!;
+
+          expect(intents(bindings)).not.toContain(intent);
+          expect(combos(bindings)).not.toContain(freed.combo);
+          expect(bindings).toEqual(full.filter((b) => b !== freed));
+        }
+      },
+    );
+
+    it('reads the value trimmed and in any case', () => {
+      expect(
+        intents(build({ explicit: { pageDown: ' NONE ', pageUp: 'None' } })),
+      ).toEqual(['prev', 'next', 'home', 'end']);
+    });
+
+    it('leaves the other side of an RTL axis on its flipped default', () => {
+      const rtl = vi.fn(() => true);
+      const bindings = buildBindings({
+        explicit: lookup({ next: 'none' }),
+        layout: { ...LIST, horizontal: true },
+        rtl,
+      });
+
+      expect(rtl).toHaveBeenCalled();
+      expect(bindings.find(({ intent }) => intent === 'prev')).toEqual({
+        combo: 'ArrowRight',
+        intent: 'prev',
+        enters: true,
+      });
+      expect(intents(bindings)).not.toContain('next');
+    });
+
+    it('drops a focus key named none, which has no default to take away', () => {
+      const target = document.createElement('div');
+
+      expect(build({ focus: [{ combo: 'none', target }] })).toEqual(build());
+    });
+  });
+
   describe('layout', () => {
     it('ignores grid-only moves on a list', () => {
       const bindings = build({

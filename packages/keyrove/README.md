@@ -181,6 +181,21 @@ into one. In a grid, bare `Home`/`End` jump to the ends of the focused row
 (`data-keyrove-home-row-key`/`data-keyrove-end-row-key`) and
 `ctrl+Home`/`ctrl+End` to the grid's first and last cell.
 
+A move can also be switched off. `none` binds it to no key and hands its
+default back to the browser, so a toolbar, which has no page moves, leaves
+<kbd>PageDown</kbd> to the page:
+
+```html
+<div
+  role="toolbar"
+  data-keyrove-orientation="horizontal"
+  data-keyrove-page-up-key="none"
+  data-keyrove-page-down-key="none"
+>
+  …
+</div>
+```
+
 At the ends of a list the bound keys are consumed but focus stays put. Add
 `data-keyrove-loop` on the root and next on the last item wraps to the first,
 and vice versa. Grids keep their edges — they never wrap.
@@ -351,6 +366,8 @@ are enabled when bare or set to `"true"`; set one to `"false"` to disable it.
 
 The next/prev defaults follow the group's axis: `ArrowDown`/`ArrowUp` in a
 vertical list, the reading-direction arrows in a horizontal list or a grid.
+Every `*-key` attribute and `keys` field also takes `none`, which switches its
+move off and frees the default key.
 
 Every attribute name is also exported as a constant (`KEYROVE_ATTR_ITEM`,
 `KEYROVE_ATTR_COLS`, `KEYROVE_ATTR_NEXT_ROW_KEY`, `KEYROVE_ATTR_LOOP`, …).
