@@ -48,12 +48,13 @@ an action's key.
 
 | Setting         | Attributes                                                                                         | Options                                                                                                                                    |
 | --------------- | -------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
-| Items           | `data-keyrove-item` marks each item.                                                               | `items` is a selector or function that returns the items.                                                                                  |
-| Roots           | `data-keyrove-root` marks each root.                                                               | `root` is a selector used to find the nearest root, not a root element or boolean.                                                         |
+| Items           | `data-keyrove-item` marks each item.                                                               | `items` replaces that lookup with a selector or function that returns the items.                                                           |
+| Roots           | `data-keyrove-root` marks each root.                                                               | `root` replaces that test with a selector for finding the nearest root. It is not a root element or boolean.                               |
 | Roving tabindex | `data-keyrove-roving-tabindex` enables roving on individual items.                                 | `rovingTabindex` is one boolean for the group; `false` overrides item attributes.                                                          |
 | Skipping        | `data-keyrove-skip` marks each skipped item.                                                       | `skip` replaces that test with a selector or predicate. Disabled items are always excluded from navigation.                                |
 | Move bindings   | Each `data-keyrove-*-key` sets one action's binding.                                               | `keys` overrides bindings per action; omitted or empty entries fall back.                                                                  |
 | Focus shortcuts | `data-keyrove-focus-key` is scanned under the listener. Skipped and disabled targets are excluded. | `focusKeys` replaces the whole scan, including when it is `{}`. Explicit targets bypass skip checks, but disabled targets remain excluded. |
+| Typeahead label | `data-keyrove-typeahead` sets one item's label.                                                    | `label`, a `createTypeahead` option, is a function over every item. An empty result falls back to the attribute, then the item's text.     |
 
 For example, these two options have different replacement rules:
 
@@ -62,9 +63,26 @@ keyRove(e, { keys: { next: 'KeyJ' } }); // other actions still fall back
 keyRove(e, { focusKeys: { 'ctrl+KeyE': '#editor' } }); // no attribute scan
 ```
 
-For roving tabindex, mark every participating item with
-`data-keyrove-roving-tabindex`, or use `{ rovingTabindex: true }` for the whole
-group. Either way, [set an initial tab stop](/docs/examples/roving-tabindex#setting-the-initial-tab-stop).
+Roving tabindex also differs in scope. The attribute enrolls one item at a
+time, so mark every item that shares the tab stop. The option applies to the
+whole group:
+
+```html title="Attributes"
+<ul id="menu">
+  <li data-keyrove-item data-keyrove-roving-tabindex tabindex="0">Inbox</li>
+  <li data-keyrove-item data-keyrove-roving-tabindex tabindex="-1">Drafts</li>
+</ul>
+```
+
+```ts title="Options"
+// <ul id="menu"><li tabindex="0">Inbox</li><li tabindex="-1">Drafts</li></ul>
+// Every item shares the stop, whatever its roving attribute says.
+menu.addEventListener('keydown', (e) =>
+  keyRove(e, { items: 'li', rovingTabindex: true }),
+);
+```
+
+Either way, [set an initial tab stop](/docs/examples/roving-tabindex#setting-the-initial-tab-stop).
 
 The [API reference](/docs/api#options) lists every option and its fallback.
 
