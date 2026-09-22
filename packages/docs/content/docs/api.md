@@ -167,6 +167,11 @@ on where focus is:
   once focus is inside an item; pressed here, they keep their browser default.
 - **A group with no items.** Every key keeps its browser default.
 
+Items and focus-key targets have to be able to take focus: natively focusable,
+or given a `tabindex`. A target that refuses it, such as a bare `<div>` or an
+element that is `inert` or hidden, is a consumed no-op like an edge. Focus stays
+where it was, the roving tab stop stays with it, and `onMove` does not fire.
+
 Keys keyrove is not bound to are never touched. <kbd class="kbd">Tab</kbd>,
 <kbd class="kbd">Shift</kbd>+<kbd class="kbd">Tab</kbd>,
 <kbd class="kbd">Enter</kbd>, <kbd class="kbd">Space</kbd> and
@@ -266,6 +271,10 @@ bare code such as `KeyE` works wherever the letter would not be typing.
   so an arrow pressed on the panel after the jump enters the panel's own items.
 - Pressed while focus is already inside its element, the key is a consumed
   no-op: claimed, with `to: null`.
+- The element has to be able to take focus. A panel usually needs
+  `tabindex="-1"`, which also keeps it out of the
+  <kbd class="kbd">Tab</kbd> order. On an element that cannot take focus, the
+  key is the same consumed no-op.
 - On an item, the roving tab stop moves within the item's group, as for an
   arrow move: when the item focus leaves carries
   `data-keyrove-roving-tabindex`, it drops to `tabindex="-1"` and the target
@@ -319,7 +328,8 @@ the settings it needs.
 ### options.onMove
 
 Fired _after_ focus has moved, and only when it actually moved. A consumed key
-with nowhere to go, at the end of a list or the edge of a grid, fires nothing.
+with nowhere to go, at the end of a list or the edge of a grid, fires nothing,
+and neither does a move whose target does not take focus.
 
 ```ts
 keyRove(e, {
@@ -341,7 +351,7 @@ not an item, and `to` is where focus landed.
 - `null`: the key was not keyrove's and is untouched, browser default included.
 - `{ action, from, to }`: the key was consumed. `to` is the newly focused
   element, or `null` for a consumed no-op, where the group owns the key but
-  there is nowhere left to go.
+  there is nowhere left to go, or the target did not take focus.
 
 A non-null result means "claimed", which is what lets several handlers share
 one listener without stepping on each other:

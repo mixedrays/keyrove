@@ -118,6 +118,38 @@ export const readGroup = (
 };
 
 /**
+ * Whether focus landed on `to` or inside it — an item may hand its focus on
+ * to a control of its own. Asked of `to`'s own tree: inside a shadow root the
+ * document sees only the host.
+ */
+const tookFocus = (to: Element): boolean => {
+  const active = (to.getRootNode() as Partial<DocumentOrShadowRoot>)
+    .activeElement;
+
+  return !!active && to.contains(active);
+};
+
+/**
+ * Moves the roving tab stop from one item to another, and hands back how to
+ * put both `tabindex` values back exactly as they were — absent included.
+ */
+const carryStop = (from: Element, to: Element) => {
+  const before = [from, to].map(
+    (element) => [element, element.getAttribute('tabindex')] as const,
+  );
+
+  toggleTabIndex({ root: from, isActive: false });
+  toggleTabIndex({ root: to, isActive: true });
+
+  return () => {
+    for (const [element, value] of before) {
+      if (value === null) element.removeAttribute('tabindex');
+      else element.setAttribute('tabindex', value);
+    }
+  };
+};
+
+/**
  * Claims the key and lands focus on `to`, reporting the move.
  *
  * Call it only once a handler has decided the press is its own:
@@ -128,6 +160,9 @@ export const readGroup = (
  * Otherwise the roving tab stop follows when `isRoving` accepts the item being
  * left — by default, when it carries the attribute — `to` is focused, and
  * `onMove` fires with the move that happened.
+ *
+ * A `to` that does not take focus — not focusable, inert, hidden — is the same
+ * consumed no-op, with the tab stop put back where it was.
  */
 export const moveFocus = <Action extends string>({
   e,
@@ -141,12 +176,18 @@ export const moveFocus = <Action extends string>({
 
   if (!to || to === from) return { action, from, to: null };
 
-  if (from && isRoving(from)) {
-    toggleTabIndex({ root: from, isActive: false });
-    toggleTabIndex({ root: to, isActive: true });
-  }
+  // The stop moves before focus does: `tabindex="0"` is what makes a bare item
+  // focusable in the first place.
+  const putBack = from && isRoving(from) ? carryStop(from, to) : undefined;
 
   (to as HTMLElement).focus();
+
+  // `focus()` fails silently, so whether focus moved is read off the tree.
+  if (!tookFocus(to)) {
+    putBack?.();
+
+    return { action, from, to: null };
+  }
 
   const move = { action, from, to };
   onMove?.(move);

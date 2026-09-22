@@ -1,5 +1,10 @@
 import { describe, it, expect, afterEach, vi } from 'vitest';
-import { KEYROVE_ATTR_NEXT_KEY } from '../../keyRove';
+import {
+  keyRove,
+  KEYROVE_ATTR_FOCUS_KEY,
+  KEYROVE_ATTR_NEXT_KEY,
+  KEYROVE_ATTR_ROVING_TABINDEX,
+} from '../../keyRove';
 import {
   activeId,
   createItem,
@@ -170,6 +175,135 @@ describe('keyRove', () => {
           to: document.getElementById('b'),
         },
       ]);
+    });
+  });
+
+  describe('a target that does not take focus', () => {
+    // A bare `<div>` item: no `tabindex`, so `focus()` does nothing.
+    const bareItem = (id: string) => {
+      const item = createItem(id);
+      item.removeAttribute('tabindex');
+
+      return item;
+    };
+
+    const byId = (id: string) => document.getElementById(id)!;
+
+    it('is a consumed no-op: focus stays, onMove stays quiet, to is null', () => {
+      const onMove = vi.fn();
+      const results: RoveResult[] = [];
+      renderList([createItem('a'), bareItem('b')], {
+        options: { onMove },
+        onResult: (r) => results.push(r),
+      });
+      byId('a').focus();
+
+      const event = pressKey('ArrowDown');
+
+      expect(activeId()).toBe('a');
+      expect(onMove).not.toHaveBeenCalled();
+      expect(results).toEqual([{ action: 'next', from: byId('a'), to: null }]);
+      expect(event.defaultPrevented).toBe(true);
+    });
+
+    it('is the same no-op for a focus key on an element that is not focusable', () => {
+      const onMove = vi.fn();
+      const results: RoveResult[] = [];
+      const container = renderList([createItem('a')], {
+        options: { onMove },
+        onResult: (r) => results.push(r),
+      });
+      const panel = document.createElement('section');
+      panel.setAttribute(KEYROVE_ATTR_FOCUS_KEY, 'KeyP');
+      container.appendChild(panel);
+      byId('a').focus();
+
+      pressKey('KeyP');
+
+      expect(activeId()).toBe('a');
+      expect(onMove).not.toHaveBeenCalled();
+      expect(results).toEqual([{ action: 'focus', from: null, to: null }]);
+    });
+
+    it('puts the roving tab stop back where it was', () => {
+      const items = ['a', 'b', 'c'].map((id) =>
+        createItem(id, { roving: true, tabindex: '-1' }),
+      );
+      items[0].setAttribute('tabindex', '0');
+      items[2].removeAttribute('tabindex');
+      renderList(items);
+      // Inert or hidden in a browser: focusable by its attributes, and still
+      // refusing focus.
+      vi.spyOn(items[1], 'focus').mockImplementation(() => {});
+      vi.spyOn(items[2], 'focus').mockImplementation(() => {});
+      byId('a').focus();
+
+      pressKey('ArrowDown');
+      pressKey('End');
+
+      expect(activeId()).toBe('a');
+      expect(items.map((item) => item.getAttribute('tabindex'))).toEqual([
+        '0',
+        '-1',
+        null,
+      ]);
+    });
+
+    it('still moves to a bare item the roving stop makes focusable', () => {
+      const onMove = vi.fn();
+      const b = bareItem('b');
+      b.setAttribute(KEYROVE_ATTR_ROVING_TABINDEX, 'true');
+      renderList([createItem('a', { roving: true }), b], {
+        options: { onMove },
+      });
+      byId('a').focus();
+
+      pressKey('ArrowDown');
+
+      expect(activeId()).toBe('b');
+      expect(b.getAttribute('tabindex')).toBe('0');
+      expect(onMove).toHaveBeenCalledTimes(1);
+    });
+
+    it('counts focus handed on to a control inside the target as a move', () => {
+      const onMove = vi.fn();
+      const b = bareItem('b');
+      const button = document.createElement('button');
+      b.appendChild(button);
+      renderList([createItem('a'), b], { options: { onMove } });
+      // A composite item that forwards focus to its own control.
+      b.focus = () => button.focus();
+      byId('a').focus();
+
+      pressKey('ArrowDown');
+
+      expect(document.activeElement).toBe(button);
+      expect(onMove).toHaveBeenCalledWith({
+        action: 'next',
+        from: byId('a'),
+        to: b,
+      });
+    });
+
+    it('counts focus that lands inside a shadow root', () => {
+      const onMove = vi.fn();
+      const host = document.createElement('div');
+      document.body.appendChild(host);
+      const shadow = host.attachShadow({ mode: 'open' });
+      const list = document.createElement('div');
+      const [a, b] = [createItem('a'), createItem('b')];
+      list.append(a, b);
+      shadow.appendChild(list);
+      list.addEventListener('keydown', (e) => keyRove(e, { onMove }));
+
+      pressKey('ArrowDown', list);
+
+      expect(shadow.activeElement).toBe(a);
+      expect(onMove).toHaveBeenCalledWith({
+        action: 'next',
+        from: null,
+        to: a,
+      });
     });
   });
 });

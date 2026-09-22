@@ -686,4 +686,32 @@ describe('createTypeahead', () => {
       ]);
     });
   });
+
+  describe('a match that does not take focus', () => {
+    it('is a consumed no-op that leaves the roving stop alone', () => {
+      const onMove = vi.fn();
+      const items = [
+        createItem('a', 'Drafts', { roving: true }),
+        createItem('b', 'Sent', { roving: true, tabindex: '-1' }),
+      ];
+      const { results } = renderList(items, { options: { onMove } });
+      // Inert or hidden in a browser: focusable by its attributes, and still
+      // refusing focus.
+      vi.spyOn(items[1], 'focus').mockImplementation(() => {});
+      items[0].focus();
+
+      const event = pressKey('s');
+
+      expect(activeId()).toBe('a');
+      expect(event.defaultPrevented).toBe(true);
+      expect(onMove).not.toHaveBeenCalled();
+      expect(results).toEqual([
+        { action: 'typeahead', from: items[0], to: null },
+      ]);
+      expect(items.map((item) => item.getAttribute('tabindex'))).toEqual([
+        '0',
+        '-1',
+      ]);
+    });
+  });
 });

@@ -127,6 +127,11 @@ under the listener, whichever panel that is in.
 </section>
 ```
 
+The panel's `tabindex="-1"` is what lets it take focus while keeping it out of
+the <kbd class="kbd">Tab</kbd> order. Without it, or on any element that cannot
+take focus, the key is still claimed, but focus stays where it was and
+`onMove` does not fire.
+
 ## From inside a text field
 
 Moves are never handled inside
