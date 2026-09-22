@@ -1,6 +1,20 @@
+import {
+  type KeyRoveOptions,
+  followFocus,
+  initRovingTabindex,
+  keyRove,
+  matchesCombo,
+} from '@mixedrays/keyrove';
+
 import type { SearchDocument } from './search-model.ts';
 
 type Search = (query: string) => SearchDocument[];
+
+const group = {
+  items: '.search-result',
+  loop: true,
+  rovingTabindex: true,
+} satisfies KeyRoveOptions;
 
 /** Show the words around a match; use textContent when inserting authored text. */
 const excerpt = (text: string, query: string) => {
@@ -27,8 +41,6 @@ export const mountSearch = () => {
   if (!dialog || !trigger || !input || !list || !status || !retry) return;
 
   let search: Promise<Search> | undefined;
-  let results: SearchDocument[] = [];
-  let selected = -1;
   let revision = 0;
   let opener: HTMLElement | null = null;
 
@@ -48,25 +60,14 @@ export const mountSearch = () => {
     return search;
   };
 
-  const select = (index: number, scroll = false) => {
-    selected = index;
-    [...list.children].forEach((element, position) => {
-      element.setAttribute('aria-selected', String(position === selected));
-    });
-    const active = list.children[selected];
-    if (active) {
-      input.setAttribute('aria-activedescendant', active.id);
-      if (scroll) active.scrollIntoView({ block: 'nearest' });
-    } else {
-      input.removeAttribute('aria-activedescendant');
-    }
+  const focusInput = () => {
+    input.focus();
+    input.setSelectionRange(input.value.length, input.value.length);
   };
 
   const update = async () => {
     const current = ++revision;
     const query = input.value.trim();
-    results = [];
-    select(-1);
     list.replaceChildren();
     list.setAttribute('aria-busy', 'true');
     retry.hidden = true;
@@ -74,14 +75,13 @@ export const mountSearch = () => {
     try {
       const find = await load();
       if (current !== revision || !dialog.open) return;
-      results = query ? find(query) : [];
+      const results = query ? find(query) : [];
       const fragment = document.createDocumentFragment();
-      results.forEach((result, index) => {
-        const option = document.createElement('li');
-        option.id = `search-result-${index}`;
-        option.className = 'search-result';
-        option.setAttribute('role', 'option');
-        option.dataset.index = String(index);
+      results.forEach((result) => {
+        const row = document.createElement('li');
+        const hit = document.createElement('a');
+        hit.className = 'search-result';
+        hit.href = result.url;
         const title = document.createElement('span');
         title.className = 'search-result-title';
         title.textContent = result.heading || result.title;
@@ -91,12 +91,13 @@ export const mountSearch = () => {
         const snippet = document.createElement('span');
         snippet.className = 'search-result-snippet';
         snippet.textContent = excerpt(result.text, query);
-        option.append(page, title, snippet);
-        fragment.append(option);
+        hit.append(page, title, snippet);
+        row.append(hit);
+        fragment.append(row);
       });
       list.replaceChildren(fragment);
       list.scrollTop = 0;
-      select(results.length ? 0 : -1);
+      initRovingTabindex(list, group);
       status.textContent = !query
         ? 'Search pages, API methods, and examples.'
         : results.length
@@ -120,18 +121,10 @@ export const mountSearch = () => {
           : trigger;
       dialog.showModal();
       document.documentElement.setAttribute('data-search-modal-open', '');
-      input.setAttribute('aria-expanded', 'true');
       void update();
     }
     input.focus();
     input.select();
-  };
-
-  const navigate = (index: number) => {
-    const result = results[index];
-    if (!result) return;
-    dialog.close();
-    window.location.assign(result.url);
   };
 
   trigger.hidden = false;
@@ -150,8 +143,6 @@ export const mountSearch = () => {
   dialog.addEventListener('close', () => {
     revision++;
     document.documentElement.removeAttribute('data-search-modal-open');
-    input.setAttribute('aria-expanded', 'false');
-    input.removeAttribute('aria-activedescendant');
     opener?.focus({ preventScroll: true });
   });
   input.addEventListener('input', (event) => {
@@ -166,33 +157,42 @@ export const mountSearch = () => {
     if (
       event.isComposing ||
       event.defaultPrevented ||
-      event.altKey ||
-      event.ctrlKey ||
-      event.metaKey ||
-      event.shiftKey
+      !matchesCombo(event, 'ArrowDown, ArrowUp, Enter, NumpadEnter')
     )
       return;
-    if (
-      (event.key === 'ArrowDown' || event.key === 'ArrowUp') &&
-      results.length
-    ) {
-      event.preventDefault();
-      select(
-        (selected + (event.key === 'ArrowDown' ? 1 : -1) + results.length) %
-          results.length,
-        true,
-      );
-    } else if (event.key === 'Enter' && selected >= 0) {
-      event.preventDefault();
-      navigate(selected);
-    }
+    // keyRove leaves text inputs alone; hand focus to the list explicitly.
+    const results = list.querySelectorAll<HTMLAnchorElement>(group.items);
+    const target =
+      results[matchesCombo(event, 'ArrowUp') ? results.length - 1 : 0];
+    if (!target) return;
+    event.preventDefault();
+    if (matchesCombo(event, 'Enter, NumpadEnter')) target.click();
+    else target.focus();
   });
-  list.addEventListener('pointerdown', (event) => event.preventDefault());
+  list.addEventListener('keydown', (event) => {
+    if (event.defaultPrevented || event.isComposing) return;
+    if (keyRove(event, group)) return;
+    // Return to the query before the browser inserts or deletes text.
+    if (
+      !event.altKey &&
+      !event.ctrlKey &&
+      !event.metaKey &&
+      (event.key.length === 1 || event.key === 'Backspace')
+    )
+      focusInput();
+  });
+  list.addEventListener('focusin', (event) => followFocus(event, group));
+  // Leave modified clicks to the browser (for example, opening a new tab).
   list.addEventListener('click', (event) => {
-    const option = (event.target as Element).closest<HTMLElement>(
-      '[data-index]',
-    );
-    if (option) navigate(Number(option.dataset.index));
+    if (
+      event.button === 0 &&
+      !event.altKey &&
+      !event.ctrlKey &&
+      !event.metaKey &&
+      !event.shiftKey &&
+      (event.target as Element).closest('.search-result')
+    )
+      dialog.close();
   });
   document.addEventListener('keydown', (event) => {
     if (

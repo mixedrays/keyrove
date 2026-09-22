@@ -125,18 +125,18 @@ const renderSearch =
     <div class="search-input-row">
       ${icon('search', 'size-5')}
       <label for="search-input" class="sr-only">Search documentation</label>
-      <input id="search-input" type="text" role="combobox" autofocus
+      <input id="search-input" type="text" autofocus
         placeholder="Search documentation…" autocomplete="off" spellcheck="false"
-        aria-autocomplete="list" aria-expanded="false" aria-controls="search-results"
         aria-describedby="search-help" enterkeyhint="go" />
       <button type="button" class="icon-button" data-search-close aria-label="Close search">
         ${icon('close', 'size-4')}
       </button>
     </div>
-    <ul id="search-results" class="search-results" role="listbox" aria-label="Search results"></ul>
+    <!-- keyrove moves focus to native links; the input is not a combobox. -->
+    <ul id="search-results" class="search-results" aria-label="Search results"></ul>
     <p class="search-status" data-search-status role="status" aria-live="polite" aria-atomic="true"></p>
     <button type="button" class="search-retry" data-search-retry hidden>Retry search</button>
-    <p id="search-help" class="search-help"><span><kbd>↑</kbd> <kbd>↓</kbd> to select</span><span><kbd>Enter</kbd> to open</span><span><kbd>Esc</kbd> to close</span></p>
+    <p id="search-help" class="search-help"><span><kbd class="kbd">↑</kbd> <kbd class="kbd">↓</kbd> to select</span><span><kbd class="kbd">Enter</kbd> to open</span><span><kbd class="kbd">Esc</kbd> to close</span></p>
   </div>
 </dialog>`;
 
