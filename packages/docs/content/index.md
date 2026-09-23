@@ -32,7 +32,7 @@ move focus the way keyboard users expect, in any framework.
 <div class="hero-panel">
 <div class="hero-panel-head">
 <span class="hero-panel-label"><span class="hero-demo-dot" aria-hidden="true"></span>Live · mail folders</span>
-<output class="hero-readout" data-hero-readout data-state="idle">press ↓</output>
+<output class="hero-readout" data-hero-readout data-state="blurred"><span aria-hidden="true">click to focus</span></output>
 </div>
 <ul id="menu" class="hero-folders" aria-label="Mail folders" data-hero-list>
 <li data-keyrove-item tabindex="0" data-count="12"><span data-icon="inbox" class="hero-folder-icon"></span>Inbox</li>
@@ -60,6 +60,7 @@ menu.addEventListener('keydown', (e) => keyRove(e));
 ```
 
 </div>
+<p class="hero-demo-hint"><kbd class="kbd">↑</kbd> <kbd class="kbd">↓</kbd> move, <kbd class="kbd">Home</kbd> and <kbd class="kbd">End</kbd> jump. <kbd class="kbd">Tab</kbd> still visits each folder.</p>
 </div>
 </div>
 
