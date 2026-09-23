@@ -13,6 +13,7 @@ import {
   type Page,
 } from './build/content.ts';
 import { expandDemos, hasDemos, loadDemos, type Demos } from './build/demos.ts';
+import { expandIcons } from './build/icons.ts';
 import { renderMarkdown } from './build/markdown.ts';
 import { createHrefResolver, renderPage, routeToPath } from './build/layout.ts';
 import { expandMeta } from './build/meta.ts';
@@ -150,7 +151,7 @@ export const keyroveDocs = (): Plugin => {
 
     return renderPage(template, {
       page,
-      html,
+      html: expandIcons(html),
       headings,
       nav,
       readingOrder,

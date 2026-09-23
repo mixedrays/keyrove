@@ -4,7 +4,9 @@ import { keyRove } from '@mixedrays/keyrove';
  * Code panels with a tab per block.
  *
  * The tabs are markup already — build/markdown.ts stamps the tab list and the
- * panels, the first one selected — so this only switches between them.
+ * panels, one of them selected — so this only switches between them. The
+ * landing page's layout switcher is written in the same markup by hand, a
+ * live demo per panel, and is switched here too.
  *
  * The arrows are keyrove's own: the tab list is a horizontal group with a tab
  * per item, and a move selects the tab it lands on, which is the selection

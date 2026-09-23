@@ -251,11 +251,37 @@ const renderPager = (
           </nav>`;
 };
 
-const renderFooter = () =>
-  `<footer class="site-footer">
-      MIT licensed &middot;
-      <a href="${META.repoUrl}" class="link">${META.repoLabel}</a>
+/**
+ * The foot of every page: what the package is, and the places a reader is
+ * most likely to want next, including llms.txt, which is otherwise linked
+ * only from the sidebar. The row takes the header's width, so the two frame
+ * the same column.
+ */
+const renderFooter = (resolveHref: HrefResolver, page: Page) => {
+  const rowClass =
+    page.layout === 'landing' ? 'footer-row header-row-narrow' : 'footer-row';
+
+  const links = [
+    link(resolveHref('/docs/introduction'), 'Docs', 'footer-link'),
+    link(resolveHref('/docs/examples/basic'), 'Examples', 'footer-link'),
+    link(resolveHref('/docs/api'), 'API', 'footer-link'),
+    link(META.repoUrl, 'GitHub', 'footer-link'),
+    link(META.npmUrl, 'npm', 'footer-link'),
+    link(resolveHref('/llms.txt'), 'llms.txt', 'footer-link'),
+  ];
+
+  return `<footer class="site-footer">
+      <div class="${rowClass}">
+        <p class="footer-meta">
+          ${link(resolveHref('/'), `${icon('keyboard', 'size-5')}keyrove`, 'wordmark')}
+          <span>v${escapeHtml(META.packageVersion)} &middot; MIT licensed</span>
+        </p>
+        <nav class="footer-links" aria-label="Footer">
+          ${links.join('\n          ')}
+        </nav>
+      </div>
     </footer>`;
+};
 
 export type PageRender = {
   page: Page;
@@ -322,7 +348,7 @@ const renderDocsBody = ({
         </main>
         ${renderToc(headings)}
     </div>
-    ${renderFooter()}`;
+    ${renderFooter(resolveHref, page)}`;
 };
 
 const renderLandingBody = ({ page, html, resolveHref }: PageRender) =>
@@ -330,7 +356,7 @@ const renderLandingBody = ({ page, html, resolveHref }: PageRender) =>
     <main class="landing markdown">
       ${html}
     </main>
-    ${renderFooter()}`;
+    ${renderFooter(resolveHref, page)}`;
 
 /**
  * The social card, reused by every page: 1200x630, served from `public/`.

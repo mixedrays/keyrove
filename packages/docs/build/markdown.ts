@@ -73,17 +73,20 @@ const tabLabel = (info: string) => {
 };
 
 /**
- * Whether a fence asks for a copy button: a bare `copy` word after the
- * language, as in ```` ```text copy ```` or ```` ```text title="React" copy ````.
- * Quoted values are dropped first, so a title that says "copy" does not count.
+ * Whether a fence carries a bare flag word after the language, as in
+ * ```` ```text copy ```` or ```` ```ts title="React" selected ````. Quoted
+ * values are dropped first, so a title that says "copy" does not count.
  */
-const wantsCopy = (info: string) =>
+const hasFlag = (info: string, flag: string) =>
   info
     .replace(/"[^"]*"/g, '')
     .trim()
     .split(/\s+/)
     .slice(1)
-    .includes('copy');
+    .includes(flag);
+
+/** Whether a fence asks for a copy button. */
+const wantsCopy = (info: string) => hasFlag(info, 'copy');
 
 /**
  * The copy button a code panel carries, shared with the demos' source blocks.
@@ -241,8 +244,10 @@ const createRenderer = async () => {
    * package managers. Nothing marks a group but the adjacency itself — any
    * prose between two blocks keeps them apart.
    *
-   * The tabs are stamped here, the first one selected, so the panel arrives
-   * finished and src/code-tabs.ts only has to switch it. Ids are numbered per
+   * The tabs are stamped here, so the panel arrives finished and
+   * src/code-tabs.ts only has to switch it. The first tab is the one selected
+   * unless a later fence is flagged `selected` — the landing page's point is
+   * the script, and the markup is only what it runs on. Ids are numbered per
    * page through `env`, which a render gets fresh.
    *
    * A fence flagged `copy` gets a copy button in the top corner, over the block
@@ -267,6 +272,16 @@ const createRenderer = async () => {
     while (isFence(tokens[start - 1])) start--;
     const position = index - start;
 
+    // Worked out afresh for each block of the group, since each one renders
+    // on its own and has to know whether it is the panel left showing.
+    let chosen = start;
+    for (let i = start; isFence(tokens[i]); i++) {
+      if (hasFlag(tokens[i].info, 'selected')) {
+        chosen = i;
+        break;
+      }
+    }
+
     // renderMarkdown always passes one; the fallback only satisfies the type.
     const page = (env ?? {}) as { codeTabs?: number };
     if (isFirst) page.codeTabs = (page.codeTabs ?? 0) + 1;
@@ -278,7 +293,7 @@ const createRenderer = async () => {
       let copyable = false;
       for (let i = index; isFence(tokens[i]); i++) {
         copyable ||= wantsCopy(tokens[i].info);
-        const selected = i === index;
+        const selected = i === chosen;
         tabs.push(
           `<button type="button" role="tab" class="code-tab" id="${id}-tab-${i - index}"` +
             ` aria-controls="${id}-panel-${i - index}" aria-selected="${selected}"` +
@@ -296,7 +311,7 @@ const createRenderer = async () => {
 
     const panel =
       `<div class="code-tabs-panel" role="tabpanel" id="${id}-panel-${position}"` +
-      ` aria-labelledby="${id}-tab-${position}"${position === 0 ? '' : ' hidden'}>` +
+      ` aria-labelledby="${id}-tab-${position}"${index === chosen ? '' : ' hidden'}>` +
       `${block}</div>`;
 
     return `${open}${panel}${isLast ? '</div>\n' : ''}`;
@@ -316,24 +331,33 @@ const createRenderer = async () => {
    * CSS pseudo-element its text can end up announced, and as part of the anchor
    * text it would end up in the link's name.
    */
-  const isAnchored = (token: Token | undefined) =>
-    token?.type === 'heading_open' &&
-    ANCHORED_TAGS.has(token.tag) &&
-    token.attrGet('id') !== null;
+  //
+  // A heading whose text is a link already — a card's title on the landing
+  // page — keeps it and goes without: an anchor cannot hold another anchor,
+  // and the browser would split the two apart. markdown-it emits
+  // heading_open, inline, heading_close in sequence, so the heading's text is
+  // always the token after its opening tag.
+  const isAnchored = (tokens: Token[], index: number) => {
+    const token = tokens[index];
+    return (
+      token?.type === 'heading_open' &&
+      ANCHORED_TAGS.has(token.tag) &&
+      token.attrGet('id') !== null &&
+      !tokens[index + 1]?.children?.some((child) => child.type === 'link_open')
+    );
+  };
 
   md.renderer.rules.heading_open = (tokens, index, options, _env, self) => {
-    const token = tokens[index];
     const open = self.renderToken(tokens, index, options);
-    if (!isAnchored(token)) return open;
+    if (!isAnchored(tokens, index)) return open;
 
-    return `${open}<a class="heading-anchor" href="#${token.attrGet('id')}">`;
+    return `${open}<a class="heading-anchor" href="#${tokens[index].attrGet('id')}">`;
   };
 
   md.renderer.rules.heading_close = (tokens, index, options, _env, self) => {
     const close = self.renderToken(tokens, index, options);
-    // markdown-it emits heading_open, inline, heading_close in sequence, so the
-    // opening tag this one closes is always two tokens back.
-    if (!isAnchored(tokens[index - 2])) return close;
+    // The opening tag this one closes is always two tokens back.
+    if (!isAnchored(tokens, index - 2)) return close;
 
     return `<span class="heading-anchor-mark" aria-hidden="true">#</span></a>${close}`;
   };

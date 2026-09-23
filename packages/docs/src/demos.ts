@@ -86,7 +86,7 @@ const KEY_GLYPHS: Record<string, string> = {
 };
 
 /** Held on their own, these are not yet a keypress — and not yet a row. */
-const MODIFIER_KEYS = new Set(['Shift', 'Control', 'Alt', 'Meta']);
+export const MODIFIER_KEYS = new Set(['Shift', 'Control', 'Alt', 'Meta']);
 
 /** How many rows are kept. Older ones have scrolled out of sight anyway. */
 const HISTORY_LENGTH = 20;
@@ -107,7 +107,7 @@ type Entry = {
  * reader pressed is what their layout produced, and the bindings keyrove
  * matches are documented on the pages themselves.
  */
-const keyLabel = (e: KeyboardEvent) => {
+export const keyLabel = (e: KeyboardEvent) => {
   const held = [
     e.ctrlKey && 'Ctrl',
     e.altKey && 'Alt',
@@ -576,14 +576,17 @@ export const mountDemos = () => {
     // The demo a page opens with starts focused, so the keys it documents work
     // on arrival rather than after a Tab or a click. Only the first one: focus
     // is single, and a page's opening demo is the one it is about.
+    // `preventScroll` keeps arrival at the top of the page, so the list is
+    // waiting when the reader gets to it rather than dragging them down to
+    // it; the first arrow press will scroll it into view, which is the cost
+    // of having it ready.
     //
-    // The landing page included. Its demo is the reader's first look at the
-    // library working, and asking for a click or a Tab first is a poor way to
-    // open an argument about keyboards. `preventScroll` keeps arrival at the
-    // top of the page, so the list is waiting when the reader gets to it
-    // rather than dragging them down to it; the first arrow press will scroll
-    // it into view, which is the cost of having it ready.
-    if (index === 0) {
+    // Only while nothing else holds focus. The landing page opens on its hero
+    // (see src/hero.ts), which is mounted first, and its first demo sits well
+    // below that.
+    const unclaimed =
+      !document.activeElement || document.activeElement === document.body;
+    if (index === 0 && unclaimed) {
       firstItem(surface, group)?.focus({ preventScroll: true });
     }
   });

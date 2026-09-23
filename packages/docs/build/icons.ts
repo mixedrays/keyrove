@@ -1,14 +1,27 @@
 import {
+  ArrowRight,
+  ArrowRightToLine,
   BookOpen,
   Braces,
   Check,
+  Command,
   Copy,
+  FilePen,
+  Inbox,
   Keyboard,
+  Layers,
   LayoutGrid,
   Menu,
   Moon,
+  RefreshCw,
   Search,
+  Send,
+  ShieldAlert,
+  SkipForward,
+  Sparkles,
   Sun,
+  TextCursorInput,
+  Trash2,
   X,
   type IconNode,
 } from 'lucide';
@@ -68,6 +81,24 @@ const ICONS = {
   check: fromLucide(Check),
   sun: fromLucide(Sun),
   moon: fromLucide(Moon),
+  'arrow-right': fromLucide(ArrowRight),
+
+  // The landing page's feature cards and next steps, placed from the markdown
+  // with the placeholder `expandIcons` reads.
+  command: fromLucide(Command),
+  layers: fromLucide(Layers),
+  refresh: fromLucide(RefreshCw),
+  skip: fromLucide(SkipForward),
+  sparkles: fromLucide(Sparkles),
+  tab: fromLucide(ArrowRightToLine),
+  'text-cursor': fromLucide(TextCursorInput),
+
+  // The mail folders in the landing page's hero demo.
+  inbox: fromLucide(Inbox),
+  drafts: fromLucide(FilePen),
+  sent: fromLucide(Send),
+  spam: fromLucide(ShieldAlert),
+  trash: fromLucide(Trash2),
 
   /*
    * The markdown mark — a filled glyph on a 16-unit grid, so it opts out of the
@@ -175,3 +206,34 @@ export const icon = (name: IconName, className: string) => {
     `aria-hidden="true">${body}</svg>`,
   ].join(' ');
 };
+
+/**
+ * The placeholder a content file writes where it wants an icon, with the
+ * classes to draw it at: `<span data-icon="layers" class="size-5"></span>`.
+ *
+ * Markdown has no way to reach `icon()`, and pasting the SVG into a content
+ * file would put a second copy of the geometry where nobody would update it.
+ */
+const ICON_PLACEHOLDER =
+  /<span data-icon="([\w-]+)"(?: class="([^"]*)")?><\/span>/g;
+
+const isIconName = (name: string): name is IconName =>
+  Object.prototype.hasOwnProperty.call(ICONS, name);
+
+/** Swaps every icon placeholder in rendered HTML for the icon it names. */
+export const expandIcons = (html: string): string =>
+  html.replace(ICON_PLACEHOLDER, (_match, name: string, className = '') => {
+    if (!isIconName(name)) {
+      throw new Error(`[docs] no icon named "${name}" in build/icons.ts.`);
+    }
+
+    return icon(name, className);
+  });
+
+/**
+ * Drops the placeholders from a page's `.md` twin, where an icon has nothing
+ * to draw and an empty `<span>` would only be noise beside the text it
+ * decorates.
+ */
+export const stripIcons = (markdown: string): string =>
+  markdown.replace(ICON_PLACEHOLDER, '');

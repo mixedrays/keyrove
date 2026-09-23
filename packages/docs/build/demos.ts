@@ -81,7 +81,6 @@ const HISTORY = new Set([
   'menu',
   'loop',
   'roving',
-  'inbox',
   'skip',
   'listbox',
   'sidebar',
@@ -142,10 +141,16 @@ const BAND = new Set([
  * and the <output> beside it carries one line, which splits the two jobs the
  * single-line log used to do at once — what is read, and what is announced.
  * Announcing every row of a history would talk over the reader.
+ *
+ * Until the first keypress the log is the widest empty space on the page, so
+ * it says what to do rather than that it is waiting. It cannot name the key:
+ * the same text sits beside a grid, a typeahead and a panel of focus keys.
  */
+const EMPTY_LOG = 'Press a key in the demo. Each one is logged here.';
+
 const renderLog = (name: string) => {
   if (!HISTORY.has(name)) {
-    return '<output class="log">Waiting for a keypress…</output>';
+    return `<output class="log">${EMPTY_LOG}</output>`;
   }
 
   return [
@@ -155,7 +160,7 @@ const renderLog = (name: string) => {
     '<button type="button" class="demo-log-clear" data-clear-log>Clear</button>',
     '</div>',
     '<ol class="demo-log-list" data-log aria-hidden="true">',
-    '<li class="demo-log-empty" data-log-empty>Waiting for a keypress…</li>',
+    `<li class="demo-log-empty" data-log-empty>${EMPTY_LOG}</li>`,
     '</ol>',
     '<template data-log-row>',
     '<li class="log-row">',
