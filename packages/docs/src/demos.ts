@@ -125,7 +125,7 @@ export const keyLabel = (e: KeyboardEvent) => {
 const isMoveResult = (value: unknown): value is MoveResult =>
   typeof value === 'object' && value !== null && 'action' in value;
 
-/** The landing's compact panels report one key at a time, like the hero. */
+/** Compact demo panels report one key at a time. */
 const createReadout = (surface: HTMLElement, line: HTMLElement): Log => {
   let movement: { action: string; to: Element } | null = null;
   let widget: { target: Element; phrase: string } | null = null;
@@ -133,7 +133,7 @@ const createReadout = (surface: HTMLElement, line: HTMLElement): Log => {
   const show = (state: string, key: string, message: string) => {
     line.dataset.state = state;
     const label = document.createElement('span');
-    label.className = 'hero-readout-target';
+    label.className = 'demo-readout-target';
     label.textContent = message;
     if (state === 'blurred' || state === 'listening') {
       label.setAttribute('aria-hidden', 'true');
@@ -144,9 +144,9 @@ const createReadout = (surface: HTMLElement, line: HTMLElement): Log => {
       cap.textContent = key;
       line.prepend(cap);
     }
-    line.classList.remove('hero-readout-fresh');
+    line.classList.remove('demo-readout-fresh');
     void line.offsetWidth;
-    line.classList.add('hero-readout-fresh');
+    line.classList.add('demo-readout-fresh');
   };
 
   surface.addEventListener('focusin', (e) => {
@@ -608,12 +608,12 @@ const firstItem = (surface: HTMLElement, { items: named }: GroupOptions) => {
 /** Wires every demo on the current page. */
 export const mountDemos = () => {
   const demos = Array.from(
-    document.querySelectorAll<HTMLElement>('.demo, .landing-demo'),
+    document.querySelectorAll<HTMLElement>('.demo, .demo-panel[data-demo]'),
   );
 
   demos.forEach((demo, index) => {
     const surface = demo.querySelector<HTMLElement>(
-      ':scope > :is(.demo-preview, .landing-preview) > .demo-surface',
+      ':scope > :is(.demo-preview, .demo-panel-preview) > .demo-surface',
     );
 
     // A demo draws one log or the other, and build/demos.ts decides which.

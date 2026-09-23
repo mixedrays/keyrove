@@ -1,4 +1,5 @@
 @import 'tailwindcss';
+@import './demo-panel.css';
 
 /*
  * Dark mode has three states and `data-theme` on <html> encodes them: absent
@@ -654,106 +655,6 @@
     background-color: var(--wash);
   }
 
-  /*
-   * The hero's demo: the mail folders on a panel, the last key's outcome in
-   * its header in place of the demos' history (see src/hero.ts), and the
-   * markup and script it runs on in a strip across its foot.
-   *
-   * The panel takes the theme opposite the page's: dark on the light page,
-   * light on the dark one, so in either it reads as the product rather than
-   * as another block of the page. Its palette is a set of variables on the
-   * panel, swapped once under `dark`, which every rule inside reads — the
-   * count's `::after` included, where a `dark:` utility could not follow.
-   */
-  .hero-panel {
-    @apply overflow-hidden rounded-[1.125rem] border border-(--hero-edge) bg-(--hero-bg) text-(--hero-text) shadow-2xl shadow-zinc-950/25 dark:shadow-black/50;
-
-    --hero-bg: var(--color-zinc-900);
-    --hero-edge: var(--color-zinc-900);
-    --hero-text: var(--color-zinc-300);
-    --hero-muted: var(--color-zinc-500);
-    --hero-hover: var(--color-zinc-800);
-    --hero-accent: var(--color-indigo-400);
-    --hero-on-accent: var(--color-zinc-950);
-    --hero-readout: var(--color-indigo-300);
-    --hero-warn: var(--color-amber-400);
-    --hero-rule: var(--color-zinc-800);
-    --hero-strip: --alpha(var(--color-zinc-950) / 40%);
-    --hero-code: var(--color-zinc-200);
-    --hero-tab-hover: var(--color-zinc-200);
-    --hero-chip: var(--color-zinc-800);
-    --hero-chip-text: var(--color-zinc-100);
-    --hero-chip-edge: var(--color-zinc-700);
-
-    @variant dark {
-      --hero-bg: var(--color-white);
-      --hero-edge: var(--color-zinc-200);
-      --hero-text: var(--color-zinc-700);
-      --hero-muted: var(--color-zinc-500);
-      --hero-hover: var(--color-zinc-100);
-      --hero-accent: var(--color-indigo-600);
-      --hero-on-accent: var(--color-white);
-      --hero-readout: var(--color-indigo-600);
-      --hero-warn: var(--color-amber-600);
-      --hero-rule: var(--color-zinc-200);
-      --hero-strip: var(--color-zinc-50);
-      --hero-code: var(--color-zinc-800);
-      --hero-tab-hover: var(--color-zinc-900);
-      --hero-chip: var(--color-zinc-200);
-      --hero-chip-text: var(--color-zinc-900);
-      --hero-chip-edge: var(--color-zinc-200);
-    }
-  }
-
-  .hero-panel-head {
-    @apply flex min-h-5 items-center justify-between gap-4 px-5 pt-4 pb-2.5;
-  }
-
-  .hero-panel-label {
-    @apply inline-flex items-center gap-2 font-mono text-[0.6875rem] leading-none font-medium tracking-[0.14em] whitespace-nowrap text-(--hero-muted) uppercase;
-  }
-
-  /* A live indicator: the demo is running, not a picture of one. */
-  .hero-demo-dot {
-    @apply size-[7px] shrink-0 rounded-full bg-emerald-500;
-  }
-
-  @media (prefers-reduced-motion: no-preference) {
-    .hero-demo-dot {
-      animation: hero-pulse 2s ease-out infinite;
-    }
-  }
-
-  /* The accent for a move, amber for a key claimed with nowhere to go — the
-     colours the demos' history marks the same two outcomes in — and muted for
-     a key left to the browser. Before the first key: "click to focus" takes
-     the accent, being the one thing to do, and "listening…" is muted. */
-  .hero-readout {
-    @apply inline-flex min-h-5 min-w-0 items-center gap-1.5 overflow-hidden font-mono text-xs leading-none whitespace-nowrap text-(--hero-readout);
-  }
-
-  .hero-readout[data-state='edge'] {
-    @apply text-(--hero-warn);
-  }
-
-  .hero-readout:is([data-state='listening'], [data-state='passed']) {
-    @apply text-(--hero-muted);
-  }
-
-  .hero-readout kbd {
-    @apply inline-grid h-5 min-w-5 place-items-center rounded-[5px] border border-b-2 border-current px-1 font-mono text-[0.6875rem] opacity-85;
-  }
-
-  .hero-readout-target {
-    @apply truncate font-semibold;
-  }
-
-  @media (prefers-reduced-motion: no-preference) {
-    .hero-readout-fresh {
-      animation: hero-fresh 360ms ease-out;
-    }
-  }
-
   /* Set close, the way a mail app's sidebar is: rows a line and a little
      high, so the list reads as one control rather than five buttons. */
   .hero-folders {
@@ -761,14 +662,14 @@
   }
 
   .hero-folders li {
-    @apply flex cursor-pointer items-center gap-2.5 rounded-lg px-3 py-1.5 text-sm text-(--hero-text) outline-transparent outline-offset-2 transition-colors duration-120 hover:bg-(--hero-hover);
+    @apply flex cursor-pointer items-center gap-2.5 rounded-lg px-3 py-1.5 text-sm text-(--demo-text) outline-transparent outline-offset-2 transition-colors duration-120 hover:bg-(--demo-hover);
   }
 
   /* `:focus` rather than `:focus-visible`, as on every demo: keyrove moves
      focus in script, and the demo is about showing where it went. The fill
      and the ring round it are one colour, with the panel showing between. */
   .hero-folders li:focus {
-    @apply bg-(--hero-accent) text-(--hero-on-accent) outline-2 outline-(--hero-accent);
+    @apply bg-(--demo-accent) text-(--demo-on-accent) outline-2 outline-(--demo-accent);
   }
 
   .hero-folder-icon {
@@ -783,62 +684,13 @@
      item's accessible name and out of the name the header reports a move
      to. The alternative text is empty for the same reason. */
   .hero-folders li[data-count]::after {
-    @apply ml-auto font-mono text-[0.6875rem] text-(--hero-muted) tabular-nums;
+    @apply ml-auto font-mono text-[0.6875rem] text-(--demo-muted) tabular-nums;
     content: attr(data-count);
     content: attr(data-count) / '';
   }
 
   .hero-folders li[data-count]:focus::after {
-    @apply text-(--hero-on-accent);
-  }
-
-  /*
-   * The code strip: the page's own tabbed code panel (see build/markdown.ts),
-   * joined to the panel's foot. It gives up the frame it carries in prose —
-   * the panel is its frame — and takes the panel's palette, Shiki's token
-   * colours included: the panel's theme, not the page's.
-   */
-  .hero-panel .code-tabs {
-    @apply mt-0 rounded-none border-0 border-t border-(--hero-rule) bg-(--hero-strip);
-  }
-
-  .hero-panel .code-tabs-bar {
-    @apply h-9 border-(--hero-rule) px-2;
-  }
-
-  .hero-panel .code-tab {
-    @apply text-(--hero-muted) hover:text-(--hero-tab-hover);
-  }
-
-  .hero-panel .code-tab[aria-selected='true'] {
-    @apply bg-(--hero-chip) text-(--hero-chip-text);
-  }
-
-  .hero-panel .code-copy {
-    @apply top-1 right-2 border-(--hero-chip-edge) bg-(--hero-chip) text-(--hero-muted) hover:text-(--hero-chip-text);
-  }
-
-  .hero-panel .code-block {
-    @apply bg-transparent px-5 py-3.5 text-[0.8rem] text-(--hero-code);
-  }
-
-  .hero-panel .shiki span {
-    color: var(--shiki-dark);
-
-    @variant dark {
-      color: var(--shiki-light);
-    }
-  }
-
-  /* The keys the demo answers to, under the panel. Set on the page rather
-     than in the panel, so it takes the page's theme, and with a line tall
-     enough that the key caps sit in it without spreading the lines apart. */
-  .hero-demo-hint {
-    @apply mx-1 mt-3 text-[0.8125rem] leading-7 text-zinc-500 dark:text-zinc-400;
-  }
-
-  .hero-demo-hint .kbd {
-    @apply min-w-[1.75em] py-0 text-[0.6875rem];
+    @apply text-(--demo-on-accent);
   }
 
   /*
@@ -873,16 +725,9 @@
     content: ' →' / '';
   }
 
-  /*
-   * The two card grids: what else the library does, and where to go next.
-   * Each card is one link. The title carries it, so the link's name is the
-   * title, and its `::after` is stretched over the card so the whole card
-   * takes the click; the ring a focused link would draw round its text is
-   * drawn round the card instead.
-   */
-  /* Each step keeps the hero's column measure and contrasting panel palette. */
+  /* Each step gives the description and demo equal column space. */
   .landing-section {
-    @apply mt-24 grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_30rem] lg:gap-12;
+    @apply mt-24 grid items-start gap-8 lg:grid-cols-2 lg:gap-6;
   }
 
   .landing-section-copy h2 {
@@ -917,77 +762,13 @@
     @apply mx-1 text-[0.8125rem] leading-7 text-zinc-500 dark:text-zinc-400;
   }
 
-  .landing-code > .code-tabs {
-    @apply border-t-0;
-  }
-
-  .landing-demo .hero-panel-head {
-    @apply flex-wrap gap-x-3 gap-y-2;
-  }
-
-  .landing-preview {
-    @apply px-2 pb-2;
-  }
-
-  .landing-preview .demo-surface {
-    @apply m-0 grid gap-1 rounded-none border-0 bg-transparent p-0;
-  }
-
-  .landing-preview
-    :where([data-keyrove-item], [role='menuitem'], [role='treeitem']) {
-    @apply block min-w-0 cursor-pointer rounded-lg px-3 py-1.5 text-left text-sm text-(--hero-text) outline-transparent outline-offset-2 transition-colors duration-120 hover:bg-(--hero-hover);
-  }
-
-  .landing-preview
-    :where([data-keyrove-item], [role='menuitem'], [role='treeitem']):focus {
-    @apply bg-(--hero-accent) text-(--hero-on-accent) outline-2 outline-(--hero-accent);
-  }
-
-  .landing-preview :where([disabled]) {
-    @apply cursor-not-allowed text-(--hero-muted) hover:bg-transparent;
-  }
-
-  .landing-preview [data-keyrove-orientation='horizontal'] {
-    @apply flex flex-wrap;
-  }
-
-  .landing-preview :where([data-keyrove-cols]) > [data-keyrove-item] {
-    @apply text-center;
-  }
-
-  .landing-demo[data-demo='responsive'] .landing-preview {
-    @apply mx-2 mb-2 max-w-[calc(100%-1rem)] min-w-48 resize-x overflow-auto rounded-lg border border-dashed border-(--hero-rule) p-2;
-  }
-
-  .landing-demo[data-demo='tools'] [data-keyrove-item] {
-    @apply flex items-center justify-between;
-  }
-
-  .landing-demo[data-demo='tools'] [data-keyrove-item]::after {
-    @apply font-mono text-xs opacity-60;
-    content: attr(aria-keyshortcuts);
-    content: attr(aria-keyshortcuts) / '';
-  }
-
-  .landing-demo[data-demo='nested'] [data-keyrove-root] {
-    @apply flex gap-1 rounded-lg border border-dashed border-(--hero-rule) p-1;
-  }
-
-  .landing-preview [role='group'] {
-    @apply ml-4 border-l border-(--hero-rule) pl-2;
-  }
-
-  .landing-preview [role='treeitem'][aria-expanded]::before {
-    @apply mr-2 inline-block;
-    content: '▸';
-    content: '▸' / '';
-  }
-
-  .landing-preview [role='treeitem'][aria-expanded='true']::before {
-    content: '▾';
-    content: '▾' / '';
-  }
-
+  /*
+   * The two card grids: what else the library does, and where to go next.
+   * Each card is one link. The title carries it, so the link's name is the
+   * title, and its `::after` is stretched over the card so the whole card
+   * takes the click; the ring a focused link would draw round its text is
+   * drawn round the card instead.
+   */
   .feature-grid {
     @apply mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3;
   }
@@ -1192,28 +973,5 @@
 
   .kbd {
     @apply inline-block min-w-[2em] leading-[1.5em] rounded border border-b-2 border-zinc-300 bg-white px-1.5 py-0.5 text-center font-mono text-[0.75rem] text-zinc-700 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300;
-  }
-}
-
-/* The hero's live indicator: a ring that swells off the dot and fades. */
-@keyframes hero-pulse {
-  0% {
-    box-shadow: 0 0 0 0 --alpha(var(--color-emerald-500) / 50%);
-  }
-
-  70%,
-  100% {
-    box-shadow: 0 0 0 6px --alpha(var(--color-emerald-500) / 0%);
-  }
-}
-
-/* A new line in the hero's readout, rising into place. */
-@keyframes hero-fresh {
-  from {
-    opacity: 0.35;
-  }
-
-  to {
-    opacity: 1;
   }
 }

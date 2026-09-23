@@ -127,6 +127,31 @@ than in the fragment, so what a reader copies is markup they can paste as-is.
 [packages/docs/src/demos.ts](packages/docs/src/demos.ts) wires the behaviour
 markup cannot carry: the keydown listener, the move log, and the copy button.
 
+For a compact **demo panel** on any docs page, add a label:
+
+````md
+<div data-demo="loop" data-demo-label="account menu"></div>
+
+```ts
+import { keyRove } from '@mixedrays/keyrove';
+
+const menu = document.querySelector('#account-menu');
+menu.addEventListener('keydown', (e) => keyRove(e));
+```
+````
+
+The panel includes a live preview, a single-line readout, and tabs for the
+fragment's HTML and the adjacent code blocks. It uses the opposite theme to
+the page and keeps long code blocks scrollable. Omit `data-demo-label` to use
+the existing detailed demo presentation. `data-demo-class`, when needed,
+goes before `data-demo-label`.
+
+[demo-panel.css](packages/docs/src/demo-panel.css) owns the shared presentation;
+the embedding page owns column widths and spacing. No hero or landing classes
+are required. Code-only examples can use a
+`<div class="demo-panel demo-panel--code">` around adjacent fenced blocks,
+with blank lines between the wrapper and the fences.
+
 ### Build
 
 [packages/docs/vite-plugin-docs.ts](packages/docs/vite-plugin-docs.ts) drives

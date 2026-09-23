@@ -45,9 +45,9 @@ export const mountHero = () => {
 
     // Restarted on every change, so a run of presses reads as a run of
     // updates rather than one line that changed once.
-    readout.classList.remove('hero-readout-fresh');
+    readout.classList.remove('demo-readout-fresh');
     void readout.offsetWidth;
-    readout.classList.add('hero-readout-fresh');
+    readout.classList.add('demo-readout-fresh');
   };
 
   // Hidden from the readout's live region: a screen reader already says
@@ -70,7 +70,7 @@ export const mountHero = () => {
         key,
         span(result.action),
         span('→'),
-        span(result.to.textContent?.trim() ?? '', 'hero-readout-target'),
+        span(result.to.textContent?.trim() ?? '', 'demo-readout-target'),
       );
     } else if (isMoveResult(result)) {
       show('edge', key, span(result.action), span('moved nothing'));

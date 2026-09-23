@@ -54,8 +54,8 @@ const FENCE = '```';
  * `data-demo-class` is layout the demo needs but the library does not teach —
  * the grid's columns, the long list's scroll box. It lands on the surface at
  * render time rather than in the fragment, so it stays out of the source block.
- * `data-demo-label` opts into the landing's compact hero-style panel and names
- * its live preview. Without it, example pages keep their detailed history.
+ * `data-demo-label` opts into a compact demo panel and names its live preview.
+ * It works on any page; omit it to keep the demo's detailed presentation.
  *
  * The blocks are the demo's other files, and they are taken with it so they
  * can share its panel. HTML is left where it stands: a demo has one HTML file,
@@ -225,19 +225,19 @@ const renderUnit = (
 
   const copy = copyButton('Copy code');
 
-  // Landing panels share the hero's palette and compact readout. The source
-  // still comes from the very same fragment as the working demo.
+  // Compact panels work in any page layout. The source still comes from the
+  // very same fragment as the working demo.
   if (label) {
     const escaped = label
       .replace(/&/g, '&amp;')
       .replace(/</g, '&lt;')
       .replace(/>/g, '&gt;');
-    return `<div class="landing-demo hero-panel" data-demo="${name}">
-<div class="hero-panel-head">
-<span class="hero-panel-label"><span class="hero-demo-dot" aria-hidden="true"></span>Live · ${escaped}</span>
-<output class="hero-readout" data-demo-readout data-state="blurred"><span aria-hidden="true">click to focus</span></output>
+    return `<div class="demo-panel" data-demo="${name}">
+<div class="demo-panel-header">
+<span class="demo-panel-label"><span class="demo-live-indicator" aria-hidden="true"></span>Live · ${escaped}</span>
+<output class="demo-readout" data-demo-readout data-state="blurred"><span aria-hidden="true">click to focus</span></output>
 </div>
-<div class="landing-preview">${live}</div>
+<div class="demo-panel-preview">${live}</div>
 
 ${FENCE}html copy
 ${toExcerpt(markup)}

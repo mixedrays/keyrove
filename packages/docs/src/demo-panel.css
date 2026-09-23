@@ -1,0 +1,241 @@
+/*
+ * Reusable demo panels: contrasting themes, a compact readout and tabbed code.
+ * Layout belongs to the embedding page; no hero or landing wrapper is needed.
+ */
+@layer components {
+  .demo-panel {
+    @apply overflow-hidden rounded-[1.125rem] border border-(--demo-edge) bg-(--demo-bg) text-(--demo-text) shadow-2xl shadow-zinc-950/25 dark:shadow-black/50;
+
+    --demo-bg: var(--color-zinc-900);
+    --demo-edge: var(--color-zinc-900);
+    --demo-text: var(--color-zinc-300);
+    --demo-muted: var(--color-zinc-500);
+    --demo-hover: var(--color-zinc-800);
+    --demo-accent: var(--color-indigo-400);
+    --demo-on-accent: var(--color-zinc-950);
+    --demo-readout: var(--color-indigo-300);
+    --demo-warn: var(--color-amber-400);
+    --demo-rule: var(--color-zinc-800);
+    --demo-strip: --alpha(var(--color-zinc-950) / 40%);
+    --demo-code: var(--color-zinc-200);
+    --demo-tab-hover: var(--color-zinc-200);
+    --demo-chip: var(--color-zinc-800);
+    --demo-chip-text: var(--color-zinc-100);
+    --demo-chip-edge: var(--color-zinc-700);
+
+    @variant dark {
+      --demo-bg: var(--color-white);
+      --demo-edge: var(--color-zinc-200);
+      --demo-text: var(--color-zinc-700);
+      --demo-muted: var(--color-zinc-500);
+      --demo-hover: var(--color-zinc-100);
+      --demo-accent: var(--color-indigo-600);
+      --demo-on-accent: var(--color-white);
+      --demo-readout: var(--color-indigo-600);
+      --demo-warn: var(--color-amber-600);
+      --demo-rule: var(--color-zinc-200);
+      --demo-strip: var(--color-zinc-50);
+      --demo-code: var(--color-zinc-800);
+      --demo-tab-hover: var(--color-zinc-900);
+      --demo-chip: var(--color-zinc-200);
+      --demo-chip-text: var(--color-zinc-900);
+      --demo-chip-edge: var(--color-zinc-200);
+    }
+  }
+
+  .markdown > .demo-panel {
+    @apply mt-6;
+  }
+
+  .demo-panel-header {
+    @apply flex min-h-5 items-center justify-between gap-4 px-5 pt-4 pb-2.5;
+  }
+
+  .demo-panel-label {
+    @apply inline-flex items-center gap-2 font-mono text-[0.6875rem] leading-none font-medium tracking-[0.14em] whitespace-nowrap text-(--demo-muted) uppercase;
+  }
+
+  /* A live indicator: the demo is running, not a picture of one. */
+  .demo-live-indicator {
+    @apply size-[7px] shrink-0 rounded-full bg-emerald-500;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .demo-live-indicator {
+      animation: demo-pulse 2s ease-out infinite;
+    }
+  }
+
+  /* The accent for a move, amber for a key claimed with nowhere to go — the
+     colours the demos' history marks the same two outcomes in — and muted for
+     a key left to the browser. Before the first key: "click to focus" takes
+     the accent, being the one thing to do, and "listening…" is muted. */
+  .demo-readout {
+    @apply inline-flex min-h-5 min-w-0 items-center gap-1.5 overflow-hidden font-mono text-xs leading-none whitespace-nowrap text-(--demo-readout);
+  }
+
+  .demo-readout[data-state='edge'] {
+    @apply text-(--demo-warn);
+  }
+
+  .demo-readout:is([data-state='listening'], [data-state='passed']) {
+    @apply text-(--demo-muted);
+  }
+
+  .demo-readout kbd {
+    @apply inline-grid h-5 min-w-5 place-items-center rounded-[5px] border border-b-2 border-current px-1 font-mono text-[0.6875rem] opacity-85;
+  }
+
+  .demo-readout-target {
+    @apply truncate font-semibold;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .demo-readout-fresh {
+      animation: demo-fresh 360ms ease-out;
+    }
+  }
+
+  /*
+   * The code strip: the page's own tabbed code panel (see build/markdown.ts),
+   * joined to the panel's foot. It gives up the frame it carries in prose —
+   * the panel is its frame — and takes the panel's palette, Shiki's token
+   * colours included: the panel's theme, not the page's.
+   */
+  .demo-panel .code-tabs {
+    @apply mt-0 rounded-none border-0 border-t border-(--demo-rule) bg-(--demo-strip);
+  }
+
+  .demo-panel .code-tabs-bar {
+    @apply h-9 border-(--demo-rule) px-2;
+  }
+
+  .demo-panel .code-tab {
+    @apply text-(--demo-muted) hover:text-(--demo-tab-hover);
+  }
+
+  .demo-panel .code-tab[aria-selected='true'] {
+    @apply bg-(--demo-chip) text-(--demo-chip-text);
+  }
+
+  .demo-panel .code-copy {
+    @apply top-1 right-2 border-(--demo-chip-edge) bg-(--demo-chip) text-(--demo-muted) hover:text-(--demo-chip-text);
+  }
+
+  .demo-panel .code-block {
+    @apply bg-transparent px-5 py-3.5 text-[0.8rem] text-(--demo-code);
+  }
+
+  .demo-panel .shiki span {
+    color: var(--shiki-dark);
+
+    @variant dark {
+      color: var(--shiki-light);
+    }
+  }
+
+  /* The keys the demo answers to, under the panel. Set on the page rather
+     than in the panel, so it takes the page's theme, and with a line tall
+     enough that the key caps sit in it without spreading the lines apart. */
+  .demo-hint {
+    @apply mx-1 mt-3 text-[0.8125rem] leading-7 text-zinc-500 dark:text-zinc-400;
+  }
+
+  .demo-hint .kbd {
+    @apply min-w-[1.75em] py-0 text-[0.6875rem];
+  }
+
+  .demo-panel--code > .code-tabs {
+    @apply border-t-0;
+  }
+
+  .demo-panel[data-demo] .demo-panel-header {
+    @apply flex-wrap gap-x-3 gap-y-2;
+  }
+
+  .demo-panel-preview {
+    @apply px-2 pb-2;
+  }
+
+  .demo-panel-preview .demo-surface {
+    @apply m-0 grid gap-1 rounded-none border-0 bg-transparent p-0;
+  }
+
+  .demo-panel-preview
+    :where([data-keyrove-item], [role='menuitem'], [role='treeitem']) {
+    @apply block min-w-0 cursor-pointer rounded-lg px-3 py-1.5 text-left text-sm text-(--demo-text) outline-transparent outline-offset-2 transition-colors duration-120 hover:bg-(--demo-hover);
+  }
+
+  .demo-panel-preview
+    :where([data-keyrove-item], [role='menuitem'], [role='treeitem']):focus {
+    @apply bg-(--demo-accent) text-(--demo-on-accent) outline-2 outline-(--demo-accent);
+  }
+
+  .demo-panel-preview :where([disabled]) {
+    @apply cursor-not-allowed text-(--demo-muted) hover:bg-transparent;
+  }
+
+  .demo-panel-preview [data-keyrove-orientation='horizontal'] {
+    @apply flex flex-wrap;
+  }
+
+  .demo-panel-preview :where([data-keyrove-cols]) > [data-keyrove-item] {
+    @apply text-center;
+  }
+
+  .demo-panel[data-demo='responsive'] .demo-panel-preview {
+    @apply mx-2 mb-2 max-w-[calc(100%-1rem)] min-w-48 resize-x overflow-auto rounded-lg border border-dashed border-(--demo-rule) p-2;
+  }
+
+  .demo-panel[data-demo='tools'] [data-keyrove-item] {
+    @apply flex items-center justify-between;
+  }
+
+  .demo-panel[data-demo='tools'] [data-keyrove-item]::after {
+    @apply font-mono text-xs opacity-60;
+    content: attr(aria-keyshortcuts);
+    content: attr(aria-keyshortcuts) / '';
+  }
+
+  .demo-panel[data-demo='nested'] [data-keyrove-root] {
+    @apply flex gap-1 rounded-lg border border-dashed border-(--demo-rule) p-1;
+  }
+
+  .demo-panel-preview [role='group'] {
+    @apply ml-4 border-l border-(--demo-rule) pl-2;
+  }
+
+  .demo-panel-preview [role='treeitem'][aria-expanded]::before {
+    @apply mr-2 inline-block;
+    content: '▸';
+    content: '▸' / '';
+  }
+
+  .demo-panel-preview [role='treeitem'][aria-expanded='true']::before {
+    content: '▾';
+    content: '▾' / '';
+  }
+}
+
+/* The live indicator: a ring that swells off the dot and fades. */
+@keyframes demo-pulse {
+  0% {
+    box-shadow: 0 0 0 0 --alpha(var(--color-emerald-500) / 50%);
+  }
+
+  70%,
+  100% {
+    box-shadow: 0 0 0 6px --alpha(var(--color-emerald-500) / 0%);
+  }
+}
+
+/* A new line in the readout, rising into place. */
+@keyframes demo-fresh {
+  from {
+    opacity: 0.35;
+  }
+
+  to {
+    opacity: 1;
+  }
+}

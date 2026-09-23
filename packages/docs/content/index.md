@@ -29,10 +29,10 @@ move focus the way keyboard users expect, in any framework.
 
 </div>
 <div class="hero-demo">
-<div class="hero-panel">
-<div class="hero-panel-head">
-<span class="hero-panel-label"><span class="hero-demo-dot" aria-hidden="true"></span>Live · mail folders</span>
-<output class="hero-readout" data-hero-readout data-state="blurred"><span aria-hidden="true">click to focus</span></output>
+<div class="demo-panel">
+<div class="demo-panel-header">
+<span class="demo-panel-label"><span class="demo-live-indicator" aria-hidden="true"></span>Live · mail folders</span>
+<output class="demo-readout" data-hero-readout data-state="blurred"><span aria-hidden="true">click to focus</span></output>
 </div>
 <ul id="menu" class="hero-folders" aria-label="Mail folders" data-hero-list>
 <li data-keyrove-item tabindex="0" data-count="42"><span data-icon="inbox" class="hero-folder-icon"></span>Inbox</li>
@@ -60,7 +60,7 @@ menu.addEventListener('keydown', (e) => keyRove(e));
 ```
 
 </div>
-<p class="hero-demo-hint"><kbd class="kbd">↑</kbd> <kbd class="kbd">↓</kbd> move, <kbd class="kbd">Home</kbd> and <kbd class="kbd">End</kbd> jump. <kbd class="kbd">Tab</kbd> still visits each folder.</p>
+<p class="demo-hint"><kbd class="kbd">↑</kbd> <kbd class="kbd">↓</kbd> move, <kbd class="kbd">Home</kbd> and <kbd class="kbd">End</kbd> jump. <kbd class="kbd">Tab</kbd> still visits each folder.</p>
 </div>
 </div>
 
@@ -82,7 +82,7 @@ Start with ordinary attributes. When you want type-checked settings,
 </div>
 <div class="landing-section-demo">
 
-<div class="hero-panel landing-code">
+<div class="demo-panel demo-panel--code">
 
 ```ts title="Vanilla" copy
 import { keyRove } from '@mixedrays/keyrove';
@@ -233,7 +233,7 @@ reading the items and other settings from their attributes.
 </div>
 <div class="landing-section-demo">
 
-<div class="hero-panel landing-code">
+<div class="demo-panel demo-panel--code">
 
 ```html title="Attributes" copy
 <ul id="folders">
@@ -361,7 +361,7 @@ const menu = document.querySelector('#share');
 menu.addEventListener('keydown', (e) => keyRove(e, config) || typeahead(e));
 ```
 
-<p class="hero-demo-hint">Type <kbd class="kbd">E</kbd> to focus Email a copy. Arrows skip the disabled item and wrap at the ends.</p>
+<p class="demo-hint">Type <kbd class="kbd">E</kbd> to focus Email a copy. Arrows skip the disabled item and wrap at the ends.</p>
 
 </div>
 </section>
