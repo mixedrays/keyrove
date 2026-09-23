@@ -554,7 +554,7 @@
    * the reader switched.
    */
   .hero {
-    @apply grid gap-12 pt-12 sm:pt-16 lg:grid-cols-[minmax(0,1fr)_30rem] lg:items-start lg:pt-20;
+    @apply grid gap-12 pt-12 sm:pt-16 lg:grid-cols-[minmax(0,1fr)_30rem] lg:items-start lg:pt-24;
   }
 
   /* The headline is display type: heavier and tighter than a docs title, with
