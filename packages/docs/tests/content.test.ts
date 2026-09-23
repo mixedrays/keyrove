@@ -24,7 +24,9 @@ test('every indexed page links from its source to its live page', async () => {
 // The hero's list is written into the landing page twice: live, dressed with
 // icons and counts, and as the HTML tab of its code strip, which is what a
 // reader copies. The demos are stamped from one file so the two cannot drift;
-// the hero is not, so this holds the two to the same folders instead.
+// the hero is not, so this holds the two to the same folders instead. The tab
+// may fold rows away with `<!-- … -->`, as the demos' source blocks do: each
+// fold stands for one or more folders, and the rest must match in order.
 test('the hero shows the markup its list runs', async () => {
   const source = await readFile(path.join(CONTENT_DIR, 'index.md'), 'utf8');
   const live = /<ul id="menu"[^>]*data-hero-list>([\s\S]*?)<\/ul>/.exec(
@@ -43,5 +45,17 @@ test('the hero shows the markup its list runs', async () => {
     );
 
   assert.ok(folders(live).length > 0, 'the hero list has no folders');
-  assert.deepEqual(folders(shown), folders(live));
+
+  // Folders as `|Inbox|Drafts|…|`, so a fold can match a run of whole names.
+  const escape = (name: string) => name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const pattern = shown
+    .split(/<!--\s*(?:…|\.\.\.)\s*-->/)
+    .map((part) =>
+      folders(part)
+        .map((name) => `${escape(name)}\\|`)
+        .join(''),
+    )
+    .join('(?:[^|]+\\|)+');
+
+  assert.match(`|${folders(live).join('|')}|`, new RegExp(`^\\|${pattern}$`));
 });

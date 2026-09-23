@@ -22,7 +22,7 @@ move focus the way keyboard users expect, in any framework.
 </div>
 
 <ul class="hero-facts">
-<li><span data-icon="check" class="size-4"></span>~3 kB gzipped</li>
+<li><span data-icon="check" class="size-4"></span>~5 kB gzipped</li>
 <li><span data-icon="check" class="size-4"></span>zero deps</li>
 <li><span data-icon="check" class="size-4"></span>any framework</li>
 </ul>
