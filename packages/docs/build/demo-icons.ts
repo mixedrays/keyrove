@@ -31,10 +31,10 @@ const ITEMS: Record<string, Record<string, IconName>> = {
   },
   skip: {
     'quarterly-report.pdf': 'file-text',
-    'budget-v3.xlsx': 'file-spreadsheet',
+    'budget-v3-final-FINAL.xlsx': 'file-spreadsheet',
     'roadmap.md': 'file-code',
     'design-review.fig': 'pen',
-    'notes-2023.txt': 'file-text',
+    'pension-fund.xls': 'file-spreadsheet',
   },
   menu: {
     'Copy link': 'link',
