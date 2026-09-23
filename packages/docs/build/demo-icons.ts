@@ -21,6 +21,21 @@ const ITEMS: Record<string, Record<string, IconName>> = {
   'landing-loop': FOLDERS,
   'landing-horizontal': FOLDERS,
   'landing-roving': FOLDERS,
+  roving: {
+    Backlog: 'circle-dashed',
+    'To do': 'circle',
+    Blocked: 'circle-slash',
+    Review: 'circle-dot',
+    Done: 'circle-check',
+    Archived: 'archive',
+  },
+  skip: {
+    'quarterly-report.pdf': 'file-text',
+    'budget-v3.xlsx': 'file-spreadsheet',
+    'roadmap.md': 'file-code',
+    'design-review.fig': 'pen',
+    'notes-2023.txt': 'file-text',
+  },
   menu: {
     'Copy link': 'link',
     'Email a copy': 'mail',

@@ -1,4 +1,5 @@
 import {
+  Archive,
   ArrowRight,
   ArrowRightToLine,
   Bold,
@@ -6,6 +7,10 @@ import {
   Braces,
   Check,
   Circle,
+  CircleCheck,
+  CircleDashed,
+  CircleDot,
+  CircleSlash,
   Code,
   Command,
   Copy,
@@ -13,6 +18,7 @@ import {
   FileDown,
   FileJson,
   FilePen,
+  FileSpreadsheet,
   FileText,
   Folder,
   FolderOpen,
@@ -143,10 +149,16 @@ const ICONS = {
   'file-code': fromLucide(FileCode),
   'file-json': fromLucide(FileJson),
   'file-text': fromLucide(FileText),
+  'file-spreadsheet': fromLucide(FileSpreadsheet),
   bold: fromLucide(Bold),
   italic: fromLucide(Italic),
   underline: fromLucide(Underline),
   code: fromLucide(Code),
+  'circle-dashed': fromLucide(CircleDashed),
+  'circle-slash': fromLucide(CircleSlash),
+  'circle-dot': fromLucide(CircleDot),
+  'circle-check': fromLucide(CircleCheck),
+  archive: fromLucide(Archive),
 
   /*
    * The markdown mark — a filled glyph on a 16-unit grid, so it opts out of the

@@ -10,7 +10,7 @@ order: 17
 Add `data-keyrove-skip` to pass over an item during navigation while keeping
 its position in the sequence. Try the arrows here: focus skips the headings.
 
-<div data-demo="skip"></div>
+<div data-demo="skip" data-demo-label="file finder"></div>
 
 The headings keep `data-keyrove-item` and add `data-keyrove-skip`. Removing
 `data-keyrove-item` also excludes a heading from a list, but in a grid it

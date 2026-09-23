@@ -11,7 +11,7 @@ Use options to navigate markup from a component library, CMS or other code
 you cannot change. This menu has no `data-keyrove-*` attributes; its options
 select items by their existing role.
 
-<div data-demo="menu"></div>
+<div data-demo="menu" data-demo-label="share menu"></div>
 
 ```ts
 import { createTypeahead, keyRove } from '@mixedrays/keyrove';

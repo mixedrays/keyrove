@@ -14,7 +14,7 @@ In this menu, <kbd class="kbd">↑</kbd>/<kbd class="kbd">↓</kbd> move between
 reaction row, where <kbd class="kbd">←</kbd>/<kbd class="kbd">→</kbd> move between reactions. <kbd class="kbd">Escape</kbd> returns focus to
 the menu.
 
-<div data-demo="nested"></div>
+<div data-demo="nested" data-demo-label="message actions"></div>
 
 ```ts
 document
@@ -66,8 +66,8 @@ attribute-selected item sequences separate, place them in sibling roots.
 
 Inside a nested root, only that root's movement bindings apply. Unbound keys
 do not fall through to the outer group. In the reaction row, <kbd class="kbd">↓</kbd> is unhandled
-(grey in the log); <kbd class="kbd">←</kbd> at the first reaction is consumed without moving
-(amber).
+(grey in the readout, _left to the browser_); <kbd class="kbd">←</kbd> at the first reaction is
+consumed without moving (amber, _prev · moved nothing_).
 
 Provide a way to leave the inner group:
 

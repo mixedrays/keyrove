@@ -13,10 +13,10 @@ copying breakpoints into JavaScript.
 
 This demo uses a
 [container query](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_containment/Container_queries).
-Drag the panel's corner or narrow the window, then try the arrows. With six
-columns, <kbd class="kbd">↓</kbd> moves from January to July; with two, it moves to March.
+Drag the corner of the dashed frame or narrow the window, then try the arrows.
+With six columns, <kbd class="kbd">↓</kbd> moves from January to July; with two, it moves to March.
 
-<div data-demo="responsive" data-demo-class="resize-x overflow-hidden min-w-64 max-w-full"></div>
+<div data-demo="responsive" data-demo-label="month picker"></div>
 
 ```ts
 import { keyRove } from '@mixedrays/keyrove';

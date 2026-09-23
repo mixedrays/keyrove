@@ -16,7 +16,7 @@ when typeahead is inactive; wait 500 ms after typing to use it. Clicking picks
 too. <kbd class="kbd">Tab</kbd> away and back, and focus returns to where you
 left it.
 
-<div data-demo="listbox"></div>
+<div data-demo="listbox" data-demo-label="assignee"></div>
 
 ```ts
 import {
@@ -59,7 +59,9 @@ listbox.addEventListener('click', (e) => {
 });
 ```
 
-The log distinguishes selection from focus movement.
+The readout tells selection from focus movement by its verb:
+<kbd class="kbd">↓</kbd> from _Ada Lovelace_ reads _next → Alan Turing_, and
+<kbd class="kbd">Enter</kbd> then reads _selected → Alan Turing_.
 
 ## The pieces
 

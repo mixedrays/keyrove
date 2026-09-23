@@ -187,6 +187,92 @@
     @apply cursor-not-allowed text-(--demo-muted) hover:bg-transparent;
   }
 
+  /* A skipped item, drawn as the group heading it stands for. The first one
+     opens the list, so it gives up the space that sets the later ones off
+     from the rows above them. */
+  .demo-panel-preview :where([data-keyrove-skip]) {
+    @apply cursor-default pt-3.5 text-[0.6875rem] font-semibold tracking-widest text-(--demo-muted) uppercase hover:bg-transparent;
+  }
+
+  .demo-panel-preview .demo-surface > :where([data-keyrove-skip]:first-child) {
+    @apply pt-1;
+  }
+
+  /* A field inside the preview, such as the focus-keys demo's text area, so a
+     chord can be tried from where it matters. */
+  .demo-panel-preview :where(textarea) {
+    @apply mt-2 block w-full resize-none rounded-md border border-(--demo-chip-edge) bg-(--demo-bg) px-2 py-1 text-sm font-normal tracking-normal text-(--demo-text) normal-case outline-transparent outline-offset-2 placeholder:text-(--demo-muted) focus:outline-2 focus:outline-(--demo-accent);
+  }
+
+  /* A focus-key target that is not an item, such as the focus-keys demo's
+     panes: a bordered region headed by its name, reached by its key alone.
+     A pane takes the ring rather than the accent fill, which would flood the
+     field inside it; a field that drops to its own line comes last. */
+  .demo-panel-preview
+    :where([data-keyrove-focus-key]:not([data-keyrove-item])) {
+    @apply flex min-h-20 min-w-0 flex-wrap content-start items-center gap-x-2 rounded-lg border border-(--demo-chip-edge) px-3 py-2 text-[0.6875rem] font-semibold tracking-widest text-(--demo-muted) uppercase outline-transparent outline-offset-2 transition-colors duration-120;
+  }
+
+  .demo-panel-preview
+    :where([data-keyrove-focus-key]:not([data-keyrove-item])):focus {
+    @apply text-(--demo-accent) outline-2 outline-(--demo-accent);
+  }
+
+  .demo-panel-preview
+    :where([data-keyrove-focus-key]:not([data-keyrove-item]))
+    > textarea {
+    order: 1;
+  }
+
+  /* A control inside an item, such as the editable-targets demo's rows. The
+     label lays the row out: a checkbox ahead of its text, a field pushed to
+     the far end, and a text area dropping to a line of its own. */
+  .demo-panel-preview :where([data-keyrove-item] > label) {
+    @apply flex flex-wrap items-center gap-x-3 gap-y-2;
+  }
+
+  .demo-panel-preview :where([data-keyrove-item] > label > textarea) {
+    @apply mt-0;
+  }
+
+  .demo-panel-preview :where(input[type='text']) {
+    @apply ml-auto w-44 max-w-full rounded-md border border-(--demo-chip-edge) bg-(--demo-bg) px-2 py-1 text-sm text-(--demo-text) outline-transparent outline-offset-2 focus:outline-2 focus:outline-(--demo-accent);
+  }
+
+  .demo-panel-preview :where(input[type='range']) {
+    @apply ml-auto w-44 max-w-full accent-(--demo-accent);
+  }
+
+  .demo-panel-preview :where(input[type='checkbox']) {
+    @apply size-4 accent-(--demo-accent);
+  }
+
+  /* A focused row is filled with the accent, which would swallow a control
+     drawn in it: the row's own text colour takes over. */
+  .demo-panel-preview
+    :where([data-keyrove-item]:focus)
+    :where(input[type='checkbox'], input[type='range']) {
+    @apply accent-(--demo-on-accent);
+  }
+
+  /* An option ends in the tick that says which one is chosen. The tick is the
+     widget's state rather than keyrove's, drawn off the ARIA attribute the
+     page's snippet writes; on a focused row it takes the row's text colour. */
+  .demo-panel-preview :where([role='option']) {
+    @apply flex items-center gap-2.5;
+  }
+
+  .demo-panel-preview :where([role='option'][aria-selected='true'])::after {
+    @apply ml-auto font-semibold text-(--demo-accent);
+    content: '✓';
+    content: '✓' / '';
+  }
+
+  .demo-panel-preview
+    :where([role='option'][aria-selected='true']:focus)::after {
+    @apply text-current;
+  }
+
   .demo-panel-preview :has(> .demo-item-icon) {
     @apply flex items-center gap-2.5;
   }
@@ -223,41 +309,95 @@
   }
 
   .demo-panel[data-demo='responsive'] .demo-panel-preview {
-    @apply mx-2 mb-2 max-w-[calc(100%-1rem)] min-w-48 resize-x overflow-auto rounded-lg border border-dashed border-(--demo-rule) p-2;
+    @apply mx-2 mb-2 max-w-[calc(100%-1rem)] min-w-56 resize-x overflow-auto rounded-lg border border-dashed border-(--demo-rule) p-2;
   }
 
+  /* Scoped to the preview: the code tabs under it are keyrove items too. */
   .demo-panel:is([data-demo='tools'], [data-demo='landing-tools'])
+    .demo-panel-preview
     [data-keyrove-item] {
     @apply flex items-center;
   }
 
   .demo-panel:is([data-demo='tools'], [data-demo='landing-tools'])
+    .demo-panel-preview
     [data-keyrove-item]::after {
     @apply ml-auto font-mono text-xs opacity-60;
     content: attr(aria-keyshortcuts);
     content: attr(aria-keyshortcuts) / '';
   }
 
-  .demo-panel[data-demo='nested'] [data-keyrove-root] {
+  /* The panes laid out as an editor lays them out: a sidebar down the left,
+     the file above the terminal. There is no "down" from a sidebar that spans
+     both rows, which is the case for a key that names each pane — and the
+     reason each pane shows its chord beside its name. */
+  .demo-panel[data-demo='panes'] .demo-surface {
+    @apply grid-cols-[minmax(0,1fr)_minmax(0,2fr)] gap-1.5;
+  }
+
+  .demo-panel[data-demo='panes'] .demo-surface > :nth-child(1) {
+    grid-area: 1 / 1 / span 2 / 1;
+  }
+
+  .demo-panel[data-demo='panes'] .demo-surface > :nth-child(3) {
+    grid-area: 2 / 2;
+  }
+
+  .demo-panel[data-demo='panes'] .demo-surface > ::after {
+    @apply ml-auto rounded border border-(--demo-chip-edge) px-1.5 py-0.5 font-mono text-[0.625rem] font-normal tracking-normal whitespace-nowrap normal-case;
+  }
+
+  .demo-panel[data-demo='panes'] .demo-surface > :nth-child(1)::after {
+    content: 'Ctrl+Shift+1';
+    content: 'Ctrl+Shift+1' / '';
+  }
+
+  .demo-panel[data-demo='panes'] .demo-surface > :nth-child(2)::after {
+    content: 'Ctrl+Shift+2';
+    content: 'Ctrl+Shift+2' / '';
+  }
+
+  .demo-panel[data-demo='panes'] .demo-surface > :nth-child(3)::after {
+    content: 'Ctrl+Shift+3';
+    content: 'Ctrl+Shift+3' / '';
+  }
+
+  /* A nested root, drawn as a row of its own so the boundary keyrove scopes
+     to is visible. A nested grid brings its own layout and is left alone. */
+  .demo-panel-preview [data-keyrove-root]:not([data-keyrove-cols]) {
     @apply flex gap-1 rounded-lg border border-dashed border-(--demo-rule) p-1;
   }
 
-  .demo-panel-preview [role='group'] {
-    @apply ml-4 border-l border-(--demo-rule) pl-2;
+  /* Trees: the file tree's rows and the sidebar's, whose folders are buttons
+     that would otherwise size to their label. A folder leads with the caret
+     that says whether it is open; a row without one keeps its room, so names
+     at one depth line up — in the sidebar only at the top, as a section holds
+     pages alone. A folder's rows step in under it, on the same rhythm as the
+     rows above. */
+  .demo-panel[data-demo='sidebar'] .demo-surface [data-keyrove-item] {
+    @apply flex w-full items-center gap-2.5;
   }
 
-  .demo-panel-preview [role='treeitem'][aria-expanded]::before {
+  .demo-panel-preview :is([role='group'], [data-keyrove-item] + ul) {
+    @apply mt-1 ml-4 grid gap-1 border-l border-(--demo-rule) pl-2;
+  }
+
+  .demo-panel-preview [aria-expanded]::before {
     @apply inline-block w-2 shrink-0;
     content: '▸';
     content: '▸' / '';
   }
 
-  .demo-panel-preview [role='treeitem'][aria-expanded='true']::before {
+  .demo-panel-preview [aria-expanded='true']::before {
     content: '▾';
     content: '▾' / '';
   }
 
-  .demo-panel-preview [role='treeitem']:not([aria-expanded]) {
+  .demo-panel-preview [role='treeitem']:not([aria-expanded]),
+  .demo-panel[data-demo='sidebar']
+    .demo-surface
+    > li
+    > [data-keyrove-item]:not([aria-expanded]) {
     @apply pl-[1.875rem];
   }
 }

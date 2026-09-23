@@ -14,7 +14,7 @@ This sidebar uses attributes. <kbd class="kbd">↑</kbd>/<kbd class="kbd">↓</k
 folder, and <kbd class="kbd">←</kbd> closes it. Folders are buttons, so <kbd class="kbd">Enter</kbd>, <kbd class="kbd">Space</kbd> and clicks
 also toggle them.
 
-<div data-demo="sidebar"></div>
+<div data-demo="sidebar" data-demo-label="docs sidebar"></div>
 
 ```ts
 import { keyRove, matchesCombo } from '@mixedrays/keyrove';
@@ -82,7 +82,7 @@ hidden descendants directly from the DOM.
 - <kbd class="kbd">←</kbd> closes an open folder or moves to the parent folder.
 - Typing finds a row by name. Clicking a folder toggles it.
 
-<div data-demo="tree"></div>
+<div data-demo="tree" data-demo-label="file tree"></div>
 
 ```ts
 import {
@@ -158,7 +158,10 @@ tree.addEventListener('click', (e) => {
 });
 ```
 
-The log shows keyrove moves in green and tree actions in indigo.
+The readout shows keyrove's moves and the tree's own actions in the same
+indigo; the verb tells them apart. From _components_, <kbd class="kbd">↓</kbd>
+reads _next → utils_, and <kbd class="kbd">→</kbd> then reads
+_expanded → utils_.
 
 ### The pieces
 
