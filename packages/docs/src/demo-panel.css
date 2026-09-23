@@ -71,7 +71,7 @@
      a key left to the browser. Before the first key: "click to focus" takes
      the accent, being the one thing to do, and "listening…" is muted. */
   .demo-readout {
-    @apply inline-flex min-h-5 min-w-0 items-center gap-1.5 overflow-hidden font-mono text-xs leading-none whitespace-nowrap text-(--demo-readout);
+    @apply inline-flex min-h-5 min-w-0 items-center gap-1.5 overflow-hidden font-mono text-xs leading-none whitespace-nowrap text-(--demo-readout) justify-end;
   }
 
   .demo-readout[data-state='edge'] {
@@ -150,11 +150,13 @@
   }
 
   .demo-panel[data-demo] .demo-panel-header {
-    @apply flex-wrap gap-x-3 gap-y-2;
+    /* Choose rows from the available width, not the current readout text:
+       blurring the preview must not move a code tab during its click. */
+    @apply grid grid-cols-[repeat(auto-fit,minmax(min(100%,12rem),1fr))] gap-x-3 gap-y-2;
   }
 
   .demo-panel-preview {
-    @apply px-2 pb-2;
+    @apply p-4;
   }
 
   .demo-panel-preview .demo-surface {
@@ -175,8 +177,35 @@
     @apply cursor-not-allowed text-(--demo-muted) hover:bg-transparent;
   }
 
+  .demo-panel-preview :has(> .demo-item-icon) {
+    @apply flex items-center gap-2.5;
+  }
+
+  .demo-item-icon {
+    @apply pointer-events-none size-4 shrink-0 opacity-70;
+  }
+
+  :focus > .demo-item-icon {
+    @apply opacity-100;
+  }
+
+  .demo-item-icon--open,
+  [aria-expanded='true'] > .demo-item-icon--closed {
+    @apply hidden;
+  }
+
+  [aria-expanded='true'] > .demo-item-icon--open {
+    @apply block;
+  }
+
   .demo-panel-preview [data-keyrove-orientation='horizontal'] {
     @apply flex flex-wrap;
+  }
+
+  .demo-panel-preview
+    [data-keyrove-orientation='horizontal']
+    > [data-keyrove-item] {
+    @apply gap-2 px-2;
   }
 
   .demo-panel-preview :where([data-keyrove-cols]) > [data-keyrove-item] {
@@ -188,11 +217,11 @@
   }
 
   .demo-panel[data-demo='tools'] [data-keyrove-item] {
-    @apply flex items-center justify-between;
+    @apply flex items-center;
   }
 
   .demo-panel[data-demo='tools'] [data-keyrove-item]::after {
-    @apply font-mono text-xs opacity-60;
+    @apply ml-auto font-mono text-xs opacity-60;
     content: attr(aria-keyshortcuts);
     content: attr(aria-keyshortcuts) / '';
   }
@@ -206,7 +235,7 @@
   }
 
   .demo-panel-preview [role='treeitem'][aria-expanded]::before {
-    @apply mr-2 inline-block;
+    @apply inline-block w-2 shrink-0;
     content: '▸';
     content: '▸' / '';
   }
@@ -214,6 +243,10 @@
   .demo-panel-preview [role='treeitem'][aria-expanded='true']::before {
     content: '▾';
     content: '▾' / '';
+  }
+
+  .demo-panel-preview [role='treeitem']:not([aria-expanded]) {
+    @apply pl-[1.875rem];
   }
 }
 

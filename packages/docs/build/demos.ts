@@ -2,6 +2,7 @@ import { readFile, readdir } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+import { decorateDemo } from './demo-icons.ts';
 import { copyButton } from './markdown.ts';
 
 /**
@@ -237,7 +238,7 @@ const renderUnit = (
 <span class="demo-panel-label"><span class="demo-live-indicator" aria-hidden="true"></span>Live · ${escaped}</span>
 <output class="demo-readout" data-demo-readout data-state="blurred"><span aria-hidden="true">click to focus</span></output>
 </div>
-<div class="demo-panel-preview">${live}</div>
+<div class="demo-panel-preview">${decorateDemo(name, live)}</div>
 
 ${FENCE}html copy
 ${toExcerpt(markup)}
