@@ -84,9 +84,9 @@ rendered pages; landing and `noindex` pages are excluded. Titles and headings
 rank above body matches, with prefix matching and typo tolerance enabled.
 
 The results are a keyrove group: the site navigating with its own library.
-Each result is a link, `initRovingTabindex` gives the list one tab stop after
-every render, `keyRove` moves focus between the links and `followFocus` keeps
-the stop in step. keyrove leaves a text field its caret keys, so the box
+Each result is a link and keeps its own tab stop, so Tab walks the results as
+well as the arrows; `keyRove` moves focus between the links, looping at the
+ends. keyrove leaves a text field its caret keys, so the box
 focuses an end of the list itself to hand focus over, and a character typed on
 a result sends focus back to the box.
 

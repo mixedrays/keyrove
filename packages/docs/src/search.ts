@@ -1,10 +1,4 @@
-import {
-  type KeyRoveOptions,
-  followFocus,
-  initRovingTabindex,
-  keyRove,
-  matchesCombo,
-} from '@mixedrays/keyrove';
+import { type KeyRoveOptions, keyRove, matchesCombo } from '@mixedrays/keyrove';
 
 import type { SearchDocument } from './search-model.ts';
 
@@ -13,7 +7,6 @@ type Search = (query: string) => SearchDocument[];
 const group = {
   items: '.search-result',
   loop: true,
-  rovingTabindex: true,
 } satisfies KeyRoveOptions;
 
 /** Show the words around a match; use textContent when inserting authored text. */
@@ -97,7 +90,6 @@ export const mountSearch = () => {
       });
       list.replaceChildren(fragment);
       list.scrollTop = 0;
-      initRovingTabindex(list, group);
       status.textContent = !query
         ? 'Search pages, API methods, and examples.'
         : results.length
@@ -181,7 +173,6 @@ export const mountSearch = () => {
     )
       focusInput();
   });
-  list.addEventListener('focusin', (event) => followFocus(event, group));
   // Leave modified clicks to the browser (for example, opening a new tab).
   list.addEventListener('click', (event) => {
     if (
