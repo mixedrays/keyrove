@@ -19,7 +19,10 @@
     --demo-hover: light-dark(var(--color-zinc-100), var(--color-zinc-800));
     --demo-accent: light-dark(var(--color-indigo-600), var(--color-indigo-400));
     --demo-on-accent: light-dark(var(--color-white), var(--color-zinc-950));
-    --demo-readout: light-dark(var(--color-indigo-600), var(--color-indigo-300));
+    --demo-readout: light-dark(
+      var(--color-indigo-600),
+      var(--color-indigo-300)
+    );
     --demo-warn: light-dark(var(--color-amber-600), var(--color-amber-400));
     --demo-rule: light-dark(var(--color-zinc-200), var(--color-zinc-800));
     --demo-strip: light-dark(
