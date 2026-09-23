@@ -78,11 +78,6 @@
     @apply pr-14;
   }
 
-  .demo-copy {
-    @apply absolute top-1.5 right-1.5 z-10 inline-flex cursor-pointer items-center rounded-lg border border-zinc-200 bg-white p-1.5 text-zinc-500 transition-colors dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-400;
-    @apply hover:text-zinc-900 dark:hover:text-zinc-100;
-  }
-
   /*
    * Demo items are styled off the attributes the docs teach rather than off
    * classes of their own, so a fragment under content/_demos stays markup a

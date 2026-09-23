@@ -499,40 +499,6 @@ const CONFIGS: Record<string, GroupOptions> = {
 };
 
 /**
- * "Copy code" — the source block's own text, rather than a second copy of it
- * held in an attribute, so what lands on the clipboard is what is on screen.
- * Where the markup shares its panel with the script, that is whichever of the
- * two tabs is showing, so it is looked up on the click rather than once.
- */
-const wireCopy = (demo: HTMLElement) => {
-  const button = demo.querySelector<HTMLButtonElement>('[data-copy-code]');
-  if (!button) return;
-
-  let resetTimer: ReturnType<typeof setTimeout> | undefined;
-
-  button.addEventListener('click', async () => {
-    const code = Array.from(demo.querySelectorAll('.demo-code pre')).find(
-      (pre) => !pre.closest('[hidden]'),
-    );
-    if (!code) return;
-
-    try {
-      await navigator.clipboard.writeText(code.textContent ?? '');
-    } catch {
-      // Clipboard access can be refused outright; the markup is on the page
-      // either way, so there is nothing to fall back to.
-      return;
-    }
-
-    // Both glyphs are already in the button; `data-copied` is what picks
-    // between them, so confirming a copy costs no DOM construction.
-    button.toggleAttribute('data-copied', true);
-    clearTimeout(resetTimer);
-    resetTimer = setTimeout(() => button.removeAttribute('data-copied'), 2000);
-  });
-};
-
-/**
  * The item a demo opens on: the first one a key would move away from.
  *
  * Items inside a nested root are passed over while the surface has items of
@@ -572,8 +538,6 @@ export const mountDemos = () => {
   const demos = Array.from(document.querySelectorAll<HTMLElement>('.demo'));
 
   demos.forEach((demo, index) => {
-    wireCopy(demo);
-
     const surface = demo.querySelector<HTMLElement>(
       ':scope > .demo-preview > .demo-surface',
     );

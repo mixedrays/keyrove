@@ -2,7 +2,7 @@ import { readFile, readdir } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { icon } from './icons.ts';
+import { copyButton } from './markdown.ts';
 
 /**
  * Live demos, built from the markup the page documents.
@@ -215,13 +215,7 @@ const renderUnit = (
     ['demo-surface', surfaceClass].filter(Boolean).join(' '),
   );
 
-  const copy = [
-    '<button type="button" class="demo-copy" data-copy-code',
-    'aria-label="Copy code">',
-    icon('copy', 'size-3.5 icon-idle'),
-    icon('check', 'size-3.5 icon-done'),
-    '</button>',
-  ].join(' ');
+  const copy = copyButton('Copy code');
 
   // The band demos say so on the wrapper: the layout is a property of the
   // demo, and keying the stylesheet off a name would put the list in two

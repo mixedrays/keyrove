@@ -642,6 +642,31 @@
   }
 
   /*
+   * The copy button sits in the top corner of the container it copies from:
+   * over a lone block, or at the end of a tab strip (see build/markdown.ts).
+   * A demo's source panel carries the same button. The container takes the
+   * margin a lone block would have had, so the button lines up with the
+   * block's top edge rather than the gap above it, and the code and tabs keep
+   * clear of it on the right.
+   */
+  .code-copyable {
+    @apply relative mt-4;
+  }
+
+  .code-copyable > .code-block {
+    @apply mt-0 pr-14;
+  }
+
+  .code-copyable > .code-tabs-bar {
+    @apply pr-14;
+  }
+
+  .code-copy {
+    @apply absolute top-1.5 right-1.5 z-10 inline-flex cursor-pointer items-center rounded-lg border border-zinc-200 bg-white p-1.5 text-zinc-500 transition-colors dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-400;
+    @apply hover:text-zinc-900 dark:hover:text-zinc-100;
+  }
+
+  /*
    * Token colours for the blocks the markdown pipeline highlights. Shiki builds
    * both themes at once and writes each token's two colours as CSS variables,
    * so the swap below is all that picks between them — no second stylesheet,

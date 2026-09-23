@@ -4,6 +4,8 @@ import MarkdownIt, {
   type Token,
 } from 'markdown-it';
 
+import { icon } from './icons.ts';
+
 /**
  * Markdown → HTML, with the two bits of structure the docs layout needs:
  * stable heading ids to link at, and the heading list the "On this page" rail
@@ -69,6 +71,33 @@ const tabLabel = (info: string) => {
   const lang = info.trim().split(/\s+/)[0];
   return LANGUAGE_NAMES[lang] ?? lang;
 };
+
+/**
+ * Whether a fence asks for a copy button: a bare `copy` word after the
+ * language, as in ```` ```text copy ```` or ```` ```text title="React" copy ````.
+ * Quoted values are dropped first, so a title that says "copy" does not count.
+ */
+const wantsCopy = (info: string) =>
+  info
+    .replace(/"[^"]*"/g, '')
+    .trim()
+    .split(/\s+/)
+    .slice(1)
+    .includes('copy');
+
+/**
+ * The copy button a code panel carries, shared with the demos' source blocks.
+ * It copies the visible block beside it in the same container, which
+ * src/copy-code.ts looks up on the click.
+ */
+export const copyButton = (label: string) =>
+  [
+    '<button type="button" class="code-copy" data-copy-code',
+    `aria-label="${label}">`,
+    icon('copy', 'size-3.5 icon-idle'),
+    icon('check', 'size-3.5 icon-done'),
+    '</button>',
+  ].join(' ');
 
 /** The visible text of a heading, with the markdown syntax dropped. */
 const plainText = (token: Token): string =>
@@ -215,15 +244,24 @@ const createRenderer = async () => {
    * The tabs are stamped here, the first one selected, so the panel arrives
    * finished and src/code-tabs.ts only has to switch it. Ids are numbered per
    * page through `env`, which a render gets fresh.
+   *
+   * A fence flagged `copy` gets a copy button in the top corner, over the block
+   * or at the end of the tab strip. One flagged block is enough to give its
+   * panel the button, which then copies whichever tab is showing.
    */
   const renderFence = md.renderer.rules.fence!;
   const isFence = (token: Token | undefined) => token?.type === 'fence';
+  const copy = copyButton('Copy to clipboard');
 
   md.renderer.rules.fence = (tokens, index, options, env, self) => {
     const block = renderFence(tokens, index, options, env, self);
     const isFirst = !isFence(tokens[index - 1]);
     const isLast = !isFence(tokens[index + 1]);
-    if (isFirst && isLast) return block;
+    if (isFirst && isLast) {
+      return wantsCopy(tokens[index].info)
+        ? `<div class="code-copyable">${copy}${block}</div>\n`
+        : block;
+    }
 
     let start = index;
     while (isFence(tokens[start - 1])) start--;
@@ -237,7 +275,9 @@ const createRenderer = async () => {
     let open = '';
     if (isFirst) {
       const tabs: string[] = [];
+      let copyable = false;
       for (let i = index; isFence(tokens[i]); i++) {
+        copyable ||= wantsCopy(tokens[i].info);
         const selected = i === index;
         tabs.push(
           `<button type="button" role="tab" class="code-tab" id="${id}-tab-${i - index}"` +
@@ -248,7 +288,9 @@ const createRenderer = async () => {
       }
 
       open =
-        '<div class="code-tabs" data-code-tabs>' +
+        (copyable
+          ? `<div class="code-tabs code-copyable" data-code-tabs>${copy}`
+          : '<div class="code-tabs" data-code-tabs>') +
         `<div class="code-tabs-bar" role="tablist" data-keyrove-orientation="horizontal">${tabs.join('')}</div>`;
     }
 
