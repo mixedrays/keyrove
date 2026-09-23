@@ -15,7 +15,7 @@ values, with optional [modifiers](#modifiers).
 This toolbar uses <kbd class="kbd">←</kbd>/<kbd class="kbd">→</kbd> to move between buttons. <kbd class="kbd">↑</kbd>/<kbd class="kbd">↓</kbd> keep their
 browser behavior.
 
-<div data-demo="keys" data-demo-class="flex flex-wrap gap-1"></div>
+<div data-demo="keys" data-demo-class="flex flex-wrap gap-1" data-demo-label="text toolbar"></div>
 
 ```html
 <div data-keyrove-next-key="ArrowRight" data-keyrove-prev-key="ArrowLeft">
@@ -24,7 +24,7 @@ browser behavior.
 ```
 
 The handler stays `keyRove(e)`. Only bound keys are handled. Press <kbd class="kbd">↓</kbd> in the
-toolbar to see an unhandled key in the log; the browser can still scroll.
+toolbar to see an unhandled key in the readout; the browser can still scroll.
 
 ## Horizontal lists
 

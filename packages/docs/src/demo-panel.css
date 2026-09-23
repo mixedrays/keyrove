@@ -1,45 +1,45 @@
 /*
- * Reusable demo panels: contrasting themes, a compact readout and tabbed code.
+ * Reusable demo panels: a compact readout and tabbed code, in the page's theme.
  * Layout belongs to the embedding page; no hero or landing wrapper is needed.
  */
 @layer components {
+  /*
+   * Each token is its light value, then its dark one. `light-dark()` picks by
+   * the panel's color-scheme, which it inherits from the page (see style.css),
+   * so the header toggle moves the panels with everything else — and a page
+   * that wants its panels against its theme flips that one property.
+   */
   .demo-panel {
-    @apply overflow-hidden rounded-[1.125rem] border border-(--demo-edge) bg-(--demo-bg) text-(--demo-text) shadow-2xl shadow-zinc-950/25 dark:shadow-black/50;
+    @apply overflow-hidden rounded-[1.125rem] border border-(--demo-edge) bg-(--demo-bg) text-(--demo-text);
 
-    --demo-bg: var(--color-zinc-900);
-    --demo-edge: var(--color-zinc-900);
-    --demo-text: var(--color-zinc-300);
+    --demo-bg: light-dark(var(--color-white), var(--color-zinc-900));
+    --demo-edge: light-dark(var(--color-zinc-200), var(--color-zinc-900));
+    --demo-text: light-dark(var(--color-zinc-700), var(--color-zinc-300));
     --demo-muted: var(--color-zinc-500);
-    --demo-hover: var(--color-zinc-800);
-    --demo-accent: var(--color-indigo-400);
-    --demo-on-accent: var(--color-zinc-950);
-    --demo-readout: var(--color-indigo-300);
-    --demo-warn: var(--color-amber-400);
-    --demo-rule: var(--color-zinc-800);
-    --demo-strip: --alpha(var(--color-zinc-950) / 40%);
-    --demo-code: var(--color-zinc-200);
-    --demo-tab-hover: var(--color-zinc-200);
-    --demo-chip: var(--color-zinc-800);
-    --demo-chip-text: var(--color-zinc-100);
-    --demo-chip-edge: var(--color-zinc-700);
+    --demo-hover: light-dark(var(--color-zinc-100), var(--color-zinc-800));
+    --demo-accent: light-dark(var(--color-indigo-600), var(--color-indigo-400));
+    --demo-on-accent: light-dark(var(--color-white), var(--color-zinc-950));
+    --demo-readout: light-dark(var(--color-indigo-600), var(--color-indigo-300));
+    --demo-warn: light-dark(var(--color-amber-600), var(--color-amber-400));
+    --demo-rule: light-dark(var(--color-zinc-200), var(--color-zinc-800));
+    --demo-strip: light-dark(
+      var(--color-zinc-50),
+      --alpha(var(--color-zinc-950) / 40%)
+    );
+    --demo-code: light-dark(var(--color-zinc-800), var(--color-zinc-200));
+    --demo-tab-hover: light-dark(var(--color-zinc-900), var(--color-zinc-200));
+    --demo-chip: light-dark(var(--color-zinc-200), var(--color-zinc-800));
+    --demo-chip-text: light-dark(var(--color-zinc-900), var(--color-zinc-100));
+    --demo-chip-edge: light-dark(var(--color-zinc-200), var(--color-zinc-700));
+  }
+
+  /* The landing page sets its panels against the page on purpose: dark on a
+     light page, light on a dark one. */
+  .landing .demo-panel {
+    color-scheme: dark;
 
     @variant dark {
-      --demo-bg: var(--color-white);
-      --demo-edge: var(--color-zinc-200);
-      --demo-text: var(--color-zinc-700);
-      --demo-muted: var(--color-zinc-500);
-      --demo-hover: var(--color-zinc-100);
-      --demo-accent: var(--color-indigo-600);
-      --demo-on-accent: var(--color-white);
-      --demo-readout: var(--color-indigo-600);
-      --demo-warn: var(--color-amber-600);
-      --demo-rule: var(--color-zinc-200);
-      --demo-strip: var(--color-zinc-50);
-      --demo-code: var(--color-zinc-800);
-      --demo-tab-hover: var(--color-zinc-900);
-      --demo-chip: var(--color-zinc-200);
-      --demo-chip-text: var(--color-zinc-900);
-      --demo-chip-edge: var(--color-zinc-200);
+      color-scheme: light;
     }
   }
 
@@ -100,10 +100,24 @@
    * The code strip: the page's own tabbed code panel (see build/markdown.ts),
    * joined to the panel's foot. It gives up the frame it carries in prose —
    * the panel is its frame — and takes the panel's palette, Shiki's token
-   * colours included: the panel's theme, not the page's.
+   * colours included: the panel's color-scheme, which is not always the page's.
    */
   .demo-panel .code-tabs {
     @apply mt-0 rounded-none border-0 border-t border-(--demo-rule) bg-(--demo-strip);
+  }
+
+  /* A demo whose page shows no script has one file and so no tabs: the lone
+     block joins the foot on the same terms, without a strip of one tab. */
+  .demo-panel > .code-copyable:not(.code-tabs) {
+    @apply mt-0 border-t border-(--demo-rule) bg-(--demo-strip);
+  }
+
+  .demo-panel > .code-copyable > .code-block {
+    @apply rounded-none border-0;
+  }
+
+  .demo-panel > .code-copyable:not(.code-tabs) > .code-copy {
+    @apply top-2.5;
   }
 
   .demo-panel .code-tabs-bar {
@@ -127,11 +141,7 @@
   }
 
   .demo-panel .shiki span {
-    color: var(--shiki-dark);
-
-    @variant dark {
-      color: var(--shiki-light);
-    }
+    color: light-dark(var(--shiki-light), var(--shiki-dark));
   }
 
   /* The keys the demo answers to, under the panel. Set on the page rather

@@ -30,6 +30,13 @@ const ITEMS: Record<string, Record<string, IconName>> = {
   },
   tools: TOOLS,
   'landing-tools': TOOLS,
+  keys: {
+    Bold: 'bold',
+    Italic: 'italic',
+    Underline: 'underline',
+    Link: 'link',
+    Code: 'code',
+  },
   nested: {
     Reply: 'reply',
     'Reply in thread': 'message',

@@ -11,7 +11,7 @@ Set `data-keyrove-orientation="horizontal"` on a list's root to use
 <kbd class="kbd">←</kbd>/<kbd class="kbd">→</kbd>. In left-to-right text, <kbd class="kbd">→</kbd> moves to the next item and <kbd class="kbd">←</kbd> to the
 previous one. <kbd class="kbd">↑</kbd>/<kbd class="kbd">↓</kbd> keep their browser behavior.
 
-<div data-demo="orientation" data-demo-class="flex flex-wrap gap-1.5"></div>
+<div data-demo="orientation" data-demo-class="flex flex-wrap gap-1.5" data-demo-label="mail filters"></div>
 
 ```ts
 document
@@ -28,9 +28,9 @@ the orientation is set to the literal value `horizontal`.
 Under `dir="rtl"`, the defaults reverse: <kbd class="kbd">←</kbd> is next and <kbd class="kbd">→</kbd> is previous.
 This keeps navigation aligned with items laid out in right-to-left order.
 
-<div data-demo="rtl" data-demo-class="flex flex-wrap gap-1.5"></div>
+<div data-demo="rtl" data-demo-class="flex flex-wrap gap-1.5" data-demo-label="right-to-left filters"></div>
 
-Compare the logs: <kbd class="kbd">→</kbd> reports `next` in the first bar and `prev` in the RTL
+Compare the readouts: <kbd class="kbd">→</kbd> reports `next` in the first bar and `prev` in the RTL
 bar. The action names describe movement through DOM order.
 
 The direction comes from the nearest `dir` attribute at or above the root, and

@@ -1,10 +1,12 @@
 import {
   ArrowRight,
   ArrowRightToLine,
+  Bold,
   BookOpen,
   Braces,
   Check,
   Circle,
+  Code,
   Command,
   Copy,
   FileCode,
@@ -16,6 +18,7 @@ import {
   FolderOpen,
   Hand,
   Inbox,
+  Italic,
   Keyboard,
   Layers,
   LayoutGrid,
@@ -41,6 +44,7 @@ import {
   TextCursorInput,
   Trash2,
   Type,
+  Underline,
   X,
   type IconNode,
 } from 'lucide';
@@ -139,6 +143,10 @@ const ICONS = {
   'file-code': fromLucide(FileCode),
   'file-json': fromLucide(FileJson),
   'file-text': fromLucide(FileText),
+  bold: fromLucide(Bold),
+  italic: fromLucide(Italic),
+  underline: fromLucide(Underline),
+  code: fromLucide(Code),
 
   /*
    * The markdown mark — a filled glyph on a 16-unit grid, so it opts out of the

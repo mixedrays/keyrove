@@ -16,7 +16,7 @@ Add `data-keyrove-item` and `tabindex="0"` to each list item, then attach a
 - <kbd class="kbd">Home</kbd> / <kbd class="kbd">End</kbd> jump to the first or last item.
 - <kbd class="kbd">PageUp</kbd> / <kbd class="kbd">PageDown</kbd> move in blocks.
 
-<div data-demo="list" data-demo-class="max-h-60 overflow-y-auto"></div>
+<div data-demo="list" data-demo-class="-m-1 max-h-60 overflow-y-auto p-1" data-demo-label="countries"></div>
 
 ```ts
 import { keyRove } from '@mixedrays/keyrove';
@@ -54,11 +54,11 @@ list.addEventListener('keydown', (e) => {
 });
 ```
 
-The demo log shows three outcomes:
+The readout at the top of the demo shows three outcomes:
 
-- **Green:** focus moved; `onMove` fired.
+- **Indigo:** focus moved; `onMove` fired.
 - **Amber:** keyrove handled the key, but focus stayed in place.
 - **Grey:** keyrove left the key to the browser.
 
-Amber and grey rows use `keyRove`'s [return value](/docs/api#return-value).
+Amber and grey readouts use `keyRove`'s [return value](/docs/api#return-value).
 Other handlers can use it to check whether keyrove handled the key.
