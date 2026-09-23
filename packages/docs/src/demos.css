@@ -59,10 +59,9 @@
   }
 
   /* The block sits inside the demo's own frame, so it gives up the border and
-     rounding it carries when it stands alone in prose. No height cap: the fold
-     in the demo file is what keeps a block short, so anything that reaches here
-     is meant to be read in full. The padding on the right keeps the longest
-     line clear of the copy button. */
+     rounding it carries when it stands alone in prose. It keeps the shared
+     height cap and scrolling; the padding on the right keeps the longest line
+     clear of the copy button. */
   .demo-code .code-block {
     @apply mt-0 rounded-none border-0 pr-14;
   }

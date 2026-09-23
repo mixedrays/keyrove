@@ -64,66 +64,368 @@ menu.addEventListener('keydown', (e) => keyRove(e));
 </div>
 </div>
 
-## Attributes or options
+<section class="landing-section" aria-labelledby="use-it-in-your-framework">
+<div class="landing-section-copy">
+<p class="landing-step">01 / Your stack</p>
 
-The list above marks its items with `data-keyrove-item`. When you cannot change
-the markup, such as a component library's menu or CMS content, describe the
-group in JavaScript instead. This menu has no keyrove attributes: its options
-turn on looping and roving tabindex, and typeahead runs as a second handler, so
-typing a letter jumps to the matching item.
+## Use it in your framework
 
-<div data-demo="menu"></div>
+The same items, the same handler. `keyRove` accepts native keyboard events
+and compatible framework events, including React's synthetic events.
+There is no adapter or wrapper component to install.
+
+Start with ordinary attributes. When you want type-checked settings,
+[attribute builders](/docs/api#attribute-builders) fit the same templates.
+
+[Framework setup](/docs/installation)
+
+</div>
+<div class="landing-section-demo">
+
+<div class="hero-panel landing-code">
+
+```ts title="Vanilla" copy
+import { keyRove } from '@mixedrays/keyrove';
+
+const menu = document.querySelector('#menu');
+menu.addEventListener('keydown', (e) => keyRove(e));
+```
+
+```tsx title="React"
+import { keyRove } from '@mixedrays/keyrove';
+
+export const Menu = () => (
+  <ul onKeyDown={keyRove}>
+    <li data-keyrove-item tabIndex={0}>
+      Inbox
+    </li>
+    <li data-keyrove-item tabIndex={0}>
+      Drafts
+    </li>
+    <li data-keyrove-item tabIndex={0}>
+      Sent
+    </li>
+  </ul>
+);
+```
+
+```vue title="Vue"
+<script setup>
+import { keyRove } from '@mixedrays/keyrove';
+</script>
+
+<template>
+  <ul @keydown="keyRove">
+    <li data-keyrove-item tabindex="0">Inbox</li>
+    <li data-keyrove-item tabindex="0">Drafts</li>
+    <li data-keyrove-item tabindex="0">Sent</li>
+  </ul>
+</template>
+```
+
+```svelte title="Svelte"
+<script>
+  import { keyRove } from '@mixedrays/keyrove';
+</script>
+
+<ul onkeydown={keyRove}>
+  <li data-keyrove-item tabindex="0">Inbox</li>
+  <li data-keyrove-item tabindex="0">Drafts</li>
+  <li data-keyrove-item tabindex="0">Sent</li>
+</ul>
+```
+
+</div>
+
+</div>
+</section>
+
+<section class="landing-section" aria-labelledby="add-only-the-behavior-you-need">
+<div class="landing-section-copy">
+<p class="landing-step">02 / Your settings</p>
+
+## Add only the behavior you need
+
+Keep the handler. Change a setting in the markup.
+
+**Looping** wraps from the last item to the first. **Horizontal** changes
+the default arrows. **One tab stop** lets Tab enter and leave the group while
+the arrows move within it.
+
+Each example adds just one behavior to the list you already know.
+
+</div>
+<div class="landing-section-demo">
+
+<div class="pattern-tabs" data-code-tabs>
+<div class="pattern-tabs-bar" role="tablist" aria-label="List behavior" data-keyrove-orientation="horizontal">
+<button type="button" role="tab" class="pattern-tab" id="behavior-tab-0" aria-controls="behavior-panel-0" aria-selected="true" tabindex="0" data-keyrove-item>Looping</button>
+<button type="button" role="tab" class="pattern-tab" id="behavior-tab-1" aria-controls="behavior-panel-1" aria-selected="false" tabindex="-1" data-keyrove-item>Horizontal</button>
+<button type="button" role="tab" class="pattern-tab" id="behavior-tab-2" aria-controls="behavior-panel-2" aria-selected="false" tabindex="-1" data-keyrove-item>One tab stop</button>
+</div>
+<div class="pattern-panel" role="tabpanel" id="behavior-panel-0" aria-labelledby="behavior-tab-0">
+
+<div data-demo="landing-loop" data-demo-label="looping folders"></div>
+
+```ts
+import { keyRove } from '@mixedrays/keyrove';
+
+const folders = document.querySelector('#folders-loop');
+folders.addEventListener('keydown', (e) => keyRove(e));
+```
+
+Press <kbd class="kbd">↓</kbd> on Sent to return to Inbox.
+
+[Looping lists](/docs/examples/looping-lists)
+
+</div>
+<div class="pattern-panel" role="tabpanel" id="behavior-panel-1" aria-labelledby="behavior-tab-1" hidden>
+
+<div data-demo="landing-horizontal" data-demo-label="horizontal folders"></div>
+
+```ts
+import { keyRove } from '@mixedrays/keyrove';
+
+const folders = document.querySelector('#folders-horizontal');
+folders.addEventListener('keydown', (e) => keyRove(e));
+```
+
+Use <kbd class="kbd">←</kbd> and <kbd class="kbd">→</kbd> to move between folders.
+
+[Horizontal lists](/docs/examples/horizontal-lists)
+
+</div>
+<div class="pattern-panel" role="tabpanel" id="behavior-panel-2" aria-labelledby="behavior-tab-2" hidden>
+
+<div data-demo="landing-roving" data-demo-label="one tab stop"></div>
+
+```ts
+import { keyRove } from '@mixedrays/keyrove';
+
+const folders = document.querySelector('#folders-roving');
+folders.addEventListener('keydown', (e) => keyRove(e));
+```
+
+Move with the arrows, then press <kbd class="kbd">Tab</kbd> to leave the group.
+
+[Roving tabindex](/docs/examples/roving-tabindex)
+
+</div>
+</div>
+
+</div>
+</section>
+
+<section class="landing-section" aria-labelledby="configure-it-where-it-fits">
+<div class="landing-section-copy">
+<p class="landing-step">03 / Your markup</p>
+
+## Configure it where it fits
+
+Write attributes when you own the markup. Use an item selector when the HTML
+comes from a component library or CMS. These two setups navigate identically.
+
+You can mix both: `keyRove(e, { loop: true })` overrides looping while still
+reading the items and other settings from their attributes.
+
+[Attributes and options](/docs/attributes-and-options)
+
+</div>
+<div class="landing-section-demo">
+
+<div class="hero-panel landing-code">
+
+```html title="Attributes" copy
+<ul id="folders">
+  <li data-keyrove-item tabindex="0">Inbox</li>
+  <li data-keyrove-item tabindex="0">Drafts</li>
+  <li data-keyrove-item tabindex="0">Sent</li>
+</ul>
+<script type="module">
+  import { keyRove } from '@mixedrays/keyrove';
+
+  const folders = document.querySelector('#folders');
+  folders.addEventListener('keydown', (e) => keyRove(e));
+</script>
+```
+
+```html title="Options"
+<ul id="folders">
+  <li tabindex="0">Inbox</li>
+  <li tabindex="0">Drafts</li>
+  <li tabindex="0">Sent</li>
+</ul>
+<script type="module">
+  import { keyRove } from '@mixedrays/keyrove';
+
+  const folders = document.querySelector('#folders');
+  folders.addEventListener('keydown', (e) => keyRove(e, { items: 'li' }));
+</script>
+```
+
+</div>
+
+</div>
+</section>
+
+<section class="landing-section" aria-labelledby="move-through-a-grid">
+<div class="landing-section-copy">
+<p class="landing-step">04 / Your layout</p>
+
+## Move through a grid
+
+Give the group a column count and the same handler moves across cells and
+between rows. Your CSS still controls the layout.
+
+For a responsive CSS grid, set `data-keyrove-cols="auto"`. KeyRove reads the
+current tracks on each keypress, so resizing needs no navigation instance
+to update.
+
+[Grid navigation](/docs/examples/grid)
+
+</div>
+<div class="landing-section-demo">
+
+<div class="pattern-tabs" data-code-tabs>
+<div class="pattern-tabs-bar" role="tablist" aria-label="Grid layout" data-keyrove-orientation="horizontal">
+<button type="button" role="tab" class="pattern-tab" id="layout-tab-0" aria-controls="layout-panel-0" aria-selected="true" tabindex="0" data-keyrove-item>Fixed columns</button>
+<button type="button" role="tab" class="pattern-tab" id="layout-tab-1" aria-controls="layout-panel-1" aria-selected="false" tabindex="-1" data-keyrove-item>Responsive</button>
+</div>
+<div class="pattern-panel" role="tabpanel" id="layout-panel-0" aria-labelledby="layout-tab-0">
+
+<div data-demo="landing-grid" data-demo-label="time slots"></div>
+
+```ts
+import { keyRove } from '@mixedrays/keyrove';
+
+const slots = document.querySelector('#slots');
+slots.addEventListener('keydown', (e) => keyRove(e));
+```
+
+Use all four arrows. <kbd class="kbd">Home</kbd> and <kbd class="kbd">End</kbd> jump to the ends of a row.
+
+</div>
+<div class="pattern-panel" role="tabpanel" id="layout-panel-1" aria-labelledby="layout-tab-1" hidden>
+
+<div data-demo="responsive" data-demo-label="responsive months"></div>
+
+```ts selected
+import { keyRove } from '@mixedrays/keyrove';
+
+const months = document.querySelector('#months');
+months.addEventListener('keydown', (e) => keyRove(e));
+```
+
+Drag the preview’s lower-right corner to resize it, then try the arrows.
+
+[Responsive grid](/docs/examples/responsive-grid)
+
+</div>
+</div>
+
+</div>
+</section>
+
+<section class="landing-section" aria-labelledby="combine-behaviors">
+<div class="landing-section-copy">
+<p class="landing-step">05 / Your interaction</p>
+
+## Combine behaviors
+
+Now put the pieces together: a menu configured with an item selector,
+looping, and one tab stop.
+
+Add `createTypeahead` when people should also be able to find an item by
+its label. Both handlers share the same group settings; `||` passes a key
+to typeahead only when navigation leaves it unhandled.
+
+[JavaScript options](/docs/examples/javascript-options) ·
+[Typeahead](/docs/examples/typeahead)
+
+</div>
+<div class="landing-section-demo">
+
+<div data-demo="menu" data-demo-label="share menu"></div>
 
 ```ts selected
 import { createTypeahead, keyRove } from '@mixedrays/keyrove';
 
-const config = { items: '[role="menuitem"]', loop: true, rovingTabindex: true };
+const config = {
+  items: '[role="menuitem"]',
+  loop: true,
+  rovingTabindex: true,
+};
 const typeahead = createTypeahead(config);
+const menu = document.querySelector('#share');
 
-const menu = document.querySelector<HTMLElement>('#share')!;
 menu.addEventListener('keydown', (e) => keyRove(e, config) || typeahead(e));
 ```
 
-Options override attributes one setting at a time, so you can mix both. See
-[attributes and options](/docs/attributes-and-options) or the full
-[JavaScript options example](/docs/examples/javascript-options).
+<p class="hero-demo-hint">Type <kbd class="kbd">E</kbd> to focus Email a copy. Arrows skip the disabled item and wrap at the ends.</p>
 
-## Grids, trees and toolbars
+</div>
+</section>
 
-The same handler covers every shape. Pick one and try its keys.
+<section class="landing-section" aria-labelledby="build-more-involved-interfaces">
+<div class="landing-section-copy">
+<p class="landing-step">06 / Your application</p>
+
+## Build more involved interfaces
+
+Give an item a shortcut. Nest groups with their own keys. Or combine focus
+navigation with your application's behavior.
+
+The tree is the fullest example: KeyRove navigates visible rows and typeahead
+finds them by name. Your code opens and closes folders, sets ARIA states,
+and decides what activating a file does.
+
+Start with the part you need; the same handler stays underneath.
+
+</div>
+<div class="landing-section-demo">
 
 <div class="pattern-tabs" data-code-tabs>
-<div class="pattern-tabs-bar" role="tablist" aria-label="Layouts" data-keyrove-orientation="horizontal">
-<button type="button" role="tab" class="pattern-tab" id="pattern-tab-grid" aria-controls="pattern-grid" aria-selected="true" tabindex="0" data-keyrove-item>Grid</button>
-<button type="button" role="tab" class="pattern-tab" id="pattern-tab-tree" aria-controls="pattern-tree" aria-selected="false" tabindex="-1" data-keyrove-item>Tree</button>
-<button type="button" role="tab" class="pattern-tab" id="pattern-tab-toolbar" aria-controls="pattern-toolbar" aria-selected="false" tabindex="-1" data-keyrove-item>Toolbar</button>
+<div class="pattern-tabs-bar" role="tablist" aria-label="Advanced examples" data-keyrove-orientation="horizontal">
+<button type="button" role="tab" class="pattern-tab" id="advanced-tab-0" aria-controls="advanced-panel-0" aria-selected="true" tabindex="0" data-keyrove-item>Shortcuts</button>
+<button type="button" role="tab" class="pattern-tab" id="advanced-tab-1" aria-controls="advanced-panel-1" aria-selected="false" tabindex="-1" data-keyrove-item>Nested groups</button>
+<button type="button" role="tab" class="pattern-tab" id="advanced-tab-2" aria-controls="advanced-panel-2" aria-selected="false" tabindex="-1" data-keyrove-item>Tree</button>
 </div>
-<div class="pattern-panel" role="tabpanel" id="pattern-grid" aria-labelledby="pattern-tab-grid">
+<div class="pattern-panel" role="tabpanel" id="advanced-panel-0" aria-labelledby="advanced-tab-0">
 
-Set `data-keyrove-cols` and the arrows move by cell and by row.
-<kbd class="kbd">Home</kbd>/<kbd class="kbd">End</kbd> jump to the ends of a
-row, and <kbd class="kbd">PageUp</kbd>/<kbd class="kbd">PageDown</kbd> move two
-rows at a time here.
-
-<div data-demo="grid" data-demo-class="grid grid-cols-6 gap-1.5"></div>
+<div data-demo="tools" data-demo-label="drawing tools"></div>
 
 ```ts
-document
-  .querySelector('#time-slots')
-  .addEventListener('keydown', (e) => keyRove(e));
+import { keyRove } from '@mixedrays/keyrove';
+
+const tools = document.querySelector('#tools');
+tools.addEventListener('keydown', (e) => keyRove(e));
 ```
 
-[Grid example](/docs/examples/grid)
+Press <kbd class="kbd">P</kbd> for Pen, then <kbd class="kbd">↓</kbd> to continue.
+
+[Focus keys](/docs/examples/focus-keys)
 
 </div>
-<div class="pattern-panel" role="tabpanel" id="pattern-tree" aria-labelledby="pattern-tab-tree" hidden>
+<div class="pattern-panel" role="tabpanel" id="advanced-panel-1" aria-labelledby="advanced-tab-1" hidden>
 
-This tree is described in JavaScript. `skip` passes over rows inside closed
-folders, and your own handler opens and closes them with
-<kbd class="kbd">→</kbd> and <kbd class="kbd">←</kbd>. Type a file name to jump
-to it.
+<div data-demo="nested" data-demo-label="message actions"></div>
 
-<div data-demo="tree"></div>
+```ts
+import { keyRove } from '@mixedrays/keyrove';
+
+const actions = document.querySelector('#message-actions');
+// One listener also serves the nested reaction row.
+actions.addEventListener('keydown', (e) => keyRove(e));
+```
+
+Use <kbd class="kbd">↑</kbd>/<kbd class="kbd">↓</kbd> in the menu. Focus a reaction to try <kbd class="kbd">←</kbd>/<kbd class="kbd">→</kbd>; <kbd class="kbd">Esc</kbd> leaves its group.
+
+[Nested roots](/docs/examples/nested-roots)
+
+</div>
+<div class="pattern-panel" role="tabpanel" id="advanced-panel-2" aria-labelledby="advanced-tab-2" hidden>
+
+<div data-demo="tree" data-demo-label="project files"></div>
 
 ```ts selected
 import { createTypeahead, keyRove } from '@mixedrays/keyrove';
@@ -136,156 +438,23 @@ const config = {
 };
 const typeahead = createTypeahead(config);
 
-// `branch` opens and closes folders. It is your code, not keyrove's;
-// the tree view example writes it out in full.
-tree.addEventListener('keydown', (e) => {
-  keyRove(e, config) || typeahead(e) || branch(e);
-});
-```
-
-[Tree view example](/docs/examples/tree-view)
-
-</div>
-<div class="pattern-panel" role="tabpanel" id="pattern-toolbar" aria-labelledby="pattern-tab-toolbar" hidden>
-
-Give an item a focus key and it becomes a shortcut as well as a stop. With
-focus in the palette, press <kbd class="kbd">P</kbd> for the pen, then
-<kbd class="kbd">↓</kbd> to step on from there. The palette keeps one tab stop,
-wherever you left it.
-
-<div data-demo="tools"></div>
-
-```ts
-document.querySelector('#tools').addEventListener('keydown', (e) => keyRove(e));
-```
-
-[Focus keys example](/docs/examples/focus-keys)
-
-</div>
-</div>
-
-## Works with your framework
-
-`keyRove` takes native keyboard events and framework events of the same shape,
-React's synthetic events included, so there is no adapter to install. The
-attribute builders type your settings; hand-written attributes work too.
-
-```ts title="Vanilla" copy
-import { keyRove } from '@mixedrays/keyrove';
-
-const menu = document.querySelector('#menu');
-menu.addEventListener('keydown', (e) => keyRove(e));
-```
-
-```tsx title="React"
-import { itemAttributes, keyRove, rootAttributes } from '@mixedrays/keyrove';
-
-export const Menu = ({ items }) => (
-  <ul {...rootAttributes()} onKeyDown={keyRove}>
-    {items.map((item) => (
-      <li key={item.id} {...itemAttributes()} tabIndex={0}>
-        {item.label}
-      </li>
-    ))}
-  </ul>
+// branch is your application's expand/collapse handler.
+// The full tree example includes its implementation.
+tree.addEventListener(
+  'keydown',
+  (e) => keyRove(e, config) || typeahead(e) || branch(e),
 );
 ```
 
-```vue title="Vue"
-<script setup lang="ts">
-import { itemAttributes, keyRove, rootAttributes } from '@mixedrays/keyrove';
+Use <kbd class="kbd">→</kbd> to open a folder and <kbd class="kbd">←</kbd> to close it. Type a file name to jump.
 
-defineProps<{ items: { id: string; label: string }[] }>();
-</script>
-
-<template>
-  <ul v-bind="rootAttributes()" @keydown="keyRove">
-    <li
-      v-for="item in items"
-      :key="item.id"
-      v-bind="itemAttributes()"
-      tabindex="0"
-    >
-      {{ item.label }}
-    </li>
-  </ul>
-</template>
-```
-
-```svelte title="Svelte"
-<script lang="ts">
-  import { itemAttributes, keyRove, rootAttributes } from '@mixedrays/keyrove';
-
-  let { items }: { items: { id: string; label: string }[] } = $props();
-</script>
-
-<ul {...rootAttributes()} onkeydown={keyRove}>
-  {#each items as item (item.id)}
-    <li {...itemAttributes()} tabindex="0">{item.label}</li>
-  {/each}
-</ul>
-```
-
-[Installation](/docs/installation) covers each setup in full.
-
-## What else it handles
-
-<div class="feature-grid">
-<div class="feature">
-<span data-icon="refresh" class="feature-icon"></span>
-
-### [Nothing to mount or dispose](/docs/introduction#how-it-works)
-
-`keyRove` reads the DOM on every keypress, so there is no instance to update
-when items change.
-
-</div>
-<div class="feature">
-<span data-icon="command" class="feature-icon"></span>
-
-### [Any key, not just arrows](/docs/examples/custom-keys)
-
-Bind moves to any `KeyboardEvent.code` or combo, such as `mod+KeyJ`, group by
-group.
-
-</div>
-<div class="feature">
-<span data-icon="tab" class="feature-icon"></span>
-
-### [Tab is left alone](/docs/introduction#tab-still-works)
-
-<kbd class="kbd">Tab</kbd>, <kbd class="kbd">Enter</kbd> and
-<kbd class="kbd">Space</kbd> keep their defaults. Roving tabindex gives a group
-one tab stop when you want it.
-
-</div>
-<div class="feature">
-<span data-icon="skip" class="feature-icon"></span>
-
-### [Not everything is a stop](/docs/examples/skipped-items)
-
-Skip headings, separators and disabled items without taking them out of the
-DOM.
-
-</div>
-<div class="feature">
-<span data-icon="layers" class="feature-icon"></span>
-
-### [Groups inside groups](/docs/examples/nested-roots)
-
-Nested roots keep their own keys and settings, all under one listener.
-
-</div>
-<div class="feature">
-<span data-icon="text-cursor" class="feature-icon"></span>
-
-### [Jump and type to focus](/docs/examples/typeahead)
-
-Focus keys jump straight to an item or panel, and typeahead finds an item by
-its label.
+[Full tree implementation](/docs/examples/tree-view#a-full-tree-view)
 
 </div>
 </div>
+
+</div>
+</section>
 
 ## What it leaves to you
 

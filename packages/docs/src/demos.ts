@@ -125,6 +125,78 @@ export const keyLabel = (e: KeyboardEvent) => {
 const isMoveResult = (value: unknown): value is MoveResult =>
   typeof value === 'object' && value !== null && 'action' in value;
 
+/** The landing's compact panels report one key at a time, like the hero. */
+const createReadout = (surface: HTMLElement, line: HTMLElement): Log => {
+  let movement: { action: string; to: Element } | null = null;
+  let widget: { target: Element; phrase: string } | null = null;
+
+  const show = (state: string, key: string, message: string) => {
+    line.dataset.state = state;
+    const label = document.createElement('span');
+    label.className = 'hero-readout-target';
+    label.textContent = message;
+    if (state === 'blurred' || state === 'listening') {
+      label.setAttribute('aria-hidden', 'true');
+    }
+    line.replaceChildren(label);
+    if (key) {
+      const cap = document.createElement('kbd');
+      cap.textContent = key;
+      line.prepend(cap);
+    }
+    line.classList.remove('hero-readout-fresh');
+    void line.offsetWidth;
+    line.classList.add('hero-readout-fresh');
+  };
+
+  surface.addEventListener('focusin', (e) => {
+    if (!surface.contains(e.relatedTarget as Node | null)) {
+      show('listening', '', 'listening…');
+    }
+  });
+  surface.addEventListener('focusout', (e) => {
+    if (!surface.contains(e.relatedTarget as Node | null)) {
+      show('blurred', '', 'click to focus');
+    }
+  });
+
+  return {
+    move: (move) => {
+      movement = move;
+    },
+    widget: (target, key, phrase) => {
+      widget = { target, phrase };
+      if (!key) {
+        show('moved', '', `${phrase} → ${nameOf(target)}`);
+        widget = null;
+      }
+    },
+    keydown: (e, claimed) => {
+      if (!MODIFIER_KEYS.has(e.key)) {
+        if (widget) {
+          show(
+            'moved',
+            keyLabel(e),
+            `${widget.phrase} → ${nameOf(widget.target)}`,
+          );
+        } else if (movement) {
+          show(
+            'moved',
+            keyLabel(e),
+            `${movement.action} → ${nameOf(movement.to)}`,
+          );
+        } else if (isMoveResult(claimed)) {
+          show('edge', keyLabel(e), `${claimed.action} · moved nothing`);
+        } else if (surface.contains(document.activeElement)) {
+          show('passed', keyLabel(e), 'left to the browser');
+        }
+      }
+      movement = null;
+      widget = null;
+    },
+  };
+};
+
 /**
  * Wires a demo's history, or answers null for the demos that keep one line.
  *
@@ -535,17 +607,23 @@ const firstItem = (surface: HTMLElement, { items: named }: GroupOptions) => {
 
 /** Wires every demo on the current page. */
 export const mountDemos = () => {
-  const demos = Array.from(document.querySelectorAll<HTMLElement>('.demo'));
+  const demos = Array.from(
+    document.querySelectorAll<HTMLElement>('.demo, .landing-demo'),
+  );
 
   demos.forEach((demo, index) => {
     const surface = demo.querySelector<HTMLElement>(
-      ':scope > .demo-preview > .demo-surface',
+      ':scope > :is(.demo-preview, .landing-preview) > .demo-surface',
     );
 
     // A demo draws one log or the other, and build/demos.ts decides which.
     const line = demo.querySelector<HTMLElement>('.log');
-    const log = createHistory(demo) ?? (line ? createLine(line) : null);
-    if (!surface || !log) return;
+    if (!surface) return;
+    const readout = demo.querySelector<HTMLElement>('[data-demo-readout]');
+    const log = readout
+      ? createReadout(surface, readout)
+      : (createHistory(demo) ?? (line ? createLine(line) : null));
+    if (!log) return;
 
     // Almost every demo is described in its own markup, which is what the
     // pages teach; `CONFIGS` holds the exceptions, each handed to the

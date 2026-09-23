@@ -54,6 +54,8 @@ const FENCE = '```';
  * `data-demo-class` is layout the demo needs but the library does not teach —
  * the grid's columns, the long list's scroll box. It lands on the surface at
  * render time rather than in the fragment, so it stays out of the source block.
+ * `data-demo-label` opts into the landing's compact hero-style panel and names
+ * its live preview. Without it, example pages keep their detailed history.
  *
  * The blocks are the demo's other files, and they are taken with it so they
  * can share its panel. HTML is left where it stands: a demo has one HTML file,
@@ -61,7 +63,7 @@ const FENCE = '```';
  * custom keys picks out the two attributes of its root — not a second one.
  */
 const PLACEHOLDER = new RegExp(
-  String.raw`^<div data-demo="([\w-]+)"(?: data-demo-class="([^"]*)")?><\/div>$` +
+  String.raw`^<div data-demo="([\w-]+)"(?: data-demo-class="([^"]*)")?(?: data-demo-label="([^"]*)")?><\/div>$` +
     String.raw`((?:\n\n${FENCE}(?!html\b)\w[^\n]*\n[\s\S]*?\n${FENCE}$)*)`,
   'gm',
 );
@@ -214,6 +216,7 @@ const renderUnit = (
   markup: string,
   surfaceClass: string,
   files: string,
+  label?: string,
 ) => {
   const live = withClass(
     toLive(markup),
@@ -221,6 +224,27 @@ const renderUnit = (
   );
 
   const copy = copyButton('Copy code');
+
+  // Landing panels share the hero's palette and compact readout. The source
+  // still comes from the very same fragment as the working demo.
+  if (label) {
+    const escaped = label
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
+    return `<div class="landing-demo hero-panel" data-demo="${name}">
+<div class="hero-panel-head">
+<span class="hero-panel-label"><span class="hero-demo-dot" aria-hidden="true"></span>Live · ${escaped}</span>
+<output class="hero-readout" data-demo-readout data-state="blurred"><span aria-hidden="true">click to focus</span></output>
+</div>
+<div class="landing-preview">${live}</div>
+
+${FENCE}html copy
+${toExcerpt(markup)}
+${FENCE}${files}
+
+</div>`;
+  }
 
   // The band demos say so on the wrapper: the layout is a property of the
   // demo, and keying the stylesheet off a name would put the list in two
@@ -280,14 +304,20 @@ export const expandDemos = (
 ): string =>
   body.replace(
     PLACEHOLDER,
-    (_match, name: string, surfaceClass = '', files: string) => {
+    (
+      _match,
+      name: string,
+      surfaceClass = '',
+      label: string | undefined,
+      files: string,
+    ) => {
       const markup = demos.get(name);
       if (markup === undefined) {
         throw new Error(`[docs] no demo named "${name}" in content/_demos.`);
       }
 
       return target === 'html'
-        ? renderUnit(name, markup, surfaceClass, files)
+        ? renderUnit(name, markup, surfaceClass, files, label)
         : `${FENCE}html\n${toExcerpt(markup)}\n${FENCE}${files}`;
     },
   );

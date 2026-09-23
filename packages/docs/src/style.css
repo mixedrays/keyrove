@@ -196,7 +196,7 @@
      footer rows track whichever the page between them uses. After both rows,
      so it wins over the width each sets for the docs. */
   .header-row-narrow {
-    @apply max-w-5xl;
+    @apply max-w-6xl;
   }
 
   /* ---------- docs shell ---------- */
@@ -534,7 +534,7 @@
      it. Paragraphs are held to a reading width inside it; demos, code and the
      card grids are not prose and keep the whole of it. */
   .landing {
-    @apply mx-auto max-w-5xl px-6 pb-24;
+    @apply mx-auto max-w-6xl px-6 pb-24;
   }
 
   .landing :where(p) {
@@ -852,7 +852,7 @@
   }
 
   .pattern-tabs-bar {
-    @apply inline-flex max-w-full gap-1 rounded-xl border border-zinc-200 bg-zinc-50 p-1 dark:border-zinc-800 dark:bg-zinc-900;
+    @apply -mt-16 inline-flex max-w-full gap-1 rounded-xl border border-zinc-200 bg-zinc-50 p-1 dark:border-zinc-800 dark:bg-zinc-900;
   }
 
   .pattern-tab {
@@ -880,6 +880,114 @@
    * takes the click; the ring a focused link would draw round its text is
    * drawn round the card instead.
    */
+  /* Each step keeps the hero's column measure and contrasting panel palette. */
+  .landing-section {
+    @apply mt-24 grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_30rem] lg:gap-12;
+  }
+
+  .landing-section-copy h2 {
+    @apply mt-3;
+  }
+
+  .landing-step {
+    @apply font-mono text-xs font-medium tracking-widest text-indigo-600 uppercase dark:text-indigo-400;
+  }
+
+  .landing-section-demo {
+    @apply min-w-0 w-full mt-22;
+  }
+
+  .landing-section-demo > .pattern-tabs {
+    @apply mt-0;
+  }
+
+  .landing-section-demo .pattern-tabs-bar {
+    @apply flex w-fit gap-0.5;
+  }
+
+  .landing-section-demo .pattern-tab {
+    @apply px-2.5 text-xs sm:px-3 sm:text-sm;
+  }
+
+  .landing-section-demo .pattern-panel {
+    @apply pt-4;
+  }
+
+  .landing-section-demo .pattern-panel > p {
+    @apply mx-1 text-[0.8125rem] leading-7 text-zinc-500 dark:text-zinc-400;
+  }
+
+  .landing-code > .code-tabs {
+    @apply border-t-0;
+  }
+
+  .landing-demo .hero-panel-head {
+    @apply flex-wrap gap-x-3 gap-y-2;
+  }
+
+  .landing-preview {
+    @apply px-2 pb-2;
+  }
+
+  .landing-preview .demo-surface {
+    @apply m-0 grid gap-1 rounded-none border-0 bg-transparent p-0;
+  }
+
+  .landing-preview
+    :where([data-keyrove-item], [role='menuitem'], [role='treeitem']) {
+    @apply block min-w-0 cursor-pointer rounded-lg px-3 py-1.5 text-left text-sm text-(--hero-text) outline-transparent outline-offset-2 transition-colors duration-120 hover:bg-(--hero-hover);
+  }
+
+  .landing-preview
+    :where([data-keyrove-item], [role='menuitem'], [role='treeitem']):focus {
+    @apply bg-(--hero-accent) text-(--hero-on-accent) outline-2 outline-(--hero-accent);
+  }
+
+  .landing-preview :where([disabled]) {
+    @apply cursor-not-allowed text-(--hero-muted) hover:bg-transparent;
+  }
+
+  .landing-preview [data-keyrove-orientation='horizontal'] {
+    @apply flex flex-wrap;
+  }
+
+  .landing-preview :where([data-keyrove-cols]) > [data-keyrove-item] {
+    @apply text-center;
+  }
+
+  .landing-demo[data-demo='responsive'] .landing-preview {
+    @apply mx-2 mb-2 max-w-[calc(100%-1rem)] min-w-48 resize-x overflow-auto rounded-lg border border-dashed border-(--hero-rule) p-2;
+  }
+
+  .landing-demo[data-demo='tools'] [data-keyrove-item] {
+    @apply flex items-center justify-between;
+  }
+
+  .landing-demo[data-demo='tools'] [data-keyrove-item]::after {
+    @apply font-mono text-xs opacity-60;
+    content: attr(aria-keyshortcuts);
+    content: attr(aria-keyshortcuts) / '';
+  }
+
+  .landing-demo[data-demo='nested'] [data-keyrove-root] {
+    @apply flex gap-1 rounded-lg border border-dashed border-(--hero-rule) p-1;
+  }
+
+  .landing-preview [role='group'] {
+    @apply ml-4 border-l border-(--hero-rule) pl-2;
+  }
+
+  .landing-preview [role='treeitem'][aria-expanded]::before {
+    @apply mr-2 inline-block;
+    content: '▸';
+    content: '▸' / '';
+  }
+
+  .landing-preview [role='treeitem'][aria-expanded='true']::before {
+    content: '▾';
+    content: '▾' / '';
+  }
+
   .feature-grid {
     @apply mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3;
   }
@@ -1004,7 +1112,8 @@
   }
 
   .code-block {
-    @apply overflow-x-auto rounded-xl border border-zinc-200 bg-zinc-50 p-4 font-mono text-[0.84rem] leading-relaxed text-zinc-800 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-200;
+    @apply overflow-auto rounded-xl border border-zinc-200 bg-zinc-50 p-4 font-mono text-[0.84rem] leading-relaxed text-zinc-800 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-200;
+    max-height: min(20rem, 60dvh);
   }
 
   /*
