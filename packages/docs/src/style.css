@@ -803,7 +803,7 @@
   }
 
   .hero-panel .code-tabs-bar {
-    @apply h-9 border-(--hero-rule) px-3;
+    @apply h-9 border-(--hero-rule) px-2;
   }
 
   .hero-panel .code-tab {
