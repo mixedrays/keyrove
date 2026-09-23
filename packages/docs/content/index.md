@@ -35,10 +35,10 @@ move focus the way keyboard users expect, in any framework.
 <output class="hero-readout" data-hero-readout data-state="blurred"><span aria-hidden="true">click to focus</span></output>
 </div>
 <ul id="menu" class="hero-folders" aria-label="Mail folders" data-hero-list>
-<li data-keyrove-item tabindex="0" data-count="12"><span data-icon="inbox" class="hero-folder-icon"></span>Inbox</li>
+<li data-keyrove-item tabindex="0" data-count="42"><span data-icon="inbox" class="hero-folder-icon"></span>Inbox</li>
 <li data-keyrove-item tabindex="0" data-count="2"><span data-icon="drafts" class="hero-folder-icon"></span>Drafts</li>
 <li data-keyrove-item tabindex="0"><span data-icon="sent" class="hero-folder-icon"></span>Sent</li>
-<li data-keyrove-item tabindex="0" data-count="999+"><span data-icon="spam" class="hero-folder-icon"></span>Spam</li>
+<li data-keyrove-item tabindex="0" data-count="9999+"><span data-icon="spam" class="hero-folder-icon"></span>Spam</li>
 <li data-keyrove-item tabindex="0"><span data-icon="trash" class="hero-folder-icon"></span>Trash</li>
 </ul>
 
