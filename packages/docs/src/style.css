@@ -199,14 +199,23 @@
    * Off-canvas below `lg` and slid in by the header's menu button; a sticky
    * column from `lg` up. One element in both cases, so there is no second copy
    * of the nav to keep in step.
+   *
+   * Closed, the drawer is hidden as well as off-canvas, so its links leave the
+   * Tab order and the accessibility tree instead of taking focus off-screen.
+   * Hiding waits out the slide; showing is immediate, so script can focus into
+   * the drawer in the same task that opens it.
    */
   .sidebar {
-    @apply fixed inset-y-0 left-0 z-50 w-72 -translate-x-full overflow-y-auto border-r border-zinc-200 bg-white px-6 py-8 transition-transform duration-200 dark:border-zinc-800 dark:bg-zinc-950;
-    @apply lg:sticky lg:top-14 lg:z-auto lg:h-[calc(100vh-3.5rem)] lg:w-auto lg:translate-x-0 lg:border-r-0 lg:bg-transparent lg:px-0 lg:pr-4 dark:lg:bg-transparent;
+    @apply invisible fixed inset-y-0 left-0 z-50 w-72 -translate-x-full overflow-y-auto border-r border-zinc-200 bg-white px-6 py-8 dark:border-zinc-800 dark:bg-zinc-950;
+    @apply lg:visible lg:sticky lg:top-14 lg:z-auto lg:h-[calc(100vh-3.5rem)] lg:w-auto lg:translate-x-0 lg:border-r-0 lg:bg-transparent lg:px-0 lg:pr-4 dark:lg:bg-transparent;
+    transition:
+      translate 200ms var(--default-transition-timing-function),
+      visibility 0s 200ms;
   }
 
   :root[data-sidebar-open] .sidebar {
-    @apply translate-x-0;
+    @apply visible translate-x-0;
+    transition-delay: 0s;
   }
 
   .sidebar-backdrop {
@@ -285,17 +294,59 @@
     @apply mb-3 text-sm font-semibold text-zinc-900 dark:text-zinc-100;
   }
 
+  /* Padded clear of the inset focus ring below, and pulled left into the rail's
+     own padding by as much, so the text stays aligned with the heading. */
   .toc-link {
-    @apply block py-1 text-sm text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100;
+    @apply -ml-2 block px-2 py-1 text-sm text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100;
   }
 
   /* h3 entries sit under their h2 without needing a nested list in the markup. */
   .toc-link[data-level='3'] {
-    @apply pl-4;
+    @apply pl-6;
   }
 
   .toc-link[data-active] {
     @apply font-medium text-indigo-600 dark:text-indigo-400;
+  }
+
+  /* Both sidebars scroll, and a scroller clips what overflows it. Their links
+     run flush to its edge — the nav's on the left, the rail's on the right — so
+     the focus ring is drawn inside, as the code tabs' is. */
+  .sidebar-link:focus-visible,
+  .toc-link:focus-visible {
+    @apply -outline-offset-2;
+  }
+
+  /*
+   * The sidebars' key hints, added by nav.ts. Faded in rather than displayed,
+   * so showing one never reflows the heading beside it. A pointer sees the
+   * shortcut on hover; keyboard focus inside sees the arrows too, since Tab
+   * leaves a roving list rather than walking it.
+   */
+  .sidebar-keys {
+    @apply float-right flex gap-1 opacity-0 transition-opacity;
+  }
+
+  .sidebar-keys kbd {
+    @apply rounded border border-zinc-200 px-1 font-sans text-xs text-zinc-500 dark:border-zinc-700 dark:text-zinc-400;
+  }
+
+  .sidebar-keys-move {
+    @apply hidden;
+  }
+
+  @media (hover: hover) {
+    :is(.sidebar, .toc):hover .sidebar-keys {
+      @apply opacity-100;
+    }
+  }
+
+  :is(.sidebar, .toc):has(:focus-visible) .sidebar-keys {
+    @apply opacity-100;
+  }
+
+  :is(.sidebar, .toc):has(:focus-visible) .sidebar-keys-move {
+    @apply inline;
   }
 
   /*

@@ -189,9 +189,9 @@ const renderToc = (headings: Heading[]) => {
   // else, so it is left out of the markup entirely rather than sitting empty.
   if (headings.length === 0) return '';
 
-  return `<aside class="toc">
+  return `<aside class="toc" aria-labelledby="docs-toc-heading">
           <div class="toc-inner">
-            <p class="toc-heading">On this page</p>
+            <p id="docs-toc-heading" class="toc-heading">On this page</p>
             <ul class="toc-list">
               ${headings
                 .map(

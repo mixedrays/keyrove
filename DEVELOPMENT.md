@@ -94,6 +94,21 @@ The Vite plugin generates the index in development and production. Markdown
 edits invalidate the development cache and reload the page, including search.
 Run the search indexing tests with `pnpm --filter @mixedrays/keyrove/docs test`.
 
+### Sidebar navigation
+
+Both sidebars use keyrove for roving focus and looping arrow navigation.
+`Alt+Shift+E` (`Option+Shift+E` on macOS) focuses the left navigation;
+`Alt+Shift+O` focuses the visible "On this page" sidebar. They are Alt+Shift
+chords because browsers reserve most Ctrl/Cmd+Shift letters (`Ctrl+Shift+I`
+opens DevTools). The shortcuts use `focusKeys` to return to each group's tab
+stop. The left group starts on the current page; the right one follows the
+active section while focus is outside it.
+The left shortcut opens the mobile drawer when needed; shortcuts leave an
+open search dialog alone. The closed drawer is `visibility: hidden`, so its
+links are out of the Tab order. Each sidebar shows its shortcut beside its
+first heading on hover, and the arrow keys as well while keyboard focus is
+inside it.
+
 ### Live demos
 
 A content file embeds a demo with `<div data-demo="grid"></div>`. The markup
