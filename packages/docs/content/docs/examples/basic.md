@@ -1,4 +1,5 @@
 ---
+# Live page: https://keyrove.pages.dev/docs/examples/basic
 title: Basic list
 description: Add keyboard navigation to a list while keeping its normal tab order.
 titleTag: Arrow key navigation for lists — keyrove

@@ -1,4 +1,5 @@
 ---
+# Live page: https://keyrove.pages.dev/docs/installation
 title: Installation
 description: Install keyrove and connect a keyboard handler in vanilla JavaScript, React, Vue or Svelte.
 titleTag: Installation for React, Vue and Svelte — keyrove

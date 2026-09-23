@@ -1,4 +1,5 @@
 ---
+# Live page: https://keyrove.pages.dev/docs/examples/custom-keys
 title: Custom keys
 description: Change navigation keys, add modifier combinations, bind several keys to one move, or disable a binding.
 titleTag: Custom key bindings for navigation — keyrove

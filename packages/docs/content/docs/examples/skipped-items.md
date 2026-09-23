@@ -1,4 +1,5 @@
 ---
+# Live page: https://keyrove.pages.dev/docs/examples/skipped-items
 title: Skipped items
 description: Skip headings and unavailable items while preserving grid positions, or exclude disabled elements entirely.
 titleTag: Skipping disabled items and headings — keyrove

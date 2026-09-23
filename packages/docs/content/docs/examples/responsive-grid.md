@@ -1,4 +1,5 @@
 ---
+# Live page: https://keyrove.pages.dev/docs/examples/responsive-grid
 title: Responsive grid
 description: Read a CSS grid’s column count on each keypress with data-keyrove-cols="auto".
 titleTag: Keyboard navigation for a responsive grid — keyrove

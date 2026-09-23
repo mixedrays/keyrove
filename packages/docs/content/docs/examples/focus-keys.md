@@ -1,4 +1,5 @@
 ---
+# Live page: https://keyrove.pages.dev/docs/examples/focus-keys
 title: Focus keys
 description: Assign shortcuts that focus items or panels across groups, including from editable fields.
 titleTag: Keyboard shortcuts that focus an element — keyrove

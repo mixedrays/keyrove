@@ -1,4 +1,5 @@
 ---
+# Live page: https://keyrove.pages.dev/docs/examples/editable-targets
 title: Editable targets
 description: Keep native editing keys inside fields while navigating the surrounding items.
 titleTag: Keyboard navigation with input fields — keyrove

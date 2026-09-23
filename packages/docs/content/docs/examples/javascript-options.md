@@ -1,4 +1,5 @@
 ---
+# Live page: https://keyrove.pages.dev/docs/examples/javascript-options
 title: Options in JavaScript
 description: Configure a menu with JavaScript options using its existing roles and markup.
 titleTag: Configuring keyboard navigation in JavaScript — keyrove

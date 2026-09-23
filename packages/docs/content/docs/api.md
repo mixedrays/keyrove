@@ -1,4 +1,5 @@
 ---
+# Live page: https://keyrove.pages.dev/docs/api
 title: API reference
 description: Reference for handlers, configuration, key bindings, focus behavior, attributes and exported types.
 group: Guide

@@ -1,4 +1,5 @@
 ---
+# Live page: https://keyrove.pages.dev/docs/ai-prompts
 title: AI prompts
 description: Copy-ready prompts that point a coding assistant at these docs, from adding keyrove to a project to building a playground.
 titleTag: Prompts for AI coding assistants — keyrove

@@ -1,4 +1,5 @@
 ---
+# Live page: https://keyrove.pages.dev/docs/examples/typeahead
 title: Typeahead
 description: Focus items by typing their labels, with prefix matching, repeated-character cycling and accent handling.
 titleTag: Type-to-focus typeahead for lists — keyrove
