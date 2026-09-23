@@ -13,6 +13,9 @@ By default, navigation stops at the first and last items. Add
 - <kbd class="kbd">↓</kbd> from _Sign out_ moves to _Profile_.
 - <kbd class="kbd">↑</kbd> from _Profile_ moves to _Sign out_.
 
+You can sign out any time you like, but the arrows will never leave.
+<kbd class="kbd">Tab</kbd> will.
+
 <div data-demo="loop" data-demo-label="account menu"></div>
 
 ```ts

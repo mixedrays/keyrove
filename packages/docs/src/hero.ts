@@ -27,6 +27,34 @@ import { keyLabel, MODIFIER_KEYS } from './demos.ts';
 const isMoveResult = (value: unknown): value is MoveResult =>
   typeof value === 'object' && value !== null && 'action' in value;
 
+/** A folder's name, as the readout prints it. */
+const nameOf = (item: Element) => item.textContent?.trim() ?? '';
+
+/**
+ * ↑ ↑ ↓ ↓ ← → ← → B A, as `e.key` spells each press. A keyboard navigation
+ * library owes the reader this much. The list claims the arrows and leaves
+ * the rest to the browser, so all ten reach the readout as ordinary lines
+ * until the last one.
+ */
+const KONAMI = [
+  'ArrowUp',
+  'ArrowUp',
+  'ArrowDown',
+  'ArrowDown',
+  'ArrowLeft',
+  'ArrowRight',
+  'ArrowLeft',
+  'ArrowRight',
+  'b',
+  'a',
+].join(' ');
+
+/**
+ * Presses in a row at the end of the list before the readout stops saying
+ * "moved nothing" and names where focus has been all along.
+ */
+const STUCK_AFTER = 5;
+
 const span = (text: string, className?: string) => {
   const element = document.createElement('span');
   element.textContent = text;
@@ -58,19 +86,43 @@ export const mountHero = () => {
     show(focused ? 'listening' : 'blurred', text);
   };
 
+  // The last ten keys, for the code above, and how many presses in a row
+  // have hit the end of the list.
+  let recent: string[] = [];
+  let stuck = 0;
+
   // The three outcomes the demos' history tells apart, in one line: focus
   // moved, a key keyrove claimed with nowhere to go, and a key it left alone.
   const report = (e: KeyboardEvent, result: unknown) => {
     const key = document.createElement('kbd');
     key.textContent = keyLabel(e);
 
-    if (isMoveResult(result) && result.to) {
+    const press = e.key.length === 1 ? e.key.toLowerCase() : e.key;
+    recent = [...recent, press].slice(-10);
+    stuck = isMoveResult(result) && !result.to ? stuck + 1 : 0;
+
+    if (recent.join(' ') === KONAMI) {
+      show(
+        'moved',
+        key,
+        span('cheat code accepted'),
+        span('+30 lives', 'demo-readout-target'),
+      );
+    } else if (isMoveResult(result) && result.to) {
       show(
         'moved',
         key,
         span(result.action),
         span('→'),
-        span(result.to.textContent?.trim() ?? '', 'demo-readout-target'),
+        span(nameOf(result.to), 'demo-readout-target'),
+      );
+    } else if (isMoveResult(result) && result.from && stuck >= STUCK_AFTER) {
+      show(
+        'edge',
+        key,
+        span(result.action),
+        span('→'),
+        span(`still ${nameOf(result.from)}`, 'demo-readout-target'),
       );
     } else if (isMoveResult(result)) {
       show('edge', key, span(result.action), span('moved nothing'));

@@ -8,6 +8,7 @@ import {
   mountSidebar,
   mountTableOfContents,
 } from './nav.ts';
+import { mountNotFound } from './not-found.ts';
 import { mountThemeToggle } from './theme.ts';
 import { mountSearch } from './search.ts';
 
@@ -34,6 +35,7 @@ mountCopyMarkdown();
 mountCodeTabs();
 mountCopyCode();
 mountCopyCommands();
+mountNotFound();
 // Before the demos: the hero takes the page's first focus, and the first demo
 // takes it only when nothing else has.
 mountHero();
