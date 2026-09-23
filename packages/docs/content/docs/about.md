@@ -16,5 +16,5 @@ issues and pull requests are welcome.
 <div data-about></div>
 
 To read a page as Markdown, append `.md` to its URL or choose **View as
-Markdown** in the right-hand rail. **View source** opens its source file under
+Markdown** under the page title. **View source** opens its source file under
 `packages/docs/content` in the repository.

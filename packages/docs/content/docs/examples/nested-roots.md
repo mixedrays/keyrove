@@ -1,7 +1,7 @@
 ---
 # Live page: https://keyrove.pages.dev/docs/examples/nested-roots
 title: Nested roots
-description: Give nested groups their own bindings and provide a way to return to the outer group.
+description: Nest keyboard navigation groups, each with its own keys, columns and page size, and give users a way to enter the inner group and return to the outer one.
 titleTag: Nested keyboard navigation groups — keyrove
 group: Examples
 order: 18
@@ -17,6 +17,8 @@ the menu.
 <div data-demo="nested" data-demo-label="message actions"></div>
 
 ```ts
+import { keyRove } from '@mixedrays/keyrove';
+
 document
   .querySelector('#message-actions')
   .addEventListener('keydown', (e) => keyRove(e));
@@ -66,7 +68,7 @@ attribute-selected item sequences separate, place them in sibling roots.
 
 Inside a nested root, only that root's movement bindings apply. Unbound keys
 do not fall through to the outer group. In the reaction row, <kbd class="kbd">↓</kbd> is unhandled
-(grey in the readout, _left to the browser_); <kbd class="kbd">←</kbd> at the first reaction is
+(gray in the readout, _left to the browser_); <kbd class="kbd">←</kbd> at the first reaction is
 consumed without moving (amber, _prev · moved nothing_).
 
 Provide a way to leave the inner group:

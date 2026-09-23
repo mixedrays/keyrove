@@ -59,3 +59,21 @@ test('the hero shows the markup its list runs', async () => {
 
   assert.match(`|${folders(live).join('|')}|`, new RegExp(`^\\|${pattern}$`));
 });
+
+// The examples overview is written by hand, grouped by what each example is
+// for, so nothing else would notice an example that reached the sidebar
+// without reaching it.
+test('the examples overview links to every example', async () => {
+  const pages = await loadPages();
+  const overview = pages.find((page) => page.route === 'docs/examples');
+  assert.ok(overview, 'content/docs/examples/index.md is missing');
+
+  for (const page of pages) {
+    if (page.group !== 'Examples' || page === overview) continue;
+
+    assert.ok(
+      overview.body.includes(`](/${page.route})`),
+      `the examples overview should link to /${page.route}`,
+    );
+  }
+});

@@ -1,5 +1,7 @@
-import type { NavGroup, Page } from './content.ts';
-import { faviconDataUri, icon } from './icons.ts';
+import path from 'node:path';
+
+import { CONTENT_DIR, type NavGroup, type Page } from './content.ts';
+import { icon } from './icons.ts';
 import type { Heading } from './markdown.ts';
 import { META } from './meta.ts';
 import { renderStructuredData } from './structured-data.ts';
@@ -15,6 +17,9 @@ import { renderStructuredData } from './structured-data.ts';
 
 /** Where the source markdown lives, for the "View source" link. */
 const SOURCE_BASE = `${META.repoUrl}/blob/main/packages/docs/content`;
+
+/** The site icon, emitted at the root beside `robots.txt`. */
+export const FAVICON_FILE = 'favicon.svg';
 
 /**
  * Placeholders the shell in index.html reserves.
@@ -42,7 +47,7 @@ const escapeHtml = (value: string) =>
  * Site-absolute hrefs, honouring the deploy base.
  *
  * Pages are served at extensionless URLs (`/docs/api`, from
- * `dist/docs/api/index.html`) so that appending `.md` lands on the source
+ * `dist/docs/api.html`) so that appending `.md` lands on the source
  * beside it. Relative hrefs cannot be resolved consistently against a URL with
  * no trailing slash, hence absolute paths and an explicit base.
  */
@@ -92,7 +97,7 @@ const renderHeader = (resolveHref: HrefResolver, page: Page) => {
           </button>
           <nav class="hidden items-center gap-4 text-sm md:flex md:gap-6">
             ${link(resolveHref('/docs/introduction'), `${icon('book', 'size-4')}Docs`, 'header-link')}
-            ${link(resolveHref('/docs/examples/basic'), `${icon('grid', 'size-4')}Examples`, 'header-link')}
+            ${link(resolveHref('/docs/examples'), `${icon('grid', 'size-4')}Examples`, 'header-link')}
             ${link(resolveHref('/docs/api'), `${icon('braces', 'size-4')}API`, 'header-link')}
             ${link(META.repoUrl, `${icon('github', 'size-4')}GitHub`, 'header-link')}
             <!-- A hair smaller than its neighbours: the npm mark is a solid
@@ -214,7 +219,9 @@ const renderToc = (headings: Heading[]) => {
  */
 const renderPageActions = (page: Page, resolveHref: HrefResolver) => {
   const markdownHref = resolveHref(`${routeToPath(page.route)}.md`);
-  const sourceHref = `${SOURCE_BASE}/${page.route === '' ? 'index' : page.route}.md`;
+  // From the file rather than the route: `docs/examples/index.md` is served
+  // at `docs/examples`, and the route alone would name a file that is not there.
+  const sourceHref = `${SOURCE_BASE}/${path.relative(CONTENT_DIR, page.file)}`;
 
   // Every label is wrapped, icons are not: the underline is drawn on the span
   // so it stops at the text instead of running under the glyph beside it.
@@ -263,7 +270,7 @@ const renderFooter = (resolveHref: HrefResolver, page: Page) => {
 
   const links = [
     link(resolveHref('/docs/introduction'), 'Docs', 'footer-link'),
-    link(resolveHref('/docs/examples/basic'), 'Examples', 'footer-link'),
+    link(resolveHref('/docs/examples'), 'Examples', 'footer-link'),
     link(resolveHref('/docs/api'), 'API', 'footer-link'),
     link(META.repoUrl, 'GitHub', 'footer-link'),
     link(META.npmUrl, 'npm', 'footer-link'),
@@ -403,9 +410,9 @@ const renderIndexingTags = (
       page.layout === 'landing' ? 'website' : 'article',
     ),
     meta('property', 'og:site_name', 'keyrove'),
-    // The prose is British — "licence", "colour", "behaviour" — and an
-    // absent og:locale is taken to mean en_US.
-    meta('property', 'og:locale', 'en_GB'),
+    // The prose is American — "license", "color", "behavior". That is also
+    // what an absent og:locale is taken to mean, so this only says it outright.
+    meta('property', 'og:locale', 'en_US'),
     meta('property', 'og:title', title),
     meta('property', 'og:description', page.description),
     meta('property', 'og:url', url),
@@ -465,7 +472,7 @@ export const renderPage = (template: string, render: PageRender) => {
   const head = [
     `<title>${escapeHtml(title)}</title>`,
     `<meta name="description" content="${escapeHtml(page.description)}" />`,
-    `<link rel="icon" href="${faviconDataUri}" />`,
+    `<link rel="icon" type="image/svg+xml" href="${escapeHtml(render.resolveHref(`/${FAVICON_FILE}`))}" />`,
     ...renderIndexingTags(render, title),
   ].join('\n    ');
 

@@ -1,7 +1,7 @@
 ---
 # Live page: https://keyrove.pages.dev/docs/examples/looping-lists
 title: Looping lists
-description: Wrap navigation from the last item to the first, and back again.
+description: Make keyboard navigation wrap from the last item to the first and back again, and decide when a list should loop and when it should stop at its ends.
 titleTag: Wrapping list navigation at the ends — keyrove
 group: Examples
 order: 11
@@ -23,7 +23,7 @@ menu.addEventListener('keydown', (e) => keyRove(e));
 ```
 
 keyrove reads the attribute on every keypress. You can turn looping on or off
-without changing the listener or reinitialising the group.
+without changing the listener or reinitializing the group.
 
 ## Boolean value
 

@@ -32,6 +32,20 @@ type Context = {
 };
 
 /**
+ * The site as a whole, which is where Google takes a result's site name from —
+ * "keyrove" above the link rather than "keyrove.pages.dev". It looks for the
+ * node on the landing page; every article repeats it as the site it is part of,
+ * under the same `@id`.
+ */
+const webSite = ({ toUrl }: Context) => ({
+  '@type': 'WebSite',
+  '@id': `${toUrl('')}#website`,
+  name: 'keyrove',
+  url: toUrl(''),
+  inLanguage: 'en',
+});
+
+/**
  * The landing page: the library itself.
  *
  * `SoftwareSourceCode` rather than `SoftwareApplication` — this is a package
@@ -54,29 +68,35 @@ const softwareSourceCode = ({ page, toUrl, imageUrl }: Context) => ({
   inLanguage: 'en',
 });
 
-/** A docs page: one article, part of the site. */
-const techArticle = ({ page, toUrl, imageUrl }: Context) => ({
-  '@type': 'TechArticle',
-  headline: page.title,
-  description: page.description,
-  url: toUrl(page.route),
-  image: imageUrl,
-  author: AUTHOR,
-  inLanguage: 'en',
-  isPartOf: {
-    '@type': 'WebSite',
-    name: 'keyrove',
-    url: toUrl(''),
-  },
-});
+/**
+ * A docs page: one article, part of the site.
+ *
+ * `dateModified` is the sitemap's `lastmod` — the last commit to the page's
+ * source — and is left out on the same terms, when git cannot date the page.
+ */
+const techArticle = (context: Context) => {
+  const { page, toUrl, imageUrl } = context;
+
+  return {
+    '@type': 'TechArticle',
+    headline: page.title,
+    description: page.description,
+    url: toUrl(page.route),
+    image: imageUrl,
+    author: AUTHOR,
+    inLanguage: 'en',
+    ...(page.lastModified === null ? {} : { dateModified: page.lastModified }),
+    isPartOf: webSite(context),
+  };
+};
 
 /**
  * The trail from the site root down to the page.
  *
- * A sidebar group has no page of its own, so its crumb points at the group's
- * first page — the same place the header's own "Examples" link goes, rather
- * than at a `/docs/examples` that does not exist. On that first page the group
- * crumb is dropped instead of pointing at the page it sits beside.
+ * A group's crumb points at its first page: the examples overview for
+ * Examples, and for Guide, which has no page of its own, the introduction —
+ * the same places the header's links go. On that first page the group crumb
+ * is dropped instead of pointing at the page it sits beside.
  */
 const breadcrumbList = ({ page, nav, toUrl }: Context) => {
   const group = nav.find((entry) =>
@@ -116,7 +136,7 @@ export const renderStructuredData = (context: Context): string => {
     '@context': 'https://schema.org',
     '@graph':
       context.page.layout === 'landing'
-        ? [softwareSourceCode(context)]
+        ? [webSite(context), softwareSourceCode(context)]
         : [techArticle(context), breadcrumbList(context)],
   };
 

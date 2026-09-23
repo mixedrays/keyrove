@@ -1,7 +1,7 @@
 ---
 # Live page: https://keyrove.pages.dev/docs/examples/grid
 title: Grid
-description: Set the column count and navigate by cell, row, row ends, grid ends or pages.
+description: Add arrow-key navigation to a grid. Set the column count, then move by cell, row, row ends, grid ends or pages, with arrows that flip in right-to-left text.
 titleTag: Arrow key navigation for grids — keyrove
 group: Examples
 order: 14
@@ -13,6 +13,8 @@ the same column; <kbd class="kbd">←</kbd>/<kbd class="kbd">→</kbd> move one 
 <div data-demo="grid" data-demo-class="grid grid-cols-6 gap-1.5" data-demo-label="time slots"></div>
 
 ```ts
+import { keyRove } from '@mixedrays/keyrove';
+
 document
   .querySelector('#time-slots')
   .addEventListener('keydown', (e) => keyRove(e));
@@ -42,7 +44,7 @@ on screen.
   ignored.
 - A grid is entered from outside by any of its four arrows, landing on the
   first cell.
-- Rebind any move and the replaced default goes back to its browser behaviour;
+- Rebind any move and the replaced default goes back to its browser behavior;
   see [custom keys](/docs/examples/custom-keys#grids).
 
 At an edge, the key is still consumed and the readout shows an amber no-op.

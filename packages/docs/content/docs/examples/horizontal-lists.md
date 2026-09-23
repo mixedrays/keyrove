@@ -1,7 +1,7 @@
 ---
 # Live page: https://keyrove.pages.dev/docs/examples/horizontal-lists
 title: Horizontal lists
-description: Use Left/Right for a horizontal list, with defaults that follow text direction.
+description: Navigate a horizontal list or toolbar with the Left and Right arrow keys, with defaults that follow the text direction in right-to-left layouts.
 titleTag: Horizontal list keyboard navigation — keyrove
 group: Examples
 order: 13
@@ -14,6 +14,8 @@ previous one. <kbd class="kbd">↑</kbd>/<kbd class="kbd">↓</kbd> keep their b
 <div data-demo="orientation" data-demo-class="flex flex-wrap gap-1.5" data-demo-label="mail filters"></div>
 
 ```ts
+import { keyRove } from '@mixedrays/keyrove';
+
 document
   .querySelector('#filters')
   .addEventListener('keydown', (e) => keyRove(e));

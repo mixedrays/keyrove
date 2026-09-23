@@ -14,7 +14,7 @@ pages it needs, so it works from the current docs.
 Paste a prompt into an assistant that can fetch URLs and, for work in an
 existing project, read your files. Replace anything in `[brackets]` first. If
 the assistant cannot fetch URLs, open the pages the prompt names and paste
-them in with **Copy page** in the right-hand rail.
+them in with **Copy page**, under each page's title.
 
 ## Get started
 

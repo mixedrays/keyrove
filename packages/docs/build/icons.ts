@@ -203,18 +203,18 @@ const ICONS = {
 export type IconName = keyof typeof ICONS;
 
 /**
- * The keyboard mark on its own, as a `data:` URI for `<link rel="icon">`.
+ * The keyboard mark on its own, as the body of `favicon.svg`.
  *
  * The same glyph at the same weight as the header wordmark, with the two
  * changes a standalone document forces: `currentColor` has nothing to inherit
  * from out here, so the accent is written out; and there is no stylesheet, so
  * the dark variant the wordmark gets from `dark:` is an inline media query.
  *
- * Inlined rather than emitted as `favicon.svg` because the icon set is already
- * serialised into the HTML — a file would need threading through the dev
- * middleware, the build output and the deploy base for one 16px glyph.
+ * A file rather than a `data:` URI, which browsers accept but Google Search
+ * does not: it shows a favicon beside a result only when it can fetch one from
+ * a URL, and falls back to a generic globe otherwise.
  */
-export const faviconDataUri = (() => {
+export const faviconSvg = (() => {
   const { viewBox, body } = ICONS.keyboard;
 
   const svg = [
@@ -233,7 +233,7 @@ export const faviconDataUri = (() => {
     '</svg>',
   ].join(' ');
 
-  return `data:image/svg+xml,${encodeURIComponent(svg)}`;
+  return `${svg}\n`;
 })();
 
 /**

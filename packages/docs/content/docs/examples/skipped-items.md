@@ -1,7 +1,7 @@
 ---
 # Live page: https://keyrove.pages.dev/docs/examples/skipped-items
 title: Skipped items
-description: Skip headings and unavailable items while preserving grid positions, or exclude disabled elements entirely.
+description: Skip headings and unavailable items during keyboard navigation while preserving grid positions, or exclude disabled elements entirely.
 titleTag: Skipping disabled items and headings — keyrove
 group: Examples
 order: 17
@@ -31,13 +31,11 @@ Anything carrying the `disabled` attribute is excluded automatically, with no
 <button data-keyrove-item tabindex="0">Duplicate</button>
 ```
 
-Native `disabled` behavior applies to supported form controls. For a `<li>`
-or `<div>`, use `data-keyrove-skip` and `aria-disabled="true"`; keyrove does
-not write ARIA states or prevent your activation handlers from running.
-
-keyrove excludes any element carrying `disabled` from its item sequence. In
-a grid, this shifts later cells. To retain a disabled cell's slot, use
-`aria-disabled="true"` with `data-keyrove-skip` instead.
+Excluded items leave the sequence, so in a grid a disabled cell shifts every
+later cell. To keep its slot, use `aria-disabled="true"` with
+`data-keyrove-skip` instead. Use the same pair for a `<li>` or `<div>`, since
+native `disabled` behavior applies only to supported form controls. keyrove
+does not write ARIA states or prevent your activation handlers from running.
 
 ## <kbd class="kbd">Home</kbd> and <kbd class="kbd">End</kbd>
 

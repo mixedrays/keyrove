@@ -10,7 +10,7 @@ attributes or JavaScript options, in any framework.
 **[Documentation](https://keyrove.pages.dev)** ·
 [Attributes and options](https://keyrove.pages.dev/docs/attributes-and-options) ·
 [API reference](https://keyrove.pages.dev/docs/api) ·
-[Examples](https://keyrove.pages.dev/docs/examples/basic)
+[Examples](https://keyrove.pages.dev/docs/examples)
 
 Configure items, keys and layout with attributes or options. Options override
 attributes one setting at a time, with

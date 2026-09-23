@@ -1,7 +1,7 @@
 ---
 # Live page: https://keyrove.pages.dev/docs/examples/javascript-options
 title: Options in JavaScript
-description: Configure a menu with JavaScript options using its existing roles and markup.
+description: Add keyboard navigation to markup you cannot change, such as a menu from a component library or CMS, with JavaScript options that select items by role.
 titleTag: Configuring keyboard navigation in JavaScript — keyrove
 group: Examples
 order: 22

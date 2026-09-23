@@ -16,7 +16,7 @@ move focus the way keyboard users expect, in any framework.
 
 <div class="hero-actions">
 
-[Get started](/docs/introduction) [Examples](/docs/examples/basic)
+[Get started](/docs/introduction) [Examples](/docs/examples)
 <span class="hero-install"><code>npm i @mixedrays/keyrove</code><button type="button" data-copy-command="npm i @mixedrays/keyrove" aria-label="Copy install command"><span data-icon="copy" class="size-3.5 icon-idle"></span><span data-icon="check" class="size-3.5 icon-done"></span></button></span>
 
 </div>
@@ -277,7 +277,7 @@ reading the items and other settings from their attributes.
 Give the group a column count and the same handler moves across cells and
 between rows. Your CSS still controls the layout.
 
-For a responsive CSS grid, set `data-keyrove-cols="auto"`. KeyRove reads the
+For a responsive CSS grid, set `data-keyrove-cols="auto"`. keyrove reads the
 current tracks on each keypress, so resizing needs no navigation instance
 to update.
 
@@ -375,7 +375,7 @@ menu.addEventListener('keydown', (e) => keyRove(e, config) || typeahead(e));
 Give an item a shortcut. Nest groups with their own keys. Or combine focus
 navigation with your application's behavior.
 
-The tree is the fullest example: KeyRove navigates visible rows and typeahead
+The tree is the fullest example: keyrove navigates visible rows and typeahead
 finds them by name. Your code opens and closes folders, sets ARIA states,
 and decides what activating a file does.
 
@@ -509,7 +509,7 @@ Setup for vanilla JavaScript, React, Vue and Svelte.
 <div class="next-step">
 <span data-icon="grid" class="next-step-icon"></span>
 
-### [Examples](/docs/examples/basic)
+### [Examples](/docs/examples)
 
 Live demos, from a basic list to a tree view.
 

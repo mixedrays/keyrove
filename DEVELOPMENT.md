@@ -159,9 +159,11 @@ both modes from one renderer. In dev a middleware renders on request; in the
 build, Vite bundles `index.html` once and every page is stamped out of the
 result, so all pages share one set of hashed asset URLs.
 
-Pages are emitted as `dist/docs/api/index.html` and served at extensionless
-URLs, which is what lets `.md` be appended. That rules out relative asset paths,
-so links are absolute to `base` — set `DOCS_BASE` when deploying to a subpath:
+Pages are emitted as `dist/docs/api.html` and served at extensionless URLs
+(`/docs/api`), which is what lets `.md` be appended. Cloudflare Pages redirects
+`/docs/api/` there, so the URL that links, canonical tags and the sitemap name
+answers directly. Extensionless URLs rule out relative asset paths, so links
+are absolute to `base` — set `DOCS_BASE` when deploying to a subpath:
 
 ```sh
 DOCS_BASE=/keyrove/ pnpm --filter @mixedrays/keyrove/docs build

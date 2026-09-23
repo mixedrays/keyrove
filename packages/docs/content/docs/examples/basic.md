@@ -1,7 +1,7 @@
 ---
 # Live page: https://keyrove.pages.dev/docs/examples/basic
 title: Basic list
-description: Add keyboard navigation to a list while keeping its normal tab order.
+description: Add keyboard navigation to a list with one keydown listener, keep its normal tab order, and react to each move with onMove.
 titleTag: Arrow key navigation for lists — keyrove
 group: Examples
 order: 10
@@ -58,7 +58,7 @@ The readout at the top of the demo shows three outcomes:
 
 - **Indigo:** focus moved; `onMove` fired.
 - **Amber:** keyrove handled the key, but focus stayed in place.
-- **Grey:** keyrove left the key to the browser.
+- **Gray:** keyrove left the key to the browser.
 
-Amber and grey readouts use `keyRove`'s [return value](/docs/api#return-value).
+Amber and gray readouts use `keyRove`'s [return value](/docs/api#return-value).
 Other handlers can use it to check whether keyrove handled the key.

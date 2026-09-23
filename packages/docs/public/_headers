@@ -16,14 +16,23 @@
   Content-Type: text/plain; charset=utf-8
   X-Robots-Tag: noindex
 
+# The same goes for llms.txt, which the sidebar and footer link from every
+# page: a list of links to the twins, there to be read, not to rank.
+/llms.txt
+  X-Robots-Tag: noindex
+
 # Vite fingerprints everything under `assets/`, so a given URL's bytes never
 # change and it can be cached indefinitely.
 /assets/*
   Cache-Control: public, max-age=31536000, immutable
 
-# The social card cannot be fingerprinted: its URL is written into every page's
-# `og:image`, so it has to stay `/og.png`. A year of immutability would leave a
-# stale card in every unfurler's cache for a year after a redesign, and no
-# header at all means each crawl revalidates. A week splits the difference.
+# The social card and the favicon cannot be fingerprinted: their URLs are
+# written into every page's head, so they have to stay `/og.png` and
+# `/favicon.svg`. A year of immutability would leave a stale card in every
+# unfurler's cache for a year after a redesign, and no header at all means each
+# crawl revalidates. A week splits the difference.
 /og.png
+  Cache-Control: public, max-age=604800
+
+/favicon.svg
   Cache-Control: public, max-age=604800

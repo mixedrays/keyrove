@@ -1,7 +1,7 @@
 ---
 # Live page: https://keyrove.pages.dev/docs/examples/typeahead
 title: Typeahead
-description: Focus items by typing their labels, with prefix matching, repeated-character cycling and accent handling.
+description: Add typeahead to a list or menu so typing a label focuses its item, with prefix matching, repeated-character cycling and accent handling.
 titleTag: Type-to-focus typeahead for lists — keyrove
 group: Examples
 order: 20
@@ -121,7 +121,7 @@ Type "swez" quickly to see each result in the readout:
 
 - <kbd class="kbd">S</kbd> and <kbd class="kbd">W</kbd> are indigo: focus moves to _Spanish_, then _Swedish_.
 - <kbd class="kbd">E</kbd> is amber, _typeahead · moved nothing_: "swe" still matches the focused item, so `to` is `null`.
-- <kbd class="kbd">Z</kbd> is grey, _left to the browser_: "swez" matches nothing, so the handler returns `null`.
+- <kbd class="kbd">Z</kbd> is gray, _left to the browser_: "swez" matches nothing, so the handler returns `null`.
 
 The unmatched character stays in the buffer. Pause for 500 ms to start again.
 

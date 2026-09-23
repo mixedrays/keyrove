@@ -1,7 +1,7 @@
 ---
 # Live page: https://keyrove.pages.dev/docs/examples/focus-keys
 title: Focus keys
-description: Assign shortcuts that focus items or panels across groups, including from editable fields.
+description: Assign keyboard shortcuts that focus an item or panel from anywhere under the listener, across groups and even from inside a text field.
 titleTag: Keyboard shortcuts that focus an element — keyrove
 group: Examples
 order: 19
@@ -16,6 +16,8 @@ area: focus keys with <kbd class="kbd">Ctrl</kbd>, <kbd class="kbd">Alt</kbd> or
 <div data-demo="panes" data-demo-label="editor panes"></div>
 
 ```ts
+import { keyRove } from '@mixedrays/keyrove';
+
 document
   .querySelector('#editor-panes')
   .addEventListener('keydown', (e) => keyRove(e));

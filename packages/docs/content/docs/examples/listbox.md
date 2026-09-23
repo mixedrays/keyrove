@@ -1,7 +1,7 @@
 ---
 # Live page: https://keyrove.pages.dev/docs/examples/listbox
 title: Listbox
-description: Combine navigation, typeahead, roving tabindex and explicit selection in a single-select listbox.
+description: Build a single-select listbox with keyboard navigation, typeahead, roving tabindex and explicit selection, while your widget supplies the ARIA roles.
 titleTag: Accessible listbox with keyboard navigation — keyrove
 group: Examples
 order: 23

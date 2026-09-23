@@ -1,7 +1,7 @@
 ---
 # Live page: https://keyrove.pages.dev/docs/api
 title: API reference
-description: Reference for handlers, configuration, key bindings, focus behavior, attributes and exported types.
+description: Reference for keyRove, rove, the typeahead and roving tabindex helpers, key bindings, focus behavior, data attributes and every exported TypeScript type.
 group: Guide
 order: 4
 ---
@@ -283,7 +283,7 @@ or `dir="auto"` falls back to computed style.
 
 Both rules apply to defaults only. An explicit binding is literal, never
 flipped or remapped, and wins over orientation wherever both are set. The
-default arrows it replaces go back to their browser behaviour. See
+default arrows it replaces go back to their browser behavior. See
 [horizontal lists](/docs/examples/horizontal-lists) for both directions at
 work.
 

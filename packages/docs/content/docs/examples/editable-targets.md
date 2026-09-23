@@ -1,7 +1,7 @@
 ---
 # Live page: https://keyrove.pages.dev/docs/examples/editable-targets
 title: Editable targets
-description: Keep native editing keys inside fields while navigating the surrounding items.
+description: Mix keyboard navigation with text fields, selects and sliders. Editable controls keep their native keys while the arrows move between the rows around them.
 titleTag: Keyboard navigation with input fields — keyrove
 group: Examples
 order: 21
@@ -14,11 +14,13 @@ focus shortcuts are the [exception](#the-one-exception).
 Arrow between the demo's rows, then <kbd class="kbd">Tab</kbd> into a control. Text fields keep their
 editing behavior, _Font size_ keeps its slider keys, and <kbd class="kbd">↓</kbd> on the checkbox
 moves to the next row. The readout shows navigation in indigo and keys left to
-the browser in grey.
+the browser in gray.
 
 <div data-demo="editable" data-demo-label="settings"></div>
 
 ```ts
+import { keyRove } from '@mixedrays/keyrove';
+
 document
   .querySelector('#settings')
   .addEventListener('keydown', (e) => keyRove(e));

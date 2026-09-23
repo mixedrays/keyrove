@@ -102,8 +102,10 @@ const PLACEHOLDER = /^<div data-about><\/div>$/gm;
 
 const renderFacts = () =>
   [
-    `- **Package** — [${META.packageName}](${META.npmUrl}) on npm`,
-    `- **Docs version** — ${META.version}`,
+    // Both versions, each beside what it numbers: the footer shows the
+    // package's, and a lone "Docs version" reads as the release it documents.
+    `- **Package** — [${META.packageName}](${META.npmUrl}) ${META.packageVersion} on npm`,
+    `- **Docs version** — ${META.version}, numbered separately from the package`,
     `- **Repository** — [${META.repoLabel}](${META.repoUrl})`,
     `- **Author** — [@${META.author}](${META.authorUrl})`,
   ].join('\n');
