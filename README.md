@@ -53,7 +53,7 @@ for vanilla JavaScript, React, Vue and Svelte.
   which keys move focus, and what it leaves to you.
 - [Attributes and options](https://keyrove.pages.dev/docs/attributes-and-options)
   — the two places a group can be described, and which to reach for.
-- [Examples](https://keyrove.pages.dev/docs/examples/basic) — live demos of
+- [Examples](https://keyrove.pages.dev/docs/examples) — live demos of
   lists, grids, trees, custom keys, roving tabindex, nested roots and more.
 - [API reference](https://keyrove.pages.dev/docs/api) — every attribute,
   option and export.

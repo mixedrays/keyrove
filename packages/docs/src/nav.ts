@@ -7,6 +7,98 @@
  * button sits beside a link to the same file.
  */
 
+import {
+  type KeyCombo,
+  followFocus,
+  initRovingTabindex,
+  keyRove,
+  matchesCombo,
+} from '@mixedrays/keyrove';
+
+const sidebarGroup = {
+  root: '#docs-sidebar, .toc',
+  items: '.sidebar-link, .toc-link',
+  loop: true,
+  rovingTabindex: true,
+};
+
+// Rendered and not `visibility: hidden` — what `checkVisibility({
+// visibilityProperty: true })` answers, which Safari only has from 17.4.
+const isShown = (element: Element) =>
+  element.getClientRects().length > 0 &&
+  getComputedStyle(element).visibility !== 'hidden';
+
+const APPLE_KEYS = new Map([
+  ['Alt', '⌥'],
+  ['Shift', '⇧'],
+]);
+
+/**
+ * The hint beside a sidebar's first heading: its shortcut, and the arrows
+ * that move within it. The shortcut is printed as the keycaps are — `⌥ ⇧ E` on
+ * Apple keyboards, `Alt Shift E` elsewhere — the way the search chip is. The
+ * stylesheet decides when it shows; screen readers get `aria-keyshortcuts`.
+ */
+const renderKeysHint = (root: HTMLElement, label: string) => {
+  const apple = /Mac|iPhone|iPad|iPod/.test(navigator.platform);
+  const keys = label
+    .split('+')
+    .map((key) => (apple && APPLE_KEYS.get(key)) || key);
+  const kbd = (text: string, className = '') => {
+    const element = document.createElement('kbd');
+    element.className = className;
+    element.textContent = text;
+    return element;
+  };
+
+  const hint = document.createElement('span');
+  hint.className = 'sidebar-keys';
+  hint.setAttribute('aria-hidden', 'true');
+  hint.append(kbd('↑ ↓', 'sidebar-keys-move'), kbd(keys.join(' ')));
+  root.querySelector('.sidebar-heading, .toc-heading')?.before(hint);
+};
+
+/**
+ * Arrow keys within a sidebar, and a shortcut to its tab stop from anywhere on
+ * the page. The shortcuts are Alt+Shift chords because browsers claim most
+ * Ctrl+Shift letters — Ctrl+Shift+I is DevTools — and Firefox gives Alt+Shift
+ * to the page's own access keys. `aria-keyshortcuts` and the visible hint are
+ * added here, not in the markup, so nothing advertises a shortcut without a
+ * handler behind it.
+ */
+const mountSidebarKeys = (
+  root: HTMLElement,
+  shortcut: { combo: KeyCombo; label: string },
+  reveal?: () => void,
+) => {
+  initRovingTabindex(root, {
+    ...sidebarGroup,
+    initial: root.querySelector('[aria-current="page"], [data-active]'),
+  });
+  root.addEventListener('keydown', (event) => keyRove(event, sidebarGroup));
+  root.addEventListener('focusin', (event) => followFocus(event, sidebarGroup));
+  root.setAttribute('aria-keyshortcuts', shortcut.label);
+  renderKeysHint(root, shortcut.label);
+
+  document.addEventListener('keydown', (event) => {
+    if (
+      event.defaultPrevented ||
+      event.isComposing ||
+      !matchesCombo(event, shortcut.combo) ||
+      document.querySelector('dialog[open]')
+    )
+      return;
+    reveal?.();
+    if (!isShown(root)) return;
+    const target = root.querySelector<HTMLElement>('[tabindex="0"]');
+    if (target)
+      keyRove(event, {
+        ...sidebarGroup,
+        focusKeys: { [shortcut.combo]: target },
+      });
+  });
+};
+
 /** Sidebar drawer. Below `lg` the aside is off-canvas until this opens it. */
 export const mountSidebar = () => {
   const toggle = document.querySelector<HTMLButtonElement>(
@@ -17,6 +109,7 @@ export const mountSidebar = () => {
   if (!toggle || !sidebar || !backdrop) return;
 
   const setOpen = (open: boolean) => {
+    const wasOpen = document.documentElement.hasAttribute('data-sidebar-open');
     document.documentElement.toggleAttribute('data-sidebar-open', open);
     toggle.setAttribute('aria-expanded', String(open));
     backdrop.hidden = !open;
@@ -24,6 +117,15 @@ export const mountSidebar = () => {
       'aria-label',
       open ? 'Close navigation' : 'Open navigation',
     );
+    // A closed drawer is hidden, and focus inside it would go with it. Only on
+    // an actual close, so the call at mount leaves early focus where it is.
+    if (
+      wasOpen &&
+      !open &&
+      sidebar.contains(document.activeElement) &&
+      isShown(toggle)
+    )
+      toggle.focus();
   };
 
   toggle.addEventListener('click', () => {
@@ -38,11 +140,21 @@ export const mountSidebar = () => {
     if ((e.target as Element).closest('a')) setOpen(false);
   });
 
+  // Escape closes the top layer only: with search open over the drawer, the
+  // dialog takes the press and hands focus back to the drawer it came from.
   document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') setOpen(false);
+    if (e.key === 'Escape' && !document.querySelector('dialog[open]'))
+      setOpen(false);
   });
 
   setOpen(false);
+  mountSidebarKeys(
+    sidebar,
+    { combo: 'alt+shift+KeyE', label: 'Alt+Shift+E' },
+    () => {
+      if (isShown(toggle)) setOpen(true);
+    },
+  );
 };
 
 /**
@@ -53,9 +165,9 @@ export const mountSidebar = () => {
  * enough to satisfy an observer threshold at all.
  */
 export const mountTableOfContents = () => {
-  const links = [
-    ...document.querySelectorAll<HTMLAnchorElement>('[data-toc-link]'),
-  ];
+  const toc = document.querySelector<HTMLElement>('.toc');
+  if (!toc) return;
+  const links = [...toc.querySelectorAll<HTMLAnchorElement>('[data-toc-link]')];
   if (links.length === 0) return;
 
   const targets = links
@@ -92,6 +204,11 @@ export const mountTableOfContents = () => {
     for (const { link } of targets) {
       link.toggleAttribute('data-active', link === active.link);
     }
+
+    // The tab stop follows the highlight, so Tab and the shortcut land on the
+    // section in view — until focus is in the rail, where it is the reader's.
+    if (!toc.contains(document.activeElement))
+      initRovingTabindex(toc, { ...sidebarGroup, initial: active.link });
   };
 
   let queued = false;
@@ -107,6 +224,7 @@ export const mountTableOfContents = () => {
   addEventListener('scroll', onScroll, { passive: true });
   addEventListener('resize', onScroll, { passive: true });
   update();
+  mountSidebarKeys(toc, { combo: 'alt+shift+KeyO', label: 'Alt+Shift+O' });
 };
 
 /**

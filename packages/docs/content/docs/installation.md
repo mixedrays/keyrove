@@ -1,6 +1,7 @@
 ---
+# Live page: https://keyrove.pages.dev/docs/installation
 title: Installation
-description: Install keyrove and connect a keyboard handler in vanilla JavaScript, React, Vue or Svelte.
+description: Install keyrove from npm and add arrow-key navigation in vanilla JavaScript, React, Vue or Svelte, with typed attribute builders or hand-written attributes.
 titleTag: Installation for React, Vue and Svelte — keyrove
 group: Guide
 order: 2

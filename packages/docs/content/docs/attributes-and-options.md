@@ -1,6 +1,7 @@
 ---
+# Live page: https://keyrove.pages.dev/docs/attributes-and-options
 title: Attributes and options
-description: Configure groups with attributes, JavaScript options, or both, including fallback and replacement rules.
+description: Configure keyboard navigation with data-keyrove-* attributes, JavaScript options or both, including how options fall back and where the two differ.
 titleTag: Two ways to configure keyboard navigation — keyrove
 group: Guide
 order: 3

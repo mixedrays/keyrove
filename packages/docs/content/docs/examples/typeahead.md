@@ -1,6 +1,7 @@
 ---
+# Live page: https://keyrove.pages.dev/docs/examples/typeahead
 title: Typeahead
-description: Focus items by typing their labels, with prefix matching, repeated-character cycling and accent handling.
+description: Add typeahead to a list or menu so typing a label focuses its item, with prefix matching, repeated-character cycling and accent handling.
 titleTag: Type-to-focus typeahead for lists — keyrove
 group: Examples
 order: 20
@@ -10,7 +11,7 @@ Create a typeahead handler to focus items by typing their labels. In this
 list, <kbd class="kbd">S</kbd> focuses _Spanish_ and <kbd class="kbd">W</kbd> immediately after it focuses _Swedish_.
 After a 500 ms pause, the next character starts a new prefix.
 
-<div data-demo="typeahead" data-demo-class="max-h-60 overflow-y-auto"></div>
+<div data-demo="typeahead" data-demo-class="-m-1 max-h-60 overflow-y-auto p-1" data-demo-label="languages"></div>
 
 ```ts
 import { createTypeahead, keyRove } from '@mixedrays/keyrove';
@@ -86,7 +87,7 @@ The label is the item's text, trimmed and with runs of whitespace collapsed.
 When the text starts with something nobody types, an emoji, an icon's fallback
 text, a code, `data-keyrove-typeahead` names the label instead:
 
-<div data-demo="labels"></div>
+<div data-demo="labels" data-demo-label="presence"></div>
 
 <kbd class="kbd">A</kbd> is _Available_, <kbd class="kbd">A</kbd>
 <kbd class="kbd">W</kbd> is _Away_, <kbd class="kbd">D</kbd> is
@@ -116,11 +117,11 @@ The handler returns `null` when it left the key alone and
 the match is already focused or cannot receive focus. `onMove` fires only
 after a successful focus move.
 
-Type "swez" quickly to see each result in the log:
+Type "swez" quickly to see each result in the readout:
 
-- <kbd class="kbd">S</kbd> and <kbd class="kbd">W</kbd> are green: focus moves to _Spanish_, then _Swedish_.
-- <kbd class="kbd">E</kbd> is amber: "swe" still matches the focused item, so `to` is `null`.
-- <kbd class="kbd">Z</kbd> is grey: "swez" matches nothing, so the handler returns `null`.
+- <kbd class="kbd">S</kbd> and <kbd class="kbd">W</kbd> are indigo: focus moves to _Spanish_, then _Swedish_.
+- <kbd class="kbd">E</kbd> is amber, _typeahead · moved nothing_: "swe" still matches the focused item, so `to` is `null`.
+- <kbd class="kbd">Z</kbd> is gray, _left to the browser_: "swez" matches nothing, so the handler returns `null`.
 
 The unmatched character stays in the buffer. Pause for 500 ms to start again.
 

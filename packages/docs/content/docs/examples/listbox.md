@@ -1,6 +1,7 @@
 ---
+# Live page: https://keyrove.pages.dev/docs/examples/listbox
 title: Listbox
-description: Combine navigation, typeahead, roving tabindex and explicit selection in a single-select listbox.
+description: Build a single-select listbox with keyboard navigation, typeahead, roving tabindex and explicit selection, while your widget supplies the ARIA roles.
 titleTag: Accessible listbox with keyboard navigation — keyrove
 group: Examples
 order: 23
@@ -15,7 +16,7 @@ when typeahead is inactive; wait 500 ms after typing to use it. Clicking picks
 too. <kbd class="kbd">Tab</kbd> away and back, and focus returns to where you
 left it.
 
-<div data-demo="listbox"></div>
+<div data-demo="listbox" data-demo-label="assignee"></div>
 
 ```ts
 import {
@@ -58,7 +59,9 @@ listbox.addEventListener('click', (e) => {
 });
 ```
 
-The log distinguishes selection from focus movement.
+The readout tells selection from focus movement by its verb:
+<kbd class="kbd">↓</kbd> from _Ada Lovelace_ reads _next → Alan Turing_, and
+<kbd class="kbd">Enter</kbd> then reads _selected → Alan Turing_.
 
 ## The pieces
 

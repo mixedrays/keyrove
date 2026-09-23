@@ -1,6 +1,7 @@
 ---
+# Live page: https://keyrove.pages.dev/docs/introduction
 title: Introduction
-description: Set up keyboard navigation, choose keys and options, and keep native Tab behavior.
+description: Add keyboard navigation to lists, grids and trees with one keydown handler, then choose keys and options while native Tab behavior keeps working.
 titleTag: Introduction to keyboard navigation — keyrove
 group: Guide
 order: 1

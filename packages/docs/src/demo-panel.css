@@ -1,0 +1,429 @@
+/*
+ * Reusable demo panels: a compact readout and tabbed code, in the page's theme.
+ * Layout belongs to the embedding page; no hero or landing wrapper is needed.
+ */
+@layer components {
+  /*
+   * Each token is its light value, then its dark one. `light-dark()` picks by
+   * the panel's color-scheme, which it inherits from the page (see style.css),
+   * so the header toggle moves the panels with everything else — and a page
+   * that wants its panels against its theme flips that one property.
+   */
+  .demo-panel {
+    @apply overflow-hidden rounded-[1.125rem] border border-(--demo-edge) bg-(--demo-bg) text-(--demo-text);
+
+    --demo-bg: light-dark(var(--color-white), var(--color-zinc-900));
+    --demo-edge: light-dark(var(--color-zinc-200), var(--color-zinc-900));
+    --demo-text: light-dark(var(--color-zinc-700), var(--color-zinc-300));
+    --demo-muted: var(--color-zinc-500);
+    --demo-hover: light-dark(var(--color-zinc-100), var(--color-zinc-800));
+    --demo-accent: light-dark(var(--color-indigo-600), var(--color-indigo-400));
+    --demo-on-accent: light-dark(var(--color-white), var(--color-zinc-950));
+    --demo-readout: light-dark(
+      var(--color-indigo-600),
+      var(--color-indigo-300)
+    );
+    --demo-warn: light-dark(var(--color-amber-600), var(--color-amber-400));
+    --demo-rule: light-dark(var(--color-zinc-200), var(--color-zinc-800));
+    --demo-strip: light-dark(
+      var(--color-zinc-50),
+      --alpha(var(--color-zinc-950) / 40%)
+    );
+    --demo-code: light-dark(var(--color-zinc-800), var(--color-zinc-200));
+    --demo-tab-hover: light-dark(var(--color-zinc-900), var(--color-zinc-200));
+    --demo-chip: light-dark(var(--color-zinc-200), var(--color-zinc-800));
+    --demo-chip-text: light-dark(var(--color-zinc-900), var(--color-zinc-100));
+    --demo-chip-edge: light-dark(var(--color-zinc-200), var(--color-zinc-700));
+  }
+
+  /* The landing page sets its panels against the page on purpose: dark on a
+     light page, light on a dark one. */
+  .landing .demo-panel {
+    color-scheme: dark;
+
+    @variant dark {
+      color-scheme: light;
+    }
+  }
+
+  .markdown > .demo-panel {
+    @apply mt-6;
+  }
+
+  .demo-panel-header {
+    @apply flex min-h-5 items-center justify-between gap-4 px-5 pt-4 pb-2.5;
+  }
+
+  .demo-panel-label {
+    @apply inline-flex items-center gap-2 font-mono text-[0.6875rem] leading-none font-medium tracking-[0.14em] whitespace-nowrap text-(--demo-muted) uppercase;
+  }
+
+  /* A live indicator: the demo is running, not a picture of one. */
+  .demo-live-indicator {
+    @apply size-[7px] shrink-0 rounded-full bg-emerald-500;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .demo-live-indicator {
+      animation: demo-pulse 2s ease-out infinite;
+    }
+  }
+
+  /* The accent for a move, amber for a key claimed with nowhere to go — the
+     colours the demos' history marks the same two outcomes in — and muted for
+     a key left to the browser. Before the first key: "click to focus" takes
+     the accent, being the one thing to do, and "listening…" is muted. */
+  .demo-readout {
+    @apply inline-flex min-h-5 min-w-0 items-center gap-1.5 overflow-hidden font-mono text-xs leading-none whitespace-nowrap text-(--demo-readout) justify-end;
+  }
+
+  .demo-readout[data-state='edge'] {
+    @apply text-(--demo-warn);
+  }
+
+  .demo-readout:is([data-state='listening'], [data-state='passed']) {
+    @apply text-(--demo-muted);
+  }
+
+  .demo-readout kbd {
+    @apply inline-grid h-5 min-w-5 place-items-center rounded-[5px] border border-b-2 border-current px-1 font-mono text-[0.6875rem] opacity-85;
+  }
+
+  .demo-readout-target {
+    @apply truncate font-semibold;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .demo-readout-fresh {
+      animation: demo-fresh 360ms ease-out;
+    }
+  }
+
+  /*
+   * The code strip: the page's own tabbed code panel (see build/markdown.ts),
+   * joined to the panel's foot. It gives up the frame it carries in prose —
+   * the panel is its frame — and takes the panel's palette, Shiki's token
+   * colours included: the panel's color-scheme, which is not always the page's.
+   */
+  .demo-panel .code-tabs {
+    @apply mt-0 rounded-none border-0 border-t border-(--demo-rule) bg-(--demo-strip);
+  }
+
+  /* A demo whose page shows no script has one file and so no tabs: the lone
+     block joins the foot on the same terms, without a strip of one tab. */
+  .demo-panel > .code-copyable:not(.code-tabs) {
+    @apply mt-0 border-t border-(--demo-rule) bg-(--demo-strip);
+  }
+
+  .demo-panel > .code-copyable > .code-block {
+    @apply rounded-none border-0;
+  }
+
+  .demo-panel > .code-copyable:not(.code-tabs) > .code-copy {
+    @apply top-2.5;
+  }
+
+  .demo-panel .code-tabs-bar {
+    @apply h-9 border-(--demo-rule) px-2;
+  }
+
+  .demo-panel .code-tab {
+    @apply text-(--demo-muted) hover:text-(--demo-tab-hover);
+  }
+
+  .demo-panel .code-tab[aria-selected='true'] {
+    @apply bg-(--demo-chip) text-(--demo-chip-text);
+  }
+
+  .demo-panel .code-copy {
+    @apply top-1 right-2 border-(--demo-chip-edge) bg-(--demo-chip) text-(--demo-muted) hover:text-(--demo-chip-text);
+  }
+
+  .demo-panel .code-block {
+    @apply bg-transparent px-5 py-3.5 text-[0.8rem] text-(--demo-code);
+  }
+
+  .demo-panel .shiki span {
+    color: light-dark(var(--shiki-light), var(--shiki-dark));
+  }
+
+  /* The keys the demo answers to, under the panel. Set on the page rather
+     than in the panel, so it takes the page's theme, and with a line tall
+     enough that the key caps sit in it without spreading the lines apart. */
+  .demo-hint {
+    @apply mx-1 mt-3 text-[0.8125rem] leading-7 text-zinc-500 dark:text-zinc-400;
+  }
+
+  .demo-hint .kbd {
+    @apply min-w-[1.75em] py-0 text-[0.6875rem];
+  }
+
+  .demo-panel--code > .code-tabs {
+    @apply border-t-0;
+  }
+
+  .demo-panel[data-demo] .demo-panel-header {
+    /* Choose rows from the available width, not the current readout text:
+       blurring the preview must not move a code tab during its click. */
+    @apply grid grid-cols-[repeat(auto-fit,minmax(min(100%,12rem),1fr))] gap-x-3 gap-y-2;
+  }
+
+  .demo-panel-preview {
+    @apply px-4 pb-4 pt-2;
+  }
+
+  .demo-panel-preview .demo-surface {
+    @apply m-0 grid gap-1 rounded-none border-0 bg-transparent p-0;
+  }
+
+  .demo-panel-preview
+    :where([data-keyrove-item], [role='menuitem'], [role='treeitem']) {
+    @apply block min-w-0 cursor-pointer rounded-lg px-3 py-1.5 text-left text-sm text-(--demo-text) outline-transparent outline-offset-2 transition-colors duration-120 hover:bg-(--demo-hover);
+  }
+
+  .demo-panel-preview
+    :where([data-keyrove-item], [role='menuitem'], [role='treeitem']):focus {
+    @apply bg-(--demo-accent) text-(--demo-on-accent) outline-2 outline-(--demo-accent);
+  }
+
+  .demo-panel-preview :where([disabled]) {
+    @apply cursor-not-allowed text-(--demo-muted) hover:bg-transparent;
+  }
+
+  /* A skipped item, drawn as the group heading it stands for. The first one
+     opens the list, so it gives up the space that sets the later ones off
+     from the rows above them. */
+  .demo-panel-preview :where([data-keyrove-skip]) {
+    @apply cursor-default pt-3.5 text-[0.6875rem] font-semibold tracking-widest text-(--demo-muted) uppercase hover:bg-transparent;
+  }
+
+  .demo-panel-preview .demo-surface > :where([data-keyrove-skip]:first-child) {
+    @apply pt-1;
+  }
+
+  /* A field inside the preview, such as the focus-keys demo's text area, so a
+     chord can be tried from where it matters. */
+  .demo-panel-preview :where(textarea) {
+    @apply mt-2 block w-full resize-none rounded-md border border-(--demo-chip-edge) bg-(--demo-bg) px-2 py-1 text-sm font-normal tracking-normal text-(--demo-text) normal-case outline-transparent outline-offset-2 placeholder:text-(--demo-muted) focus:outline-2 focus:outline-(--demo-accent);
+  }
+
+  /* A focus-key target that is not an item, such as the focus-keys demo's
+     panes: a bordered region headed by its name, reached by its key alone.
+     A pane takes the ring rather than the accent fill, which would flood the
+     field inside it; a field that drops to its own line comes last. */
+  .demo-panel-preview
+    :where([data-keyrove-focus-key]:not([data-keyrove-item])) {
+    @apply flex min-h-20 min-w-0 flex-wrap content-start items-center gap-x-2 rounded-lg border border-(--demo-chip-edge) px-3 py-2 text-[0.6875rem] font-semibold tracking-widest text-(--demo-muted) uppercase outline-transparent outline-offset-2 transition-colors duration-120;
+  }
+
+  .demo-panel-preview
+    :where([data-keyrove-focus-key]:not([data-keyrove-item])):focus {
+    @apply text-(--demo-accent) outline-2 outline-(--demo-accent);
+  }
+
+  .demo-panel-preview
+    :where([data-keyrove-focus-key]:not([data-keyrove-item]))
+    > textarea {
+    order: 1;
+  }
+
+  /* A control inside an item, such as the editable-targets demo's rows. The
+     label lays the row out: a checkbox ahead of its text, a field pushed to
+     the far end, and a text area dropping to a line of its own. */
+  .demo-panel-preview :where([data-keyrove-item] > label) {
+    @apply flex flex-wrap items-center gap-x-3 gap-y-2;
+  }
+
+  .demo-panel-preview :where([data-keyrove-item] > label > textarea) {
+    @apply mt-0;
+  }
+
+  .demo-panel-preview :where(input[type='text']) {
+    @apply ml-auto w-44 max-w-full rounded-md border border-(--demo-chip-edge) bg-(--demo-bg) px-2 py-1 text-sm text-(--demo-text) outline-transparent outline-offset-2 focus:outline-2 focus:outline-(--demo-accent);
+  }
+
+  .demo-panel-preview :where(input[type='range']) {
+    @apply ml-auto w-44 max-w-full accent-(--demo-accent);
+  }
+
+  .demo-panel-preview :where(input[type='checkbox']) {
+    @apply size-4 accent-(--demo-accent);
+  }
+
+  /* A focused row is filled with the accent, which would swallow a control
+     drawn in it: the row's own text colour takes over. */
+  .demo-panel-preview
+    :where([data-keyrove-item]:focus)
+    :where(input[type='checkbox'], input[type='range']) {
+    @apply accent-(--demo-on-accent);
+  }
+
+  /* An option ends in the tick that says which one is chosen. The tick is the
+     widget's state rather than keyrove's, drawn off the ARIA attribute the
+     page's snippet writes; on a focused row it takes the row's text colour. */
+  .demo-panel-preview :where([role='option']) {
+    @apply flex items-center gap-2.5;
+  }
+
+  .demo-panel-preview :where([role='option'][aria-selected='true'])::after {
+    @apply ml-auto font-semibold text-(--demo-accent);
+    content: '✓';
+    content: '✓' / '';
+  }
+
+  .demo-panel-preview
+    :where([role='option'][aria-selected='true']:focus)::after {
+    @apply text-current;
+  }
+
+  .demo-panel-preview :has(> .demo-item-icon) {
+    @apply flex items-center gap-2.5;
+  }
+
+  .demo-item-icon {
+    @apply pointer-events-none size-4 shrink-0 opacity-70;
+  }
+
+  :focus > .demo-item-icon {
+    @apply opacity-100;
+  }
+
+  .demo-item-icon--open,
+  [aria-expanded='true'] > .demo-item-icon--closed {
+    @apply hidden;
+  }
+
+  [aria-expanded='true'] > .demo-item-icon--open {
+    @apply block;
+  }
+
+  .demo-panel-preview [data-keyrove-orientation='horizontal'] {
+    @apply flex flex-wrap;
+  }
+
+  .demo-panel-preview
+    [data-keyrove-orientation='horizontal']
+    > [data-keyrove-item] {
+    @apply gap-2 px-2;
+  }
+
+  .demo-panel-preview :where([data-keyrove-cols]) > [data-keyrove-item] {
+    @apply text-center;
+  }
+
+  .demo-panel[data-demo='responsive'] .demo-panel-preview {
+    @apply mx-2 mb-2 max-w-[calc(100%-1rem)] min-w-56 resize-x overflow-auto rounded-lg border border-dashed border-(--demo-rule) p-2;
+  }
+
+  /* Scoped to the preview: the code tabs under it are keyrove items too. */
+  .demo-panel:is([data-demo='tools'], [data-demo='landing-tools'])
+    .demo-panel-preview
+    [data-keyrove-item] {
+    @apply flex items-center;
+  }
+
+  .demo-panel:is([data-demo='tools'], [data-demo='landing-tools'])
+    .demo-panel-preview
+    [data-keyrove-item]::after {
+    @apply ml-auto font-mono text-xs opacity-60;
+    content: attr(aria-keyshortcuts);
+    content: attr(aria-keyshortcuts) / '';
+  }
+
+  /* The panes laid out as an editor lays them out: a sidebar down the left,
+     the file above the terminal. There is no "down" from a sidebar that spans
+     both rows, which is the case for a key that names each pane — and the
+     reason each pane shows its chord beside its name. */
+  .demo-panel[data-demo='panes'] .demo-surface {
+    @apply grid-cols-[minmax(0,1fr)_minmax(0,2fr)] gap-1.5;
+  }
+
+  .demo-panel[data-demo='panes'] .demo-surface > :nth-child(1) {
+    grid-area: 1 / 1 / span 2 / 1;
+  }
+
+  .demo-panel[data-demo='panes'] .demo-surface > :nth-child(3) {
+    grid-area: 2 / 2;
+  }
+
+  .demo-panel[data-demo='panes'] .demo-surface > ::after {
+    @apply ml-auto rounded border border-(--demo-chip-edge) px-1.5 py-0.5 font-mono text-[0.625rem] font-normal tracking-normal whitespace-nowrap normal-case;
+  }
+
+  .demo-panel[data-demo='panes'] .demo-surface > :nth-child(1)::after {
+    content: 'Ctrl+Shift+1';
+    content: 'Ctrl+Shift+1' / '';
+  }
+
+  .demo-panel[data-demo='panes'] .demo-surface > :nth-child(2)::after {
+    content: 'Ctrl+Shift+2';
+    content: 'Ctrl+Shift+2' / '';
+  }
+
+  .demo-panel[data-demo='panes'] .demo-surface > :nth-child(3)::after {
+    content: 'Ctrl+Shift+3';
+    content: 'Ctrl+Shift+3' / '';
+  }
+
+  /* A nested root, drawn as a row of its own so the boundary keyrove scopes
+     to is visible. A nested grid brings its own layout and is left alone. */
+  .demo-panel-preview [data-keyrove-root]:not([data-keyrove-cols]) {
+    @apply flex gap-1 rounded-lg border border-dashed border-(--demo-rule) p-1;
+  }
+
+  /* Trees: the file tree's rows and the sidebar's, whose folders are buttons
+     that would otherwise size to their label. A folder leads with the caret
+     that says whether it is open; a row without one keeps its room, so names
+     at one depth line up — in the sidebar only at the top, as a section holds
+     pages alone. A folder's rows step in under it, on the same rhythm as the
+     rows above. */
+  .demo-panel[data-demo='sidebar'] .demo-surface [data-keyrove-item] {
+    @apply flex w-full items-center gap-2.5;
+  }
+
+  .demo-panel-preview :is([role='group'], [data-keyrove-item] + ul) {
+    @apply mt-1 ml-4 grid gap-1 border-l border-(--demo-rule) pl-2;
+  }
+
+  .demo-panel-preview [aria-expanded]::before {
+    @apply inline-block w-2 shrink-0;
+    content: '▸';
+    content: '▸' / '';
+  }
+
+  .demo-panel-preview [aria-expanded='true']::before {
+    content: '▾';
+    content: '▾' / '';
+  }
+
+  .demo-panel-preview [role='treeitem']:not([aria-expanded]),
+  .demo-panel[data-demo='sidebar']
+    .demo-surface
+    > li
+    > [data-keyrove-item]:not([aria-expanded]) {
+    @apply pl-[1.875rem];
+  }
+}
+
+/* The live indicator: a ring that swells off the dot and fades. */
+@keyframes demo-pulse {
+  0% {
+    box-shadow: 0 0 0 0 --alpha(var(--color-emerald-500) / 50%);
+  }
+
+  70%,
+  100% {
+    box-shadow: 0 0 0 6px --alpha(var(--color-emerald-500) / 0%);
+  }
+}
+
+/* A new line in the readout, rising into place. */
+@keyframes demo-fresh {
+  from {
+    opacity: 0.35;
+  }
+
+  to {
+    opacity: 1;
+  }
+}

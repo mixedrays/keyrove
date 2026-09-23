@@ -1,4 +1,3 @@
-import { existsSync } from 'node:fs';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 
@@ -13,8 +12,14 @@ import {
   type Page,
 } from './build/content.ts';
 import { expandDemos, hasDemos, loadDemos, type Demos } from './build/demos.ts';
+import { expandIcons, faviconSvg } from './build/icons.ts';
 import { renderMarkdown } from './build/markdown.ts';
-import { createHrefResolver, renderPage, routeToPath } from './build/layout.ts';
+import {
+  createHrefResolver,
+  FAVICON_FILE,
+  renderPage,
+  routeToPath,
+} from './build/layout.ts';
 import { expandMeta } from './build/meta.ts';
 import { toSearchIndex } from './build/search.ts';
 import {
@@ -33,15 +38,16 @@ import {
  * build the same renderer stamps every page into `dist` once Vite has bundled
  * the shell. Nothing is generated into the source tree in between.
  *
- * Each page is emitted twice — `dist/docs/api/index.html` for the browser and
+ * Each page is emitted twice — `dist/docs/api.html` for the browser and
  * `dist/docs/api.md` for anything reading the docs as text — which is what
  * makes every URL on the site work with `.md` appended.
  */
 
 /**
- * Cloudflare Pages looks for exactly this filename on an unmatched route.
- * Without it every dead URL answers 200 with the landing page — a soft 404,
- * and the same content indexed under every wrong address.
+ * Cloudflare Pages looks for `404.html` on an unmatched route, which is where
+ * the page at this route is written. Without it every dead URL answers 200
+ * with the landing page — a soft 404, and the same content indexed under every
+ * wrong address.
  */
 const NOT_FOUND_ROUTE = '404';
 
@@ -105,6 +111,7 @@ const toGenerated = (site: Site, base: string): Generated[] => {
       body: toSitemap(site.pages, base),
     },
     { file: 'robots.txt', type: 'text/plain', body: toRobotsTxt(base) },
+    { file: FAVICON_FILE, type: 'image/svg+xml', body: faviconSvg },
   ];
 };
 
@@ -150,7 +157,7 @@ export const keyroveDocs = (): Plugin => {
 
     return renderPage(template, {
       page,
-      html,
+      html: expandIcons(html),
       headings,
       nav,
       readingOrder,
@@ -264,27 +271,6 @@ export const keyroveDocs = (): Plugin => {
     },
 
     /**
-     * `vite preview` serves `dist` behind a fallback that only tries
-     * `${url}.html`, but a page is written to `docs/api/index.html` — the
-     * layout Pages serves at the extensionless URL. Without this every page
-     * but the landing one answers 404 in preview while the deploy is fine.
-     *
-     * Registered from the hook body, so it runs before Vite's static handler.
-     */
-    configurePreviewServer(server) {
-      server.middlewares.use((req, _res, next) => {
-        if (req.method !== 'GET' && req.method !== 'HEAD') return next();
-
-        const route = toRoute(req.url ?? '/');
-        if (route && existsSync(path.join(outDir, route, 'index.html'))) {
-          req.url = `${base}${route}/index.html`;
-        }
-
-        next();
-      });
-    },
-
-    /**
      * The stylesheets' hashed names, which only exist once the bundle does.
      * Each is found by the source file it was built from.
      */
@@ -322,26 +308,25 @@ export const keyroveDocs = (): Plugin => {
         await writeFile(target, body);
       };
 
+      if (!pages.some((page) => page.route === NOT_FOUND_ROUTE)) {
+        throw new Error(
+          `[docs] content/${NOT_FOUND_ROUTE}.md is missing; Pages needs a ${NOT_FOUND_ROUTE}.html to answer dead URLs.`,
+        );
+      }
+
       await Promise.all(
         pages.map(async (page) => {
-          // Extensionless URLs, so that appending `.md` to any of them lands
-          // on the markdown sitting beside it rather than inside it.
-          const file =
-            page.route === '' ? 'index.html' : `${page.route}/index.html`;
+          // `docs/api.html` rather than `docs/api/index.html`: Pages serves the
+          // first at `/docs/api`, the URL every link, canonical tag and sitemap
+          // entry names, and redirects `/docs/api/` to it. The second is served
+          // at `/docs/api/` instead, so each of those would answer with a 308.
+          // Extensionless, too, so appending `.md` lands on the twin beside it.
+          const file = page.route === '' ? 'index.html' : `${page.route}.html`;
 
           await write(file, await render(page, shell));
           await write(toMarkdownPath(page.route), toMarkdown(page, demos));
         }),
       );
-
-      // The same rendered page as `/404`, at the filename Pages looks for.
-      const notFound = pages.find((page) => page.route === NOT_FOUND_ROUTE);
-      if (!notFound) {
-        throw new Error(
-          `[docs] content/${NOT_FOUND_ROUTE}.md is missing; Pages needs a ${NOT_FOUND_ROUTE}.html to answer dead URLs.`,
-        );
-      }
-      await write(`${NOT_FOUND_ROUTE}.html`, await render(notFound, shell));
 
       const generated = toGenerated(site, base);
       await Promise.all(
@@ -349,7 +334,7 @@ export const keyroveDocs = (): Plugin => {
       );
 
       this.info(
-        `stamped ${pages.length} pages, their .md twins, ${NOT_FOUND_ROUTE}.html, and ${generated
+        `stamped ${pages.length} pages, their .md twins, and ${generated
           .map((entry) => entry.file)
           .join(', ')}`,
       );

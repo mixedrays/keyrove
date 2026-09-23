@@ -1,14 +1,56 @@
 import {
+  Archive,
+  ArrowRight,
+  ArrowRightToLine,
+  Bold,
   BookOpen,
   Braces,
   Check,
+  Circle,
+  CircleCheck,
+  CircleDashed,
+  CircleDot,
+  CircleSlash,
+  Code,
+  Command,
   Copy,
+  FileCode,
+  FileDown,
+  FileJson,
+  FilePen,
+  FileSpreadsheet,
+  FileText,
+  Folder,
+  FolderOpen,
+  Hand,
+  Inbox,
+  Italic,
   Keyboard,
+  Layers,
   LayoutGrid,
+  Link,
+  Mail,
   Menu,
+  MessageSquare,
   Moon,
+  MousePointer2,
+  PenTool,
+  Pin,
+  Pipette,
+  RefreshCw,
+  Reply,
+  Scan,
   Search,
+  Send,
+  ShieldAlert,
+  SkipForward,
+  Sparkles,
+  Square,
   Sun,
+  TextCursorInput,
+  Trash2,
+  Type,
+  Underline,
   X,
   type IconNode,
 } from 'lucide';
@@ -68,6 +110,55 @@ const ICONS = {
   check: fromLucide(Check),
   sun: fromLucide(Sun),
   moon: fromLucide(Moon),
+  'arrow-right': fromLucide(ArrowRight),
+
+  // The landing page's feature cards and next steps, placed from the markdown
+  // with the placeholder `expandIcons` reads.
+  command: fromLucide(Command),
+  layers: fromLucide(Layers),
+  refresh: fromLucide(RefreshCw),
+  skip: fromLucide(SkipForward),
+  sparkles: fromLucide(Sparkles),
+  tab: fromLucide(ArrowRightToLine),
+  'text-cursor': fromLucide(TextCursorInput),
+
+  // The mail folders in the landing page's hero demo.
+  inbox: fromLucide(Inbox),
+  drafts: fromLucide(FilePen),
+  sent: fromLucide(Send),
+  spam: fromLucide(ShieldAlert),
+  trash: fromLucide(Trash2),
+
+  // Decorative item icons for compact demo previews.
+  link: fromLucide(Link),
+  mail: fromLucide(Mail),
+  'file-download': fromLucide(FileDown),
+  message: fromLucide(MessageSquare),
+  pointer: fromLucide(MousePointer2),
+  frame: fromLucide(Scan),
+  square: fromLucide(Square),
+  circle: fromLucide(Circle),
+  pen: fromLucide(PenTool),
+  type: fromLucide(Type),
+  pipette: fromLucide(Pipette),
+  hand: fromLucide(Hand),
+  reply: fromLucide(Reply),
+  pin: fromLucide(Pin),
+  folder: fromLucide(Folder),
+  'folder-open': fromLucide(FolderOpen),
+  'file-code': fromLucide(FileCode),
+  'file-json': fromLucide(FileJson),
+  'file-text': fromLucide(FileText),
+  'file-spreadsheet': fromLucide(FileSpreadsheet),
+  bold: fromLucide(Bold),
+  italic: fromLucide(Italic),
+  underline: fromLucide(Underline),
+  code: fromLucide(Code),
+  'circle-dashed': fromLucide(CircleDashed),
+  'circle-slash': fromLucide(CircleSlash),
+  'circle-dot': fromLucide(CircleDot),
+  'circle-check': fromLucide(CircleCheck),
+  archive: fromLucide(Archive),
 
   /*
    * The markdown mark — a filled glyph on a 16-unit grid, so it opts out of the
@@ -112,18 +203,18 @@ const ICONS = {
 export type IconName = keyof typeof ICONS;
 
 /**
- * The keyboard mark on its own, as a `data:` URI for `<link rel="icon">`.
+ * The keyboard mark on its own, as the body of `favicon.svg`.
  *
  * The same glyph at the same weight as the header wordmark, with the two
  * changes a standalone document forces: `currentColor` has nothing to inherit
  * from out here, so the accent is written out; and there is no stylesheet, so
  * the dark variant the wordmark gets from `dark:` is an inline media query.
  *
- * Inlined rather than emitted as `favicon.svg` because the icon set is already
- * serialised into the HTML — a file would need threading through the dev
- * middleware, the build output and the deploy base for one 16px glyph.
+ * A file rather than a `data:` URI, which browsers accept but Google Search
+ * does not: it shows a favicon beside a result only when it can fetch one from
+ * a URL, and falls back to a generic globe otherwise.
  */
-export const faviconDataUri = (() => {
+export const faviconSvg = (() => {
   const { viewBox, body } = ICONS.keyboard;
 
   const svg = [
@@ -142,7 +233,7 @@ export const faviconDataUri = (() => {
     '</svg>',
   ].join(' ');
 
-  return `data:image/svg+xml,${encodeURIComponent(svg)}`;
+  return `${svg}\n`;
 })();
 
 /**
@@ -175,3 +266,34 @@ export const icon = (name: IconName, className: string) => {
     `aria-hidden="true">${body}</svg>`,
   ].join(' ');
 };
+
+/**
+ * The placeholder a content file writes where it wants an icon, with the
+ * classes to draw it at: `<span data-icon="layers" class="size-5"></span>`.
+ *
+ * Markdown has no way to reach `icon()`, and pasting the SVG into a content
+ * file would put a second copy of the geometry where nobody would update it.
+ */
+const ICON_PLACEHOLDER =
+  /<span data-icon="([\w-]+)"(?: class="([^"]*)")?><\/span>/g;
+
+const isIconName = (name: string): name is IconName =>
+  Object.prototype.hasOwnProperty.call(ICONS, name);
+
+/** Swaps every icon placeholder in rendered HTML for the icon it names. */
+export const expandIcons = (html: string): string =>
+  html.replace(ICON_PLACEHOLDER, (_match, name: string, className = '') => {
+    if (!isIconName(name)) {
+      throw new Error(`[docs] no icon named "${name}" in build/icons.ts.`);
+    }
+
+    return icon(name, className);
+  });
+
+/**
+ * Drops the placeholders from a page's `.md` twin, where an icon has nothing
+ * to draw and an empty `<span>` would only be noise beside the text it
+ * decorates.
+ */
+export const stripIcons = (markdown: string): string =>
+  markdown.replace(ICON_PLACEHOLDER, '');

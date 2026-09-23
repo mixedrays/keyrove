@@ -84,15 +84,30 @@ rendered pages; landing and `noindex` pages are excluded. Titles and headings
 rank above body matches, with prefix matching and typo tolerance enabled.
 
 The results are a keyrove group: the site navigating with its own library.
-Each result is a link, `initRovingTabindex` gives the list one tab stop after
-every render, `keyRove` moves focus between the links and `followFocus` keeps
-the stop in step. keyrove leaves a text field its caret keys, so the box
+Each result is a link and keeps its own tab stop, so Tab walks the results as
+well as the arrows; `keyRove` moves focus between the links, looping at the
+ends. keyrove leaves a text field its caret keys, so the box
 focuses an end of the list itself to hand focus over, and a character typed on
 a result sends focus back to the box.
 
 The Vite plugin generates the index in development and production. Markdown
 edits invalidate the development cache and reload the page, including search.
 Run the search indexing tests with `pnpm --filter @mixedrays/keyrove/docs test`.
+
+### Sidebar navigation
+
+Both sidebars use keyrove for roving focus and looping arrow navigation.
+`Alt+Shift+E` (`Option+Shift+E` on macOS) focuses the left navigation;
+`Alt+Shift+O` focuses the visible "On this page" sidebar. They are Alt+Shift
+chords because browsers reserve most Ctrl/Cmd+Shift letters (`Ctrl+Shift+I`
+opens DevTools). The shortcuts use `focusKeys` to return to each group's tab
+stop. The left group starts on the current page; the right one follows the
+active section while focus is outside it.
+The left shortcut opens the mobile drawer when needed; shortcuts leave an
+open search dialog alone. The closed drawer is `visibility: hidden`, so its
+links are out of the Tab order. Each sidebar shows its shortcut beside its
+first heading on hover, and the arrow keys as well while keyboard focus is
+inside it.
 
 ### Live demos
 
@@ -112,6 +127,31 @@ than in the fragment, so what a reader copies is markup they can paste as-is.
 [packages/docs/src/demos.ts](packages/docs/src/demos.ts) wires the behaviour
 markup cannot carry: the keydown listener, the move log, and the copy button.
 
+For a compact **demo panel** on any docs page, add a label:
+
+````md
+<div data-demo="loop" data-demo-label="account menu"></div>
+
+```ts
+import { keyRove } from '@mixedrays/keyrove';
+
+const menu = document.querySelector('#account-menu');
+menu.addEventListener('keydown', (e) => keyRove(e));
+```
+````
+
+The panel includes a live preview, a single-line readout, and tabs for the
+fragment's HTML and the adjacent code blocks. It uses the opposite theme to
+the page and keeps long code blocks scrollable. Omit `data-demo-label` to use
+the existing detailed demo presentation. `data-demo-class`, when needed,
+goes before `data-demo-label`.
+
+[demo-panel.css](packages/docs/src/demo-panel.css) owns the shared presentation;
+the embedding page owns column widths and spacing. No hero or landing classes
+are required. Code-only examples can use a
+`<div class="demo-panel demo-panel--code">` around adjacent fenced blocks,
+with blank lines between the wrapper and the fences.
+
 ### Build
 
 [packages/docs/vite-plugin-docs.ts](packages/docs/vite-plugin-docs.ts) drives
@@ -119,9 +159,11 @@ both modes from one renderer. In dev a middleware renders on request; in the
 build, Vite bundles `index.html` once and every page is stamped out of the
 result, so all pages share one set of hashed asset URLs.
 
-Pages are emitted as `dist/docs/api/index.html` and served at extensionless
-URLs, which is what lets `.md` be appended. That rules out relative asset paths,
-so links are absolute to `base` — set `DOCS_BASE` when deploying to a subpath:
+Pages are emitted as `dist/docs/api.html` and served at extensionless URLs
+(`/docs/api`), which is what lets `.md` be appended. Cloudflare Pages redirects
+`/docs/api/` there, so the URL that links, canonical tags and the sitemap name
+answers directly. Extensionless URLs rule out relative asset paths, so links
+are absolute to `base` — set `DOCS_BASE` when deploying to a subpath:
 
 ```sh
 DOCS_BASE=/keyrove/ pnpm --filter @mixedrays/keyrove/docs build

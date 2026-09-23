@@ -1,6 +1,7 @@
 ---
+# Live page: https://keyrove.pages.dev/docs/examples/focus-keys
 title: Focus keys
-description: Assign shortcuts that focus items or panels across groups, including from editable fields.
+description: Assign keyboard shortcuts that focus an item or panel from anywhere under the listener, across groups and even from inside a text field.
 titleTag: Keyboard shortcuts that focus an element — keyrove
 group: Examples
 order: 19
@@ -12,9 +13,11 @@ anywhere under the listener.
 <kbd class="kbd">Ctrl</kbd>+<kbd class="kbd">Shift</kbd>+<kbd class="kbd">1</kbd>, <kbd class="kbd">2</kbd> or <kbd class="kbd">3</kbd> focuses a panel in this demo. Try a shortcut from the text
 area: focus keys with <kbd class="kbd">Ctrl</kbd>, <kbd class="kbd">Alt</kbd> or <kbd class="kbd">Meta</kbd> also work inside editable fields.
 
-<div data-demo="panes"></div>
+<div data-demo="panes" data-demo-label="editor panes"></div>
 
 ```ts
+import { keyRove } from '@mixedrays/keyrove';
+
 document
   .querySelector('#editor-panes')
   .addEventListener('keydown', (e) => keyRove(e));
@@ -45,7 +48,7 @@ scope control:
 An element can have both `data-keyrove-item` and a focus key. This palette
 supports arrow navigation and direct shortcuts to tools.
 
-<div data-demo="tools"></div>
+<div data-demo="tools" data-demo-label="drawing tools"></div>
 
 ```ts
 document.querySelector('#tools').addEventListener('keydown', (e) => keyRove(e));
@@ -53,7 +56,7 @@ document.querySelector('#tools').addEventListener('keydown', (e) => keyRove(e));
 
 Press <kbd class="kbd">P</kbd> for the pen, then <kbd class="kbd">↓</kbd>: the
 arrow steps on from wherever the key landed, because the pen is a stop in the
-same order the arrows walk. The log tells the two apart, `focus` for the jump
+same order the arrows walk. The readout tells the two apart, `focus` for the jump
 and `next` for the step. Then <kbd class="kbd">Tab</kbd> out of the palette and
 <kbd class="kbd">Shift</kbd>+<kbd class="kbd">Tab</kbd> back: focus returns to
 the tool you last reached, whichever way you reached it, because the

@@ -86,7 +86,7 @@ const KEY_GLYPHS: Record<string, string> = {
 };
 
 /** Held on their own, these are not yet a keypress — and not yet a row. */
-const MODIFIER_KEYS = new Set(['Shift', 'Control', 'Alt', 'Meta']);
+export const MODIFIER_KEYS = new Set(['Shift', 'Control', 'Alt', 'Meta']);
 
 /** How many rows are kept. Older ones have scrolled out of sight anyway. */
 const HISTORY_LENGTH = 20;
@@ -107,7 +107,7 @@ type Entry = {
  * reader pressed is what their layout produced, and the bindings keyrove
  * matches are documented on the pages themselves.
  */
-const keyLabel = (e: KeyboardEvent) => {
+export const keyLabel = (e: KeyboardEvent) => {
   const held = [
     e.ctrlKey && 'Ctrl',
     e.altKey && 'Alt',
@@ -124,6 +124,78 @@ const keyLabel = (e: KeyboardEvent) => {
 /** Whether a handler in the chain answered with a move rather than an element. */
 const isMoveResult = (value: unknown): value is MoveResult =>
   typeof value === 'object' && value !== null && 'action' in value;
+
+/** Compact demo panels report one key at a time. */
+const createReadout = (surface: HTMLElement, line: HTMLElement): Log => {
+  let movement: { action: string; to: Element } | null = null;
+  let widget: { target: Element; phrase: string } | null = null;
+
+  const show = (state: string, key: string, message: string) => {
+    line.dataset.state = state;
+    const label = document.createElement('span');
+    label.className = 'demo-readout-target';
+    label.textContent = message;
+    if (state === 'blurred' || state === 'listening') {
+      label.setAttribute('aria-hidden', 'true');
+    }
+    line.replaceChildren(label);
+    if (key) {
+      const cap = document.createElement('kbd');
+      cap.textContent = key;
+      line.prepend(cap);
+    }
+    line.classList.remove('demo-readout-fresh');
+    void line.offsetWidth;
+    line.classList.add('demo-readout-fresh');
+  };
+
+  surface.addEventListener('focusin', (e) => {
+    if (!surface.contains(e.relatedTarget as Node | null)) {
+      show('listening', '', 'listening…');
+    }
+  });
+  surface.addEventListener('focusout', (e) => {
+    if (!surface.contains(e.relatedTarget as Node | null)) {
+      show('blurred', '', 'click to focus');
+    }
+  });
+
+  return {
+    move: (move) => {
+      movement = move;
+    },
+    widget: (target, key, phrase) => {
+      widget = { target, phrase };
+      if (!key) {
+        show('moved', '', `${phrase} → ${nameOf(target)}`);
+        widget = null;
+      }
+    },
+    keydown: (e, claimed) => {
+      if (!MODIFIER_KEYS.has(e.key)) {
+        if (widget) {
+          show(
+            'moved',
+            keyLabel(e),
+            `${widget.phrase} → ${nameOf(widget.target)}`,
+          );
+        } else if (movement) {
+          show(
+            'moved',
+            keyLabel(e),
+            `${movement.action} → ${nameOf(movement.to)}`,
+          );
+        } else if (isMoveResult(claimed)) {
+          show('edge', keyLabel(e), `${claimed.action} · moved nothing`);
+        } else if (surface.contains(document.activeElement)) {
+          show('passed', keyLabel(e), 'left to the browser');
+        }
+      }
+      movement = null;
+      widget = null;
+    },
+  };
+};
 
 /**
  * Wires a demo's history, or answers null for the demos that keep one line.
@@ -499,40 +571,6 @@ const CONFIGS: Record<string, GroupOptions> = {
 };
 
 /**
- * "Copy code" — the source block's own text, rather than a second copy of it
- * held in an attribute, so what lands on the clipboard is what is on screen.
- * Where the markup shares its panel with the script, that is whichever of the
- * two tabs is showing, so it is looked up on the click rather than once.
- */
-const wireCopy = (demo: HTMLElement) => {
-  const button = demo.querySelector<HTMLButtonElement>('[data-copy-code]');
-  if (!button) return;
-
-  let resetTimer: ReturnType<typeof setTimeout> | undefined;
-
-  button.addEventListener('click', async () => {
-    const code = Array.from(demo.querySelectorAll('.demo-code pre')).find(
-      (pre) => !pre.closest('[hidden]'),
-    );
-    if (!code) return;
-
-    try {
-      await navigator.clipboard.writeText(code.textContent ?? '');
-    } catch {
-      // Clipboard access can be refused outright; the markup is on the page
-      // either way, so there is nothing to fall back to.
-      return;
-    }
-
-    // Both glyphs are already in the button; `data-copied` is what picks
-    // between them, so confirming a copy costs no DOM construction.
-    button.toggleAttribute('data-copied', true);
-    clearTimeout(resetTimer);
-    resetTimer = setTimeout(() => button.removeAttribute('data-copied'), 2000);
-  });
-};
-
-/**
  * The item a demo opens on: the first one a key would move away from.
  *
  * Items inside a nested root are passed over while the surface has items of
@@ -569,19 +607,23 @@ const firstItem = (surface: HTMLElement, { items: named }: GroupOptions) => {
 
 /** Wires every demo on the current page. */
 export const mountDemos = () => {
-  const demos = Array.from(document.querySelectorAll<HTMLElement>('.demo'));
+  const demos = Array.from(
+    document.querySelectorAll<HTMLElement>('.demo, .demo-panel[data-demo]'),
+  );
 
   demos.forEach((demo, index) => {
-    wireCopy(demo);
-
     const surface = demo.querySelector<HTMLElement>(
-      ':scope > .demo-preview > .demo-surface',
+      ':scope > :is(.demo-preview, .demo-panel-preview) > .demo-surface',
     );
 
     // A demo draws one log or the other, and build/demos.ts decides which.
     const line = demo.querySelector<HTMLElement>('.log');
-    const log = createHistory(demo) ?? (line ? createLine(line) : null);
-    if (!surface || !log) return;
+    if (!surface) return;
+    const readout = demo.querySelector<HTMLElement>('[data-demo-readout]');
+    const log = readout
+      ? createReadout(surface, readout)
+      : (createHistory(demo) ?? (line ? createLine(line) : null));
+    if (!log) return;
 
     // Almost every demo is described in its own markup, which is what the
     // pages teach; `CONFIGS` holds the exceptions, each handed to the
@@ -612,14 +654,17 @@ export const mountDemos = () => {
     // The demo a page opens with starts focused, so the keys it documents work
     // on arrival rather than after a Tab or a click. Only the first one: focus
     // is single, and a page's opening demo is the one it is about.
+    // `preventScroll` keeps arrival at the top of the page, so the list is
+    // waiting when the reader gets to it rather than dragging them down to
+    // it; the first arrow press will scroll it into view, which is the cost
+    // of having it ready.
     //
-    // The landing page included. Its demo is the reader's first look at the
-    // library working, and asking for a click or a Tab first is a poor way to
-    // open an argument about keyboards. `preventScroll` keeps arrival at the
-    // top of the page, so the list is waiting when the reader gets to it
-    // rather than dragging them down to it; the first arrow press will scroll
-    // it into view, which is the cost of having it ready.
-    if (index === 0) {
+    // Only while nothing else holds focus. The landing page opens on its hero
+    // (see src/hero.ts), which is mounted first, and its first demo sits well
+    // below that.
+    const unclaimed =
+      !document.activeElement || document.activeElement === document.body;
+    if (index === 0 && unclaimed) {
       firstItem(surface, group)?.focus({ preventScroll: true });
     }
   });

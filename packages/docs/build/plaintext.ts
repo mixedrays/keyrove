@@ -1,5 +1,6 @@
 import type { NavGroup, Page } from './content.ts';
 import { expandDemos, type Demos } from './demos.ts';
+import { stripIcons } from './icons.ts';
 import { routeToPath } from './layout.ts';
 import { expandMeta, META } from './meta.ts';
 
@@ -23,7 +24,9 @@ import { expandMeta, META } from './meta.ts';
 export const toMarkdown = (page: Page, demos: Demos) => {
   const heading = `# ${page.title}`;
   const lead = page.description === '' ? '' : `\n\n> ${page.description}`;
-  const body = expandMeta(expandDemos(page.body, demos, 'markdown'));
+  const body = stripIcons(
+    expandMeta(expandDemos(page.body, demos, 'markdown')),
+  );
 
   return `${heading}${lead}\n\n${body}\n`;
 };

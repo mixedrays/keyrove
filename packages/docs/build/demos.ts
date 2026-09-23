@@ -2,7 +2,8 @@ import { readFile, readdir } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { icon } from './icons.ts';
+import { decorateDemo } from './demo-icons.ts';
+import { copyButton } from './markdown.ts';
 
 /**
  * Live demos, built from the markup the page documents.
@@ -54,6 +55,8 @@ const FENCE = '```';
  * `data-demo-class` is layout the demo needs but the library does not teach —
  * the grid's columns, the long list's scroll box. It lands on the surface at
  * render time rather than in the fragment, so it stays out of the source block.
+ * `data-demo-label` opts into a compact demo panel and names its live preview.
+ * It works on any page; omit it to keep the demo's detailed presentation.
  *
  * The blocks are the demo's other files, and they are taken with it so they
  * can share its panel. HTML is left where it stands: a demo has one HTML file,
@@ -61,7 +64,7 @@ const FENCE = '```';
  * custom keys picks out the two attributes of its root — not a second one.
  */
 const PLACEHOLDER = new RegExp(
-  String.raw`^<div data-demo="([\w-]+)"(?: data-demo-class="([^"]*)")?><\/div>$` +
+  String.raw`^<div data-demo="([\w-]+)"(?: data-demo-class="([^"]*)")?(?: data-demo-label="([^"]*)")?><\/div>$` +
     String.raw`((?:\n\n${FENCE}(?!html\b)\w[^\n]*\n[\s\S]*?\n${FENCE}$)*)`,
   'gm',
 );
@@ -81,7 +84,6 @@ const HISTORY = new Set([
   'menu',
   'loop',
   'roving',
-  'inbox',
   'skip',
   'listbox',
   'sidebar',
@@ -142,10 +144,16 @@ const BAND = new Set([
  * and the <output> beside it carries one line, which splits the two jobs the
  * single-line log used to do at once — what is read, and what is announced.
  * Announcing every row of a history would talk over the reader.
+ *
+ * Until the first keypress the log is the widest empty space on the page, so
+ * it says what to do rather than that it is waiting. It cannot name the key:
+ * the same text sits beside a grid, a typeahead and a panel of focus keys.
  */
+const EMPTY_LOG = 'Press a key in the demo. Each one is logged here.';
+
 const renderLog = (name: string) => {
   if (!HISTORY.has(name)) {
-    return '<output class="log">Waiting for a keypress…</output>';
+    return `<output class="log">${EMPTY_LOG}</output>`;
   }
 
   return [
@@ -155,7 +163,7 @@ const renderLog = (name: string) => {
     '<button type="button" class="demo-log-clear" data-clear-log>Clear</button>',
     '</div>',
     '<ol class="demo-log-list" data-log aria-hidden="true">',
-    '<li class="demo-log-empty" data-log-empty>Waiting for a keypress…</li>',
+    `<li class="demo-log-empty" data-log-empty>${EMPTY_LOG}</li>`,
     '</ol>',
     '<template data-log-row>',
     '<li class="log-row">',
@@ -209,19 +217,35 @@ const renderUnit = (
   markup: string,
   surfaceClass: string,
   files: string,
+  label?: string,
 ) => {
   const live = withClass(
     toLive(markup),
     ['demo-surface', surfaceClass].filter(Boolean).join(' '),
   );
 
-  const copy = [
-    '<button type="button" class="demo-copy" data-copy-code',
-    'aria-label="Copy code">',
-    icon('copy', 'size-3.5 icon-idle'),
-    icon('check', 'size-3.5 icon-done'),
-    '</button>',
-  ].join(' ');
+  const copy = copyButton('Copy code');
+
+  // Compact panels work in any page layout. The source still comes from the
+  // very same fragment as the working demo.
+  if (label) {
+    const escaped = label
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
+    return `<div class="demo-panel" data-demo="${name}">
+<div class="demo-panel-header">
+<span class="demo-panel-label"><span class="demo-live-indicator" aria-hidden="true"></span>Live · ${escaped}</span>
+<output class="demo-readout" data-demo-readout data-state="blurred"><span aria-hidden="true">click to focus</span></output>
+</div>
+<div class="demo-panel-preview">${decorateDemo(name, live)}</div>
+
+${FENCE}html copy
+${toExcerpt(markup)}
+${FENCE}${files}
+
+</div>`;
+  }
 
   // The band demos say so on the wrapper: the layout is a property of the
   // demo, and keying the stylesheet off a name would put the list in two
@@ -281,14 +305,20 @@ export const expandDemos = (
 ): string =>
   body.replace(
     PLACEHOLDER,
-    (_match, name: string, surfaceClass = '', files: string) => {
+    (
+      _match,
+      name: string,
+      surfaceClass = '',
+      label: string | undefined,
+      files: string,
+    ) => {
       const markup = demos.get(name);
       if (markup === undefined) {
         throw new Error(`[docs] no demo named "${name}" in content/_demos.`);
       }
 
       return target === 'html'
-        ? renderUnit(name, markup, surfaceClass, files)
+        ? renderUnit(name, markup, surfaceClass, files, label)
         : `${FENCE}html\n${toExcerpt(markup)}\n${FENCE}${files}`;
     },
   );

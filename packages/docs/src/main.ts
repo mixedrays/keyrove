@@ -1,6 +1,8 @@
 import { mountCodeTabs } from './code-tabs.ts';
+import { mountCopyCode } from './copy-code.ts';
 import { mountCopyCommands } from './copy-command.ts';
 import { mountDemos } from './demos.ts';
+import { mountHero } from './hero.ts';
 import {
   mountCopyMarkdown,
   mountSidebar,
@@ -30,5 +32,9 @@ mountSidebar();
 mountTableOfContents();
 mountCopyMarkdown();
 mountCodeTabs();
+mountCopyCode();
 mountCopyCommands();
+// Before the demos: the hero takes the page's first focus, and the first demo
+// takes it only when nothing else has.
+mountHero();
 mountDemos();

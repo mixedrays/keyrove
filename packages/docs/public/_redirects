@@ -1,0 +1,9 @@
+# Cloudflare Pages redirects. Vite copies `public/` to the output root, which
+# is where Pages expects this file.
+
+# `/docs` has no page of its own — the Guide group starts at the introduction —
+# but it is the URL a reader gets by trimming any docs URL, and it would
+# otherwise answer 404. Both spellings are listed so that neither depends on how
+# Pages matches a trailing slash.
+/docs /docs/introduction 301
+/docs/ /docs/introduction 301

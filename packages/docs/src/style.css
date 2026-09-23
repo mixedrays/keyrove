@@ -1,4 +1,5 @@
 @import 'tailwindcss';
+@import './demo-panel.css';
 
 /*
  * Dark mode has three states and `data-theme` on <html> encodes them: absent
@@ -150,12 +151,6 @@
     @apply mx-auto flex h-14 max-w-[90rem] items-center justify-between gap-4 px-6;
   }
 
-  /* The landing page's content is narrower than the docs grid; the wordmark and
-     nav track whichever the page below them uses. */
-  .header-row-narrow {
-    @apply max-w-4xl;
-  }
-
   /* The mark is the keyboard glyph the nav used to spend on Examples. It takes
      the accent colour so it reads as a logo rather than a fourth nav icon. */
   .wordmark {
@@ -179,7 +174,30 @@
   }
 
   .site-footer {
-    @apply border-t border-zinc-200 px-6 py-6 text-center text-sm text-zinc-600 dark:border-zinc-800 dark:text-zinc-400;
+    @apply border-t border-zinc-200 text-sm text-zinc-600 dark:border-zinc-800 dark:text-zinc-400;
+  }
+
+  .footer-row {
+    @apply mx-auto flex max-w-[90rem] flex-col items-center gap-4 px-6 py-8 sm:flex-row sm:justify-between;
+  }
+
+  .footer-meta {
+    @apply flex items-center gap-3;
+  }
+
+  .footer-links {
+    @apply flex flex-wrap justify-center gap-x-5 gap-y-2;
+  }
+
+  .footer-link {
+    @apply hover:text-zinc-900 dark:hover:text-zinc-100;
+  }
+
+  /* The landing page's content is narrower than the docs grid; the header and
+     footer rows track whichever the page between them uses. After both rows,
+     so it wins over the width each sets for the docs. */
+  .header-row-narrow {
+    @apply max-w-6xl;
   }
 
   /* ---------- docs shell ---------- */
@@ -199,14 +217,23 @@
    * Off-canvas below `lg` and slid in by the header's menu button; a sticky
    * column from `lg` up. One element in both cases, so there is no second copy
    * of the nav to keep in step.
+   *
+   * Closed, the drawer is hidden as well as off-canvas, so its links leave the
+   * Tab order and the accessibility tree instead of taking focus off-screen.
+   * Hiding waits out the slide; showing is immediate, so script can focus into
+   * the drawer in the same task that opens it.
    */
   .sidebar {
-    @apply fixed inset-y-0 left-0 z-50 w-72 -translate-x-full overflow-y-auto border-r border-zinc-200 bg-white px-6 py-8 transition-transform duration-200 dark:border-zinc-800 dark:bg-zinc-950;
-    @apply lg:sticky lg:top-14 lg:z-auto lg:h-[calc(100vh-3.5rem)] lg:w-auto lg:translate-x-0 lg:border-r-0 lg:bg-transparent lg:px-0 lg:pr-4 dark:lg:bg-transparent;
+    @apply invisible fixed inset-y-0 left-0 z-50 w-72 -translate-x-full overflow-y-auto border-r border-zinc-200 bg-white px-6 py-8 dark:border-zinc-800 dark:bg-zinc-950;
+    @apply lg:visible lg:sticky lg:top-14 lg:z-auto lg:h-[calc(100vh-3.5rem)] lg:w-auto lg:translate-x-0 lg:border-r-0 lg:bg-transparent lg:px-0 lg:pr-4 dark:lg:bg-transparent;
+    transition:
+      translate 200ms var(--default-transition-timing-function),
+      visibility 0s 200ms;
   }
 
   :root[data-sidebar-open] .sidebar {
-    @apply translate-x-0;
+    @apply visible translate-x-0;
+    transition-delay: 0s;
   }
 
   .sidebar-backdrop {
@@ -285,17 +312,59 @@
     @apply mb-3 text-sm font-semibold text-zinc-900 dark:text-zinc-100;
   }
 
+  /* Padded clear of the inset focus ring below, and pulled left into the rail's
+     own padding by as much, so the text stays aligned with the heading. */
   .toc-link {
-    @apply block py-1 text-sm text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100;
+    @apply -ml-2 block px-2 py-1 text-sm text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100;
   }
 
   /* h3 entries sit under their h2 without needing a nested list in the markup. */
   .toc-link[data-level='3'] {
-    @apply pl-4;
+    @apply pl-6;
   }
 
   .toc-link[data-active] {
     @apply font-medium text-indigo-600 dark:text-indigo-400;
+  }
+
+  /* Both sidebars scroll, and a scroller clips what overflows it. Their links
+     run flush to its edge — the nav's on the left, the rail's on the right — so
+     the focus ring is drawn inside, as the code tabs' is. */
+  .sidebar-link:focus-visible,
+  .toc-link:focus-visible {
+    @apply -outline-offset-2;
+  }
+
+  /*
+   * The sidebars' key hints, added by nav.ts. Faded in rather than displayed,
+   * so showing one never reflows the heading beside it. A pointer sees the
+   * shortcut on hover; keyboard focus inside sees the arrows too, since Tab
+   * leaves a roving list rather than walking it.
+   */
+  .sidebar-keys {
+    @apply float-right flex gap-1 opacity-0 transition-opacity;
+  }
+
+  .sidebar-keys kbd {
+    @apply rounded border border-zinc-200 px-1 font-sans text-xs text-zinc-500 dark:border-zinc-700 dark:text-zinc-400;
+  }
+
+  .sidebar-keys-move {
+    @apply hidden;
+  }
+
+  @media (hover: hover) {
+    :is(.sidebar, .toc):hover .sidebar-keys {
+      @apply opacity-100;
+    }
+  }
+
+  :is(.sidebar, .toc):has(:focus-visible) .sidebar-keys {
+    @apply opacity-100;
+  }
+
+  :is(.sidebar, .toc):has(:focus-visible) .sidebar-keys-move {
+    @apply inline;
   }
 
   /*
@@ -354,8 +423,8 @@
    * escalating. The demo exclusions are explicit for the same reason: a
    * `.demo-surface` is a `<ul>` whose items are `<li>` — the tree's with more
    * `<ul>`s nested in them — a `.demo-log-list` is an `<ol>` of the same, and
-   * none of them should pick up list styling. The landing page's `.hero-tags`
-   * is a `<ul>` of chips on the same terms.
+   * none of them should pick up list styling. The landing page's `.hero-facts`
+   * and `.hero-folders` are `<ul>`s on the same terms.
    */
   .markdown {
     @apply text-zinc-700 dark:text-zinc-300;
@@ -404,7 +473,10 @@
     @apply font-semibold text-zinc-900 dark:text-zinc-100;
   }
 
-  .markdown :where(ul:not(.demo-surface, .demo-surface ul, .hero-tags)) {
+  .markdown
+    :where(
+      ul:not(.demo-surface, .demo-surface ul, .hero-facts, .hero-folders)
+    ) {
     @apply mt-4 list-disc space-y-2 pl-6;
   }
 
@@ -458,18 +530,42 @@
 
   /* ---------- landing ---------- */
 
+  /* Wider than a docs column: the hero sets its copy beside a live demo, and
+     the sections below take the same measure so their left edges line up with
+     it. Paragraphs are held to a reading width inside it; demos, code and the
+     card grids are not prose and keep the whole of it. */
   .landing {
-    @apply mx-auto max-w-4xl px-6 pb-24;
+    @apply mx-auto max-w-6xl px-6 pb-24;
+  }
+
+  .landing :where(p) {
+    @apply max-w-3xl;
+  }
+
+  /*
+   * The pitch on the left and the library working on the right. From `lg` the
+   * two sit side by side, which puts a demo in the first screen a reader sees:
+   * the page opens with its list already focused (see src/hero.ts), so the
+   * first arrow they press moves something in view instead of scrolling them
+   * down to it. Below `lg` the demo follows the copy.
+   *
+   * Top-aligned rather than centred: the demo's code strip is a line or three
+   * taller on its HTML tab, and centring would move the headline each time
+   * the reader switched.
+   */
+  .hero {
+    @apply grid gap-12 pt-12 sm:pt-16 lg:grid-cols-[minmax(0,1fr)_30rem] lg:items-start lg:pt-24;
   }
 
   /* The headline is display type: heavier and tighter than a docs title, with
-     the lines set close enough to read as one block. */
+     the lines set close enough to read as one block. It steps down a size
+     beside the demo, where its column is narrower than the page. */
   .landing :where(h1) {
-    @apply mt-6 text-5xl leading-none font-bold tracking-tighter sm:text-6xl;
+    @apply text-5xl leading-[1.05] font-bold tracking-tight sm:text-6xl lg:text-5xl;
   }
 
   .landing :where(h2) {
-    @apply mt-20 border-b-0 text-2xl;
+    @apply mt-24 border-b-0 text-2xl sm:text-3xl;
   }
 
   /* The hero lead is the paragraph after the headline. Matching on
@@ -477,22 +573,13 @@
      added above it, and win, since `:first-of-type` carries specificity that
      `:where()` does not. */
   .landing :where(h1 + p) {
-    @apply mt-6 max-w-2xl leading-6 text-zinc-600 dark:text-zinc-400;
-  }
-
-  /* What the package is, at a glance, above the headline: one chip a fact. */
-  .hero-tags {
-    @apply flex flex-wrap gap-2 pt-16 sm:pt-20;
-  }
-
-  .hero-tags li {
-    @apply rounded-full border border-zinc-300 px-3 py-1 font-mono text-xs text-zinc-600 dark:border-zinc-700 dark:text-zinc-400;
+    @apply mt-6 text-lg leading-7 text-zinc-600 dark:text-zinc-400;
   }
 
   /* The two links and the install command are one markdown paragraph; the row
      is the paragraph itself. */
   .hero-actions p {
-    @apply mt-8 flex flex-wrap gap-3;
+    @apply mt-8 flex flex-wrap items-center gap-3;
   }
 
   .hero-actions a {
@@ -525,24 +612,276 @@
     content: '$' / '';
   }
 
+  /* The same copy glyph and tick as the code blocks' button, so the page has
+     one way of saying "copied" (see src/copy-command.ts). */
   .hero-install button {
-    @apply shrink-0 cursor-pointer border-l border-zinc-300 pl-3 text-xs text-zinc-500 hover:text-zinc-900 dark:border-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-100;
+    @apply inline-flex shrink-0 cursor-pointer items-center self-stretch border-l border-zinc-300 pl-3 text-zinc-500 hover:text-zinc-900 dark:border-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-100;
   }
 
+  /* What the package is, at a glance: the three facts that decide whether it
+     is worth a look, under the actions rather than competing with the
+     headline above them. */
+  .hero-facts {
+    @apply mt-6 flex flex-wrap gap-x-4 gap-y-2 text-sm text-zinc-600 dark:text-zinc-400;
+  }
+
+  .hero-facts li {
+    @apply inline-flex items-center gap-1.5;
+  }
+
+  .hero-facts svg {
+    @apply text-emerald-600 dark:text-emerald-400;
+  }
+
+  /*
+   * The demo column. A wash of the accent sits behind the frame to lift it off
+   * the page, and the frame takes a solid ground so the wash shows only
+   * around it. The wash's colour is a variable set here rather than a `dark:`
+   * utility on the pseudo-element, for the reason demos.css gives: that
+   * utility ends in a `:where()` clause, which cannot follow `::before`.
+   */
+  .hero-demo {
+    @apply relative isolate min-w-0;
+    --wash: var(--color-indigo-500);
+
+    @variant dark {
+      --wash: var(--color-indigo-400);
+    }
+  }
+
+  .hero-demo::before {
+    content: '';
+    @apply absolute -inset-x-4 -inset-y-8 -z-10 rounded-[3rem] opacity-15 blur-3xl;
+    background-color: var(--wash);
+  }
+
+  /* Set close, the way a mail app's sidebar is: rows a line and a little
+     high, so the list reads as one control rather than five buttons. */
+  .hero-folders {
+    @apply grid gap-1 px-4 pb-4 pt-2;
+  }
+
+  .hero-folders li {
+    @apply flex cursor-pointer items-center gap-2.5 rounded-lg px-3 py-1.5 text-sm text-(--demo-text) outline-transparent outline-offset-2 transition-colors duration-120 hover:bg-(--demo-hover);
+  }
+
+  /* `:focus` rather than `:focus-visible`, as on every demo: keyrove moves
+     focus in script, and the demo is about showing where it went. The fill
+     and the ring round it are one colour, with the panel showing between. */
+  .hero-folders li:focus {
+    @apply bg-(--demo-accent) text-(--demo-on-accent) outline-2 outline-(--demo-accent);
+  }
+
+  .hero-folder-icon {
+    @apply size-4 opacity-70;
+  }
+
+  .hero-folders li:focus .hero-folder-icon {
+    @apply opacity-100;
+  }
+
+  /* A folder's count, drawn rather than written, so it stays out of the
+     item's accessible name and out of the name the header reports a move
+     to. The alternative text is empty for the same reason. */
+  .hero-folders li[data-count]::after {
+    @apply ml-auto font-mono text-[0.6875rem] text-(--demo-muted) tabular-nums;
+    content: attr(data-count);
+    content: attr(data-count) / '';
+  }
+
+  .hero-folders li[data-count]:focus::after {
+    @apply text-(--demo-on-accent);
+  }
+
+  /*
+   * The layouts other than a list, one live demo per tab. The tabs are the
+   * code panels' own (see src/code-tabs.ts): a horizontal keyrove group whose
+   * moves select the tab they land on. Drawn as a segmented control rather
+   * than as a code panel's strip, since what they switch is a whole demo.
+   */
+  .pattern-tabs {
+    @apply mt-6;
+  }
+
+  .pattern-tabs-bar {
+    @apply -mt-16 inline-flex max-w-full gap-1 rounded-xl border border-zinc-200 bg-zinc-50 p-1 dark:border-zinc-800 dark:bg-zinc-900;
+  }
+
+  .pattern-tab {
+    @apply shrink-0 cursor-pointer rounded-lg px-4 py-1.5 text-sm font-medium text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100;
+  }
+
+  .pattern-tab[aria-selected='true'] {
+    @apply bg-white text-zinc-900 shadow-sm ring-1 ring-zinc-200 dark:bg-zinc-800 dark:text-zinc-100 dark:ring-zinc-700;
+  }
+
+  /* The link out to each layout's full example, closing its panel. */
+  .markdown .pattern-panel > p:last-child a {
+    @apply font-medium no-underline hover:underline;
+  }
+
+  .pattern-panel > p:last-child a::after {
+    content: ' →';
+    content: ' →' / '';
+  }
+
+  /* Each step gives the description and demo equal column space. */
+  .landing-section {
+    @apply mt-24 grid items-start gap-8 lg:grid-cols-2 lg:gap-6;
+  }
+
+  .landing-section-copy h2 {
+    @apply mt-3;
+  }
+
+  .landing-step {
+    @apply font-mono text-xs font-medium tracking-widest text-indigo-600 uppercase dark:text-indigo-400;
+  }
+
+  .landing-section-demo {
+    @apply min-w-0 w-full mt-22;
+  }
+
+  .landing-section-demo > .pattern-tabs {
+    @apply mt-0;
+  }
+
+  .landing-section-demo .pattern-tabs-bar {
+    @apply flex w-fit gap-0.5;
+  }
+
+  .landing-section-demo .pattern-tab {
+    @apply px-2.5 text-xs sm:px-3 sm:text-sm;
+  }
+
+  .landing-section-demo .pattern-panel {
+    @apply pt-4;
+  }
+
+  .landing-section-demo .pattern-panel > p {
+    @apply mx-1 text-[0.8125rem] leading-7 text-zinc-500 dark:text-zinc-400;
+  }
+
+  /*
+   * The two card grids: what else the library does, and where to go next.
+   * Each card is one link. The title carries it, so the link's name is the
+   * title, and its `::after` is stretched over the card so the whole card
+   * takes the click; the ring a focused link would draw round its text is
+   * drawn round the card instead.
+   */
   .feature-grid {
-    @apply mt-12 grid gap-4 sm:grid-cols-2;
+    @apply mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3;
   }
 
-  .feature {
-    @apply rounded-xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900;
+  .next-steps {
+    @apply mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4;
   }
 
-  .feature :where(h3) {
+  :is(.feature, .next-step) {
+    @apply relative rounded-xl border border-zinc-200 bg-white p-5 transition-colors hover:border-indigo-300 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-indigo-700;
+  }
+
+  .next-step {
+    @apply dark:bg-zinc-950;
+  }
+
+  :is(.feature, .next-step):has(a:focus-visible) {
+    @apply outline-2 outline-offset-2 outline-indigo-600 dark:outline-indigo-400;
+  }
+
+  :is(.feature-icon, .next-step-icon) {
+    @apply size-9 rounded-lg bg-indigo-50 p-2 text-indigo-600 dark:bg-indigo-500/15 dark:text-indigo-400;
+  }
+
+  :is(.feature, .next-step) :where(h3) {
+    @apply mt-4 text-base;
+  }
+
+  .markdown :is(.feature, .next-step) h3 a {
+    @apply text-zinc-900 no-underline outline-none dark:text-zinc-100;
+  }
+
+  .markdown :is(.feature, .next-step):hover h3 a {
+    @apply text-indigo-600 dark:text-indigo-400;
+  }
+
+  :is(.feature, .next-step) h3 a::after {
+    content: '';
+    @apply absolute inset-0 rounded-xl;
+  }
+
+  :is(.feature, .next-step) :where(p) {
+    @apply mt-2 text-sm leading-6 text-zinc-600 dark:text-zinc-400;
+  }
+
+  /*
+   * What keyrove does beside what it leaves to you: two short lists, each
+   * item marked with what it means for the reader — a tick for handled, an
+   * arrow for theirs to do. The mark's colour is a variable on the column for
+   * the same pseudo-element reason as the hero's wash.
+   */
+  .split {
+    @apply mt-6 grid gap-4 sm:grid-cols-2;
+  }
+
+  .split-col {
+    @apply rounded-xl border border-zinc-200 p-5 dark:border-zinc-800;
+    --mark: var(--color-zinc-400);
+
+    @variant dark {
+      --mark: var(--color-zinc-500);
+    }
+  }
+
+  .split-col[data-split='keyrove'] {
+    @apply border-indigo-200 bg-indigo-50/60 dark:border-indigo-900 dark:bg-indigo-500/5;
+    --mark: var(--color-emerald-600);
+
+    @variant dark {
+      --mark: var(--color-emerald-400);
+    }
+  }
+
+  .split-col :where(h3) {
     @apply mt-0 text-base;
   }
 
-  .feature :where(p) {
-    @apply mt-2 text-sm leading-6 text-zinc-600 dark:text-zinc-400;
+  .split-col ul {
+    @apply mt-3 list-none space-y-2 pl-0;
+  }
+
+  .split-col li {
+    @apply relative pl-6 text-sm leading-6;
+  }
+
+  .split-col li::before {
+    @apply absolute top-0 left-0 font-semibold;
+    color: var(--mark);
+  }
+
+  .split-col[data-split='keyrove'] li::before {
+    content: '✓';
+    content: '✓' / '';
+  }
+
+  .split-col[data-split='you'] li::before {
+    content: '→';
+    content: '→' / '';
+  }
+
+  /* The page's last word: the install line again, and the four places to go
+     from here, on a tinted panel so the page ends on a call rather than
+     trailing off into the footer. */
+  .closing {
+    @apply mt-24 rounded-2xl border border-zinc-200 bg-zinc-50 px-6 py-10 sm:px-10 dark:border-zinc-800 dark:bg-zinc-900/60;
+  }
+
+  .closing :where(h2) {
+    @apply mt-0;
+  }
+
+  .closing .hero-actions p {
+    @apply mt-6;
   }
 
   /* ---------- code ---------- */
@@ -554,7 +893,8 @@
   }
 
   .code-block {
-    @apply overflow-x-auto rounded-xl border border-zinc-200 bg-zinc-50 p-4 font-mono text-[0.84rem] leading-relaxed text-zinc-800 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-200;
+    @apply overflow-auto rounded-xl border border-zinc-200 bg-zinc-50 p-4 font-mono text-[0.84rem] leading-relaxed text-zinc-800 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-200;
+    max-height: min(20rem, 60dvh);
   }
 
   /*
@@ -588,6 +928,31 @@
      panel clips what overflows it, so its focus ring is drawn inside. */
   .code-tabs .code-block:focus-visible {
     @apply -outline-offset-2;
+  }
+
+  /*
+   * The copy button sits in the top corner of the container it copies from:
+   * over a lone block, or at the end of a tab strip (see build/markdown.ts).
+   * A demo's source panel carries the same button. The container takes the
+   * margin a lone block would have had, so the button lines up with the
+   * block's top edge rather than the gap above it, and the code and tabs keep
+   * clear of it on the right.
+   */
+  .code-copyable {
+    @apply relative mt-4;
+  }
+
+  .code-copyable > .code-block {
+    @apply mt-0 pr-14;
+  }
+
+  .code-copyable > .code-tabs-bar {
+    @apply pr-14;
+  }
+
+  .code-copy {
+    @apply absolute top-1.5 right-1.5 z-10 inline-flex cursor-pointer items-center rounded-lg border border-zinc-200 bg-white p-1.5 text-zinc-500 transition-colors dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-400;
+    @apply hover:text-zinc-900 dark:hover:text-zinc-100;
   }
 
   /*

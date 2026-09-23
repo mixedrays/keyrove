@@ -59,10 +59,9 @@
   }
 
   /* The block sits inside the demo's own frame, so it gives up the border and
-     rounding it carries when it stands alone in prose. No height cap: the fold
-     in the demo file is what keeps a block short, so anything that reaches here
-     is meant to be read in full. The padding on the right keeps the longest
-     line clear of the copy button. */
+     rounding it carries when it stands alone in prose. It keeps the shared
+     height cap and scrolling; the padding on the right keeps the longest line
+     clear of the copy button. */
   .demo-code .code-block {
     @apply mt-0 rounded-none border-0 pr-14;
   }
@@ -78,9 +77,11 @@
     @apply pr-14;
   }
 
-  .demo-copy {
-    @apply absolute top-1.5 right-1.5 z-10 inline-flex cursor-pointer items-center rounded-lg border border-zinc-200 bg-white p-1.5 text-zinc-500 transition-colors dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-400;
-    @apply hover:text-zinc-900 dark:hover:text-zinc-100;
+  /* With a tab strip the copy button sits in the strip, above the code, so the
+     block no longer has to keep its longest line clear of it — which is room
+     the hero's narrow column needs for the script to fit without scrolling. */
+  .demo-code .code-tabs .code-block {
+    @apply pr-4;
   }
 
   /*
@@ -309,55 +310,6 @@
      in a form. No shadow: it is part of the form, not floating over it. */
   .demo[data-demo='roving'] .demo-surface {
     @apply col-start-1 row-start-2 w-full border-zinc-200 bg-white dark:border-zinc-700 dark:bg-zinc-900;
-  }
-
-  /*
-   * The mail sidebar the folders come from, drawn as one panel: a title strip
-   * with the list joined to its foot, sharing a border so the two read as a
-   * single card rather than as a label and a box. This is the demo the landing
-   * page opens with, and a bare list there says nothing about where arrow
-   * navigation is actually met.
-   */
-  .demo[data-demo='inbox'] .demo-preview {
-    @apply gap-y-0;
-    --panel: 15rem;
-
-    /* A title rather than a prompt, so it takes the weight of one. */
-    --field-text: var(--color-zinc-900);
-
-    @variant dark {
-      --field-text: var(--color-zinc-100);
-    }
-  }
-
-  .demo[data-demo='inbox'] .demo-preview::before {
-    content: 'Mail' / '';
-    @apply col-start-1 row-start-1 w-full justify-self-center rounded-t-xl border border-b-0 px-3 py-2 text-sm font-semibold;
-    border-color: var(--field-border);
-    background-color: var(--field-bg);
-    color: var(--field-text);
-    max-width: var(--panel);
-  }
-
-  .demo[data-demo='inbox'] .demo-surface {
-    @apply col-start-1 row-start-2 w-full rounded-t-none border-zinc-200 bg-white dark:border-zinc-700 dark:bg-zinc-900;
-  }
-
-  /* What a mail sidebar has that a list does not: a count on the folders that
-     carry one. Alternative text is empty so the number stays out of the item's
-     accessible name, as every other piece of this dressing does. */
-  .demo[data-demo='inbox'] .demo-surface > :nth-child(1)::after,
-  .demo[data-demo='inbox'] .demo-surface > :nth-child(2)::after {
-    @apply ml-auto font-mono text-[0.7rem] tabular-nums;
-    color: var(--field-muted);
-  }
-
-  .demo[data-demo='inbox'] .demo-surface > :nth-child(1)::after {
-    content: '12' / '';
-  }
-
-  .demo[data-demo='inbox'] .demo-surface > :nth-child(2)::after {
-    content: '2' / '';
   }
 
   /*
@@ -804,8 +756,8 @@
 
   /*
    * The filter bar over a message list: a funnel, then the filters as chips.
-   * It is the same mail app the inbox demo takes its sidebar from — these are
-   * the filters that sit above the list that sidebar picks a folder for.
+   * It is the same mail app the landing page's hero takes its folders from —
+   * these are the filters that sit above the list those folders pick.
    *
    * Both bars on the page are dressed by these rules, because they are one
    * component and the page's whole point is that the difference between them
@@ -1257,7 +1209,7 @@
 
   /*
    * Icons, on the demos whose items are the kind a real app labels with one:
-   * the mail folders, the account menu, the message actions, the toolbar, the
+   * the account menu, the message actions, the toolbar, the
    * tool palette, the file list and the statuses. The rest stay plain, because the products they
    * are drawn from leave them plain — filter chips, time slots, language and
    * country names — and the presence list brings its own glyphs already.
@@ -1282,7 +1234,6 @@
    * which is what keeps it right in both themes.
    */
   .demo:is(
-      [data-demo='inbox'],
       [data-demo='roving'],
       [data-demo='loop'],
       [data-demo='nested'],
@@ -1299,7 +1250,6 @@
   }
 
   .demo:is(
-      [data-demo='inbox'],
       [data-demo='roving'],
       [data-demo='loop'],
       [data-demo='nested'],
@@ -1317,31 +1267,6 @@
     mask-position: center;
     mask-size: contain;
     mask-repeat: no-repeat;
-  }
-
-  /* Inbox */
-  .demo[data-demo='inbox'] .demo-surface > :nth-child(1)::before {
-    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%20fill='none'%20stroke='%23000'%20stroke-width='1.75'%20stroke-linecap='round'%20stroke-linejoin='round'%3E%3Cpolyline%20points='22%2012%2016%2012%2014%2015%2010%2015%208%2012%202%2012'/%3E%3Cpath%20d='M5.45%205.11%202%2012v6a2%202%200%200%200%202%202h16a2%202%200%200%200%202-2v-6l-3.45-6.89A2%202%200%200%200%2016.76%204H7.24a2%202%200%200%200-1.79%201.11z'/%3E%3C/svg%3E");
-  }
-
-  /* Drafts */
-  .demo[data-demo='inbox'] .demo-surface > :nth-child(2)::before {
-    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%20fill='none'%20stroke='%23000'%20stroke-width='1.75'%20stroke-linecap='round'%20stroke-linejoin='round'%3E%3Cpath%20d='M12.659%2022H18a2%202%200%200%200%202-2V8a2.4%202.4%200%200%200-.706-1.706l-3.588-3.588A2.4%202.4%200%200%200%2014%202H6a2%202%200%200%200-2%202v9.34'/%3E%3Cpath%20d='M14%202v5a1%201%200%200%200%201%201h5'/%3E%3Cpath%20d='M10.378%2012.622a1%201%200%200%201%203%203.003L8.36%2020.637a2%202%200%200%201-.854.506l-2.867.837a.5.5%200%200%201-.62-.62l.836-2.869a2%202%200%200%201%20.506-.853z'/%3E%3C/svg%3E");
-  }
-
-  /* Sent */
-  .demo[data-demo='inbox'] .demo-surface > :nth-child(3)::before {
-    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%20fill='none'%20stroke='%23000'%20stroke-width='1.75'%20stroke-linecap='round'%20stroke-linejoin='round'%3E%3Cpath%20d='M14.536%2021.686a.5.5%200%200%200%20.937-.024l6.5-19a.496.496%200%200%200-.635-.635l-19%206.5a.5.5%200%200%200-.024.937l7.93%203.18a2%202%200%200%201%201.112%201.11z'/%3E%3Cpath%20d='m21.854%202.147-10.94%2010.939'/%3E%3C/svg%3E");
-  }
-
-  /* Spam */
-  .demo[data-demo='inbox'] .demo-surface > :nth-child(4)::before {
-    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%20fill='none'%20stroke='%23000'%20stroke-width='1.75'%20stroke-linecap='round'%20stroke-linejoin='round'%3E%3Cpath%20d='M20%2013c0%205-3.5%207.5-7.66%208.95a1%201%200%200%201-.67-.01C7.5%2020.5%204%2018%204%2013V6a1%201%200%200%201%201-1c2%200%204.5-1.2%206.24-2.72a1.17%201.17%200%200%201%201.52%200C14.51%203.81%2017%205%2019%205a1%201%200%200%201%201%201z'/%3E%3Cpath%20d='M12%208v4'/%3E%3Cpath%20d='M12%2016h.01'/%3E%3C/svg%3E");
-  }
-
-  /* Trash */
-  .demo[data-demo='inbox'] .demo-surface > :nth-child(5)::before {
-    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%20fill='none'%20stroke='%23000'%20stroke-width='1.75'%20stroke-linecap='round'%20stroke-linejoin='round'%3E%3Cpath%20d='M10%2011v6'/%3E%3Cpath%20d='M14%2011v6'/%3E%3Cpath%20d='M19%206v14a2%202%200%200%201-2%202H7a2%202%200%200%201-2-2V6'/%3E%3Cpath%20d='M3%206h18'/%3E%3Cpath%20d='M8%206V4a2%202%200%200%201%202-2h4a2%202%200%200%201%202%202v2'/%3E%3C/svg%3E");
   }
 
   /* Profile */

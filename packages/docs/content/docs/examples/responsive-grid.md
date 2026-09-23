@@ -1,6 +1,7 @@
 ---
+# Live page: https://keyrove.pages.dev/docs/examples/responsive-grid
 title: Responsive grid
-description: Read a CSS grid’s column count on each keypress with data-keyrove-cols="auto".
+description: Keyboard navigation for a responsive CSS grid, with the column count read from the layout on every keypress so breakpoints stay in CSS.
 titleTag: Keyboard navigation for a responsive grid — keyrove
 group: Examples
 order: 15
@@ -12,10 +13,10 @@ copying breakpoints into JavaScript.
 
 This demo uses a
 [container query](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_containment/Container_queries).
-Drag the panel's corner or narrow the window, then try the arrows. With six
-columns, <kbd class="kbd">↓</kbd> moves from January to July; with two, it moves to March.
+Drag the corner of the dashed frame or narrow the window, then try the arrows.
+With six columns, <kbd class="kbd">↓</kbd> moves from January to July; with two, it moves to March.
 
-<div data-demo="responsive" data-demo-class="resize-x overflow-hidden min-w-64 max-w-full"></div>
+<div data-demo="responsive" data-demo-label="month picker"></div>
 
 ```ts
 import { keyRove } from '@mixedrays/keyrove';
@@ -87,7 +88,7 @@ months.addEventListener('keydown', (e) => {
 ```
 
 keyrove reads the attribute fresh on every keypress, so refreshing it in the
-same handler is all the synchronisation this needs. If something else needs
+same handler is all the synchronization this needs. If something else needs
 the attribute between keypresses, such as a test asserting on it, a
 `ResizeObserver` on the container can make the same copy whenever the size
 changes.
