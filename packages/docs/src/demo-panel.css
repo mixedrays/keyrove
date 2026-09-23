@@ -156,7 +156,7 @@
   }
 
   .demo-panel-preview {
-    @apply p-4;
+    @apply px-4 pb-4 pt-2;
   }
 
   .demo-panel-preview .demo-surface {
@@ -216,11 +216,13 @@
     @apply mx-2 mb-2 max-w-[calc(100%-1rem)] min-w-48 resize-x overflow-auto rounded-lg border border-dashed border-(--demo-rule) p-2;
   }
 
-  .demo-panel[data-demo='tools'] [data-keyrove-item] {
+  .demo-panel:is([data-demo='tools'], [data-demo='landing-tools'])
+    [data-keyrove-item] {
     @apply flex items-center;
   }
 
-  .demo-panel[data-demo='tools'] [data-keyrove-item]::after {
+  .demo-panel:is([data-demo='tools'], [data-demo='landing-tools'])
+    [data-keyrove-item]::after {
     @apply ml-auto font-mono text-xs opacity-60;
     content: attr(aria-keyshortcuts);
     content: attr(aria-keyshortcuts) / '';

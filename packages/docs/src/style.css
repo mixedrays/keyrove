@@ -658,7 +658,7 @@
   /* Set close, the way a mail app's sidebar is: rows a line and a little
      high, so the list reads as one control rather than five buttons. */
   .hero-folders {
-    @apply grid gap-1 px-2 pb-2;
+    @apply grid gap-1 px-4 pb-4 pt-2;
   }
 
   .hero-folders li {

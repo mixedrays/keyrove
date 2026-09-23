@@ -6,6 +6,17 @@ const FOLDERS: Record<string, IconName> = {
   Sent: 'sent',
 };
 
+const TOOLS: Record<string, IconName> = {
+  Move: 'pointer',
+  Frame: 'frame',
+  Rectangle: 'square',
+  Ellipse: 'circle',
+  Pen: 'pen',
+  Text: 'type',
+  Eyedropper: 'pipette',
+  Hand: 'hand',
+};
+
 const ITEMS: Record<string, Record<string, IconName>> = {
   'landing-loop': FOLDERS,
   'landing-horizontal': FOLDERS,
@@ -17,16 +28,8 @@ const ITEMS: Record<string, Record<string, IconName>> = {
     'Post to Slack': 'message',
     'Open in Figma': 'pen',
   },
-  tools: {
-    Move: 'pointer',
-    Frame: 'frame',
-    Rectangle: 'square',
-    Ellipse: 'circle',
-    Pen: 'pen',
-    Text: 'type',
-    Eyedropper: 'pipette',
-    Hand: 'hand',
-  },
+  tools: TOOLS,
+  'landing-tools': TOOLS,
   nested: {
     Reply: 'reply',
     'Reply in thread': 'message',

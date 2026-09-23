@@ -392,7 +392,7 @@ Start with the part you need; the same handler stays underneath.
 </div>
 <div class="pattern-panel" role="tabpanel" id="advanced-panel-0" aria-labelledby="advanced-tab-0">
 
-<div data-demo="tools" data-demo-label="drawing tools"></div>
+<div data-demo="landing-tools" data-demo-label="drawing tools"></div>
 
 ```ts
 import { keyRove } from '@mixedrays/keyrove';
