@@ -1,0 +1,770 @@
+{
+  "environment": {
+    "Browser": "Chrome/153.0.8010.53 (headless), V8 15.3.76.13",
+    "OS": "darwin 25.2.0 arm64",
+    "CPU": "Apple M1 Pro × 10",
+    "Memory": "16 GB",
+    "Node": "v25.2.1",
+    "Cross-origin isolated": true,
+    "Timing": "100 ms warmup, then 15 batches of ≥ 10 ms per case",
+    "Date": "2026-09-22"
+  },
+  "results": {
+    "hardwareConcurrency": 10,
+    "crossOriginIsolated": true,
+    "options": {
+      "samples": 15,
+      "minBatchMs": 10,
+      "warmupMs": 100
+    },
+    "fixtures": [
+      {
+        "name": "S",
+        "groups": 10,
+        "buildMs": 1.59,
+        "elements": 624
+      },
+      {
+        "name": "M",
+        "groups": 100,
+        "buildMs": 11.82,
+        "elements": 6114
+      },
+      {
+        "name": "L",
+        "groups": 1000,
+        "buildMs": 139.89,
+        "elements": 61014
+      },
+      {
+        "name": "L, 0 focus keys",
+        "groups": 1000,
+        "focusKeys": 0,
+        "buildMs": 172.39,
+        "elements": 61014
+      },
+      {
+        "name": "L, 10 focus keys",
+        "groups": 1000,
+        "focusKeys": 10,
+        "buildMs": 117.89,
+        "elements": 61014
+      },
+      {
+        "name": "L, 100 focus keys",
+        "groups": 1000,
+        "focusKeys": 100,
+        "buildMs": 144.97,
+        "elements": 61014
+      },
+      {
+        "name": "L, 1000 focus keys",
+        "groups": 1000,
+        "focusKeys": 1000,
+        "buildMs": 109.96,
+        "elements": 61014
+      },
+      {
+        "name": "M, cols=\"4\"",
+        "groups": 100,
+        "grid": "4",
+        "buildMs": 15.01,
+        "elements": 6114
+      },
+      {
+        "name": "M, cols=\"auto\"",
+        "groups": 100,
+        "grid": "auto",
+        "buildMs": 14.97,
+        "elements": 6114
+      }
+    ],
+    "cases": [
+      {
+        "section": "baseline",
+        "label": "harness only, no handler",
+        "fixture": {
+          "name": "S",
+          "groups": 10,
+          "buildMs": 1.59,
+          "elements": 624
+        },
+        "result": "-",
+        "median": 0,
+        "p10": 0,
+        "p90": 0.01,
+        "batch": 2097152
+      },
+      {
+        "section": "listener",
+        "label": "local, unbound",
+        "fixture": {
+          "name": "S",
+          "groups": 10,
+          "buildMs": 1.59,
+          "elements": 624
+        },
+        "result": "unhandled",
+        "median": 2.68,
+        "p10": 2.64,
+        "p90": 2.93,
+        "batch": 4096
+      },
+      {
+        "section": "listener",
+        "label": "local, bound, no move",
+        "fixture": {
+          "name": "S",
+          "groups": 10,
+          "buildMs": 1.59,
+          "elements": 624
+        },
+        "result": "consumed no-op",
+        "median": 9.43,
+        "p10": 8.6,
+        "p90": 10.01,
+        "batch": 1024
+      },
+      {
+        "section": "listener",
+        "label": "local, bound, moves focus",
+        "fixture": {
+          "name": "S",
+          "groups": 10,
+          "buildMs": 1.59,
+          "elements": 624
+        },
+        "result": "moved",
+        "median": 24.7,
+        "p10": 23.3,
+        "p90": 27.14,
+        "batch": 512
+      },
+      {
+        "section": "listener",
+        "label": "document, unbound",
+        "fixture": {
+          "name": "S",
+          "groups": 10,
+          "buildMs": 1.59,
+          "elements": 624
+        },
+        "result": "unhandled",
+        "median": 2.69,
+        "p10": 2.63,
+        "p90": 3,
+        "batch": 4096
+      },
+      {
+        "section": "listener",
+        "label": "document, bound, no move",
+        "fixture": {
+          "name": "S",
+          "groups": 10,
+          "buildMs": 1.59,
+          "elements": 624
+        },
+        "result": "consumed no-op",
+        "median": 9.85,
+        "p10": 9.45,
+        "p90": 10.28,
+        "batch": 2048
+      },
+      {
+        "section": "listener",
+        "label": "document, bound, moves focus",
+        "fixture": {
+          "name": "S",
+          "groups": 10,
+          "buildMs": 1.59,
+          "elements": 624
+        },
+        "result": "moved",
+        "median": 23.31,
+        "p10": 22.33,
+        "p90": 25.07,
+        "batch": 512
+      },
+      {
+        "section": "listener",
+        "label": "local, unbound",
+        "fixture": {
+          "name": "M",
+          "groups": 100,
+          "buildMs": 11.82,
+          "elements": 6114
+        },
+        "result": "unhandled",
+        "median": 2.56,
+        "p10": 2.55,
+        "p90": 2.69,
+        "batch": 4096
+      },
+      {
+        "section": "listener",
+        "label": "local, bound, no move",
+        "fixture": {
+          "name": "M",
+          "groups": 100,
+          "buildMs": 11.82,
+          "elements": 6114
+        },
+        "result": "consumed no-op",
+        "median": 9.18,
+        "p10": 8.5,
+        "p90": 9.7,
+        "batch": 2048
+      },
+      {
+        "section": "listener",
+        "label": "local, bound, moves focus",
+        "fixture": {
+          "name": "M",
+          "groups": 100,
+          "buildMs": 11.82,
+          "elements": 6114
+        },
+        "result": "moved",
+        "median": 22.57,
+        "p10": 22.17,
+        "p90": 27.47,
+        "batch": 512
+      },
+      {
+        "section": "listener",
+        "label": "document, unbound",
+        "fixture": {
+          "name": "M",
+          "groups": 100,
+          "buildMs": 11.82,
+          "elements": 6114
+        },
+        "result": "unhandled",
+        "median": 2.57,
+        "p10": 2.55,
+        "p90": 2.63,
+        "batch": 4096
+      },
+      {
+        "section": "listener",
+        "label": "document, bound, no move",
+        "fixture": {
+          "name": "M",
+          "groups": 100,
+          "buildMs": 11.82,
+          "elements": 6114
+        },
+        "result": "consumed no-op",
+        "median": 8.73,
+        "p10": 8.37,
+        "p90": 10.59,
+        "batch": 1024
+      },
+      {
+        "section": "listener",
+        "label": "document, bound, moves focus",
+        "fixture": {
+          "name": "M",
+          "groups": 100,
+          "buildMs": 11.82,
+          "elements": 6114
+        },
+        "result": "moved",
+        "median": 22.49,
+        "p10": 22.22,
+        "p90": 26.24,
+        "batch": 512
+      },
+      {
+        "section": "listener",
+        "label": "local, unbound",
+        "fixture": {
+          "name": "L",
+          "groups": 1000,
+          "buildMs": 139.89,
+          "elements": 61014
+        },
+        "result": "unhandled",
+        "median": 2.59,
+        "p10": 2.57,
+        "p90": 2.62,
+        "batch": 4096
+      },
+      {
+        "section": "listener",
+        "label": "local, bound, no move",
+        "fixture": {
+          "name": "L",
+          "groups": 1000,
+          "buildMs": 139.89,
+          "elements": 61014
+        },
+        "result": "consumed no-op",
+        "median": 9.09,
+        "p10": 9.01,
+        "p90": 9.83,
+        "batch": 2048
+      },
+      {
+        "section": "listener",
+        "label": "local, bound, moves focus",
+        "fixture": {
+          "name": "L",
+          "groups": 1000,
+          "buildMs": 139.89,
+          "elements": 61014
+        },
+        "result": "moved",
+        "median": 22.16,
+        "p10": 21.82,
+        "p90": 22.9,
+        "batch": 512
+      },
+      {
+        "section": "listener",
+        "label": "document, unbound",
+        "fixture": {
+          "name": "L",
+          "groups": 1000,
+          "buildMs": 139.89,
+          "elements": 61014
+        },
+        "result": "unhandled",
+        "median": 2.57,
+        "p10": 2.55,
+        "p90": 2.65,
+        "batch": 4096
+      },
+      {
+        "section": "listener",
+        "label": "document, bound, no move",
+        "fixture": {
+          "name": "L",
+          "groups": 1000,
+          "buildMs": 139.89,
+          "elements": 61014
+        },
+        "result": "consumed no-op",
+        "median": 8.77,
+        "p10": 8.5,
+        "p90": 10,
+        "batch": 2048
+      },
+      {
+        "section": "listener",
+        "label": "document, bound, moves focus",
+        "fixture": {
+          "name": "L",
+          "groups": 1000,
+          "buildMs": 139.89,
+          "elements": 61014
+        },
+        "result": "moved",
+        "median": 24.5,
+        "p10": 23.91,
+        "p90": 25.21,
+        "batch": 512
+      },
+      {
+        "section": "focus keys",
+        "label": "0 × attribute scan",
+        "fixture": {
+          "name": "L, 0 focus keys",
+          "groups": 1000,
+          "focusKeys": 0,
+          "buildMs": 172.39,
+          "elements": 61014
+        },
+        "result": "unhandled",
+        "median": 2.65,
+        "p10": 2.6,
+        "p90": 2.76,
+        "batch": 4096
+      },
+      {
+        "section": "focus keys",
+        "label": "0 × focusKeys map, elements",
+        "fixture": {
+          "name": "L, 0 focus keys",
+          "groups": 1000,
+          "focusKeys": 0,
+          "buildMs": 172.39,
+          "elements": 61014
+        },
+        "result": "unhandled",
+        "median": 2.42,
+        "p10": 2.35,
+        "p90": 2.5,
+        "batch": 8192
+      },
+      {
+        "section": "focus keys",
+        "label": "0 × focusKeys map, selectors",
+        "fixture": {
+          "name": "L, 0 focus keys",
+          "groups": 1000,
+          "focusKeys": 0,
+          "buildMs": 172.39,
+          "elements": 61014
+        },
+        "result": "unhandled",
+        "median": 2.36,
+        "p10": 2.33,
+        "p90": 2.4,
+        "batch": 8192
+      },
+      {
+        "section": "focus keys",
+        "label": "10 × attribute scan",
+        "fixture": {
+          "name": "L, 10 focus keys",
+          "groups": 1000,
+          "focusKeys": 10,
+          "buildMs": 117.89,
+          "elements": 61014
+        },
+        "result": "unhandled",
+        "median": 18.32,
+        "p10": 17.74,
+        "p90": 18.87,
+        "batch": 1024
+      },
+      {
+        "section": "focus keys",
+        "label": "10 × focusKeys map, elements",
+        "fixture": {
+          "name": "L, 10 focus keys",
+          "groups": 1000,
+          "focusKeys": 10,
+          "buildMs": 117.89,
+          "elements": 61014
+        },
+        "result": "unhandled",
+        "median": 4.41,
+        "p10": 4.34,
+        "p90": 4.47,
+        "batch": 4096
+      },
+      {
+        "section": "focus keys",
+        "label": "10 × focusKeys map, selectors",
+        "fixture": {
+          "name": "L, 10 focus keys",
+          "groups": 1000,
+          "focusKeys": 10,
+          "buildMs": 117.89,
+          "elements": 61014
+        },
+        "result": "unhandled",
+        "median": 4.97,
+        "p10": 4.92,
+        "p90": 5.06,
+        "batch": 2048
+      },
+      {
+        "section": "focus keys",
+        "label": "100 × attribute scan",
+        "fixture": {
+          "name": "L, 100 focus keys",
+          "groups": 1000,
+          "focusKeys": 100,
+          "buildMs": 144.97,
+          "elements": 61014
+        },
+        "result": "unhandled",
+        "median": 68.46,
+        "p10": 67.71,
+        "p90": 68.81,
+        "batch": 256
+      },
+      {
+        "section": "focus keys",
+        "label": "100 × focusKeys map, elements",
+        "fixture": {
+          "name": "L, 100 focus keys",
+          "groups": 1000,
+          "focusKeys": 100,
+          "buildMs": 144.97,
+          "elements": 61014
+        },
+        "result": "unhandled",
+        "median": 41.27,
+        "p10": 40.41,
+        "p90": 42.68,
+        "batch": 256
+      },
+      {
+        "section": "focus keys",
+        "label": "100 × focusKeys map, selectors",
+        "fixture": {
+          "name": "L, 100 focus keys",
+          "groups": 1000,
+          "focusKeys": 100,
+          "buildMs": 144.97,
+          "elements": 61014
+        },
+        "result": "unhandled",
+        "median": 49.73,
+        "p10": 49.41,
+        "p90": 50.1,
+        "batch": 256
+      },
+      {
+        "section": "focus keys",
+        "label": "1000 × attribute scan",
+        "fixture": {
+          "name": "L, 1000 focus keys",
+          "groups": 1000,
+          "focusKeys": 1000,
+          "buildMs": 109.96,
+          "elements": 61014
+        },
+        "result": "unhandled",
+        "median": 575.78,
+        "p10": 560,
+        "p90": 599.22,
+        "batch": 32
+      },
+      {
+        "section": "focus keys",
+        "label": "1000 × focusKeys map, elements",
+        "fixture": {
+          "name": "L, 1000 focus keys",
+          "groups": 1000,
+          "focusKeys": 1000,
+          "buildMs": 109.96,
+          "elements": 61014
+        },
+        "result": "unhandled",
+        "median": 420.31,
+        "p10": 412.5,
+        "p90": 429.37,
+        "batch": 32
+      },
+      {
+        "section": "focus keys",
+        "label": "1000 × focusKeys map, selectors",
+        "fixture": {
+          "name": "L, 1000 focus keys",
+          "groups": 1000,
+          "focusKeys": 1000,
+          "buildMs": 109.96,
+          "elements": 61014
+        },
+        "result": "unhandled",
+        "median": 855,
+        "p10": 795.31,
+        "p90": 905.94,
+        "batch": 16
+      },
+      {
+        "section": "focus keys",
+        "label": "1000 on page, local listener",
+        "fixture": {
+          "name": "L, 1000 focus keys",
+          "groups": 1000,
+          "focusKeys": 1000,
+          "buildMs": 109.96,
+          "elements": 61014
+        },
+        "result": "unhandled",
+        "median": 3.43,
+        "p10": 3.24,
+        "p90": 4.42,
+        "batch": 4096
+      },
+      {
+        "section": "diagnostics",
+        "label": "0 × querySelectorAll over the document",
+        "fixture": {
+          "name": "L, 0 focus keys",
+          "groups": 1000,
+          "focusKeys": 0,
+          "buildMs": 172.39,
+          "elements": 61014
+        },
+        "result": "-",
+        "median": 0.09,
+        "p10": 0.08,
+        "p90": 0.13,
+        "batch": 131072
+      },
+      {
+        "section": "diagnostics",
+        "label": "0 × matchesCombo, none matching",
+        "fixture": {
+          "name": "L, 0 focus keys",
+          "groups": 1000,
+          "focusKeys": 0,
+          "buildMs": 172.39,
+          "elements": 61014
+        },
+        "result": "-",
+        "median": 0.01,
+        "p10": 0.01,
+        "p90": 0.01,
+        "batch": 2097152
+      },
+      {
+        "section": "diagnostics",
+        "label": "10 × querySelectorAll over the document",
+        "fixture": {
+          "name": "L, 10 focus keys",
+          "groups": 1000,
+          "focusKeys": 10,
+          "buildMs": 117.89,
+          "elements": 61014
+        },
+        "result": "-",
+        "median": 9.74,
+        "p10": 9.44,
+        "p90": 10.12,
+        "batch": 1024
+      },
+      {
+        "section": "diagnostics",
+        "label": "10 × matchesCombo, none matching",
+        "fixture": {
+          "name": "L, 10 focus keys",
+          "groups": 1000,
+          "focusKeys": 10,
+          "buildMs": 117.89,
+          "elements": 61014
+        },
+        "result": "-",
+        "median": 1.09,
+        "p10": 1.08,
+        "p90": 1.11,
+        "batch": 16384
+      },
+      {
+        "section": "diagnostics",
+        "label": "100 × querySelectorAll over the document",
+        "fixture": {
+          "name": "L, 100 focus keys",
+          "groups": 1000,
+          "focusKeys": 100,
+          "buildMs": 144.97,
+          "elements": 61014
+        },
+        "result": "-",
+        "median": 24.15,
+        "p10": 23.53,
+        "p90": 25.67,
+        "batch": 512
+      },
+      {
+        "section": "diagnostics",
+        "label": "100 × matchesCombo, none matching",
+        "fixture": {
+          "name": "L, 100 focus keys",
+          "groups": 1000,
+          "focusKeys": 100,
+          "buildMs": 144.97,
+          "elements": 61014
+        },
+        "result": "-",
+        "median": 24.44,
+        "p10": 24.03,
+        "p90": 25.01,
+        "batch": 512
+      },
+      {
+        "section": "diagnostics",
+        "label": "1000 × querySelectorAll over the document",
+        "fixture": {
+          "name": "L, 1000 focus keys",
+          "groups": 1000,
+          "focusKeys": 1000,
+          "buildMs": 109.96,
+          "elements": 61014
+        },
+        "result": "-",
+        "median": 141.6,
+        "p10": 122.81,
+        "p90": 309.26,
+        "batch": 128
+      },
+      {
+        "section": "diagnostics",
+        "label": "1000 × matchesCombo, none matching",
+        "fixture": {
+          "name": "L, 1000 focus keys",
+          "groups": 1000,
+          "focusKeys": 1000,
+          "buildMs": 109.96,
+          "elements": 61014
+        },
+        "result": "-",
+        "median": 287.81,
+        "p10": 278.12,
+        "p90": 305.08,
+        "batch": 64
+      },
+      {
+        "section": "columns",
+        "label": "cols=\"4\", unbound",
+        "fixture": {
+          "name": "M, cols=\"4\"",
+          "groups": 100,
+          "grid": "4",
+          "buildMs": 15.01,
+          "elements": 6114
+        },
+        "result": "unhandled",
+        "median": 5.03,
+        "p10": 4.95,
+        "p90": 5.24,
+        "batch": 2048
+      },
+      {
+        "section": "columns",
+        "label": "cols=\"4\", bound, moves focus",
+        "fixture": {
+          "name": "M, cols=\"4\"",
+          "groups": 100,
+          "grid": "4",
+          "buildMs": 15.01,
+          "elements": 6114
+        },
+        "result": "moved",
+        "median": 26.89,
+        "p10": 26.68,
+        "p90": 27.72,
+        "batch": 512
+      },
+      {
+        "section": "columns",
+        "label": "cols=\"auto\", unbound",
+        "fixture": {
+          "name": "M, cols=\"auto\"",
+          "groups": 100,
+          "grid": "auto",
+          "buildMs": 14.97,
+          "elements": 6114
+        },
+        "result": "unhandled",
+        "median": 6.75,
+        "p10": 6.56,
+        "p90": 7.25,
+        "batch": 2048
+      },
+      {
+        "section": "columns",
+        "label": "cols=\"auto\", bound, moves focus",
+        "fixture": {
+          "name": "M, cols=\"auto\"",
+          "groups": 100,
+          "grid": "auto",
+          "buildMs": 14.97,
+          "elements": 6114
+        },
+        "result": "moved",
+        "median": 29.86,
+        "p10": 28.81,
+        "p90": 32.46,
+        "batch": 512
+      }
+    ]
+  }
+}

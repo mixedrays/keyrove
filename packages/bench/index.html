@@ -1,0 +1,347 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Keydown benchmark — keyrove</title>
+    <meta
+      name="description"
+      content="What one keyRove call costs in a real browser. Run the benchmark here and compare it with the recorded run."
+    />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <!-- The docs site's theme restore, with the same key, so a choice made
+         in one holds in the other when both are served from one origin. -->
+    <script>
+      try {
+        const stored = localStorage.getItem('keyrove-theme');
+        if (stored === 'light' || stored === 'dark') {
+          document.documentElement.dataset.theme = stored;
+        }
+      } catch {
+        // Storage can be unavailable (Safari private mode); the system theme stands.
+      }
+    </script>
+    <link rel="stylesheet" href="/src/style.css" />
+  </head>
+  <body>
+    <!-- No keyrove attributes anywhere on this page: the benchmark runs in
+         harness.html, but keeping the UI free of them means nothing here
+         could ever be mistaken for part of a fixture. -->
+    <header class="site-header">
+      <div class="header-row">
+        <div class="flex items-center gap-2">
+          <a href="https://keyrove.pages.dev/" class="wordmark"
+            ><span data-icon="keyboard" class="size-6"></span>keyrove</a
+          >
+          <span class="bench-crumb">bench</span>
+        </div>
+        <div class="flex items-center gap-1 sm:gap-4">
+          <nav
+            class="hidden items-center gap-4 text-sm md:flex md:gap-6"
+            aria-label="Site"
+          >
+            <a
+              href="https://keyrove.pages.dev/docs/introduction"
+              class="header-link"
+              ><span data-icon="book" class="size-4"></span>Docs</a
+            >
+            <a
+              href="https://github.com/mixedrays/keyrove/tree/main/packages/bench#readme"
+              class="header-link"
+              ><span data-icon="github" class="size-4"></span>GitHub</a
+            >
+          </nav>
+          <a
+            href="https://github.com/mixedrays/keyrove/tree/main/packages/bench#readme"
+            class="icon-button md:hidden"
+            aria-label="The benchmark on GitHub"
+            ><span data-icon="github" class="size-4"></span
+          ></a>
+          <button
+            type="button"
+            data-theme-toggle
+            class="icon-button"
+            aria-label="Switch between light and dark theme"
+          >
+            <span data-icon="sun" class="size-4 icon-light"></span
+            ><span data-icon="moon" class="size-4 icon-dark"></span>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <main class="bench">
+      <div class="bench-intro">
+        <p class="bench-eyebrow">Benchmark</p>
+        <h1 class="bench-title">What a keydown costs</h1>
+        <p class="bench-lead">
+          One <code class="code-inline">keyRove</code> call, timed in a real
+          browser: on pages of up to 20,000 items, with the listener on the
+          group or on the document, and with up to 1,000 focus keys.
+        </p>
+      </div>
+
+      <form class="run-panel" data-run-form novalidate>
+        <div class="min-w-0">
+          <h2 class="run-heading">Run it in this browser</h2>
+          <p class="run-copy">
+            <span data-case-count>44</span> cases, in about 20 seconds. Keep
+            this tab in front while it runs; a background tab is throttled.
+          </p>
+
+          <div class="run-actions">
+            <button type="submit" class="button button-primary" data-run>
+              <span data-icon="play" class="size-4"></span>Run benchmark
+            </button>
+            <button type="button" class="button" data-stop hidden>
+              <span data-icon="stop" class="size-4"></span>Stop
+              <kbd class="kbd">Esc</kbd>
+            </button>
+            <button
+              type="button"
+              class="button button-quiet"
+              aria-expanded="false"
+              aria-controls="run-settings"
+              data-settings-toggle
+            >
+              <span data-icon="settings" class="size-4"></span>Settings
+            </button>
+          </div>
+
+          <fieldset id="run-settings" class="run-settings" data-settings hidden>
+            <legend class="sr-only">Timing settings</legend>
+            <label class="field">
+              <span class="field-label">Samples</span>
+              <input
+                type="number"
+                name="samples"
+                min="3"
+                max="101"
+                step="1"
+                required
+                aria-describedby="samples-hint"
+              />
+              <span id="samples-hint" class="field-hint"
+                >Timed batches per case, 3–101</span
+              >
+            </label>
+            <label class="field">
+              <span class="field-label">Min batch (ms)</span>
+              <input
+                type="number"
+                name="minBatchMs"
+                min="1"
+                max="100"
+                step="1"
+                required
+                aria-describedby="batch-hint"
+              />
+              <span id="batch-hint" class="field-hint"
+                >Shortest a batch may take, 1–100</span
+              >
+            </label>
+            <label class="field">
+              <span class="field-label">Warmup (ms)</span>
+              <input
+                type="number"
+                name="warmupMs"
+                min="0"
+                max="2000"
+                step="10"
+                required
+                aria-describedby="warmup-hint"
+              />
+              <span id="warmup-hint" class="field-hint"
+                >Untimed calls before each case, 0–2,000</span
+              >
+            </label>
+            <p class="settings-note">
+              The recorded run used the defaults. Change them and your run no
+              longer compares like for like.
+              <button type="button" class="link" data-settings-reset>
+                Reset to defaults
+              </button>
+            </p>
+          </fieldset>
+
+          <div class="run-progress" data-progress hidden>
+            <div class="run-progress-meta">
+              <span data-progress-count></span>
+              <span data-progress-elapsed></span>
+            </div>
+            <progress
+              value="0"
+              max="44"
+              aria-label="Benchmark progress"
+            ></progress>
+            <p class="run-progress-case" data-progress-case></p>
+          </div>
+
+          <p class="run-status" role="status" data-status></p>
+        </div>
+
+        <div class="run-checks">
+          <h3 class="run-checks-heading">This browser</h3>
+          <dl class="run-checks-list" data-checks></dl>
+        </div>
+      </form>
+
+      <section class="results" aria-labelledby="results-heading">
+        <div class="results-head">
+          <div class="min-w-0">
+            <h2 id="results-heading" class="results-heading">Results</h2>
+            <p class="results-source" data-source></p>
+          </div>
+          <div class="results-toolbar">
+            <!-- Every time on the page, and what Copy Markdown copies.
+                 Reports keep microseconds whatever is chosen here. -->
+            <fieldset class="segmented">
+              <legend class="sr-only">Show times in</legend>
+              <label class="segment">
+                <input type="radio" name="unit" value="µs" class="sr-only" />
+                <span aria-hidden="true">µs</span>
+                <span class="sr-only">microseconds</span>
+              </label>
+              <label class="segment">
+                <input type="radio" name="unit" value="ms" class="sr-only" />
+                <span aria-hidden="true">ms</span>
+                <span class="sr-only">milliseconds</span>
+              </label>
+            </fieldset>
+            <button type="button" class="button button-quiet" data-copy>
+              <span data-icon="copy" class="size-4 icon-idle"></span
+              ><span data-icon="check" class="size-4 icon-done"></span
+              ><span data-copy-label>Copy Markdown</span>
+            </button>
+            <button type="button" class="button button-quiet" data-download>
+              <span data-icon="download" class="size-4"></span>Download JSON
+            </button>
+          </div>
+        </div>
+
+        <!-- Every file in results/, and the last run made on this page. One
+             ticked shows that report; two or more compare them. -->
+        <fieldset class="report-picker">
+          <legend class="report-picker-legend">Reports</legend>
+          <p class="report-picker-hint">
+            Tick one to read it, or several to compare them. Each file in
+            <code class="code-inline">packages/bench/results</code> is a report;
+            <code class="code-inline">pnpm bench:headless -- --ref v2.1.0</code>
+            adds one for that version.
+          </p>
+          <ul class="report-list" data-report-list></ul>
+          <label class="baseline-field" data-baseline-field hidden>
+            <span class="baseline-label">Compare against</span>
+            <select class="baseline-select" data-baseline></select>
+          </label>
+        </fieldset>
+
+        <div data-notices></div>
+        <div data-view></div>
+
+        <details class="disclosure" data-fixtures-disclosure>
+          <summary>Fixtures</summary>
+          <p class="disclosure-copy">
+            The pages the cases ran on, and how long each took to build. Build
+            time is not part of any case.
+          </p>
+          <div data-fixtures></div>
+        </details>
+
+        <details class="disclosure">
+          <summary>Environment</summary>
+          <div data-environment></div>
+        </details>
+      </section>
+
+      <section class="method" aria-labelledby="method-heading">
+        <h2 id="method-heading" class="method-heading">How it is measured</h2>
+        <ul class="method-list">
+          <li>
+            Each page is built before timing starts. Building it is not part of
+            any case.
+          </li>
+          <li>
+            <code class="code-inline">keyRove</code> is called directly with a
+            hand-built event whose
+            <code class="code-inline">currentTarget</code> is the group or the
+            document, so event dispatch is left out.
+          </li>
+          <li>
+            Each case warms up, doubles its batch until one batch takes at least
+            10 ms, then times 15 batches. The tables give the median and the
+            p10–p90 range of the time per call.
+          </li>
+          <li>
+            The cases run in a page of their own, shown in the corner while a
+            run is going. None of this page’s markup is part of what they count
+            or scan.
+          </li>
+        </ul>
+        <p class="method-more">
+          <a
+            class="link"
+            href="https://github.com/mixedrays/keyrove/tree/main/packages/bench#readme"
+            >Findings, conclusion and limitations in the README</a
+          >
+        </p>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="footer-row">
+        <p class="footer-meta">
+          <a href="https://keyrove.pages.dev/" class="wordmark"
+            ><span data-icon="keyboard" class="size-5"></span>keyrove</a
+          >
+          <span>Keydown benchmark</span>
+        </p>
+        <nav class="footer-links" aria-label="Footer">
+          <a
+            href="https://keyrove.pages.dev/docs/introduction"
+            class="footer-link"
+            >Docs</a
+          >
+          <a href="https://keyrove.pages.dev/docs/api" class="footer-link"
+            >API</a
+          >
+          <a
+            href="https://github.com/mixedrays/keyrove/tree/main/packages/bench#readme"
+            class="footer-link"
+            >README</a
+          >
+          <a href="https://github.com/mixedrays/keyrove" class="footer-link"
+            >GitHub</a
+          >
+        </nav>
+      </div>
+    </footer>
+
+    <!-- Fixed to the viewport so that focusing an item inside it never
+         scrolls this page. The frame is created for each run, so every run
+         starts on a fresh page, as the headless one does. -->
+    <section class="stage" aria-label="Live fixture" data-stage hidden>
+      <div class="stage-head">
+        <span class="stage-dot" aria-hidden="true"></span>
+        <span class="stage-title">Live fixture</span>
+        <span class="stage-fixture" data-stage-fixture></span>
+        <span class="stage-count" data-stage-count></span>
+        <!-- The panel's own Stop can sit under the stage on a phone, which
+             has no Escape key either. -->
+        <button
+          type="button"
+          class="stage-stop"
+          aria-label="Stop the benchmark"
+          data-stage-stop
+        >
+          <span data-icon="stop" class="size-3.5"></span>
+        </button>
+      </div>
+      <div class="stage-progress" aria-hidden="true">
+        <span data-stage-bar></span>
+      </div>
+    </section>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

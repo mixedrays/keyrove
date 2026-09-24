@@ -1,0 +1,677 @@
+/*
+ * The docs site's stylesheet, whole: the header, footer, links, code, kbd,
+ * tables, focus rings and both themes come from it, so the bench looks like
+ * the site without a copy to keep in step. Below is only what the site has
+ * no class for, drawn from the same recipes — zinc surfaces, the indigo
+ * accent, the landing page's buttons and cards.
+ */
+@import '../../docs/src/style.css';
+
+/* The site's sheet lives in another package; point Tailwind at this one. */
+@source '../index.html';
+@source './';
+
+@layer components {
+  /* ---------- page ---------- */
+
+  /* The docs shell's measure, which the header and footer rows share:
+     a comparison table runs to nine columns. Prose inside is held to a
+     reading width of its own. */
+  .bench {
+    @apply mx-auto max-w-[90rem] px-6 pb-24;
+  }
+
+  html[data-running] .bench {
+    /* Room to scroll the last table clear of the stage in the corner. */
+    @apply pb-80;
+  }
+
+  .bench-crumb {
+    @apply rounded-md border border-zinc-200 px-1.5 py-0.5 font-mono text-xs text-zinc-600 dark:border-zinc-800 dark:text-zinc-400;
+  }
+
+  .bench-intro {
+    @apply pt-12 sm:pt-16;
+  }
+
+  /* The landing page's step label. */
+  .bench-eyebrow {
+    @apply font-mono text-xs font-medium tracking-widest text-indigo-600 uppercase dark:text-indigo-400;
+  }
+
+  .bench-title {
+    @apply mt-3 text-4xl leading-[1.1] font-bold tracking-tight text-balance text-zinc-900 sm:text-5xl dark:text-zinc-100;
+  }
+
+  .bench-lead {
+    @apply mt-5 max-w-3xl text-lg leading-7 text-zinc-600 dark:text-zinc-400;
+  }
+
+  /* ---------- buttons ---------- */
+
+  /* The landing page's hero actions, as buttons: the primary call in the
+     accent, the rest on the page's surface. */
+  .button {
+    @apply inline-flex h-9 shrink-0 cursor-pointer items-center gap-2 rounded-lg border border-zinc-200 bg-white px-3.5 text-sm font-medium whitespace-nowrap text-zinc-900 hover:bg-zinc-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-100 dark:hover:bg-zinc-800;
+  }
+
+  .button[hidden] {
+    display: none;
+  }
+
+  .button-primary {
+    @apply border-transparent bg-indigo-600 px-4 text-white hover:bg-indigo-700 dark:border-transparent dark:bg-indigo-500 dark:text-zinc-950 dark:hover:bg-indigo-400;
+  }
+
+  .button-quiet {
+    @apply border-transparent bg-transparent text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 dark:border-transparent dark:bg-transparent dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100;
+  }
+
+  .button .kbd {
+    @apply ml-1 min-w-0 py-0 text-[0.6875rem];
+  }
+
+  /* A touch screen has no Escape key to hint at. */
+  @media (pointer: coarse) {
+    .button .kbd {
+      @apply hidden;
+    }
+  }
+
+  /* ---------- run panel ---------- */
+
+  /* The landing page's closing panel: a tinted ground that sets the one
+     thing to do apart from the reading around it. */
+  .run-panel {
+    @apply mt-10 grid gap-8 rounded-2xl border border-zinc-200 bg-zinc-50 p-6 sm:p-8 lg:grid-cols-[minmax(0,1fr)_17rem] dark:border-zinc-800 dark:bg-zinc-900/60;
+  }
+
+  .run-heading {
+    @apply text-lg font-semibold tracking-tight text-zinc-900 dark:text-zinc-100;
+  }
+
+  .run-copy {
+    @apply mt-1 max-w-xl text-sm leading-6 text-zinc-600 dark:text-zinc-400;
+  }
+
+  .run-actions {
+    @apply mt-5 flex flex-wrap items-center gap-2;
+  }
+
+  .run-settings {
+    @apply mt-5 grid gap-4 rounded-xl border border-zinc-200 bg-white p-4 sm:grid-cols-3 dark:border-zinc-800 dark:bg-zinc-950;
+  }
+
+  .run-settings[hidden] {
+    display: none;
+  }
+
+  .field {
+    @apply flex min-w-0 flex-col gap-1.5 text-sm;
+  }
+
+  .field-label {
+    @apply font-medium text-zinc-900 dark:text-zinc-100;
+  }
+
+  .field input {
+    @apply h-9 w-full rounded-lg border border-zinc-200 bg-white px-3 text-zinc-900 tabular-nums disabled:opacity-60 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100;
+  }
+
+  .field input:user-invalid {
+    @apply border-red-500 dark:border-red-400;
+  }
+
+  .field-hint {
+    @apply text-xs text-zinc-500 dark:text-zinc-400;
+  }
+
+  .settings-note {
+    @apply text-xs leading-5 text-zinc-600 sm:col-span-3 dark:text-zinc-400;
+  }
+
+  .settings-note .link {
+    @apply cursor-pointer;
+  }
+
+  .run-progress {
+    @apply mt-6 max-w-xl;
+  }
+
+  .run-progress[hidden] {
+    display: none;
+  }
+
+  .run-progress-meta {
+    @apply flex justify-between text-sm font-medium text-zinc-900 tabular-nums dark:text-zinc-100;
+  }
+
+  /* One step of the accent ramp for the track and the accent for the fill,
+     so the bar reads as one control at any value. */
+  .run-progress progress {
+    @apply mt-2 block h-2 w-full appearance-none overflow-hidden rounded-full border-0 bg-indigo-100 dark:bg-indigo-950;
+  }
+
+  .run-progress progress::-webkit-progress-bar {
+    @apply bg-indigo-100 dark:bg-indigo-950;
+  }
+
+  .run-progress progress::-webkit-progress-value {
+    @apply rounded-full bg-indigo-600 dark:bg-indigo-400;
+  }
+
+  .run-progress progress::-moz-progress-bar {
+    @apply rounded-full bg-indigo-600 dark:bg-indigo-400;
+  }
+
+  .run-progress-case {
+    @apply mt-2 truncate font-mono text-xs text-zinc-500 dark:text-zinc-400;
+  }
+
+  .run-status {
+    @apply mt-4 text-sm text-zinc-600 empty:hidden dark:text-zinc-400;
+  }
+
+  .run-status[data-tone='error'] {
+    @apply text-red-700 dark:text-red-400;
+  }
+
+  .run-checks {
+    @apply min-w-0 border-t border-zinc-200 pt-6 lg:border-t-0 lg:border-l lg:pt-0 lg:pl-8 dark:border-zinc-800;
+  }
+
+  .run-checks-heading {
+    @apply text-sm font-semibold text-zinc-900 dark:text-zinc-100;
+  }
+
+  .run-checks-list {
+    @apply mt-3 grid gap-3 text-sm sm:grid-cols-2 lg:grid-cols-1;
+  }
+
+  .run-check dt {
+    @apply text-xs text-zinc-500 dark:text-zinc-400;
+  }
+
+  .run-check dd {
+    @apply mt-0.5 flex items-center gap-1.5 font-medium text-zinc-900 dark:text-zinc-100;
+  }
+
+  .run-check[data-warn] dd {
+    @apply text-amber-700 dark:text-amber-400;
+  }
+
+  .run-check-why {
+    @apply mt-0.5 text-xs text-zinc-500 dark:text-zinc-400;
+  }
+
+  /* ---------- results ---------- */
+
+  .results {
+    @apply mt-16;
+  }
+
+  .results-head {
+    @apply flex flex-wrap items-end justify-between gap-x-6 gap-y-4 border-b border-zinc-200 pb-4 dark:border-zinc-800;
+  }
+
+  .results-heading {
+    @apply text-2xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-100;
+  }
+
+  .results-source {
+    @apply mt-1 text-sm text-zinc-500 dark:text-zinc-400;
+  }
+
+  .results-toolbar {
+    @apply flex flex-wrap items-center gap-2;
+  }
+
+  /* The landing page's pattern tabs, over native radios: arrows move
+     between them and the browser says which is chosen. */
+  .segmented {
+    @apply inline-flex gap-1 rounded-xl border border-zinc-200 bg-zinc-50 p-1 dark:border-zinc-800 dark:bg-zinc-900;
+  }
+
+  .segment {
+    @apply cursor-pointer rounded-lg px-3 py-0.5 text-sm font-medium whitespace-nowrap text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100;
+  }
+
+  .segment:has(:checked) {
+    @apply bg-white text-zinc-900 shadow-sm ring-1 ring-zinc-200 dark:bg-zinc-800 dark:text-zinc-100 dark:ring-zinc-700;
+  }
+
+  .segment:has(:focus-visible) {
+    @apply outline-2 outline-offset-2 outline-indigo-600 dark:outline-indigo-400;
+  }
+
+  /* ---------- report picker ---------- */
+
+  .report-picker {
+    @apply mt-6 min-w-0;
+  }
+
+  .report-picker-legend {
+    @apply text-base font-semibold text-zinc-900 dark:text-zinc-100;
+  }
+
+  .report-picker-hint {
+    @apply mt-1 max-w-3xl text-sm leading-6 text-zinc-600 dark:text-zinc-400;
+  }
+
+  /* The landing page's cards, as checkboxes: a ticked one takes the accent's
+     border and wash, as a hovered card takes its border. */
+  .report-list {
+    @apply mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4;
+  }
+
+  .report-choice {
+    @apply flex h-full cursor-pointer items-start gap-3 rounded-xl border border-zinc-200 bg-white px-4 py-3 transition-colors hover:border-indigo-300 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-indigo-700;
+  }
+
+  .report-choice:has(:checked) {
+    @apply border-indigo-300 bg-indigo-50/60 dark:border-indigo-700 dark:bg-indigo-500/10;
+  }
+
+  .report-choice input {
+    @apply mt-0.5 size-4 shrink-0 accent-indigo-600 dark:accent-indigo-400;
+  }
+
+  .report-text {
+    @apply flex min-w-0 flex-col;
+  }
+
+  .report-name {
+    @apply truncate text-sm font-semibold text-zinc-900 dark:text-zinc-100;
+  }
+
+  .report-meta {
+    @apply text-xs leading-5 text-zinc-500 dark:text-zinc-400;
+  }
+
+  .baseline-field {
+    @apply mt-4 flex flex-wrap items-center gap-3 text-sm;
+  }
+
+  .baseline-field[hidden] {
+    display: none;
+  }
+
+  .baseline-label {
+    @apply font-medium text-zinc-900 dark:text-zinc-100;
+  }
+
+  .baseline-select {
+    @apply h-9 rounded-lg border border-zinc-200 bg-white px-3 pr-8 text-zinc-900 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100;
+  }
+
+  .empty-view {
+    @apply mt-8 text-sm text-zinc-500 dark:text-zinc-400;
+  }
+
+  /* Warnings about the run itself. Amber is kept for these alone, and each
+     carries its icon, so the colour is never the only sign. */
+  .notice {
+    @apply mt-4 flex gap-3 rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm leading-6 text-amber-900 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-200;
+  }
+
+  .headline-caption {
+    @apply mt-8 text-sm text-zinc-500 dark:text-zinc-400;
+  }
+
+  /* Stat tiles, on the landing page's feature cards. The value keeps
+     proportional figures: it stands alone rather than in a column. */
+  .stat-row {
+    @apply mt-3 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4;
+  }
+
+  .stat {
+    @apply flex min-w-0 flex-col rounded-xl border border-zinc-200 bg-white p-4 sm:p-5 dark:border-zinc-800 dark:bg-zinc-900;
+  }
+
+  .stat-label {
+    @apply text-sm font-semibold text-zinc-900 dark:text-zinc-100;
+  }
+
+  .stat-note {
+    @apply mt-0.5 text-xs text-zinc-500 dark:text-zinc-400;
+  }
+
+  .stat-value {
+    @apply mt-4 text-2xl font-semibold tracking-tight text-zinc-900 sm:text-3xl dark:text-zinc-100;
+  }
+
+  .stat-unit {
+    @apply ml-1 text-base font-medium text-zinc-500 dark:text-zinc-400;
+  }
+
+  .stat-foot {
+    @apply mt-auto border-t border-zinc-100 pt-3 text-xs text-zinc-500 dark:border-zinc-800 dark:text-zinc-400;
+  }
+
+  .stat-value + .stat-foot {
+    @apply mt-4;
+  }
+
+  /* ---------- legend and tables ---------- */
+
+  /* What every number is, said once above the tables it applies to. */
+  .units-note {
+    @apply mt-10 max-w-3xl text-sm leading-6 text-zinc-600 dark:text-zinc-400;
+  }
+
+  .legend {
+    @apply mt-3 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-zinc-600 dark:text-zinc-400;
+  }
+
+  .legend-item {
+    @apply inline-flex items-center gap-2;
+  }
+
+  .legend-scale {
+    @apply text-zinc-500 sm:ml-auto dark:text-zinc-400;
+  }
+
+  /*
+   * The marks. One series, so one hue: the median in the accent, and its
+   * spread a darker step of the same ramp.
+   */
+  .legend-bar,
+  .bar-fill {
+    @apply rounded-r bg-indigo-500 dark:bg-indigo-400;
+  }
+
+  .legend-range,
+  .bar-range {
+    @apply bg-indigo-900 dark:bg-indigo-100;
+  }
+
+  .legend-bar {
+    @apply h-2 w-4;
+  }
+
+  .legend-range {
+    @apply h-0.5 w-4;
+  }
+
+  .result-section {
+    @apply mt-10;
+  }
+
+  .result-heading {
+    @apply text-base font-semibold text-zinc-900 dark:text-zinc-100;
+  }
+
+  .result-note {
+    @apply mt-1 max-w-3xl text-sm leading-6 text-zinc-600 dark:text-zinc-400;
+  }
+
+  /* The site's prose tables, which only style inside `.markdown`, as a
+     class of their own. */
+  .data-table {
+    @apply w-full min-w-[46rem] border-collapse text-sm;
+  }
+
+  /* A little denser than the prose tables: these are read across. */
+  .data-table th {
+    @apply border-b border-zinc-200 bg-zinc-50 px-3 py-2.5 text-left font-semibold whitespace-nowrap text-zinc-900 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-100;
+  }
+
+  .data-table td {
+    @apply border-b border-zinc-200 px-3 py-2 align-middle text-zinc-600 dark:border-zinc-800 dark:text-zinc-400;
+  }
+
+  .data-table tbody tr:last-child td {
+    @apply border-b-0;
+  }
+
+  .data-table tbody tr:hover td {
+    @apply bg-zinc-50/70 dark:bg-zinc-900/50;
+  }
+
+  /* Rows of one page run together under fainter rules, so the full-strength
+     rule between pages does the grouping. */
+  .data-table tr.group-continues td {
+    @apply border-b-zinc-100 dark:border-b-zinc-800/50;
+  }
+
+  .data-table .num {
+    @apply text-right whitespace-nowrap tabular-nums;
+  }
+
+  .data-table .strong {
+    @apply font-medium text-zinc-900 dark:text-zinc-100;
+  }
+
+  .fixture-cell {
+    @apply font-medium whitespace-nowrap text-zinc-900 dark:text-zinc-100;
+  }
+
+  .case-cell {
+    @apply whitespace-nowrap;
+  }
+
+  .data-table .bar-cell {
+    @apply w-40 min-w-40 px-2;
+  }
+
+  .scale {
+    @apply flex justify-between text-xs font-normal text-zinc-500 tabular-nums dark:text-zinc-400;
+  }
+
+  .bar {
+    @apply relative h-3.5;
+  }
+
+  .bar-fill {
+    @apply absolute top-1/2 left-0 h-2 -translate-y-1/2;
+  }
+
+  .bar-range {
+    @apply absolute top-1/2 h-0.5 -translate-y-1/2;
+  }
+
+  /* End caps, so the spread reads as a range rather than a line. */
+  .bar-range::before,
+  .bar-range::after {
+    @apply absolute -top-[3px] h-2 w-px bg-inherit;
+    content: '';
+  }
+
+  .bar-range::before {
+    @apply left-0;
+  }
+
+  .bar-range::after {
+    @apply right-0;
+  }
+
+  .pill {
+    @apply inline-flex items-center gap-1 rounded-md bg-zinc-100 px-1.5 py-0.5 font-mono text-xs whitespace-nowrap text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300;
+  }
+
+  /* ---------- comparison ---------- */
+
+  .summary-note {
+    @apply mt-3 max-w-3xl text-xs leading-5 text-zinc-500 dark:text-zinc-400;
+  }
+
+  .summary-wrap {
+    @apply mt-8;
+  }
+
+  /* A report column's second header line: its unit, and what it holds. */
+  .data-table .th-sub {
+    @apply block text-xs font-normal text-zinc-500 dark:text-zinc-400;
+  }
+
+  /* A median and its change in two fixed tracks, so each column's medians
+     line up whatever the change beside them says. */
+  .cmp {
+    @apply inline-grid grid-cols-[auto_auto_4.25rem] items-center justify-end gap-x-1.5;
+  }
+
+  .cmp-value {
+    @apply col-start-2 text-zinc-900 dark:text-zinc-100;
+  }
+
+  .cmp-warn {
+    @apply col-start-1 text-amber-600 dark:text-amber-400;
+  }
+
+  /*
+   * A change is grey unless it is beyond noise, when it takes the status
+   * colours, green for faster and red for slower. Each carries its arrow and
+   * a spoken word as well, so the colour is never the only sign.
+   */
+  .cmp-change {
+    @apply inline-flex items-center justify-end gap-0.5 text-xs text-zinc-500 tabular-nums dark:text-zinc-400;
+  }
+
+  .cmp .cmp-change {
+    @apply col-start-3;
+  }
+
+  .cmp-change[data-direction='faster'] {
+    @apply font-medium text-emerald-700 dark:text-emerald-400;
+  }
+
+  .cmp-change[data-direction='slower'] {
+    @apply font-medium text-red-700 dark:text-red-400;
+  }
+
+  .cmp-na {
+    @apply text-zinc-400 dark:text-zinc-500;
+  }
+
+  /* Dates, commits and browser names read as one token each: the table
+     scrolls in its box rather than break them. */
+  .summary-table td {
+    @apply whitespace-nowrap;
+  }
+
+  /* Long values wrap at their spaces, and a column never gets narrow enough
+     to break a date at its hyphens. */
+  .env-table td {
+    @apply min-w-44;
+  }
+
+  .env-table th[scope='row'] {
+    @apply bg-transparent font-medium whitespace-nowrap text-zinc-500 dark:bg-transparent dark:text-zinc-400;
+  }
+
+  /* ---------- disclosures ---------- */
+
+  .disclosure {
+    @apply mt-10 border-t border-zinc-200 pt-6 dark:border-zinc-800;
+  }
+
+  .disclosure + .disclosure {
+    @apply mt-6;
+  }
+
+  .disclosure summary {
+    @apply -mx-1 inline-flex cursor-pointer items-center gap-2 rounded px-1 text-base font-semibold text-zinc-900 dark:text-zinc-100;
+    list-style: none;
+  }
+
+  .disclosure summary::-webkit-details-marker {
+    display: none;
+  }
+
+  /* A chevron drawn in CSS, turned as the section opens. */
+  .disclosure summary::before {
+    @apply size-2 -rotate-45 border-r-2 border-b-2 border-zinc-400 transition-transform motion-reduce:transition-none dark:border-zinc-500;
+    content: '';
+  }
+
+  .disclosure[open] summary::before {
+    @apply rotate-45;
+  }
+
+  .disclosure-copy {
+    @apply mt-2 max-w-3xl text-sm leading-6 text-zinc-600 dark:text-zinc-400;
+  }
+
+  .env-list {
+    @apply mt-4 grid gap-x-8 gap-y-4 text-sm sm:grid-cols-2;
+  }
+
+  .env-list dt {
+    @apply text-xs text-zinc-500 dark:text-zinc-400;
+  }
+
+  .env-list dd {
+    @apply mt-0.5 font-medium break-words text-zinc-900 dark:text-zinc-100;
+  }
+
+  /* ---------- method ---------- */
+
+  .method {
+    @apply mt-16 rounded-2xl border border-zinc-200 p-6 sm:p-8 dark:border-zinc-800;
+  }
+
+  .method-heading {
+    @apply text-lg font-semibold tracking-tight text-zinc-900 dark:text-zinc-100;
+  }
+
+  .method-list {
+    @apply mt-4 max-w-3xl list-disc space-y-2 pl-5 text-sm leading-6 text-zinc-600 marker:text-zinc-400 dark:text-zinc-400;
+  }
+
+  .method-more {
+    @apply mt-4 text-sm;
+  }
+
+  /* ---------- stage ---------- */
+
+  /*
+   * The frame a run happens in. Fixed to the viewport, so focus moving
+   * inside it never scrolls the page, and in view, so the browser renders
+   * it as it would the headless page. From `sm` its frame is the harness's
+   * height: a 12rem fixture inside a 1rem margin.
+   */
+  .stage {
+    @apply fixed right-4 bottom-4 left-4 z-40 overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-2xl sm:left-auto sm:w-96 dark:border-zinc-700 dark:bg-zinc-900;
+  }
+
+  .stage[hidden] {
+    display: none;
+  }
+
+  .stage-head {
+    @apply flex items-center gap-2 border-b border-zinc-200 px-3 py-2 text-xs dark:border-zinc-700;
+  }
+
+  .stage-dot {
+    @apply size-2 shrink-0 rounded-full bg-indigo-500 motion-safe:animate-pulse dark:bg-indigo-400;
+  }
+
+  .stage-title {
+    @apply font-medium text-zinc-900 dark:text-zinc-100;
+  }
+
+  .stage-fixture {
+    @apply ml-auto min-w-0 truncate font-mono text-zinc-500 dark:text-zinc-400;
+  }
+
+  .stage-count {
+    @apply font-mono text-zinc-500 tabular-nums dark:text-zinc-400;
+  }
+
+  .stage-stop {
+    @apply -my-1 inline-flex size-6 shrink-0 cursor-pointer items-center justify-center rounded-md text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100;
+  }
+
+  .stage-progress {
+    @apply h-0.5 bg-indigo-100 dark:bg-indigo-950;
+  }
+
+  .stage-progress span {
+    @apply block h-full bg-indigo-600 dark:bg-indigo-400;
+  }
+
+  /* Shorter on a phone, where the stage would otherwise cover the panel. */
+  .stage iframe {
+    @apply block h-40 w-full border-0 sm:h-56;
+  }
+}
