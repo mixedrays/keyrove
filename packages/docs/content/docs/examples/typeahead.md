@@ -2,6 +2,7 @@
 # Live page: https://keyrove.pages.dev/docs/examples/typeahead
 title: Typeahead
 description: Add typeahead to a list or menu so typing a label focuses its item, with prefix matching, repeated-character cycling and accent handling.
+keywords: [typeahead, type to select, prefix matching, accented labels]
 titleTag: Type-to-focus typeahead for lists — keyrove
 group: Examples
 order: 20

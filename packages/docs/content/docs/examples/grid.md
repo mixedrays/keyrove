@@ -2,6 +2,7 @@
 # Live page: https://keyrove.pages.dev/docs/examples/grid
 title: Grid
 description: Add arrow-key navigation to a grid. Set the column count, then move by cell, row, row ends, grid ends or pages, with arrows that flip in right-to-left text.
+keywords: [grid, rows and columns, arrow keys, right-to-left]
 titleTag: Arrow key navigation for grids — keyrove
 group: Examples
 order: 14

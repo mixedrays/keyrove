@@ -2,6 +2,7 @@
 # Live page: https://keyrove.pages.dev/docs/api
 title: API reference
 description: Reference for keyRove, rove, the typeahead and roving tabindex helpers, key bindings, focus behavior, data attributes and every exported TypeScript type.
+keywords: [api reference, keyRove, rove, createTypeahead, typescript types]
 group: Guide
 order: 4
 ---
@@ -30,6 +31,14 @@ import { keyRove } from '@mixedrays/keyrove';
 
 list.addEventListener('keydown', (e) => keyRove(e));
 ```
+
+| Parameter | Type                                | Required | Description                                            |
+| --------- | ----------------------------------- | -------- | ------------------------------------------------------ |
+| `event`   | [`KeyRoveEvent`](#keyroveevent)     | Yes      | The keydown. Native and framework events both qualify. |
+| `options` | [`KeyRoveOptions`](#keyroveoptions) | No       | Group settings and `onMove`; see [options](#options).  |
+
+Returns a [`MoveResult`](#moveaction-moveresult-move), or `null` when the key
+is not keyrove's; see [return value](#return-value).
 
 ### Keys
 
@@ -339,18 +348,18 @@ keyRove(e, { loop: true }); // override looping only
 keyRove(e, { items: '[role="menuitem"]' }); // override item lookup only
 ```
 
-| Option           | Falls back to                  | Meaning                                                                                                                                                                        |
-| ---------------- | ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `items`          | `data-keyrove-item`            | The group's items: a selector run inside the root, or `(root) => Element[]`. Elements carrying `disabled` are never navigable.                                                 |
-| `root`           | `data-keyrove-root`            | Selector a [root](#roots) answers to, matched at or above the event's target.                                                                                                  |
-| `cols`           | `data-keyrove-cols`            | Columns. Above 1 the group is a grid. `'auto'` counts the root's CSS grid tracks on every keypress.                                                                            |
-| `loop`           | `data-keyrove-loop`            | Whether next/prev wrap at the ends. Lists only.                                                                                                                                |
-| `orientation`    | `data-keyrove-orientation`     | `'horizontal'` re-points a list's default arrows; see [RTL](#horizontal-groups-and-rtl).                                                                                       |
-| `pageLength`     | `data-keyrove-page-length`     | Rows per page jump — items, in a list.                                                                                                                                         |
-| `keys`           | the `*-key` attributes         | The [combo](#combos) or combos each move answers to: `{ next: 'ArrowDown, KeyJ' }`, or `'none'` for no key. Read move by move. Includes [`exit` and `enter`](#exit-and-enter). |
-| `focusKeys`      | `data-keyrove-focus-key`       | Combo, or a list of them, → element or a selector resolved within the listener's reach: `{ 'F6, ctrl+KeyE': '#panel' }`. Replaces the attribute scan rather than adding to it. |
-| `skip`           | `data-keyrove-skip`            | Which items a move passes over: a selector or `(element) => boolean`.                                                                                                          |
-| `rovingTabindex` | `data-keyrove-roving-tabindex` | Whether the group carries one tab stop. One boolean for the group, where the attribute is read per item.                                                                       |
+| Option           | Type                                                                     | Falls back to                  | Meaning                                                                                                                                                                        |
+| ---------------- | ------------------------------------------------------------------------ | ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `items`          | `string \| (root: Element) => Element[]`                                 | `data-keyrove-item`            | The group's items: a selector run inside the root, or a function returning them. Elements carrying `disabled` are never navigable.                                             |
+| `root`           | `string`                                                                 | `data-keyrove-root`            | Selector a [root](#roots) answers to, matched at or above the event's target.                                                                                                  |
+| `cols`           | `number \| 'auto'`                                                       | `data-keyrove-cols`            | Columns. Above 1 the group is a grid. `'auto'` counts the root's CSS grid tracks on every keypress.                                                                            |
+| `loop`           | `boolean`                                                                | `data-keyrove-loop`            | Whether next/prev wrap at the ends. Lists only.                                                                                                                                |
+| `orientation`    | `'horizontal' \| 'vertical'`                                             | `data-keyrove-orientation`     | `'horizontal'` re-points a list's default arrows; see [RTL](#horizontal-groups-and-rtl).                                                                                       |
+| `pageLength`     | `number`                                                                 | `data-keyrove-page-length`     | Rows per page jump — items, in a list.                                                                                                                                         |
+| `keys`           | `Partial<Record<StrideAction \| 'exit' \| 'enter', KeyCombo \| 'none'>>` | the `*-key` attributes         | The [combo](#combos) or combos each move answers to: `{ next: 'ArrowDown, KeyJ' }`, or `'none'` for no key. Read move by move. Includes [`exit` and `enter`](#exit-and-enter). |
+| `focusKeys`      | `Record<string, string \| Element>`                                      | `data-keyrove-focus-key`       | Combo, or a list of them, → element or a selector resolved within the listener's reach: `{ 'F6, ctrl+KeyE': '#panel' }`. Replaces the attribute scan rather than adding to it. |
+| `skip`           | `string \| (element: Element) => boolean`                                | `data-keyrove-skip`            | Which items a move passes over: a selector, or a predicate.                                                                                                                    |
+| `rovingTabindex` | `boolean`                                                                | `data-keyrove-roving-tabindex` | Whether the group carries one tab stop. One boolean for the group, where the attribute is read per item.                                                                       |
 
 `keys` falls back per action. `{ keys: { next: 'KeyJ' } }` changes only next;
 other actions retain their attribute or default bindings. Empty, blank and
@@ -428,6 +437,15 @@ nextButton.addEventListener('click', () => rove(results, 'next'));
 prevButton.addEventListener('click', () => rove(results, 'prev'));
 ```
 
+| Parameter | Type                                         | Required | Description                                                          |
+| --------- | -------------------------------------------- | -------- | -------------------------------------------------------------------- |
+| `element` | `Element \| null \| undefined`               | Yes      | Where to find the group, as described below. Nullish returns `null`. |
+| `action`  | [`StrideAction`](#groupoptions-strideaction) | Yes      | The move to make, such as `'next'`, `'home'` or `'nextRow'`.         |
+| `options` | [`KeyRoveOptions`](#keyroveoptions)          | No       | The same [options](#options) as `keyRove`; see below.                |
+
+Returns a [`MoveResult`](#moveaction-moveresult-move), or `null` when there is
+no move to make.
+
 `action` is a [stride action](#groupoptions-strideaction): `'next'`, `'prev'`,
 `'home'`, `'end'`, `'pageUp'` or `'pageDown'`, plus `'nextRow'`, `'prevRow'`,
 `'homeRow'` and `'endRow'` in a grid. Key bindings do not affect it. To focus
@@ -475,18 +493,24 @@ const typeahead = createTypeahead();
 list.addEventListener('keydown', (e) => keyRove(e) || typeahead(e));
 ```
 
+| Parameter | Type                                                                  | Required | Description                                                     |
+| --------- | --------------------------------------------------------------------- | -------- | --------------------------------------------------------------- |
+| `options` | [`TypeaheadOptions`](#typeaheadoptions-typeaheadresult-typeaheadmove) | No       | The typeahead settings below, and the group settings it shares. |
+
+Returns a keydown handler, `(event: KeyRoveEvent) => TypeaheadResult | null`.
+
 Chain it _after_ `keyRove`, as above, so a printable binding like `KeyJ`
 navigates instead of entering the buffer. Create one handler per listener: the
 buffer lives in the handler, which keeps `keyRove` itself stateless. See
 [typeahead](/docs/examples/typeahead) for it at work.
 
-| Option           | Default    | Meaning                                                                                                                                  |
-| ---------------- | ---------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
-| `label`          | —          | `(item) => string`, the text an item is matched by. Falls through to the attribute and then the item's text where it returns nothing.    |
-| `resetMs`        | `500`      | Milliseconds of typing silence after which the buffer clears.                                                                            |
-| `matchMode`      | `'prefix'` | `'cycle'` moves each single-character press to the next matching item after focus, wrapping, so repeats cycle; [see below](#cycle-mode). |
-| `foldDiacritics` | `true`     | Ignore accents and other combining marks on both sides of the match. Turn it off where an accent tells two items apart.                  |
-| `onMove`         | —          | Fired after focus has moved, and only then; see [`keyRove`'s option](#options-onmove).                                                   |
+| Option           | Type                            | Default    | Meaning                                                                                                                                  |
+| ---------------- | ------------------------------- | ---------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| `label`          | `(item: Element) => string`     | —          | The text an item is matched by. Falls through to the attribute and then the item's text where it returns nothing.                        |
+| `resetMs`        | `number`                        | `500`      | Milliseconds of typing silence after which the buffer clears.                                                                            |
+| `matchMode`      | `'prefix' \| 'cycle'`           | `'prefix'` | `'cycle'` moves each single-character press to the next matching item after focus, wrapping, so repeats cycle; [see below](#cycle-mode). |
+| `foldDiacritics` | `boolean`                       | `true`     | Ignore accents and other combining marks on both sides of the match. Turn it off where an accent tells two items apart.                  |
+| `onMove`         | `(move: TypeaheadMove) => void` | —          | Fired after focus has moved, and only then; see [`keyRove`'s option](#options-onmove).                                                   |
 
 It shares `items`, `root`, `skip` and `rovingTabindex` with `keyRove`, using
 the same fallback rules. Pass one configuration to both handlers:
@@ -563,6 +587,13 @@ list.addEventListener('keydown', (e) => {
 });
 ```
 
+| Parameter | Type                            | Required | Description                                                      |
+| --------- | ------------------------------- | -------- | ---------------------------------------------------------------- |
+| `event`   | [`KeyRoveEvent`](#keyroveevent) | Yes      | The keydown to test.                                             |
+| `combo`   | [`KeyCombo`](#keycombo)         | Yes      | A combo such as `'mod+KeyK'`, or a comma-separated list of them. |
+
+Returns `true` when the event matches the combo, or any combo in the list.
+
 Matching is exact, so `'Escape'` above rejects
 <kbd class="kbd">Ctrl</kbd>+<kbd class="kbd">Escape</kbd>. A list matches any
 of its combos, which saves writing the any-of by hand:
@@ -582,6 +613,13 @@ import { initRovingTabindex } from '@mixedrays/keyrove';
 
 initRovingTabindex(list);
 ```
+
+| Parameter | Type                                                                            | Required | Description                                                                    |
+| --------- | ------------------------------------------------------------------------------- | -------- | ------------------------------------------------------------------------------ |
+| `root`    | `Element \| null \| undefined`                                                  | Yes      | The group's root. Nullish returns `null`.                                      |
+| `options` | [`InitRovingTabindexOptions`](#rovingtabindexoptions-initrovingtabindexoptions) | No       | `items`, `root`, `skip` and `rovingTabindex`, plus `initial`, described below. |
+
+Returns the item holding the stop, or `null`.
 
 Only the root's own roving items participate: items marked with
 `data-keyrove-roving-tabindex`, or those enabled by the options. Nested roots
@@ -637,6 +675,13 @@ list.addEventListener('keydown', (e) => keyRove(e));
 list.addEventListener('focusin', (e) => followFocus(e));
 ```
 
+| Parameter | Type                                                                        | Required | Description                                   |
+| --------- | --------------------------------------------------------------------------- | -------- | --------------------------------------------- |
+| `event`   | `Pick<KeyRoveEvent, 'target' \| 'currentTarget'>`                           | Yes      | The `focusin` event.                          |
+| `options` | [`RovingTabindexOptions`](#rovingtabindexoptions-initrovingtabindexoptions) | No       | `items`, `root`, `skip` and `rovingTabindex`. |
+
+Returns the item now holding the stop, or `null`.
+
 - The item is found the way a keypress finds its position: the nearest
   [root](#roots) above the target, and the item of its group holding focus.
   Focus on a control inside an item counts as focus on the item.
@@ -666,6 +711,13 @@ import { toggleTabIndex } from '@mixedrays/keyrove';
 
 toggleTabIndex({ root: firstItem, isActive: true });
 ```
+
+| Parameter  | Type                           | Required | Description                               |
+| ---------- | ------------------------------ | -------- | ----------------------------------------- |
+| `root`     | `Element \| null \| undefined` | Yes      | The element to set. Nullish is a no-op.   |
+| `isActive` | `boolean`                      | Yes      | `true` sets `tabindex="0"`, `false` `-1`. |
+
+Returns nothing.
 
 Use it where you manage one element's tab stop yourself. For a whole roving
 group, [`initRovingTabindex`](#initrovingtabindex-root-options) keeps exactly

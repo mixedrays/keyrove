@@ -2,6 +2,7 @@
 # Live page: https://keyrove.pages.dev/docs/examples/basic
 title: Basic list
 description: Add keyboard navigation to a list with one keydown listener, keep its normal tab order, and react to each move with onMove.
+keywords: [list, arrow keys, page keys, onMove]
 titleTag: Arrow key navigation for lists — keyrove
 group: Examples
 order: 10

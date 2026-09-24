@@ -61,6 +61,10 @@ export type HrefResolver = ReturnType<typeof createHrefResolver>;
 /** `docs/examples/basic` → `/docs/examples/basic`; the landing page → `/`. */
 export const routeToPath = (route: string) => `/${route}`;
 
+/** The `.md` twin of a page: `docs/api` → `docs/api.md`, the landing page → `index.md`. */
+export const toMarkdownPath = (route: string) =>
+  route === '' ? 'index.md' : `${route}.md`;
+
 const link = (href: string, label: string, className: string, extra = '') =>
   `<a href="${escapeHtml(href)}" class="${className}"${extra}>${label}</a>`;
 
@@ -218,7 +222,7 @@ const renderToc = (headings: Heading[]) => {
  * narrow screen lost them along with the rail.
  */
 const renderPageActions = (page: Page, resolveHref: HrefResolver) => {
-  const markdownHref = resolveHref(`${routeToPath(page.route)}.md`);
+  const markdownHref = resolveHref(toMarkdownPath(page.route));
   // From the file rather than the route: `docs/examples/index.md` is served
   // at `docs/examples`, and the route alone would name a file that is not there.
   const sourceHref = `${SOURCE_BASE}/${path.relative(CONTENT_DIR, page.file)}`;
@@ -281,7 +285,7 @@ const renderFooter = (resolveHref: HrefResolver, page: Page) => {
       <div class="${rowClass}">
         <p class="footer-meta">
           ${link(resolveHref('/'), `${icon('keyboard', 'size-5')}keyrove`, 'wordmark')}
-          <span>v${escapeHtml(META.packageVersion)} &middot; MIT licensed</span>
+          <span>v${escapeHtml(META.packageVersion)} &middot; ${link(resolveHref('/docs/license'), 'MIT licensed', 'footer-link')}</span>
         </p>
         <nav class="footer-links" aria-label="Footer">
           ${links.join('\n          ')}
@@ -345,12 +349,14 @@ const renderDocsBody = ({
     <div class="docs-shell">
       ${renderSidebar(nav, page, resolveHref)}
         <main class="docs-main">
-          <div class="markdown">
+          <!-- The page itself, title to last line; the pager after it is
+               navigation between pages, not part of this one. -->
+          <article class="markdown">
             <h1>${escapeHtml(page.title)}</h1>
             ${renderPageActions(page, resolveHref)}
             ${page.description ? `<p class="lead">${escapeHtml(page.description)}</p>` : ''}
             ${html}
-          </div>
+          </article>
           ${pager}
         </main>
         ${renderToc(headings)}
@@ -360,8 +366,13 @@ const renderDocsBody = ({
 
 const renderLandingBody = ({ page, html, resolveHref }: PageRender) =>
   `${renderHeader(resolveHref, page)}
-    <main class="landing markdown">
-      ${html}
+    <main>
+      <!-- The classes sit on the article rather than on main so that every
+           rule keyed to them, child combinators included, sees the same
+           structure it did before main had an article in it. -->
+      <article class="landing markdown">
+        ${html}
+      </article>
     </main>
     ${renderFooter(resolveHref, page)}`;
 
@@ -387,9 +398,11 @@ const meta = (attribute: 'name' | 'property', key: string, content: string) =>
  * what to show when the page is shared.
  *
  * Every route has a `.md` twin at a sibling path, so which of the two is the
- * indexable one has to be said outright rather than left to be guessed. A page
- * marked `noindex` skips all of it and says so instead — it is served at every
- * dead URL, so it has no canonical URL of its own to claim.
+ * indexable one has to be said outright rather than left to be guessed — and
+ * the twin is named as an alternate, so an agent holding the page finds the
+ * markdown without guessing at its URL. A page marked `noindex` skips all of it
+ * and says so instead — it is served at every dead URL, so it has no canonical
+ * URL of its own to claim.
  */
 const renderIndexingTags = (
   { page, nav, resolveHref }: PageRender,
@@ -400,10 +413,14 @@ const renderIndexingTags = (
   const toUrl = (route: string) =>
     `${META.siteUrl}${resolveHref(routeToPath(route))}`;
   const url = toUrl(page.route);
+  const markdownUrl = `${META.siteUrl}${resolveHref(toMarkdownPath(page.route))}`;
   const image = `${META.siteUrl}${resolveHref(OG_IMAGE.path)}`;
 
   return [
     `<link rel="canonical" href="${escapeHtml(url)}" />`,
+    // `type` names the format. The twin is served as `text/plain` so that a
+    // browser shows it rather than downloading it — see public/_headers.
+    `<link rel="alternate" type="text/markdown" href="${escapeHtml(markdownUrl)}" />`,
     meta(
       'property',
       'og:type',

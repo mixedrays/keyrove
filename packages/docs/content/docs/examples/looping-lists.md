@@ -2,6 +2,7 @@
 # Live page: https://keyrove.pages.dev/docs/examples/looping-lists
 title: Looping lists
 description: Make keyboard navigation wrap from the last item to the first and back again, and decide when a list should loop and when it should stop at its ends.
+keywords: [looping, wrap around, list ends]
 titleTag: Wrapping list navigation at the ends — keyrove
 group: Examples
 order: 11

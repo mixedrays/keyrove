@@ -2,6 +2,7 @@
 # Live page: https://keyrove.pages.dev/docs/examples
 title: Overview
 description: Live keyboard navigation examples for lists, grids, trees, menus and listboxes, each a working demo with the code that runs it.
+keywords: [examples, demos, lists, grids, trees, listbox]
 titleTag: Keyboard navigation examples — keyrove
 group: Examples
 order: 9

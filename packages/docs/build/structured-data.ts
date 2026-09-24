@@ -22,6 +22,10 @@ const AUTHOR = {
   url: META.authorUrl,
 } as const;
 
+/** The page's frontmatter keywords, or nothing when it has none. */
+const keywords = (page: Page) =>
+  page.keywords.length === 0 ? {} : { keywords: page.keywords };
+
 type Context = {
   page: Page;
   nav: NavGroup[];
@@ -66,6 +70,7 @@ const softwareSourceCode = ({ page, toUrl, imageUrl }: Context) => ({
   version: META.packageVersion,
   author: AUTHOR,
   inLanguage: 'en',
+  ...keywords(page),
 });
 
 /**
@@ -86,6 +91,7 @@ const techArticle = (context: Context) => {
     author: AUTHOR,
     inLanguage: 'en',
     ...(page.lastModified === null ? {} : { dateModified: page.lastModified }),
+    ...keywords(page),
     isPartOf: webSite(context),
   };
 };

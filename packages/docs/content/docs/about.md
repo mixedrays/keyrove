@@ -2,14 +2,15 @@
 # Live page: https://keyrove.pages.dev/docs/about
 title: About
 description: What keyrove is, who maintains it, and which version of these docs you are reading.
+keywords: [about, maintainer, version, open source]
 group: Guide
 order: 5
 ---
 
 keyrove provides keyboard navigation for lists, grids and trees, in any
 framework and with no runtime dependencies. See the [introduction](/docs/introduction)
-for setup and behavior. The project is open source under the MIT license;
-issues and pull requests are welcome.
+for setup and behavior. The project is open source under the
+[MIT license](/docs/license); issues and pull requests are welcome.
 
 ## This site
 

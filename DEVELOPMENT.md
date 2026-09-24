@@ -58,6 +58,7 @@ Frontmatter carries the little that cannot be inferred:
 ---
 title: Basic list
 description: One sentence, used as the page lead and in llms.txt.
+keywords: [list, arrow keys] # JSON-LD keywords; optional
 group: Examples # sidebar section; omit to keep a page out of the nav
 order: 10 # sorts within the group, and sorts the groups by their lowest
 ---
@@ -67,7 +68,8 @@ order: 10 # sorts within the group, and sorts the groups by their lowest
 
 Appending `.md` to any URL returns that page as markdown — `/docs/api` renders
 the API reference, `/docs/api.md` returns its source — and
-[`/llms.txt`](https://llmstxt.org) indexes the lot. Both are generated from the
+[`/llms.txt`](https://llmstxt.org) indexes the lot. `/llms-full.txt` is every
+page `llms.txt` lists, in full, in one file. All of them are generated from the
 same content, in dev and in the build, so they cannot drift from the rendered
 pages.
 

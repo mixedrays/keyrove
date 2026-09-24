@@ -2,6 +2,7 @@
 # Live page: https://keyrove.pages.dev/docs/examples/editable-targets
 title: Editable targets
 description: Mix keyboard navigation with text fields, selects and sliders. Editable controls keep their native keys while the arrows move between the rows around them.
+keywords: [text fields, form controls, editable elements, ime composition]
 titleTag: Keyboard navigation with input fields — keyrove
 group: Examples
 order: 21

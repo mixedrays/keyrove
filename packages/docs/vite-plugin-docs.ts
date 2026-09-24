@@ -19,13 +19,14 @@ import {
   FAVICON_FILE,
   renderPage,
   routeToPath,
+  toMarkdownPath,
 } from './build/layout.ts';
 import { expandMeta } from './build/meta.ts';
 import { toSearchIndex } from './build/search.ts';
 import {
+  toLlmsFullTxt,
   toLlmsTxt,
   toMarkdown,
-  toMarkdownPath,
   toRobotsTxt,
   toSitemap,
 } from './build/plaintext.ts';
@@ -104,6 +105,11 @@ const toGenerated = (site: Site, base: string): Generated[] => {
       file: 'llms.txt',
       type: 'text/plain',
       body: toLlmsTxt(landing, site.nav, base),
+    },
+    {
+      file: 'llms-full.txt',
+      type: 'text/plain',
+      body: toLlmsFullTxt(landing, site.readingOrder, site.demos, base),
     },
     {
       file: 'sitemap.xml',

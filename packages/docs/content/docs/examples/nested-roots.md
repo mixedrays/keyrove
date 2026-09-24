@@ -2,6 +2,7 @@
 # Live page: https://keyrove.pages.dev/docs/examples/nested-roots
 title: Nested roots
 description: Nest keyboard navigation groups, each with its own keys, columns and page size, and give users a way to enter the inner group and return to the outer one.
+keywords: [nested groups, navigation roots, enter and exit]
 titleTag: Nested keyboard navigation groups — keyrove
 group: Examples
 order: 18
