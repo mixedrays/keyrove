@@ -2,6 +2,7 @@
 # Live page: https://keyrove.pages.dev/docs/examples/responsive-grid
 title: Responsive grid
 description: Keyboard navigation for a responsive CSS grid, with the column count read from the layout on every keypress so breakpoints stay in CSS.
+keywords: [responsive grid, css grid, breakpoints, column count]
 titleTag: Keyboard navigation for a responsive grid — keyrove
 group: Examples
 order: 15

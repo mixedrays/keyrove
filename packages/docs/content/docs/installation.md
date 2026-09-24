@@ -2,6 +2,7 @@
 # Live page: https://keyrove.pages.dev/docs/installation
 title: Installation
 description: Install keyrove from npm and add arrow-key navigation in vanilla JavaScript, React, Vue or Svelte, with typed attribute builders or hand-written attributes.
+keywords: [installation, npm, react, vue, svelte, vanilla javascript]
 titleTag: Installation for React, Vue and Svelte — keyrove
 group: Guide
 order: 2

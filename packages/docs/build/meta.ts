@@ -9,7 +9,10 @@ import { fileURLToPath } from 'node:url';
  * it. The repository and author come from the workspace root, which is the
  * only manifest that carries them.
  *
- * Both files are read synchronously at module load: they are small, every
+ * The License page's text comes from the same place, the `LICENSE` npm ships
+ * with the package, so the page cannot state terms the package does not.
+ *
+ * The files are read synchronously at module load: they are small, every
  * render needs them, and nothing here can change while the process is running,
  * so a promise would only have to be threaded through the whole layout.
  */
@@ -21,10 +24,11 @@ type Manifest = {
   repository?: { url?: string };
 };
 
+const readText = (relativePath: string) =>
+  readFileSync(fileURLToPath(new URL(relativePath, import.meta.url)), 'utf8');
+
 const readManifest = (relativePath: string): Manifest =>
-  JSON.parse(
-    readFileSync(fileURLToPath(new URL(relativePath, import.meta.url)), 'utf8'),
-  ) as Manifest;
+  JSON.parse(readText(relativePath)) as Manifest;
 
 /** `git+https://github.com/mixedrays/keyrove.git` → a URL a browser can open. */
 const toBrowserUrl = (url: string) =>
@@ -110,6 +114,21 @@ const renderFacts = () =>
     `- **Author** — [@${META.author}](${META.authorUrl})`,
   ].join('\n');
 
-/** Replaces the About placeholder with the manifests' facts. */
+/**
+ * The License page's placeholder, alone on its line, and what replaces it.
+ *
+ * The file's first line is the license's name, which the page carries as a
+ * heading of its own. The rest is paragraphs, hard-wrapped the way the file is,
+ * which markdown joins back up.
+ */
+const LICENSE_PLACEHOLDER = /^<div data-license><\/div>$/gm;
+
+const licenseText = readText('../../keyrove/LICENSE')
+  .replace(/^.*\n/, '')
+  .trim();
+
+/** Replaces the About and License placeholders with the files' contents. */
 export const expandMeta = (body: string): string =>
-  body.replace(PLACEHOLDER, renderFacts);
+  body
+    .replace(PLACEHOLDER, renderFacts)
+    .replace(LICENSE_PLACEHOLDER, () => licenseText);

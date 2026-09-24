@@ -2,6 +2,7 @@
 # Live page: https://keyrove.pages.dev/docs/examples/custom-keys
 title: Custom keys
 description: Rebind keyboard navigation to any KeyboardEvent.code, add modifier combinations, bind several keys to one move, or switch a move off.
+keywords: [key bindings, KeyboardEvent.code, modifier keys, key combos]
 titleTag: Custom key bindings for navigation — keyrove
 group: Examples
 order: 12

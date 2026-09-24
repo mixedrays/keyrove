@@ -2,6 +2,7 @@
 # Live page: https://keyrove.pages.dev/docs/examples/tree-view
 title: Tree view
 description: Build a tree view with keyboard navigation. The arrow keys move through visible rows, your code opens and closes branches, and typeahead finds items by name.
+keywords: [tree view, aria tree, expand and collapse, typeahead]
 titleTag: Accessible tree view with keyboard navigation — keyrove
 group: Examples
 order: 15.5

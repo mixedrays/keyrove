@@ -2,6 +2,7 @@
 # Live page: https://keyrove.pages.dev/docs/examples/focus-keys
 title: Focus keys
 description: Assign keyboard shortcuts that focus an item or panel from anywhere under the listener, across groups and even from inside a text field.
+keywords: [keyboard shortcuts, focus keys, aria-keyshortcuts]
 titleTag: Keyboard shortcuts that focus an element — keyrove
 group: Examples
 order: 19

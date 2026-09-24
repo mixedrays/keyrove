@@ -51,6 +51,11 @@ export type Page = {
   /** Sort key within the group; also orders the groups, by their lowest value. */
   order: number;
   /**
+   * What the page is about, as a few terms an agent can filter by without
+   * reading it. Emitted as the JSON-LD `keywords`; empty leaves them out.
+   */
+  keywords: string[];
+  /**
    * Keep the page out of the index: no canonical or Open Graph tags, no
    * sitemap entry, and an explicit `robots` meta. For pages that exist but are
    * not destinations — the 404 body, which is served at every dead URL.
@@ -85,6 +90,32 @@ const EXTRA_LINKS: Record<string, NavLink[]> = {
 const readString = (data: Record<string, unknown>, key: string) => {
   const value = data[key];
   return typeof value === 'string' ? value : undefined;
+};
+
+/**
+ * A list of strings, or an empty one when the field is absent.
+ *
+ * Anything else is an authoring mistake — `keywords: grid, rtl` is one string,
+ * not two — and throws rather than quietly publishing nothing.
+ */
+const readStringList = (
+  data: Record<string, unknown>,
+  key: string,
+  relativePath: string,
+) => {
+  const value = data[key];
+  if (value === undefined) return [];
+
+  if (
+    !Array.isArray(value) ||
+    !value.every((item): item is string => typeof item === 'string')
+  ) {
+    throw new Error(
+      `[docs] ${relativePath}: frontmatter ${key} should be a list of strings.`,
+    );
+  }
+
+  return value;
 };
 
 const toRoute = (relativePath: string) =>
@@ -141,6 +172,7 @@ const loadPage = async (
     group: readString(data, 'group') ?? null,
     order:
       typeof data.order === 'number' ? data.order : Number.MAX_SAFE_INTEGER,
+    keywords: readStringList(data, 'keywords', relativePath),
     noindex: data.noindex === true,
     lastModified: lastModified.get(file) ?? null,
   };

@@ -2,6 +2,7 @@
 # Live page: https://keyrove.pages.dev/docs/examples/horizontal-lists
 title: Horizontal lists
 description: Navigate a horizontal list or toolbar with the Left and Right arrow keys, with defaults that follow the text direction in right-to-left layouts.
+keywords: [horizontal list, toolbar, orientation, right-to-left]
 titleTag: Horizontal list keyboard navigation — keyrove
 group: Examples
 order: 13

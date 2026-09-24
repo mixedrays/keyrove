@@ -17,8 +17,12 @@
   X-Robots-Tag: noindex
 
 # The same goes for llms.txt, which the sidebar and footer link from every
-# page: a list of links to the twins, there to be read, not to rank.
+# page: a list of links to the twins, there to be read, not to rank. And for
+# llms-full.txt, which is the twins again, all in one file.
 /llms.txt
+  X-Robots-Tag: noindex
+
+/llms-full.txt
   X-Robots-Tag: noindex
 
 # Vite fingerprints everything under `assets/`, so a given URL's bytes never

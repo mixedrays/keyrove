@@ -2,6 +2,7 @@
 # Live page: https://keyrove.pages.dev/docs/attributes-and-options
 title: Attributes and options
 description: Configure keyboard navigation with data-keyrove-* attributes, JavaScript options or both, including how options fall back and where the two differ.
+keywords: [data attributes, javascript options, configuration]
 titleTag: Two ways to configure keyboard navigation — keyrove
 group: Guide
 order: 3

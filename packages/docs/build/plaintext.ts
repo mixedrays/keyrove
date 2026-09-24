@@ -1,12 +1,12 @@
 import type { NavGroup, Page } from './content.ts';
 import { expandDemos, type Demos } from './demos.ts';
 import { stripIcons } from './icons.ts';
-import { routeToPath } from './layout.ts';
+import { routeToPath, toMarkdownPath } from './layout.ts';
 import { expandMeta, META } from './meta.ts';
 
 /**
- * The machine-readable half of the site: the markdown twins, llms.txt, and the
- * two files crawlers look for.
+ * The machine-readable half of the site: the markdown twins, llms.txt and
+ * llms-full.txt, and the two files crawlers look for.
  *
  * Every page is served twice: as HTML at `/docs/api`, and as markdown at
  * `/docs/api.md`. The markdown is not the raw source file — frontmatter is
@@ -31,9 +31,9 @@ export const toMarkdown = (page: Page, demos: Demos) => {
   return `${heading}${lead}\n\n${body}\n`;
 };
 
-/** The `.md` twin of a page: `docs/api` → `docs/api.md`, the landing page → `index.md`. */
-export const toMarkdownPath = (route: string) =>
-  route === '' ? 'index.md' : `${route}.md`;
+/** A page's absolute URL: `docs/api` → `https://keyrove.pages.dev/docs/api`. */
+const toPageUrl = (route: string, base: string) =>
+  `${META.siteUrl}${base}${routeToPath(route).replace(/^\//, '')}`;
 
 /**
  * llms.txt — an index pointing at each page's markdown.
@@ -69,9 +69,42 @@ export const toLlmsTxt = (
     '',
     'Every page on this site is also available as markdown by appending `.md` to its URL —',
     `for example ${base}docs/api renders the API reference, and ${base}docs/api.md returns its source.`,
+    `All of the pages below, in full and in this order, are one file at ${META.siteUrl}${base}llms-full.txt.`,
   ].join('\n');
 
   return `${[preamble, ...sections].join('\n\n')}\n`;
+};
+
+/**
+ * llms-full.txt — every page llms.txt lists, in full, as one file.
+ *
+ * An agent that wants all of the docs gets them in one fetch rather than one
+ * per twin. The pages are the twins as served, in llms.txt's order, each
+ * preceded by the URL it lives at: links between pages are root-relative, and
+ * a section quoted out of this file should still be traceable to its page.
+ */
+export const toLlmsFullTxt = (
+  landing: Page | undefined,
+  readingOrder: Page[],
+  demos: Demos,
+  base: string,
+) => {
+  const preamble = [
+    '# keyrove',
+    '',
+    `> ${landing?.description ?? ''}`,
+    '',
+    `The full text of every page indexed by ${META.siteUrl}${base}llms.txt, in the same order.`,
+  ].join('\n');
+
+  const pages = readingOrder.map(
+    (page) =>
+      `Source: ${toPageUrl(page.route, base)}\n\n${toMarkdown(page, demos).trimEnd()}`,
+  );
+
+  // Blank lines on both sides of each rule: straight under a line of text,
+  // `---` would make that line a heading instead.
+  return `${[preamble, ...pages].join('\n\n---\n\n')}\n`;
 };
 
 /** The URL a page's markdown is served at, for the "View as Markdown" link. */
@@ -96,13 +129,12 @@ export const toSitemap = (pages: Page[], base: string) => {
     // in a sitemap the site root belongs at the top.
     .sort((a, b) => Number(a.route !== '') - Number(b.route !== ''))
     .map((page) => {
-      const path = `${base}${routeToPath(page.route).replace(/^\//, '')}`;
       const lastmod =
         page.lastModified === null
           ? ''
           : `<lastmod>${page.lastModified}</lastmod>`;
 
-      return `  <url><loc>${META.siteUrl}${path}</loc>${lastmod}</url>`;
+      return `  <url><loc>${toPageUrl(page.route, base)}</loc>${lastmod}</url>`;
     })
     .join('\n');
 
@@ -121,9 +153,32 @@ ${urls}
  * them `X-Robots-Tag: noindex` instead, which keeps them readable and keeps
  * them out of the index — a `text/plain` response cannot carry the canonical
  * tag that would otherwise pair each twin with its page.
+ *
+ * The AI crawlers are admitted by `*` already. They are named anyway, and
+ * `Content-Signal` (https://contentsignals.org) says what the content may be
+ * used for, so that the permission reads as a decision rather than as a
+ * default nobody got round to changing. The docs are MIT licensed and the site
+ * serves llms.txt for agents to read, so every use is allowed, training
+ * included. A crawler obeys only the most specific group naming it, so the
+ * signal is repeated in theirs.
  */
+const AI_CRAWLERS = [
+  'GPTBot',
+  'ClaudeBot',
+  'Google-Extended',
+  'PerplexityBot',
+  'CCBot',
+];
+
+const CONTENT_SIGNAL = 'search=yes, ai-input=yes, ai-train=yes';
+
 export const toRobotsTxt = (base: string) =>
   `User-agent: *
+Content-Signal: ${CONTENT_SIGNAL}
+Allow: /
+
+${AI_CRAWLERS.map((agent) => `User-agent: ${agent}`).join('\n')}
+Content-Signal: ${CONTENT_SIGNAL}
 Allow: /
 
 Sitemap: ${META.siteUrl}${base}sitemap.xml
