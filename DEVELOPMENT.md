@@ -5,10 +5,11 @@ framework-agnostic keyboard navigation library for lists, grids and trees.
 
 ## Packages
 
-| Package                   | Path                                 | Description                                         |
-| ------------------------- | ------------------------------------ | --------------------------------------------------- |
-| `@mixedrays/keyrove`      | [packages/keyrove](packages/keyrove) | The library. Published to npm.                      |
-| `@mixedrays/keyrove/docs` | [packages/docs](packages/docs)       | Documentation site and landing page. Not published. |
+| Package                    | Path                                 | Description                                         |
+| -------------------------- | ------------------------------------ | --------------------------------------------------- |
+| `@mixedrays/keyrove`       | [packages/keyrove](packages/keyrove) | The library. Published to npm.                      |
+| `@mixedrays/keyrove/docs`  | [packages/docs](packages/docs)       | Documentation site and landing page. Not published. |
+| `@mixedrays/keyrove/bench` | [packages/bench](packages/bench)     | Browser benchmark and its UI. Not published.        |
 
 ## Getting started
 
@@ -22,20 +23,23 @@ pnpm install
 
 Run from the repo root:
 
-| Command           | Does                                                  |
-| ----------------- | ----------------------------------------------------- |
-| `pnpm dev`        | Starts the docs site on a local dev server.           |
-| `pnpm test`       | Runs the test suite across the workspace.             |
-| `pnpm test:watch` | Runs the library tests in watch mode.                 |
-| `pnpm lint`       | Checks formatting across the workspace with Prettier. |
-| `pnpm format`     | Rewrites files to Prettier style.                     |
-| `pnpm build`      | Builds every package.                                 |
-| `pnpm bench`      | Times `keyRove` in headless Chrome.                   |
-| `pnpm typecheck`  | Type-checks every package.                            |
-| `pnpm preview`    | Serves the built docs site.                           |
+| Command               | Does                                                   |
+| --------------------- | ------------------------------------------------------ |
+| `pnpm dev`            | Starts the docs site on a local dev server.            |
+| `pnpm test`           | Runs the test suite across the workspace.              |
+| `pnpm test:watch`     | Runs the library tests in watch mode.                  |
+| `pnpm lint`           | Checks formatting across the workspace with Prettier.  |
+| `pnpm format`         | Rewrites files to Prettier style.                      |
+| `pnpm build`          | Builds every package.                                  |
+| `pnpm bench`          | Opens the benchmark UI to time `keyRove` in a browser. |
+| `pnpm bench:headless` | Times `keyRove` in headless Chrome and prints tables.  |
+| `pnpm typecheck`      | Type-checks every package.                             |
+| `pnpm preview`        | Serves the built docs site.                            |
 
 The benchmark's method and recorded results are in
-[packages/keyrove/bench](packages/keyrove/bench/README.md).
+[packages/bench](packages/bench/README.md), with how to compare releases:
+`pnpm bench:headless -- --ref v2.1.0 --ref v2.2.0` benchmarks each tag and
+saves a report for it, and `pnpm bench` compares them side by side.
 
 Any script can be aimed at one package with a filter:
 

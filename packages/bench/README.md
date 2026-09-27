@@ -5,23 +5,119 @@ increasing size, with the listener on the group or on the document, for
 unbound and bound keys, with and without focus keys, and with fixed or
 `auto` columns.
 
+It runs two ways: in a page you open in any browser, or in headless Chrome
+from the command line. Both time the same code on the same page.
+
 ## Run
 
-From `packages/keyrove`:
+From the repository root:
 
 ```sh
-pnpm bench                        # build, then run in headless Chrome
-pnpm bench -- --json results.json # also write the raw results
-pnpm bench -- --serve             # serve the page to run it in another browser
+pnpm bench                                   # open the UI: run it, read and compare reports
+pnpm bench:headless                          # run the working tree's library in headless Chrome
+pnpm bench:headless -- --ref v2.1.0          # run the library at a tag, saved as results/v2.1.0.json
+pnpm bench:headless -- --name my-change      # run the working tree, saved as results/my-change.json
+pnpm bench:headless -- --record              # run the working tree, saved as results/recorded.json
+pnpm bench:headless -- --json out.json       # also write the report to any path
 ```
 
-From the repository root, `pnpm bench` does the same. A run takes about 20
-seconds and prints Markdown tables. Chrome or Chromium is found at
-`CHROME_PATH`, else at its usual install locations. The runner needs no
-dependency beyond Node and Chrome.
+### In the browser
 
-With `--serve`, open the printed URL in any browser and press Run. The page is
-served with cross-origin isolation, as in the automated run.
+`pnpm bench` builds the library and opens the UI on a local server that
+sends the cross-origin isolation headers. Press **Run benchmark**. A run
+takes about 20 seconds; keep the tab in front while it runs, since browsers
+throttle background tabs. Settings changes the timing (samples, minimum
+batch, warmup). Runs with other settings than the defaults do not compare
+like for like with runs that used them.
+
+Under **Reports**, tick one report to read it, or several to compare them.
+The list holds every file in `results/` and the last run made on the page.
+The **µs / ms** switch sets the unit for every time on the page and for
+what Copy Markdown copies; reports always store microseconds.
+**Copy Markdown** copies whatever is shown, a report or a comparison, as
+Markdown tables; **Download JSON** saves one report in the shape `--json`
+writes, so a run made in the browser can go into `results/` too.
+
+This is also how to measure Firefox or Safari: open the URL that
+`pnpm bench` prints in that browser.
+
+### Headless
+
+`pnpm bench:headless` prints Markdown tables. Chrome or Chromium is found at
+`CHROME_PATH`, else at its usual install locations. The runner turns on
+focus emulation, so the headless page behaves as a focused window.
+
+To update the recorded run, run with `--record`. Then replace the tables
+under [Results](#results) with the printed output.
+
+## Comparing versions
+
+To see how releases compare, benchmark each one, then open the UI:
+
+```sh
+pnpm bench:headless -- --ref v2.1.0 --ref v2.2.0 --ref v2.3.0
+pnpm bench
+```
+
+Each `--ref` is a tag, branch or commit, and each is saved as
+`results/<ref>.json`. Three take under a minute. `--name` saves a single run
+under another name; the working tree with your edits is compared against a
+release this way:
+
+```sh
+pnpm bench:headless -- --ref v2.5.0
+pnpm bench:headless -- --name my-change
+```
+
+Nothing is checked out. The benchmark is newer than most releases, so a
+checkout of an old tag would take the benchmark with it. Instead the runner
+reads the library's source at the ref out of git into a scratch directory,
+builds it, and runs the current benchmark against it. Every library, the
+working tree's included, is built the same way, with the settings
+keyrove's own build uses, so two reports differ only in the library's
+source.
+
+Some cases time features older versions lack: the `focusKeys` option
+arrived in 2.4.0 and `cols="auto"` in 2.5.0. Before running, the harness
+tries each feature on the library, and a case whose feature is missing is
+recorded as not run rather than timed. It would still run, but it would time
+something other than its label. In a comparison those cases read n/a.
+
+In the UI, the comparison starts with a summary of each report against the
+baseline, which you choose under **Compare against**. **Overall** is the
+geometric mean of the change over every case both reports measured.
+**Faster** and **Slower** count the cases whose p10–p90 range does not
+overlap the baseline's. The tables below it give every report's median per
+case, and mark a change in the same way: an arrow and a colour where the
+ranges part, grey where they overlap and the difference is noise.
+
+Compare reports from one machine and one browser. The UI warns when the
+reports differ in either, or in their timing settings. The UI reads
+`results/` when it is built, which `pnpm bench` does on start, so restart it
+to see reports saved since.
+
+## Layout
+
+| Path                        | What it is                                                                                 |
+| --------------------------- | ------------------------------------------------------------------------------------------ |
+| `src/keydown.ts`            | The benchmark: probes the library's features, builds each fixture, and times the cases.    |
+| `src/plan.ts`               | What a run covers: page sizes, focus-key counts, grids, default timing.                    |
+| `harness.html`              | The page the cases run in. It holds the fixture and almost nothing else.                   |
+| `index.html`, `src/main.ts` | The UI. Each run loads a fresh harness in a frame, so none of the UI's markup is measured. |
+| `src/view.ts`               | The UI's results, one report or a comparison, as HTML.                                     |
+| `scripts/run.ts`            | The headless runner. It loads the harness in Chrome over the DevTools protocol.            |
+| `scripts/library.ts`        | Reads the library's source at a git ref, or from the working tree, and builds it.          |
+| `src/report.ts`             | The Markdown tables, for one report or a comparison.                                       |
+| `src/results.ts`            | Helpers for reading runs: case lookup, comparison, formatting.                             |
+| `src/types.ts`              | The shape of a report, as `--json` writes it.                                              |
+| `results/`                  | Saved reports. `recorded.json` is the run the Results below come from.                     |
+
+The UI uses the docs site's stylesheet and theme toggle directly from
+`packages/docs/src`, so it looks like the site with no copy to keep in step.
+
+The reports in `results/` and the modules in `src/` other than `main.ts` do
+not touch the page, so another package can import them to show the numbers,
+as a docs page would.
 
 ## Fixtures
 
@@ -57,9 +153,13 @@ Every press starts in the first group:
 - Each case warms up for 100 ms, doubles its batch size until a batch takes
   at least 10 ms, then times 15 batches. Tables give the median and the
   p10–p90 range of the per-call time.
+- The cases run in `harness.html`, which holds the fixture and almost
+  nothing else. The headless runner loads it directly, and the UI loads a
+  fresh copy in a frame for each run, so neither counts or scans any UI
+  markup. The harness has five fewer elements than the page the recorded run
+  used, so a new run's element counts are that much lower.
 - The page is cross-origin isolated, which gives `performance.now()` its
-  finer resolution. The runner turns on focus emulation, so the headless page
-  behaves as a focused window.
+  finer resolution.
 - Each case records what one call returned: `unhandled`, `consumed no-op` or
   `moved`. This confirms each case measures what its label says.
 - The diagnostics time two parts of the focus-key lookup on their own: the
@@ -68,7 +168,8 @@ Every press starts in the first group:
 
 ## Results
 
-Recorded on 2026-09-22 with `pnpm bench`.
+Recorded on 2026-09-22 in headless Chrome, by what is now
+`pnpm bench:headless`. The same run is in `results/recorded.json`.
 
 ### Environment
 
@@ -210,8 +311,8 @@ change.
 ## Limitations
 
 - The automated run uses Chrome only. Chrome's fast answer for a
-  zero-match attribute query may not exist in other engines. Use `--serve`
-  to measure Firefox or Safari.
+  zero-match attribute query may not exist in other engines. Use `pnpm bench`
+  and open its URL in Firefox or Safari to measure them.
 - The numbers come from one desktop machine, and absolute times scale with
   the hardware.
 - Direct calls leave out event dispatch and propagation, which the browser

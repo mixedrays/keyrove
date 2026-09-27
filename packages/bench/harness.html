@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>keyrove keydown benchmark harness</title>
+    <!-- The page under test: the fixture and a handful of elements around
+         it, so the UI's own markup stays out of what the cases count and
+         scan. scripts/run.ts loads it in headless Chrome; index.html loads
+         it in a frame. -->
+    <style>
+      body {
+        font:
+          14px system-ui,
+          sans-serif;
+        margin: 1rem;
+      }
+      #fixture {
+        height: 12rem;
+        overflow: auto;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="fixture"></div>
+    <script type="module" src="/src/harness.ts"></script>
+  </body>
+</html>
