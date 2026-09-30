@@ -5,3 +5,4 @@ dist/
 *.log
 
 .tmp
+.pnpm-store/
