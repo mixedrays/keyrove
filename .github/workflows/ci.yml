@@ -22,4 +22,8 @@ jobs:
       - run: pnpm lint
       - run: pnpm typecheck
       - run: pnpm test
+      # The browser suite drives headless Chromium, which Playwright installs
+      # apart from the npm package.
+      - run: pnpm --filter @mixedrays/keyrove exec playwright install --with-deps --only-shell chromium
+      - run: pnpm test:browser
       - run: pnpm build

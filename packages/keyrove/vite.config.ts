@@ -1,4 +1,4 @@
-import { defineConfig } from 'vitest/config';
+import { configDefaults, defineConfig } from 'vitest/config';
 import dts from 'vite-plugin-dts';
 
 export default defineConfig({
@@ -20,5 +20,7 @@ export default defineConfig({
   ],
   test: {
     environment: 'jsdom',
+    // The browser suite has a config and a command of its own.
+    exclude: [...configDefaults.exclude, 'browser/**'],
   },
 });

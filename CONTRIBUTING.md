@@ -21,8 +21,12 @@ Run the same checks CI runs:
 pnpm lint
 pnpm typecheck
 pnpm test
+pnpm test:browser
 pnpm build
 ```
+
+`pnpm test:browser` needs Chromium installed once; see
+[Browser tests](DEVELOPMENT.md#browser-tests).
 
 `pnpm format` fixes formatting.
 
