@@ -1,5 +1,11 @@
 # Changelog
 
+## [2.5.1](https://github.com/mixedrays/keyrove/compare/v2.5.0...v2.5.1) (2026-09-30)
+
+### Bug Fixes
+
+* navigate from a listener attached to a shadow root ([1f121cf](https://github.com/mixedrays/keyrove/commit/1f121cf1c5b05616e23451c4113ae6ec4ff394fc))
+
 ## [2.5.0](https://github.com/mixedrays/keyrove/compare/v2.4.0...v2.5.0) (2026-09-22)
 
 ### Features
