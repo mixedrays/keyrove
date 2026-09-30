@@ -23,19 +23,20 @@ pnpm install
 
 Run from the repo root:
 
-| Command               | Does                                                   |
-| --------------------- | ------------------------------------------------------ |
-| `pnpm dev`            | Starts the docs site on a local dev server.            |
-| `pnpm test`           | Runs the test suite across the workspace.              |
-| `pnpm test:watch`     | Runs the library tests in watch mode.                  |
-| `pnpm test:browser`   | Runs the library's browser tests in headless Chromium. |
-| `pnpm lint`           | Checks formatting across the workspace with Prettier.  |
-| `pnpm format`         | Rewrites files to Prettier style.                      |
-| `pnpm build`          | Builds every package.                                  |
-| `pnpm bench`          | Opens the benchmark UI to time `keyRove` in a browser. |
-| `pnpm bench:headless` | Times `keyRove` in headless Chrome and prints tables.  |
-| `pnpm typecheck`      | Type-checks every package.                             |
-| `pnpm preview`        | Serves the built docs site.                            |
+| Command               | Does                                                       |
+| --------------------- | ---------------------------------------------------------- |
+| `pnpm dev`            | Starts the docs site on a local dev server.                |
+| `pnpm test`           | Runs the test suite across the workspace.                  |
+| `pnpm test:watch`     | Runs the library tests in watch mode.                      |
+| `pnpm test:browser`   | Runs the library's browser tests in headless Chromium.     |
+| `pnpm lint`           | Checks formatting across the workspace with Prettier.      |
+| `pnpm format`         | Rewrites files to Prettier style.                          |
+| `pnpm build`          | Builds every package.                                      |
+| `pnpm bench`          | Opens the benchmark UI to time `keyRove` in a browser.     |
+| `pnpm bench:headless` | Times `keyRove` in headless Chrome and prints tables.      |
+| `pnpm typecheck`      | Type-checks every package.                                 |
+| `pnpm preview`        | Serves the built docs site.                                |
+| `pnpm publish:npm`    | Publishes the library to npm. See [Releasing](#releasing). |
 
 The benchmark's method and recorded results are in
 [packages/bench](packages/bench/README.md), with how to compare releases:
@@ -69,6 +70,32 @@ pnpm --filter @mixedrays/keyrove exec playwright install chromium
 
 CI runs the suite on every pull request. Put a test there only when it needs
 a real browser; everything else belongs in the unit suite.
+
+## Releasing
+
+A release happens in two halves: CI cuts it, and the npm publish is done by
+hand.
+
+1. Merge a pull request into `main`. The
+   [Release workflow](.github/workflows/release.yml) runs release-it, which
+   derives the next version from the conventional commits since the last tag,
+   bumps `packages/keyrove/package.json`, updates the changelog, commits and
+   tags `vX.Y.Z` on `main`, and creates the GitHub release. A merge with no
+   `feat` or `fix` commits releases nothing.
+2. Once the workflow has finished, publish that version from an up-to-date
+   `main`:
+
+   ```sh
+   git switch main
+   git pull
+   npm login
+   pnpm publish:npm
+   ```
+
+`pnpm publish:npm` builds, type-checks and tests the library before publishing
+it. pnpm refuses to publish from a branch other than `main`, from a dirty
+working tree, or from a `main` behind its remote. If the version is already on
+npm, it publishes nothing.
 
 ## How the docs site works
 

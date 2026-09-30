@@ -7,9 +7,7 @@
     "push": true
   },
   "npm": {
-    "publish": true,
-    "publishPackageManager": "pnpm",
-    "publishArgs": ["--no-git-checks"]
+    "publish": false
   },
   "github": {
     "release": true,
