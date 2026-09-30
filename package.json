@@ -16,6 +16,7 @@
     "dev": "pnpm --filter @mixedrays/keyrove/docs dev",
     "test": "pnpm -r test",
     "test:watch": "pnpm --filter @mixedrays/keyrove test:watch",
+    "test:browser": "pnpm --filter @mixedrays/keyrove test:browser",
     "lint": "prettier --check .",
     "format": "prettier --write .",
     "build": "pnpm -r build",

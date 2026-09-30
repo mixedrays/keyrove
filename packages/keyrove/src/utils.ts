@@ -148,6 +148,16 @@ export const toggleTabIndex = ({ root, isActive }: ToggleTabIndexArgs) => {
 };
 
 /**
+ * An attribute's value, or `null` where it is absent. A shadow root, the root
+ * of a listener attached to one, is a fragment with no attributes at all, so
+ * every read of it is absent too.
+ */
+export const readAttribute = (
+  element: Element,
+  attribute: string,
+): string | null => element.getAttribute?.(attribute) ?? null;
+
+/**
  * Reads a positive integer attribute off an element, falling back when absent,
  * unparseable, or below 1 — a count of columns or items is never zero or
  * negative, and a negative page length would flip the direction of a jump.
@@ -157,12 +167,14 @@ export const parseAttributeInt = (
   attribute: string,
   fallback: number,
 ): number => {
-  const value = parseInt(element.getAttribute(attribute) ?? '');
+  const value = parseInt(readAttribute(element, attribute) ?? '');
 
   return value >= 1 ? value : fallback;
 };
 
 /** Whether a presence-style attribute is enabled, including its bare form. */
-export const hasEnabledAttribute = (element: Element, attribute: string) =>
-  element.hasAttribute(attribute) &&
-  element.getAttribute(attribute)?.trim().toLowerCase() !== 'false';
+export const hasEnabledAttribute = (element: Element, attribute: string) => {
+  const value = readAttribute(element, attribute);
+
+  return value !== null && value.trim().toLowerCase() !== 'false';
+};

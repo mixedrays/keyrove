@@ -521,4 +521,200 @@ describe('keyRove', () => {
       expect(named()).toEqual([null]);
     });
   });
+
+  describe('with the listener on a shadow root', () => {
+    // The shadow-DOM counterpart of a `document` listener: a web component
+    // listening on its own shadow root, whose top-level children are the
+    // items. The root falls back to the shadow root itself, a fragment with
+    // no attributes.
+    const renderShadow = (
+      html: string,
+      options?: Parameters<typeof keyRove>[1],
+    ) => {
+      const host = document.createElement('div');
+      document.body.appendChild(host);
+      const shadow = host.attachShadow({ mode: 'open' });
+      shadow.innerHTML = html;
+      const results: RoveResult[] = [];
+      shadow.addEventListener('keydown', (e) =>
+        results.push(keyRove(e as KeyboardEvent, options)),
+      );
+
+      const byId = (id: string) => shadow.getElementById(id)!;
+      const press = (code: string) => pressKey(code, shadow.activeElement!);
+      const named = () =>
+        results.map(
+          (result) =>
+            result && {
+              action: result.action,
+              from: result.from?.id ?? null,
+              to: result.to?.id ?? null,
+            },
+        );
+
+      return { host, shadow, byId, press, named };
+    };
+
+    const ITEMS = `
+      <button id="a" data-keyrove-item>A</button>
+      <button id="b" data-keyrove-item>B</button>
+      <button id="c" data-keyrove-item>C</button>
+      <button id="d" data-keyrove-item>D</button>
+    `;
+
+    it('navigates its top-level items', () => {
+      const { shadow, byId, press, named } = renderShadow(ITEMS);
+      byId('a').focus();
+
+      expect(press('ArrowDown').defaultPrevented).toBe(true);
+      expect(shadow.activeElement?.id).toBe('b');
+
+      press('End');
+      press('ArrowDown');
+      press('Home');
+      expect(shadow.activeElement?.id).toBe('a');
+      expect(named()).toEqual([
+        { action: 'next', from: 'a', to: 'b' },
+        { action: 'end', from: 'b', to: 'd' },
+        { action: 'next', from: 'd', to: null },
+        { action: 'home', from: 'd', to: 'a' },
+      ]);
+    });
+
+    it('takes its settings from options, having no attributes', () => {
+      const { shadow, byId, press, named } = renderShadow(ITEMS, {
+        orientation: 'horizontal',
+        loop: true,
+        keys: { end: 'KeyG' },
+      });
+      byId('a').focus();
+
+      press('ArrowLeft');
+      expect(shadow.activeElement?.id).toBe('d');
+
+      press('ArrowRight');
+      press('KeyG');
+      expect(named()).toEqual([
+        { action: 'prev', from: 'a', to: 'd' },
+        { action: 'next', from: 'd', to: 'a' },
+        { action: 'end', from: 'a', to: 'd' },
+      ]);
+    });
+
+    it('is a grid where options count its columns', () => {
+      const { shadow, byId, press } = renderShadow(ITEMS, { cols: 2 });
+      byId('a').focus();
+
+      press('ArrowDown');
+      expect(shadow.activeElement?.id).toBe('c');
+
+      press('ArrowRight');
+      expect(shadow.activeElement?.id).toBe('d');
+    });
+
+    it('reads automatic columns and direction off its host', () => {
+      const { host, shadow, byId, press } = renderShadow(ITEMS, {
+        cols: 'auto',
+        orientation: 'horizontal',
+      });
+      host.setAttribute('dir', 'rtl');
+      byId('a').focus();
+
+      // Nothing is laid out in jsdom, so `auto` counts one column: a list.
+      press('ArrowLeft');
+      expect(shadow.activeElement?.id).toBe('b');
+
+      press('ArrowRight');
+      expect(shadow.activeElement?.id).toBe('a');
+    });
+
+    it('finds its items by selector, and leaves a root selector unmatched', () => {
+      const { shadow, byId, press, named } = renderShadow(
+        `
+          <button id="a">A</button>
+          <button id="b">B</button>
+        `,
+        { items: 'button', root: '.group' },
+      );
+      byId('a').focus();
+
+      press('ArrowDown');
+
+      expect(shadow.activeElement?.id).toBe('b');
+      expect(named()).toEqual([{ action: 'next', from: 'a', to: 'b' }]);
+    });
+
+    it('leaves a marked root inside it to its own attributes', () => {
+      const { shadow, byId, press, named } = renderShadow(`
+        <div data-keyrove-root data-keyrove-loop>
+          <button id="a" data-keyrove-item>A</button>
+          <button id="b" data-keyrove-item>B</button>
+        </div>
+      `);
+      byId('b').focus();
+
+      press('ArrowDown');
+
+      expect(shadow.activeElement?.id).toBe('a');
+      expect(named()).toEqual([{ action: 'next', from: 'b', to: 'a' }]);
+    });
+
+    it('hears a focus key across the shadow tree', () => {
+      const { shadow, byId, press, named } = renderShadow(`
+        <button id="a" data-keyrove-item>A</button>
+        <button id="b" data-keyrove-item data-keyrove-focus-key="alt+KeyB">B</button>
+      `);
+      byId('a').focus();
+
+      pressKey('KeyB', shadow.activeElement!, { altKey: true });
+
+      expect(shadow.activeElement?.id).toBe('b');
+      expect(named()).toEqual([{ action: 'focus', from: 'a', to: 'b' }]);
+      expect(press('ArrowUp').defaultPrevented).toBe(true);
+    });
+
+    it('is the group a nested root exits to', () => {
+      const { shadow, byId, press, named } = renderShadow(`
+        <div id="cell" data-keyrove-item tabindex="-1">
+          <div data-keyrove-root data-keyrove-exit-key="Escape">
+            <button id="inner" data-keyrove-item>inner</button>
+          </div>
+        </div>
+        <button id="b" data-keyrove-item>B</button>
+      `);
+      byId('inner').focus();
+
+      press('Escape');
+
+      expect(shadow.activeElement?.id).toBe('cell');
+      expect(named()).toEqual([{ action: 'exit', from: 'inner', to: 'cell' }]);
+    });
+
+    it('carries the roving stop', () => {
+      const { byId, press } = renderShadow(
+        `
+          <button id="a" data-keyrove-item tabindex="0">A</button>
+          <button id="b" data-keyrove-item tabindex="-1">B</button>
+        `,
+        { rovingTabindex: true },
+      );
+      byId('a').focus();
+
+      press('ArrowDown');
+
+      expect(byId('a').getAttribute('tabindex')).toBe('-1');
+      expect(byId('b').getAttribute('tabindex')).toBe('0');
+    });
+
+    it('leaves a key alone with focus on no item', () => {
+      const { byId, press, named } = renderShadow(`
+        <button id="outside">outside</button>
+        <button id="a" data-keyrove-item>A</button>
+      `);
+      byId('outside').focus();
+
+      expect(press('Home').defaultPrevented).toBe(false);
+      expect(named()).toEqual([null]);
+    });
+  });
 });

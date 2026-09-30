@@ -28,6 +28,7 @@ Run from the repo root:
 | `pnpm dev`            | Starts the docs site on a local dev server.            |
 | `pnpm test`           | Runs the test suite across the workspace.              |
 | `pnpm test:watch`     | Runs the library tests in watch mode.                  |
+| `pnpm test:browser`   | Runs the library's browser tests in headless Chromium. |
 | `pnpm lint`           | Checks formatting across the workspace with Prettier.  |
 | `pnpm format`         | Rewrites files to Prettier style.                      |
 | `pnpm build`          | Builds every package.                                  |
@@ -47,6 +48,27 @@ Any script can be aimed at one package with a filter:
 pnpm --filter @mixedrays/keyrove test
 pnpm --filter @mixedrays/keyrove/docs build
 ```
+
+## Browser tests
+
+`pnpm test` runs the library's unit suite in jsdom, which has no layout, no
+Tab order and no notion of an element that refuses focus. `pnpm test:browser`
+covers that part of the contract in a real browser: a small suite under
+[packages/keyrove/browser](packages/keyrove/browser) that imports the
+library's public entry and drives it with real key presses and clicks. It
+checks that Tab and Shift+Tab enter, leave and return to a roving group, that
+nested groups keep their own stops, that navigation works in a shadow root,
+and that a hidden or inert target leaves focus and the stop alone.
+
+It runs on Vitest's browser mode with Playwright, in headless Chromium.
+Install the browser once:
+
+```sh
+pnpm --filter @mixedrays/keyrove exec playwright install chromium
+```
+
+CI runs the suite on every pull request. Put a test there only when it needs
+a real browser; everything else belongs in the unit suite.
 
 ## How the docs site works
 

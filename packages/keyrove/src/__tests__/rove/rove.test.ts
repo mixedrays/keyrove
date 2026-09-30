@@ -329,6 +329,28 @@ describe('rove', () => {
       expect(shadow.activeElement?.id).toBe('c');
     });
 
+    it('moves in the group of a shadow root', () => {
+      const host = document.createElement('div');
+      document.body.appendChild(host);
+      const shadow = host.attachShadow({ mode: 'open' });
+      shadow.append(item('a'), item('b', { tabindex: '0' }), item('c'));
+      outsideButton();
+
+      // From the item holding the stop, focus being outside the group.
+      expect(named(rove(shadow, 'next'))).toEqual({
+        action: 'next',
+        from: 'b',
+        to: 'c',
+      });
+      expect(shadow.activeElement?.id).toBe('c');
+      expect(named(rove(shadow, 'home', { root: '.group' }))).toEqual({
+        action: 'home',
+        from: 'c',
+        to: 'a',
+      });
+      expect(shadow.getElementById('a')!.getAttribute('tabindex')).toBe('0');
+    });
+
     it("carries each group's own stop across a nested group's items", () => {
       const root = group([
         item('a', { tabindex: '0' }),
