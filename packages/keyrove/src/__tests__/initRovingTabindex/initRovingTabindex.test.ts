@@ -392,4 +392,19 @@ describe('initRovingTabindex', () => {
       expect(tabindexes('a', 'b')).toEqual({ a: '0', b: '0' });
     });
   });
+
+  it('gives the group of a shadow root its stop', () => {
+    const host = document.createElement('div');
+    document.body.appendChild(host);
+    const shadow = host.attachShadow({ mode: 'open' });
+    const items = [item('a'), item('b'), item('c')];
+    shadow.append(...items);
+
+    expect(initRovingTabindex(shadow)).toBe(items[0]);
+    expect(items.map((each) => each.getAttribute('tabindex'))).toEqual([
+      '0',
+      '-1',
+      '-1',
+    ]);
+  });
 });

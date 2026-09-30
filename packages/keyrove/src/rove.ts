@@ -51,8 +51,9 @@ const ENTRY: Record<StrideAction, 'home' | 'end' | null> = {
  *
  * The row moves are a grid's own, as they are in the key table, so in a list
  * they do nothing.
- * @param element - The group's root, or an element inside it. Nullish is a
- * no-op.
+ * @param element - The group's root, or an element inside it. A shadow root
+ * is a root with no attributes, as it is for a listener attached to one.
+ * Nullish is a no-op.
  * @param action - The move to make, by name. Whatever keys the group binds
  * have no say in it.
  * @param options - The object `keyRove` takes: the group's settings, falling
@@ -64,12 +65,12 @@ const ENTRY: Record<StrideAction, 'home' | 'end' | null> = {
  * nowhere to go from `from`, and `from: null` where it entered the group.
  */
 export const rove = (
-  element: Element | null | undefined,
+  element: Element | ShadowRoot | null | undefined,
   action: StrideAction,
   options: KeyRoveOptions = {},
 ): MoveResult | null => {
   const isRoot = rootTest(options);
-  const root = resolveRoot(element, element, isRoot);
+  const root = resolveRoot(element as Element | null, element, isRoot);
 
   if (!root) return null;
 

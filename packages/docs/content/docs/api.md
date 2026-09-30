@@ -183,6 +183,11 @@ The root is the nearest ancestor of the event target carrying
 the listener is attached to (`currentTarget`). A listener on `document` or
 `window` falls back to `<html>`.
 
+A listener on a shadow root falls back to the shadow root itself. It has no
+attributes, so configure that group with [options](/docs/attributes-and-options),
+or wrap the items in an element carrying `data-keyrove-root`. Reading
+direction and `cols: 'auto'` are read from the host element.
+
 - The root's attributes configure the group. They are read on every keypress,
   so changing one takes effect at once; see
   [responsive grid](/docs/examples/responsive-grid).

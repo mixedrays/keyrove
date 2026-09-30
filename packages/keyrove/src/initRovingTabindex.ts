@@ -27,7 +27,8 @@ import type { InitRovingTabindexOptions } from './types.js';
  * template put on the selected item, survives the call; and failing that, to
  * the first navigable item. Every other roving item gets `-1`, disabled and
  * skipped ones included. Only attributes that change are written.
- * @param root - The group's root. Nullish is a no-op.
+ * @param root - The group's root: an element, or the shadow root a listener
+ * is attached to. Nullish is a no-op.
  * @param options - The group settings that decide what its items are, and the
  * `initial` item; see {@link InitRovingTabindexOptions}. The attributes answer
  * where the settings are left out.
@@ -35,7 +36,7 @@ import type { InitRovingTabindexOptions } from './types.js';
  * navigable.
  */
 export const initRovingTabindex = (
-  root: Element | null | undefined,
+  root: Element | ShadowRoot | null | undefined,
   options: InitRovingTabindexOptions = {},
 ): Element | null => {
   if (!root) return null;
@@ -43,7 +44,7 @@ export const initRovingTabindex = (
   const isRoving = rovingTest(options);
   const isSkipped = skipTest(options);
   const items = ownItems(
-    root,
+    root as Element,
     itemsReader(options),
     rootTest(options) ?? attributeRoot,
   ).filter(isRoving);

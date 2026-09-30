@@ -527,6 +527,24 @@ describe('createTypeahead', () => {
       pressKey('s', { from: shadow.activeElement! });
       expect(shadow.activeElement?.id).toBe('a');
     });
+
+    it('matches the items of a shadow root it listens on', () => {
+      const host = document.createElement('div');
+      document.body.appendChild(host);
+      const shadow = host.attachShadow({ mode: 'open' });
+      shadow.append(...mailbox());
+      const typeahead = createTypeahead();
+      const results: ReturnType<typeof typeahead>[] = [];
+      shadow.addEventListener('keydown', (e) =>
+        results.push(typeahead(e as KeyboardEvent)),
+      );
+      shadow.getElementById('a')!.focus();
+
+      pressKey('s', { from: shadow.activeElement! });
+
+      expect(shadow.activeElement?.id).toBe('c');
+      expect(results.map((result) => result?.to?.id)).toEqual(['c']);
+    });
   });
 
   describe('labels', () => {

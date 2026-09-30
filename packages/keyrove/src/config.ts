@@ -22,7 +22,12 @@ import {
 import { attributeItems, attributeRoving } from './group.js';
 import { keyAttribute } from './keyAttribute.js';
 import { attributeSkip } from './position.js';
-import { hasEnabledAttribute, isComboSet, parseAttributeInt } from './utils.js';
+import {
+  hasEnabledAttribute,
+  isComboSet,
+  parseAttributeInt,
+  readAttribute,
+} from './utils.js';
 import type {
   ExplicitBinding,
   FocusKey,
@@ -35,19 +40,35 @@ import type {
   ReadItems,
 } from './types.js';
 
+// `Node.DOCUMENT_FRAGMENT_NODE`, spelled out so reading it needs no global
+// `Node`.
+const DOCUMENT_FRAGMENT_NODE = 11;
+
+/**
+ * The element whose box a root's items are laid out in: the root itself, or
+ * its host where the root is a shadow root. A fragment has no box and no
+ * style of its own; its children are laid out as the host's, and inherit its
+ * direction.
+ */
+const boxOf = (root: Element): Element =>
+  root.nodeType === DOCUMENT_FRAGMENT_NODE
+    ? (root as unknown as ShadowRoot).host
+    : root;
+
 // Reading direction for an inline axis. The nearest `dir` attribute
 // decides, mirroring how the DOM resolves direction (and working in jsdom,
 // which has no layout); `dir="auto"` — content-dependent, so only the
 // browser can resolve it — and a missing attribute fall through to the
 // computed style, guarded for environments without `getComputedStyle`.
 const isRtl = (root: Element): boolean => {
-  const dir = root.closest('[dir]')?.getAttribute('dir')?.toLowerCase();
+  const box = boxOf(root);
+  const dir = box.closest('[dir]')?.getAttribute('dir')?.toLowerCase();
 
   if (dir === 'rtl' || dir === 'ltr') return dir === 'rtl';
 
   return (
     typeof getComputedStyle !== 'undefined' &&
-    getComputedStyle(root).direction === 'rtl'
+    getComputedStyle(box).direction === 'rtl'
   );
 };
 
@@ -84,7 +105,7 @@ const TRACK = /^\d*\.?\d+px$/;
 const countTracks = (root: Element): number => {
   if (typeof getComputedStyle === 'undefined') return 1;
 
-  const tracks = getComputedStyle(root)
+  const tracks = getComputedStyle(boxOf(root))
     .getPropertyValue('grid-template-columns')
     .replace(/\[[^\]]*\]/g, ' ')
     .trim()
@@ -105,7 +126,7 @@ const readColumns = (root: Element, cols: GroupOptions['cols']): number => {
 
   if (option) return option;
 
-  if (root.getAttribute(KEYROVE_ATTR_COLS)?.trim().toLowerCase() === 'auto') {
+  if (readAttribute(root, KEYROVE_ATTR_COLS)?.trim().toLowerCase() === 'auto') {
     return countTracks(root);
   }
 
@@ -117,10 +138,10 @@ const readColumns = (root: Element, cols: GroupOptions['cols']): number => {
  * Undefined otherwise, which leaves `resolveRoot` reading the attribute.
  *
  * Resolved apart from the rest: it is what finds the root the rest is read
- * from.
+ * from. A shadow root handed to `rove` is asked too, and matches no selector.
  */
 export const rootTest = ({ root }: GroupOptions): IsRoot | undefined =>
-  root ? (element) => element.matches(root) : undefined;
+  root ? (element) => !!element.matches?.(root) : undefined;
 
 /**
  * How the group folds its sequence. A list is one column; more than one makes
@@ -144,7 +165,7 @@ const readLayout = (
     // still wins in the table. Nothing but the literal value "horizontal"
     // switches anything, from either source.
     horizontal:
-      (orientation ?? root.getAttribute(KEYROVE_ATTR_ORIENTATION)) ===
+      (orientation ?? readAttribute(root, KEYROVE_ATTR_ORIENTATION)) ===
       'horizontal',
     loop: loop ?? hasEnabledAttribute(root, KEYROVE_ATTR_LOOP),
   };
@@ -164,7 +185,9 @@ const readLayout = (
 const readExplicitBinding =
   (root: Element, { keys }: GroupOptions): ExplicitBinding =>
   (intent) =>
-    [keys?.[intent], root.getAttribute(keyAttribute(intent))].find(isComboSet);
+    [keys?.[intent], readAttribute(root, keyAttribute(intent))].find(
+      isComboSet,
+    );
 
 /**
  * The focus keys in reach of a keypress: the `focusKeys` map where one is

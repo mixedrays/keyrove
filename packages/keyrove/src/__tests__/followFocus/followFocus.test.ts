@@ -225,6 +225,25 @@ describe('followFocus', () => {
     ]);
   });
 
+  it('moves the stop in the group of a shadow root it listens on', () => {
+    const host = document.createElement('div');
+    document.body.appendChild(host);
+    const shadow = host.attachShadow({ mode: 'open' });
+    const items = [item('a', { tabindex: '0' }), item('b'), item('c')];
+    shadow.append(...items);
+    const results: (Element | null)[] = [];
+    shadow.addEventListener('focusin', (e) => results.push(followFocus(e)));
+
+    items[2].focus();
+
+    expect(results).toEqual([items[2]]);
+    expect(items.map((each) => each.getAttribute('tabindex'))).toEqual([
+      '-1',
+      '-1',
+      '0',
+    ]);
+  });
+
   it('agrees with keyRove, writing nothing after a move it already carried', () => {
     const { root, results } = listen([item('a', { tabindex: '0' }), item('b')]);
     root.addEventListener('keydown', (e) => keyRove(e));

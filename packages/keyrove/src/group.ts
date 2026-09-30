@@ -69,6 +69,11 @@ const DOCUMENT_NODE = 9;
  * The element a listener sits on. A listener on the document, or the window,
  * has no element of its own, so the document element stands in: `<html>`
  * answers attribute reads and item queries like any root, with nothing set.
+ *
+ * A listener on a shadow root has no element to stand in: no single one
+ * contains every top-level child. The shadow root is handed back as it is — a
+ * fragment that answers item queries and holds focus like any root, and has
+ * no attributes, so every attribute read of it is unset (see `readAttribute`).
  */
 export const listenerElement = (
   listener: EventTarget | null | undefined,
