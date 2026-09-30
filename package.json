@@ -24,7 +24,8 @@
     "bench:headless": "pnpm --filter @mixedrays/keyrove/bench headless",
     "typecheck": "pnpm -r typecheck",
     "preview": "pnpm --filter @mixedrays/keyrove/docs preview",
-    "release": "pnpm --filter @mixedrays/keyrove release"
+    "release": "pnpm --filter @mixedrays/keyrove release",
+    "publish:npm": "pnpm --filter @mixedrays/keyrove publish"
   },
   "devDependencies": {
     "prettier": "^3.9.6"

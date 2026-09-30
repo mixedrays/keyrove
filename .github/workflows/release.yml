@@ -30,33 +30,32 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
-      - name: Authenticate with npm
-        run: echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" >> ~/.npmrc
-        env:
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-
       - name: Configure git identity and upstream
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git branch --set-upstream-to=origin/${{ github.ref_name }}
 
+      # Bumps the version, writes the changelog, tags and creates the GitHub
+      # release. It does not publish to npm — that is done by hand from the
+      # updated main with `pnpm publish:npm` (see DEVELOPMENT.md).
       # Exits cleanly with "No new version to release" when the merged commits
-      # carry no feat/fix, so an ordinary docs or chore merge publishes nothing.
+      # carry no feat/fix, so an ordinary docs or chore merge releases nothing.
       - run: pnpm release --ci
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       # release-it only warns when its push is rejected (a branch ruleset, say)
-      # and still exits 0, which lets a version reach npm while main keeps the
-      # old one — the next run then recomputes that same version and npm
-      # refuses it. Fail here instead so the desync surfaces on the run itself.
+      # and still exits 0, which leaves a tag and GitHub release for a version
+      # main never got — the next run then recomputes that same version and
+      # collides with the tag. Fail here instead so the desync surfaces on the
+      # run itself.
       - name: Verify the release commit reached ${{ github.ref_name }}
         run: |
           git fetch origin ${{ github.ref_name }}
           local_head=$(git rev-parse HEAD)
           remote_head=$(git rev-parse FETCH_HEAD)
           if [ "$local_head" != "$remote_head" ]; then
-            echo "::error::release-it committed $local_head but origin/${{ github.ref_name }} is still $remote_head — the push was rejected. The package may already be on npm; reconcile the branch before rerunning."
+            echo "::error::release-it committed $local_head but origin/${{ github.ref_name }} is still $remote_head — the push was rejected. The tag and GitHub release may already exist; reconcile the branch before rerunning."
             exit 1
           fi
