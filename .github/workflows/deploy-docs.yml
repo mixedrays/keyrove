@@ -50,7 +50,9 @@ jobs:
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           # `--branch` must match the project's production branch for this to
           # publish to the live domain rather than to a preview URL.
+          # TanStack Start writes the prerendered site to `dist/client`; the
+          # server build beside it in `dist/server` only runs the prerender.
           command: >-
-            pages deploy packages/docs/dist
+            pages deploy packages/docs/dist/client
             --project-name=keyrove
             --branch=main

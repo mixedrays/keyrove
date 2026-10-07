@@ -15,6 +15,7 @@ export const loadSearch = async (serialized: string) => {
         title: result.title,
         heading: result.heading,
         text: result.text,
-        url: `${import.meta.env.BASE_URL}${result.url.slice(1)}`,
+        // Site-absolute; the link that renders it adds the deploy base.
+        url: result.url,
       }));
 };

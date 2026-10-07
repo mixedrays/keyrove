@@ -11,7 +11,7 @@ import { loadLastModified } from './git.ts';
  *
  * Nothing here renders anything — this module answers "what pages exist, what
  * do they claim about themselves, and how do they group in the sidebar", and
- * the render step in `layout.ts` takes it from there.
+ * the content plugin in `vite-plugin-content.ts` takes it from there.
  */
 
 export const CONTENT_DIR = fileURLToPath(

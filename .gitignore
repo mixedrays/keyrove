@@ -6,3 +6,6 @@ dist/
 
 .tmp
 .pnpm-store/
+
+# TanStack Router writes its generator scratch files here during dev and build.
+.tanstack/

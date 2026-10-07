@@ -1,12 +1,16 @@
 {
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "jsx": "react-jsx",
     "declaration": false,
     "allowImportingTsExtensions": true,
     "types": ["vite/client", "node"],
     "paths": {
+      "@/*": ["./src/*"],
       "@mixedrays/keyrove": ["../keyrove/src/index.ts"]
     }
   },
-  "include": ["src", "build", "vite.config.ts", "vite-plugin-docs.ts"]
+  "include": ["src", "build", "vite.config.ts", "vite-plugin-content.ts"]
 }

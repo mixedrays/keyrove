@@ -21,6 +21,8 @@ import { keyLabel, MODIFIER_KEYS } from './demos.ts';
  * The list opens focused, as a page's opening demo does, so the first arrow
  * the reader presses moves something in view. It is mounted before the demos
  * for that reason: the first of those takes focus only when nothing has it.
+ * src/components/markdown.tsx mounts it from the hero's own component, which
+ * React reaches before any demo further down the page.
  */
 
 /** Whether keyRove answered with a move, found or not, rather than null. */
@@ -62,9 +64,9 @@ const span = (text: string, className?: string) => {
   return element;
 };
 
-export const mountHero = () => {
-  const list = document.querySelector<HTMLElement>('[data-hero-list]');
-  const readout = document.querySelector<HTMLElement>('[data-hero-readout]');
+export const mountHero = (root: HTMLElement, signal: AbortSignal) => {
+  const list = root.querySelector<HTMLElement>('[data-hero-list]');
+  const readout = root.querySelector<HTMLElement>('[data-hero-readout]');
   if (!list || !readout) return;
 
   const show = (state: string, ...parts: Node[]) => {
@@ -131,23 +133,35 @@ export const mountHero = () => {
     }
   };
 
-  list.addEventListener('keydown', (e) => {
-    const result = keyRove(e);
-    if (!MODIFIER_KEYS.has(e.key)) report(e, result);
-  });
+  list.addEventListener(
+    'keydown',
+    (e) => {
+      const result = keyRove(e);
+      if (!MODIFIER_KEYS.has(e.key)) report(e, result);
+    },
+    { signal },
+  );
 
   // Every move inside the list is a focusout and a focusin too; only focus
   // arriving from outside, or leaving for outside, changes the line.
   const fromOutside = (e: FocusEvent) =>
     !list.contains(e.relatedTarget as Node | null);
 
-  list.addEventListener('focusin', (e) => {
-    if (fromOutside(e)) instruct(true);
-  });
+  list.addEventListener(
+    'focusin',
+    (e) => {
+      if (fromOutside(e)) instruct(true);
+    },
+    { signal },
+  );
 
-  list.addEventListener('focusout', (e) => {
-    if (fromOutside(e)) instruct(false);
-  });
+  list.addEventListener(
+    'focusout',
+    (e) => {
+      if (fromOutside(e)) instruct(false);
+    },
+    { signal },
+  );
 
   list
     .querySelector<HTMLElement>('[data-keyrove-item]')
