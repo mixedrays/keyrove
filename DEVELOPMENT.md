@@ -132,22 +132,22 @@ leaving a document that stands on its own when fetched in isolation.
 
 ### Documentation search
 
-The header search button and `Cmd+K` / `Ctrl+K` open a native dialog. MiniSearch
-and `search-index.json` load on first use. The index contains docs page leads
-and individual sections, with heading IDs allocated by the same parser as the
-rendered pages; landing and `noindex` pages are excluded. Titles and headings
-rank above body matches, with prefix matching and typo tolerance enabled.
+The header search button and `Cmd+K` / `Ctrl+K` open a dialog. The dialog's
+code, MiniSearch and `search-index.json` load on first use. The index contains
+docs page leads and individual sections, with heading IDs allocated by the
+same parser as the rendered pages; landing and `noindex` pages are excluded.
+Titles and headings rank above body matches, with prefix matching and typo
+tolerance enabled.
 
-The results are a keyrove group: the site navigating with its own library.
-Each result is a link and keeps its own tab stop, so Tab walks the results as
-well as the arrows; `keyRove` moves focus between the links, looping at the
-ends. keyrove leaves a text field its caret keys, so the box
-focuses an end of the list itself to hand focus over, and a character typed on
-a result sends focus back to the box.
+The dialog is Base UI's, with its autocomplete inside: focus stays in the
+box while the arrows move a highlight through the results, and Enter follows
+the highlighted result — the first one until the reader moves it. Each result
+is a link, so a modified click still opens it in a new tab.
 
-The Vite plugin generates the index in development and production. Markdown
-edits invalidate the development cache and reload the page, including search.
-Run the search indexing tests with `pnpm --filter @mixedrays/keyrove/docs test`.
+The content plugin generates the index in development and production.
+Markdown edits invalidate the development cache and reload the page,
+including search. Run the search indexing tests with
+`pnpm --filter @mixedrays/keyrove/docs test`.
 
 ### Sidebar navigation
 
@@ -159,10 +159,10 @@ opens DevTools). The shortcuts use `focusKeys` to return to each group's tab
 stop. The left group starts on the current page; the right one follows the
 active section while focus is outside it.
 The left shortcut opens the mobile drawer when needed; shortcuts leave an
-open search dialog alone. The closed drawer is `visibility: hidden`, so its
-links are out of the Tab order. Each sidebar shows its shortcut beside its
-first heading on hover, and the arrow keys as well while keyboard focus is
-inside it.
+open search dialog alone. The drawer is a Base UI sheet: it exists only while
+open, traps focus while it is, and opens on the current page's link. Each
+sidebar shows its shortcut beside its first heading on hover, and the arrow
+keys as well while keyboard focus is inside it.
 
 ### Live demos
 
@@ -180,7 +180,10 @@ Layout the demo needs but the library does not teach — the grid's columns, the
 long list's scroll box — goes in `data-demo-class` on the placeholder rather
 than in the fragment, so what a reader copies is markup they can paste as-is.
 [packages/docs/src/demos.ts](packages/docs/src/demos.ts) wires the behaviour
-markup cannot carry: the keydown listener, the move log, and the copy button.
+markup cannot carry: the keydown listener and the move log. React draws the
+panel around a demo, with its code tabs and copy button, but leaves the live
+preview as the fragment's own markup, which keyrove rearranges as keys are
+pressed.
 
 For a compact **demo panel** on any docs page, add a label:
 
@@ -207,18 +210,51 @@ are required. Code-only examples can use a
 `<div class="demo-panel demo-panel--code">` around adjacent fenced blocks,
 with blank lines between the wrapper and the fences.
 
+### UI components
+
+The site is a [TanStack Start](https://tanstack.com/start) app, and its UI
+components are [shadcn/ui](https://ui.shadcn.com) on
+[Base UI](https://base-ui.com) primitives, in
+[packages/docs/src/components/ui](packages/docs/src/components/ui). They keep
+shadcn's API but not its styles: each passes the class style.css already draws
+that part of the site with, since a Tailwind utility on the component would
+outrank every rule in the stylesheet's components layer. `components.json`
+is set up for the shadcn CLI, so `pnpm dlx shadcn@latest add <component>`
+works from `packages/docs`.
+
+Keyboard navigation is split by who has it built in. Base UI owns it where its
+component does — the code tabs and the landing page's pattern tabs, the search
+results, the dialog's and drawer's focus trap. keyrove owns everything Base UI
+has no component for: the sidebar and "On this page" rails, the 404's links,
+the landing hero and every demo.
+
 ### Build
 
-[packages/docs/vite-plugin-docs.ts](packages/docs/vite-plugin-docs.ts) drives
-both modes from one renderer. In dev a middleware renders on request; in the
-build, Vite bundles `index.html` once and every page is stamped out of the
-result, so all pages share one set of hashed asset URLs.
+[packages/docs/vite-plugin-content.ts](packages/docs/vite-plugin-content.ts)
+hands the content to the app as virtual modules: the sidebar and each page's
+metadata in one, each page's rendered body in a chunk of its own, and the
+generated files — the `.md` twins, `llms.txt`, the sitemap — in a third that
+only the server routes under
+[packages/docs/src/routes](packages/docs/src/routes) import. Markdown renders
+through the same code in dev and in the build. A page's body reaches the
+browser as a tree of elements built at build time rather than as HTML, so
+there is no HTML parser in the bundle and nothing for hydration to disagree
+about.
 
-Pages are emitted as `dist/docs/api.html` and served at extensionless URLs
-(`/docs/api`), which is what lets `.md` be appended. Cloudflare Pages redirects
-`/docs/api/` there, so the URL that links, canonical tags and the sitemap name
-answers directly. Extensionless URLs rule out relative asset paths, so links
-are absolute to `base` — set `DOCS_BASE` when deploying to a subpath:
+`pnpm build` prerenders every page, every `.md` twin and every generated file
+into `dist/client`, which is what Cloudflare Pages serves; nothing runs on a
+server. The first page a reader opens is that HTML. Following a link from there
+swaps the page in place, loading only that page's chunk — hovering the link
+starts the download.
+
+Pages are emitted as `dist/client/docs/api.html` and served at extensionless
+URLs (`/docs/api`), which is what lets `.md` be appended. Cloudflare Pages
+redirects `/docs/api/` there, so the URL that links, canonical tags and the
+sitemap name answers directly. The not-found page is prerendered to
+`404.html`, which Pages serves for any URL it has no file for; the router then
+hydrates it as the page it was rendered as. Extensionless URLs rule out
+relative asset paths, so links are absolute to `base` — set `DOCS_BASE` when
+deploying to a subpath:
 
 ```sh
 DOCS_BASE=/keyrove/ pnpm --filter @mixedrays/keyrove/docs build

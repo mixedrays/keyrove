@@ -47,12 +47,6 @@
   :focus-visible {
     @apply outline-2 outline-offset-2 outline-indigo-600 dark:outline-indigo-400;
   }
-
-  /* The drawer takes over the viewport below `lg`; letting the page behind it
-     scroll would move the content the reader is about to navigate to. */
-  html[data-sidebar-open] {
-    @apply overflow-hidden lg:overflow-auto;
-  }
 }
 
 @layer components {
@@ -71,13 +65,16 @@
     @apply rounded border border-zinc-200 px-1 font-sans text-xs dark:border-zinc-700;
   }
 
+  /* Base UI's dialog popup and backdrop, portalled to the end of <body>. The
+     header is z-30; both sit above it, the popup over the backdrop by being
+     later in the document. */
   .search-dialog {
-    @apply fixed inset-x-0 top-[10dvh] mx-auto w-[calc(100%-2rem)] max-w-xl overflow-hidden rounded-xl border border-zinc-200 bg-white p-0 text-zinc-900 shadow-2xl dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100;
+    @apply fixed inset-x-0 top-[10dvh] z-50 mx-auto w-[calc(100%-2rem)] max-w-xl overflow-hidden rounded-xl border border-zinc-200 bg-white p-0 text-zinc-900 shadow-2xl dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100;
     max-height: 80dvh;
   }
 
-  .search-dialog::backdrop {
-    @apply bg-zinc-950/50 backdrop-blur-sm;
+  .search-backdrop {
+    @apply fixed inset-0 z-50 bg-zinc-950/50 backdrop-blur-sm;
   }
 
   .search-panel {
@@ -109,7 +106,8 @@
     @apply bg-zinc-100 dark:bg-zinc-800;
   }
 
-  .search-result:focus {
+  /* Focus stays in the input; the arrows move Base UI's highlight instead. */
+  .search-result[data-highlighted] {
     @apply bg-indigo-50 ring-1 ring-inset ring-indigo-200 outline-none dark:bg-indigo-950 dark:ring-indigo-800;
   }
 
@@ -135,10 +133,6 @@
 
   .search-help {
     @apply flex shrink-0 flex-wrap items-center gap-x-4 gap-y-1 border-t border-zinc-200 px-5 py-2.5 text-xs text-zinc-500 dark:border-zinc-700 dark:text-zinc-400;
-  }
-
-  html[data-search-modal-open] {
-    overflow: hidden;
   }
 
   /* ---------- chrome ---------- */
@@ -213,35 +207,30 @@
     @apply xl:grid-cols-[15rem_minmax(0,1fr)_15rem];
   }
 
-  /*
-   * Off-canvas below `lg` and slid in by the header's menu button; a sticky
-   * column from `lg` up. One element in both cases, so there is no second copy
-   * of the nav to keep in step.
-   *
-   * Closed, the drawer is hidden as well as off-canvas, so its links leave the
-   * Tab order and the accessibility tree instead of taking focus off-screen.
-   * Hiding waits out the slide; showing is immediate, so script can focus into
-   * the drawer in the same task that opens it.
-   */
+  /* A sticky column from `lg` up. Below it the drawer stands in. */
   .sidebar {
-    @apply invisible fixed inset-y-0 left-0 z-50 w-72 -translate-x-full overflow-y-auto border-r border-zinc-200 bg-white px-6 py-8 dark:border-zinc-800 dark:bg-zinc-950;
-    @apply lg:visible lg:sticky lg:top-14 lg:z-auto lg:h-[calc(100vh-3.5rem)] lg:w-auto lg:translate-x-0 lg:border-r-0 lg:bg-transparent lg:px-0 lg:pr-4 dark:lg:bg-transparent;
-    transition:
-      translate 200ms var(--default-transition-timing-function),
-      visibility 0s 200ms;
+    @apply hidden overflow-y-auto py-8 lg:sticky lg:top-14 lg:block lg:h-[calc(100vh-3.5rem)] lg:pr-4;
   }
 
-  :root[data-sidebar-open] .sidebar {
-    @apply visible translate-x-0;
-    transition-delay: 0s;
+  /*
+   * The drawer: Base UI's sheet, portalled to the end of <body> and slid in by
+   * the header's menu button. It exists only while open, so its links are out
+   * of the Tab order and the accessibility tree the rest of the time. Base UI
+   * sets the starting and ending style attributes for a frame either side of
+   * the slide, and keeps the panel mounted until the slide out has finished.
+   */
+  .sidebar-drawer {
+    @apply fixed inset-y-0 left-0 z-50 w-72 overflow-y-auto border-r border-zinc-200 bg-white px-6 py-8 lg:hidden dark:border-zinc-800 dark:bg-zinc-950;
+    transition: translate 200ms var(--default-transition-timing-function);
+  }
+
+  .sidebar-drawer[data-starting-style],
+  .sidebar-drawer[data-ending-style] {
+    translate: -100% 0;
   }
 
   .sidebar-backdrop {
     @apply fixed inset-0 z-40 bg-zinc-950/40 lg:hidden;
-  }
-
-  .sidebar-backdrop[hidden] {
-    display: none;
   }
 
   .sidebar-group + .sidebar-group {
@@ -336,7 +325,7 @@
   }
 
   /*
-   * The sidebars' key hints, added by nav.ts. Faded in rather than displayed,
+   * The sidebars' key hints, added by src/components/nav-keys.tsx. Faded in rather than displayed,
    * so showing one never reflows the heading beside it. A pointer sees the
    * shortcut on hover; keyboard focus inside sees the arrows too, since Tab
    * leaves a roving list rather than walking it.
@@ -354,16 +343,16 @@
   }
 
   @media (hover: hover) {
-    :is(.sidebar, .toc):hover .sidebar-keys {
+    :is(.sidebar, .sidebar-drawer, .toc):hover .sidebar-keys {
       @apply opacity-100;
     }
   }
 
-  :is(.sidebar, .toc):has(:focus-visible) .sidebar-keys {
+  :is(.sidebar, .sidebar-drawer, .toc):has(:focus-visible) .sidebar-keys {
     @apply opacity-100;
   }
 
-  :is(.sidebar, .toc):has(:focus-visible) .sidebar-keys-move {
+  :is(.sidebar, .sidebar-drawer, .toc):has(:focus-visible) .sidebar-keys-move {
     @apply inline;
   }
 
@@ -695,8 +684,8 @@
 
   /*
    * The layouts other than a list, one live demo per tab. The tabs are the
-   * code panels' own (see src/code-tabs.ts): a horizontal keyrove group whose
-   * moves select the tab they land on. Drawn as a segmented control rather
+   * code panels' own (see src/components/markdown.tsx): Base UI tabs whose
+   * arrows select the tab they land on. Drawn as a segmented control rather
    * than as a code panel's strip, since what they switch is a whole demo.
    */
   .pattern-tabs {

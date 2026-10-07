@@ -1,7 +1,7 @@
 import type { NavGroup, Page } from './content.ts';
 import { expandDemos, type Demos } from './demos.ts';
 import { stripIcons } from './icons.ts';
-import { routeToPath, toMarkdownPath } from './layout.ts';
+import { routeToPath, toMarkdownPath } from './paths.ts';
 import { expandMeta, META } from './meta.ts';
 
 /**

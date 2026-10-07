@@ -131,25 +131,20 @@ const breadcrumbList = ({ page, nav, toUrl }: Context) => {
 };
 
 /**
- * The page's nodes as one `<script>`.
+ * The page's nodes as one graph, which the page's `head()` hands to TanStack
+ * Router as `script:ld+json` — it escapes the JSON for the `<script>` it
+ * writes.
  *
  * A single `@graph` rather than a script per node: it is the same payload, and
  * a crawler reading one block cannot pair an article with a breadcrumb it did
  * not find.
  */
-export const renderStructuredData = (context: Context): string => {
-  const graph = {
-    '@context': 'https://schema.org',
-    '@graph':
-      context.page.layout === 'landing'
-        ? [webSite(context), softwareSourceCode(context)]
-        : [techArticle(context), breadcrumbList(context)],
-  };
-
-  // Inside a <script> the parser is looking for `</script>`, not for HTML
-  // entities, so the JSON is escaped at `<` alone. Running it through
-  // escapeHtml would turn every quote in it into an entity and break the parse.
-  const json = JSON.stringify(graph).replace(/</g, '\\u003c');
-
-  return `<script type="application/ld+json">${json}</script>`;
-};
+export const toStructuredData = (
+  context: Context,
+): Record<string, unknown> => ({
+  '@context': 'https://schema.org',
+  '@graph':
+    context.page.layout === 'landing'
+      ? [webSite(context), softwareSourceCode(context)]
+      : [techArticle(context), breadcrumbList(context)],
+});

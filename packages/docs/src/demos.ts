@@ -18,7 +18,10 @@ import {
  * Nothing here builds DOM. Every demo's markup is stamped into the page at
  * build time from the file under `content/_demos` that the source block below
  * it shows (see build/demos.ts), so this only wires the behaviour markup cannot
- * carry: the keydown listener, the log, and the copy button.
+ * carry: the keydown listener and the log. src/components/demo.tsx mounts it
+ * on each demo once React has rendered the page, and leaves the demo's markup
+ * to it — React draws the panel around the demo and its code tabs, never the
+ * demo itself.
  */
 
 /** A keydown handler with keyrove's contract: truthy when it claimed the key. */
@@ -126,7 +129,11 @@ const isMoveResult = (value: unknown): value is MoveResult =>
   typeof value === 'object' && value !== null && 'action' in value;
 
 /** Compact demo panels report one key at a time. */
-const createReadout = (surface: HTMLElement, line: HTMLElement): Log => {
+const createReadout = (
+  surface: HTMLElement,
+  line: HTMLElement,
+  signal: AbortSignal,
+): Log => {
   let movement: { action: string; to: Element } | null = null;
   let widget: { target: Element; phrase: string } | null = null;
 
@@ -149,16 +156,24 @@ const createReadout = (surface: HTMLElement, line: HTMLElement): Log => {
     line.classList.add('demo-readout-fresh');
   };
 
-  surface.addEventListener('focusin', (e) => {
-    if (!surface.contains(e.relatedTarget as Node | null)) {
-      show('listening', '', 'listening…');
-    }
-  });
-  surface.addEventListener('focusout', (e) => {
-    if (!surface.contains(e.relatedTarget as Node | null)) {
-      show('blurred', '', 'click to focus');
-    }
-  });
+  surface.addEventListener(
+    'focusin',
+    (e) => {
+      if (!surface.contains(e.relatedTarget as Node | null)) {
+        show('listening', '', 'listening…');
+      }
+    },
+    { signal },
+  );
+  surface.addEventListener(
+    'focusout',
+    (e) => {
+      if (!surface.contains(e.relatedTarget as Node | null)) {
+        show('blurred', '', 'click to focus');
+      }
+    },
+    { signal },
+  );
 
   return {
     move: (move) => {
@@ -203,7 +218,7 @@ const createReadout = (surface: HTMLElement, line: HTMLElement): Log => {
  * Rows are cloned from the <template> stamped in beside the list rather than
  * written here, so every class a demo wears still lives in one file.
  */
-const createHistory = (demo: HTMLElement): Log | null => {
+const createHistory = (demo: HTMLElement, signal: AbortSignal): Log | null => {
   const list = demo.querySelector<HTMLElement>('[data-log]');
   const template = demo.querySelector<HTMLTemplateElement>(
     'template[data-log-row]',
@@ -269,11 +284,15 @@ const createHistory = (demo: HTMLElement): Log | null => {
     }
   };
 
-  demo.querySelector('[data-clear-log]')?.addEventListener('click', () => {
-    list.replaceChildren(...(empty ? [empty] : []));
-    last = null;
-    if (live) live.textContent = '';
-  });
+  demo.querySelector('[data-clear-log]')?.addEventListener(
+    'click',
+    () => {
+      list.replaceChildren(...(empty ? [empty] : []));
+      last = null;
+      if (live) live.textContent = '';
+    },
+    { signal },
+  );
 
   return {
     // The history is written from what the keydown answered rather than from
@@ -355,7 +374,11 @@ const createHistory = (demo: HTMLElement): Log | null => {
  * the roving tab stop to wherever focus lands, the click included. Returns the
  * keydown half, to chain after navigation and typeahead.
  */
-const wireSelection = (surface: HTMLElement, log: Log): Handler => {
+const wireSelection = (
+  surface: HTMLElement,
+  log: Log,
+  signal: AbortSignal,
+): Handler => {
   const OPTION = '[role="option"]';
 
   const select = (option: Element) => {
@@ -364,17 +387,21 @@ const wireSelection = (surface: HTMLElement, log: Log): Handler => {
     }
   };
 
-  surface.addEventListener('focusin', (e) => followFocus(e));
+  surface.addEventListener('focusin', (e) => followFocus(e), { signal });
 
-  surface.addEventListener('click', (e) => {
-    const option = (e.target as Element).closest(OPTION);
-    if (!option) return;
+  surface.addEventListener(
+    'click',
+    (e) => {
+      const option = (e.target as Element).closest(OPTION);
+      if (!option) return;
 
-    select(option);
+      select(option);
 
-    // No key to name: the pointer did this one.
-    log.widget(option, '', 'selected');
-  });
+      // No key to name: the pointer did this one.
+      log.widget(option, '', 'selected');
+    },
+    { signal },
+  );
 
   return (e) => {
     if (!matchesCombo(e, 'Space, Enter')) return null;
@@ -398,7 +425,11 @@ const wireSelection = (surface: HTMLElement, log: Log): Handler => {
  * brought level with whether a closed folder hides it. Returns the keydown
  * half, to chain after navigation.
  */
-const wireFolds = (surface: HTMLElement, log: Log): Handler => {
+const wireFolds = (
+  surface: HTMLElement,
+  log: Log,
+  signal: AbortSignal,
+): Handler => {
   const setOpen = (folder: Element, open: boolean) => {
     folder.setAttribute('aria-expanded', String(open));
 
@@ -410,16 +441,20 @@ const wireFolds = (surface: HTMLElement, log: Log): Handler => {
     }
   };
 
-  surface.addEventListener('click', (e) => {
-    const folder = (e.target as Element).closest('[aria-expanded]');
-    if (!folder) return;
+  surface.addEventListener(
+    'click',
+    (e) => {
+      const folder = (e.target as Element).closest('[aria-expanded]');
+      if (!folder) return;
 
-    const open = folder.getAttribute('aria-expanded') === 'false';
-    setOpen(folder, open);
+      const open = folder.getAttribute('aria-expanded') === 'false';
+      setOpen(folder, open);
 
-    // No key to name: the click did this one, whatever set it off.
-    log.widget(folder, '', open ? 'expanded' : 'collapsed');
-  });
+      // No key to name: the click did this one, whatever set it off.
+      log.widget(folder, '', open ? 'expanded' : 'collapsed');
+    },
+    { signal },
+  );
 
   return (e) => {
     const open = matchesCombo(e, 'ArrowRight');
@@ -450,7 +485,11 @@ const wireFolds = (surface: HTMLElement, log: Log): Handler => {
  * handlers before it keep. Returns the keydown half, to chain after navigation
  * and typeahead.
  */
-const wireTree = (surface: HTMLElement, log: Log): Handler => {
+const wireTree = (
+  surface: HTMLElement,
+  log: Log,
+  signal: AbortSignal,
+): Handler => {
   const ITEM = '[role="treeitem"]';
 
   // A folder's rows are the group its `aria-owns` names, and the folder an
@@ -474,20 +513,24 @@ const wireTree = (surface: HTMLElement, log: Log): Handler => {
     (to as HTMLElement).focus();
   };
 
-  surface.addEventListener('click', (e) => {
-    const item = (e.target as Element).closest(ITEM);
-    if (!item) return;
+  surface.addEventListener(
+    'click',
+    (e) => {
+      const item = (e.target as Element).closest(ITEM);
+      if (!item) return;
 
-    moveTo(surface.querySelector('[tabindex="0"]'), item);
+      moveTo(surface.querySelector('[tabindex="0"]'), item);
 
-    const expanded = item.getAttribute('aria-expanded');
-    if (expanded === null) return;
+      const expanded = item.getAttribute('aria-expanded');
+      if (expanded === null) return;
 
-    toggle(item, expanded === 'false');
+      toggle(item, expanded === 'false');
 
-    // No key to name: the pointer did this one.
-    log.widget(item, '', expanded === 'false' ? 'expanded' : 'collapsed');
-  });
+      // No key to name: the pointer did this one.
+      log.widget(item, '', expanded === 'false' ? 'expanded' : 'collapsed');
+    },
+    { signal },
+  );
 
   return (e) => {
     const item = (e.target as Element).closest(ITEM);
@@ -533,7 +576,12 @@ const wireTree = (surface: HTMLElement, log: Log): Handler => {
  */
 const EXTRAS: Record<
   string,
-  (surface: HTMLElement, log: Log, group: GroupOptions) => Handler[]
+  (
+    surface: HTMLElement,
+    log: Log,
+    group: GroupOptions,
+    signal: AbortSignal,
+  ) => Handler[]
 > = {
   typeahead: (_surface, log) => [createTypeahead({ onMove: log.move })],
   labels: (_surface, log) => [createTypeahead({ onMove: log.move })],
@@ -542,14 +590,14 @@ const EXTRAS: Record<
   menu: (_surface, log, group) => [
     createTypeahead({ ...group, onMove: log.move }),
   ],
-  listbox: (surface, log) => [
+  listbox: (surface, log, _group, signal) => [
     createTypeahead({ onMove: log.move }),
-    wireSelection(surface, log),
+    wireSelection(surface, log, signal),
   ],
-  sidebar: (surface, log) => [wireFolds(surface, log)],
-  tree: (surface, log, group) => [
+  sidebar: (surface, log, _group, signal) => [wireFolds(surface, log, signal)],
+  tree: (surface, log, group, signal) => [
     createTypeahead({ ...group, onMove: log.move }),
-    wireTree(surface, log),
+    wireTree(surface, log, signal),
   ],
 };
 
@@ -605,40 +653,40 @@ const firstItem = (surface: HTMLElement, { items: named }: GroupOptions) => {
   );
 };
 
-/** Wires every demo on the current page. */
-export const mountDemos = () => {
-  const demos = Array.from(
-    document.querySelectorAll<HTMLElement>('.demo, .demo-panel[data-demo]'),
+/**
+ * Wires one demo, the element build/demos.ts stamped: `.demo` or
+ * `.demo-panel[data-demo]`. Every listener goes on the demo's own elements and
+ * comes off when `signal` aborts, which is when the component holding the demo
+ * unmounts.
+ */
+export const mountDemo = (demo: HTMLElement, signal: AbortSignal) => {
+  const surface = demo.querySelector<HTMLElement>(
+    ':scope > :is(.demo-preview, .demo-panel-preview) > .demo-surface',
   );
 
-  demos.forEach((demo, index) => {
-    const surface = demo.querySelector<HTMLElement>(
-      ':scope > :is(.demo-preview, .demo-panel-preview) > .demo-surface',
-    );
+  // A demo draws one log or the other, and build/demos.ts decides which.
+  const line = demo.querySelector<HTMLElement>('.log');
+  if (!surface) return;
+  const readout = demo.querySelector<HTMLElement>('[data-demo-readout]');
+  const log = readout
+    ? createReadout(surface, readout, signal)
+    : (createHistory(demo, signal) ?? (line ? createLine(line) : null));
+  if (!log) return;
 
-    // A demo draws one log or the other, and build/demos.ts decides which.
-    const line = demo.querySelector<HTMLElement>('.log');
-    if (!surface) return;
-    const readout = demo.querySelector<HTMLElement>('[data-demo-readout]');
-    const log = readout
-      ? createReadout(surface, readout)
-      : (createHistory(demo) ?? (line ? createLine(line) : null));
-    if (!log) return;
+  // Almost every demo is described in its own markup, which is what the
+  // pages teach; `CONFIGS` holds the exceptions, each handed to the
+  // handlers exactly as its page's snippet hands it to them.
+  const group = CONFIGS[demo.dataset.demo ?? ''] ?? {};
+  const handlers: Handler[] = [
+    (e) => keyRove(e, { ...group, onMove: log.move }),
+    ...(EXTRAS[demo.dataset.demo ?? '']?.(surface, log, group, signal) ?? []),
+  ];
 
-    // Almost every demo is described in its own markup, which is what the
-    // pages teach; `CONFIGS` holds the exceptions, each handed to the
-    // handlers exactly as its page's snippet hands it to them.
-    const group = CONFIGS[demo.dataset.demo ?? ''] ?? {};
-    const handlers: Handler[] = [
-      (e) => keyRove(e, { ...group, onMove: log.move }),
-      ...(EXTRAS[demo.dataset.demo ?? '']?.(surface, log, group) ?? []),
-    ];
-
-    // One listener for the demo, nested roots included: the event bubbles here
-    // and keyrove resolves the root from its target, not from this element.
-    // The first handler to claim the key ends the chain, which is the `||` of
-    // the pages' own snippets.
-    surface.addEventListener('keydown', (e) => {
+  // One listener for the demo, nested roots included: the event bubbles here
+  // and keyrove resolves the root from its target, not from this element.
+  surface.addEventListener(
+    'keydown',
+    (e) => {
       // The first handler to claim the key ends the chain, which is the `||`
       // of the pages' own snippets — kept rather than discarded, because what
       // it answered with is what the history has to report.
@@ -649,23 +697,28 @@ export const mountDemos = () => {
       }
 
       log.keydown(e, claimed);
-    });
+    },
+    { signal },
+  );
 
-    // The demo a page opens with starts focused, so the keys it documents work
-    // on arrival rather than after a Tab or a click. Only the first one: focus
-    // is single, and a page's opening demo is the one it is about.
-    // `preventScroll` keeps arrival at the top of the page, so the list is
-    // waiting when the reader gets to it rather than dragging them down to
-    // it; the first arrow press will scroll it into view, which is the cost
-    // of having it ready.
-    //
-    // Only while nothing else holds focus. The landing page opens on its hero
-    // (see src/hero.ts), which is mounted first, and its first demo sits well
-    // below that.
-    const unclaimed =
-      !document.activeElement || document.activeElement === document.body;
-    if (index === 0 && unclaimed) {
-      firstItem(surface, group)?.focus({ preventScroll: true });
-    }
-  });
+  // The demo a page opens with starts focused, so the keys it documents work
+  // on arrival rather than after a Tab or a click. Only the first one: focus
+  // is single, and a page's opening demo is the one it is about.
+  // `preventScroll` keeps arrival at the top of the page, so the list is
+  // waiting when the reader gets to it rather than dragging them down to
+  // it; the first arrow press will scroll it into view, which is the cost
+  // of having it ready.
+  //
+  // Only while nothing else holds focus. The landing page opens on its hero
+  // (see src/hero.ts), which is mounted first, and its first demo sits well
+  // below that. A client-side navigation hands focus back to the page first
+  // (see src/components/docs-layout.tsx), so a page reached from the sidebar
+  // opens the way a page loaded from its URL does.
+  const isFirst =
+    document.querySelector('.demo, .demo-panel[data-demo]') === demo;
+  const unclaimed =
+    !document.activeElement || document.activeElement === document.body;
+  if (isFirst && unclaimed) {
+    firstItem(surface, group)?.focus({ preventScroll: true });
+  }
 };

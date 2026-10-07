@@ -90,8 +90,9 @@ const wantsCopy = (info: string) => hasFlag(info, 'copy');
 
 /**
  * The copy button a code panel carries, shared with the demos' source blocks.
- * It copies the visible block beside it in the same container, which
- * src/copy-code.ts looks up on the click.
+ * It copies the visible block beside it in the same container. The markup
+ * marks where it goes and what it is called; src/components/markdown.tsx swaps
+ * in the component that copies.
  */
 export const copyButton = (label: string) =>
   [
@@ -244,11 +245,12 @@ const createRenderer = async () => {
    * package managers. Nothing marks a group but the adjacency itself — any
    * prose between two blocks keeps them apart.
    *
-   * The tabs are stamped here, so the panel arrives finished and
-   * src/code-tabs.ts only has to switch it. The first tab is the one selected
-   * unless a later fence is flagged `selected` — the landing page's point is
-   * the script, and the markup is only what it runs on. Ids are numbered per
-   * page through `env`, which a render gets fresh.
+   * The tabs are stamped here as ARIA markup — which tab is selected, what
+   * each is called — and src/components/markdown.tsx hands that to Base UI's
+   * tabs, which switch them and own their arrow keys. The first tab is the
+   * one selected unless a later fence is flagged `selected` — the landing
+   * page's point is the script, and the markup is only what it runs on. Ids
+   * are numbered per page through `env`, which a render gets fresh.
    *
    * A fence flagged `copy` gets a copy button in the top corner, over the block
    * or at the end of the tab strip. One flagged block is enough to give its

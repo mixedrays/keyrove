@@ -1,0 +1,11 @@
+/*
+ * The site's one stylesheet: the chrome and prose, then the demos.
+ *
+ * Pages used to link one of two sheets — this one on a page with a demo, the
+ * site alone on a page without — because every navigation was a full page
+ * load and the demo styles are most of the site's CSS. Navigation is client
+ * side now, and a sheet picked per page would have to be swapped mid-session,
+ * so every page links the whole of it once and keeps it.
+ */
+@import './style.css';
+@import './demos.css';
