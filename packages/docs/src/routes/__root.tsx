@@ -13,7 +13,7 @@ import { FAVICON_FILE } from '../../build/paths.ts';
 import { DocsLayout } from '@/components/docs-layout.tsx';
 import { DocsPage } from '@/components/docs-page.tsx';
 import { SearchProvider } from '@/components/search.tsx';
-import { THEME_SCRIPT } from '@/components/theme-toggle.tsx';
+import { THEME_SCRIPT } from '@/theme.ts';
 
 /**
  * Whether the router is showing the not-found page: a URL no route matches

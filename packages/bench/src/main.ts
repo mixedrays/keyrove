@@ -1,4 +1,4 @@
-import { mountThemeToggle } from '../../docs/src/theme.ts';
+import { themeLabel, toggleTheme } from '../../docs/src/theme.ts';
 import { icon } from './icons.ts';
 import { CASE_COUNT, DEFAULT_OPTIONS } from './plan.ts';
 import { toComparisonMarkdown, toMarkdown } from './report.ts';
@@ -81,6 +81,7 @@ const $ = <T extends Element = HTMLElement>(selector: string) =>
   document.querySelector<T>(selector)!;
 
 const ui = {
+  themeToggle: $<HTMLButtonElement>('[data-theme-toggle]'),
   form: $<HTMLFormElement>('[data-run-form]'),
   run: $<HTMLButtonElement>('[data-run]'),
   stop: $<HTMLButtonElement>('[data-stop]'),
@@ -573,7 +574,6 @@ const startRun = async () => {
 
 /* ---------- wiring ---------- */
 
-mountThemeToggle();
 renderChecks();
 fillSettings(DEFAULT_OPTIONS);
 for (const element of document.querySelectorAll('[data-case-count]')) {
@@ -593,6 +593,9 @@ document.addEventListener('visibilitychange', () => {
   if (controller && document.hidden) wasHidden = true;
 });
 
+ui.themeToggle.addEventListener('click', () =>
+  ui.themeToggle.setAttribute('aria-label', themeLabel(toggleTheme())),
+);
 ui.settingsToggle.addEventListener('click', () =>
   setSettingsOpen(ui.settingsToggle.getAttribute('aria-expanded') !== 'true'),
 );

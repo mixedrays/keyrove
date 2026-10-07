@@ -112,7 +112,7 @@ to see reports saved since.
 | `src/types.ts`              | The shape of a report, as `--json` writes it.                                              |
 | `results/`                  | Saved reports. `recorded.json` is the run the Results below come from.                     |
 
-The UI uses the docs site's stylesheet and theme toggle directly from
+The UI uses the docs site's stylesheet and theme helpers directly from
 `packages/docs/src`, so it looks like the site with no copy to keep in step.
 
 The reports in `results/` and the modules in `src/` other than `main.ts` do
