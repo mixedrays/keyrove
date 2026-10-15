@@ -138,10 +138,7 @@ function Demo({ props, children }: { props: HtmlProps; children: HtmlNode[] }) {
   );
 }
 
-/**
- * The landing page's hero demo. Its effect runs before any demo's, since React
- * reaches it first — which is what lets it take the page's first focus.
- */
+/** The landing page's hero demo, written into the page rather than stamped. */
 function Hero({ props, children }: { props: HtmlProps; children: HtmlNode[] }) {
   const ref = useMount(mountHero);
 

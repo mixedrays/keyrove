@@ -33,7 +33,7 @@ move focus the way keyboard users expect, in any framework.
 <div class="demo-panel">
 <div class="demo-panel-header">
 <span class="demo-panel-label"><span class="demo-live-indicator" aria-hidden="true"></span>Live · mail folders</span>
-<output class="demo-readout" data-hero-readout data-state="blurred"><span aria-hidden="true">click to focus</span></output>
+<output data-demo-readout></output>
 </div>
 <ul id="menu" class="hero-folders" aria-label="Mail folders" data-hero-list>
 <li data-keyrove-item tabindex="0" data-count="42"><span data-icon="inbox" class="hero-folder-icon"></span>Inbox</li>

@@ -166,26 +166,8 @@ keys as well while keyboard focus is inside it.
 
 ### Live demos
 
-A content file embeds a demo with `<div data-demo="grid"></div>`. The markup
-behind it is one file under
-[packages/docs/content/_demos](packages/docs/content/_demos), named after the
-demo. [packages/docs/build/demos.ts](packages/docs/build/demos.ts) stamps it
-into the page twice, once as live elements and once as the source block under
-them, so the two cannot drift. Repeated items wrapped in `<!-- fold -->` …
-`<!-- /fold -->` still run but collapse to one comment in the source block,
-which keeps a 24-item list from costing 24 lines of a page that is also served
-as markdown.
-
-Layout the demo needs but the library does not teach — the grid's columns, the
-long list's scroll box — goes in `data-demo-class` on the placeholder rather
-than in the fragment, so what a reader copies is markup they can paste as-is.
-[packages/docs/src/demos.ts](packages/docs/src/demos.ts) wires the behaviour
-markup cannot carry: the keydown listener and the move log. React draws the
-panel around a demo, with its code tabs and copy button, but leaves the live
-preview as the fragment's own markup, which keyrove rearranges as keys are
-pressed.
-
-For a compact **demo panel** on any docs page, add a label:
+A content file embeds a demo with a placeholder that names it and labels its
+panel:
 
 ````md
 <div data-demo="loop" data-demo-label="account menu"></div>
@@ -198,11 +180,35 @@ menu.addEventListener('keydown', (e) => keyRove(e));
 ```
 ````
 
+A demo is two things, both named after it: its markup, one file under
+[packages/docs/content/_demos](packages/docs/content/_demos), and its entry in
+[packages/docs/build/demo-definitions.ts](packages/docs/build/demo-definitions.ts),
+which declares what it adds to navigation — group options, extra handlers
+such as typeahead, and decorative icons. A fragment without an entry, or an
+entry without a fragment, fails the docs tests.
+
+[packages/docs/build/demos.ts](packages/docs/build/demos.ts) stamps the
+fragment into the page twice, once as live elements and once as the source
+block under them, so the two cannot drift. Repeated items wrapped in
+`<!-- fold -->` … `<!-- /fold -->` still run but collapse to one comment in the
+source block, which keeps a 24-item list from costing 24 lines of a page that
+is also served as markdown.
+
 The panel includes a live preview, a single-line readout, and tabs for the
 fragment's HTML and the adjacent code blocks. It uses the opposite theme to
-the page and keeps long code blocks scrollable. Omit `data-demo-label` to use
-the existing detailed demo presentation. `data-demo-class`, when needed,
-goes before `data-demo-label`.
+the page and keeps long code blocks scrollable. Layout the demo needs but the
+library does not teach — the grid's columns, the long list's scroll box — goes
+in `data-demo-class` on the placeholder rather than in the fragment, so what a
+reader copies is markup they can paste as-is. The attributes go in any order;
+a placeholder the build cannot read fails it.
+
+[packages/docs/src/demos.ts](packages/docs/src/demos.ts) wires the behaviour
+markup cannot carry: the keydown listener and the extras the entry lists.
+[packages/docs/src/readout.ts](packages/docs/src/readout.ts) writes the
+readout, for the panels and the landing page's hero alike. React draws the
+panel around a demo, with its code tabs and copy button, but leaves the live
+preview as the fragment's own markup, which keyrove rearranges as keys are
+pressed.
 
 [demo-panel.css](packages/docs/src/demo-panel.css) owns the shared presentation;
 the embedding page owns column widths and spacing. No hero or landing classes

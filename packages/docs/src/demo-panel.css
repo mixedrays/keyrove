@@ -69,10 +69,10 @@
     }
   }
 
-  /* The accent for a move, amber for a key claimed with nowhere to go — the
-     colours the demos' history marks the same two outcomes in — and muted for
-     a key left to the browser. Before the first key: "click to focus" takes
-     the accent, being the one thing to do, and "listening…" is muted. */
+  /* The accent for a move, amber for a key claimed with nowhere to go, and
+     muted for a key left to the browser. Before the first key: "click to
+     focus" takes the accent, being the one thing to do, and "listening…" is
+     muted. src/readout.ts writes the line and its state. */
   .demo-readout {
     @apply inline-flex min-h-5 min-w-0 items-center gap-1.5 overflow-hidden font-mono text-xs leading-none whitespace-nowrap text-(--demo-readout) justify-end;
   }
