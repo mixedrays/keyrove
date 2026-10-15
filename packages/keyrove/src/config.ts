@@ -9,7 +9,10 @@
  * options reads exactly the markup it always did.
  *
  * Nothing here decides anything. The readings land in one object, and the
- * layers below never learn which source answered.
+ * layers below never learn which source answered. What a group's items are,
+ * which of them a move passes over, what marks a root and whether the stop
+ * roves are read the same way, by the group layer (`readGroups`), since every
+ * handler asks them, and not only of the root a keypress resolved in.
  */
 
 import {
@@ -19,9 +22,8 @@ import {
   KEYROVE_ATTR_ORIENTATION,
   KEYROVE_ATTR_PAGE_LENGTH,
 } from './attributes.js';
-import { attributeItems, attributeRoving } from './group.js';
+import { attributeSkip } from './group.js';
 import { keyAttribute } from './keyAttribute.js';
-import { attributeSkip } from './position.js';
 import {
   hasEnabledAttribute,
   isComboSet,
@@ -33,11 +35,7 @@ import type {
   FocusKey,
   GroupConfig,
   GroupOptions,
-  IsRoot,
-  IsRoving,
-  IsSkipped,
   Layout,
-  ReadItems,
 } from './types.js';
 
 // `Node.DOCUMENT_FRAGMENT_NODE`, spelled out so reading it needs no global
@@ -71,10 +69,6 @@ const isRtl = (root: Element): boolean => {
     getComputedStyle(box).direction === 'rtl'
   );
 };
-
-/** A selector or a test of your own, as one test. */
-const asTest = (source: string | IsSkipped): IsSkipped =>
-  typeof source === 'string' ? (element) => element.matches(source) : source;
 
 /**
  * A count an option names, where it names a usable one: whole, and at least 1.
@@ -132,16 +126,6 @@ const readColumns = (root: Element, cols: GroupOptions['cols']): number => {
 
   return parseAttributeInt(root, KEYROVE_ATTR_COLS, 1);
 };
-
-/**
- * Whether an element is a group's root, where a `root` selector names one.
- * Undefined otherwise, which leaves `resolveRoot` reading the attribute.
- *
- * Resolved apart from the rest: it is what finds the root the rest is read
- * from. A shadow root handed to `rove` is asked too, and matches no selector.
- */
-export const rootTest = ({ root }: GroupOptions): IsRoot | undefined =>
-  root ? (element) => !!element.matches?.(root) : undefined;
 
 /**
  * How the group folds its sequence. A list is one column; more than one makes
@@ -225,29 +209,6 @@ export const readFocusKeys = (
   );
 };
 
-/** How the group's items are found: a selector run in the root, a reading of your own, or the attribute. */
-export const itemsReader = ({ items }: GroupOptions): ReadItems => {
-  if (!items) return attributeItems;
-
-  if (typeof items === 'string') {
-    return (root) => Array.from(root.querySelectorAll(items));
-  }
-
-  return items;
-};
-
-/** Which items a move passes over: the option where one is named, else the attribute. */
-export const skipTest = ({ skip }: GroupOptions): IsSkipped =>
-  skip ? asTest(skip) : attributeSkip;
-
-/**
- * Whether the item focus is leaving carries the roving tab stop: one boolean
- * for the group where options name it, else the attribute's reading of that
- * item.
- */
-export const rovingTest = ({ rovingTabindex }: GroupOptions): IsRoving =>
-  rovingTabindex === undefined ? attributeRoving : () => rovingTabindex;
-
 /**
  * Every setting one move needs, read once for the root it resolved in. The
  * focus keys are read apart, by {@link readFocusKeys}: they span the
@@ -265,7 +226,4 @@ export const readConfig = (
   pageLength:
     count(options.pageLength) ??
     parseAttributeInt(root, KEYROVE_ATTR_PAGE_LENGTH, 10),
-  readItems: itemsReader(options),
-  isSkipped: skipTest(options),
-  isRoving: rovingTest(options),
 });

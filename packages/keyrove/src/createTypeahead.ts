@@ -9,14 +9,7 @@
  */
 
 import { KEYROVE_ATTR_TYPEAHEAD } from './attributes.js';
-import { itemsReader, rootTest, skipTest, rovingTest } from './config.js';
-import {
-  attributeRoot,
-  moveFocus,
-  readGroup,
-  resolveRoot,
-  stopSource,
-} from './group.js';
+import { readGroups } from './group.js';
 import { hasCommandModifier, isEditableTarget } from './utils.js';
 import type {
   KeyRoveEvent,
@@ -81,16 +74,13 @@ export const createTypeahead = ({
   matchMode = 'prefix',
   foldDiacritics = true,
   onMove,
-  ...group
+  ...settings
 }: TypeaheadOptions = {}) => {
   const fold = foldDiacritics ? foldMarks : lowerCase;
 
   // The group's settings cannot change for the life of the handler, so they
   // are resolved once here rather than on every keystroke.
-  const isRoot = rootTest(group);
-  const readItems = itemsReader(group);
-  const isSkipped = skipTest(group);
-  const isRoving = rovingTest(group);
+  const groups = readGroups(settings);
   let buffer = '';
   let lastPressTime = 0;
   let lastRoot: Element | null = null;
@@ -111,9 +101,11 @@ export const createTypeahead = ({
 
     if (isEditableTarget(eventTarget)) return null;
 
-    const root = resolveRoot(eventTarget, e.currentTarget, isRoot);
+    const group = groups.at(eventTarget, e.currentTarget);
 
-    if (!root) return null;
+    if (!group) return null;
+
+    const { root } = group;
 
     // The buffer expires with silence and never survives a change of group —
     // one delegated listener may serve several. Both are resolved *before*
@@ -141,7 +133,7 @@ export const createTypeahead = ({
     // growing the buffer, so "s", "s" goes on naming the S items.
     if (matchMode !== 'cycle' || buffer !== character) buffer += character;
 
-    const { items, focused } = readGroup(root, readItems);
+    const { items, focused } = group;
 
     // A one-character prefix in cycle mode searches from just past the focused
     // item and wraps, so every press — fresh or repeated, quick or slow — lands
@@ -153,7 +145,8 @@ export const createTypeahead = ({
         : 0;
     const target = [...items.slice(start), ...items.slice(0, start)].find(
       (item) =>
-        !isSkipped(item) && fold(getLabel(item, label)).startsWith(buffer),
+        group.isNavigable(item) &&
+        fold(getLabel(item, label)).startsWith(buffer),
     );
 
     // No match leaves the key untouched — the character still joined the
@@ -163,20 +156,11 @@ export const createTypeahead = ({
     // A match that is the focused item already is a consumed no-op, matching
     // keyRove's edge no-ops; otherwise the roving stop moves with focus,
     // within the matched item's own group.
-    return moveFocus({
+    return group.move({
       e,
       action: 'typeahead',
       from: focused,
       to: target,
-      isRoving,
-      stopFrom: stopSource(
-        root,
-        focused,
-        target,
-        readItems,
-        isRoot ?? attributeRoot,
-        isRoving,
-      ),
       onMove,
     });
   };

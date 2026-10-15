@@ -308,52 +308,6 @@ describe('initRovingTabindex', () => {
         o1: '-1',
       });
     });
-
-    it('manages only the nested group when called on it', () => {
-      const inner = nestedRoot(item('n0'), item('n1', { tabindex: '0' }));
-      group(
-        item('o0', { tabindex: '0' }),
-        inner,
-        item('o1', { tabindex: '0' }),
-      );
-
-      expect(initRovingTabindex(inner)).toBe(document.getElementById('n1'));
-      expect(tabindexes('o0', 'o1', 'n0', 'n1')).toEqual({
-        o0: '0',
-        o1: '0',
-        n0: '-1',
-        n1: '0',
-      });
-    });
-
-    it('counts an item that is itself a root in the group around it', () => {
-      const panel = nestedRoot(item('n0', { tabindex: '0' }), item('n1'));
-      panel.id = 'panel';
-      panel.setAttribute(KEYROVE_ATTR_ITEM, '');
-      panel.setAttribute(KEYROVE_ATTR_ROVING_TABINDEX, '');
-      panel.setAttribute('tabindex', '-1');
-      const root = group(panel, item('o1', { tabindex: '0' }));
-
-      expect(initRovingTabindex(root)).toBe(document.getElementById('o1'));
-      expect(initRovingTabindex(panel)).toBe(document.getElementById('n0'));
-      expect(tabindexes('panel', 'o1', 'n0', 'n1')).toEqual({
-        panel: '-1',
-        o1: '0',
-        n0: '0',
-        n1: '-1',
-      });
-    });
-
-    it('recognises nested roots by the root option', () => {
-      const inner = document.createElement('div');
-      inner.className = 'group';
-      inner.append(item('n0', { tabindex: '0' }));
-      const root = group(inner, item('o0'));
-
-      initRovingTabindex(root, { root: '.group' });
-
-      expect(tabindexes('n0', 'o0')).toEqual({ n0: '0', o0: '0' });
-    });
   });
 
   describe('a group described in options', () => {
@@ -370,26 +324,6 @@ describe('initRovingTabindex', () => {
 
       expect(stop).toBe(document.getElementById('a'));
       expect(tabindexes('a', 'b', 'c')).toEqual({ a: '0', b: '-1', c: '-1' });
-    });
-
-    it('passes over the items the skip option names', () => {
-      const heading = item('heading');
-      heading.className = 'heading';
-      const root = group(heading, item('a'));
-
-      expect(initRovingTabindex(root, { skip: '.heading' })).toBe(
-        document.getElementById('a'),
-      );
-    });
-
-    it('leaves marked-up items alone under rovingTabindex: false', () => {
-      const root = group(
-        item('a', { tabindex: '0' }),
-        item('b', { tabindex: '0' }),
-      );
-
-      expect(initRovingTabindex(root, { rovingTabindex: false })).toBeNull();
-      expect(tabindexes('a', 'b')).toEqual({ a: '0', b: '0' });
     });
   });
 

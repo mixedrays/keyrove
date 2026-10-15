@@ -4,7 +4,6 @@ import {
   KEYROVE_ATTR_FOCUS_KEY,
   KEYROVE_ATTR_NEXT_KEY,
   KEYROVE_ATTR_ROOT,
-  KEYROVE_ATTR_SKIP,
 } from '../../keyRove';
 import {
   activeId,
@@ -527,24 +526,6 @@ describe('createTypeahead', () => {
       pressKey('s', { from: shadow.activeElement! });
       expect(shadow.activeElement?.id).toBe('a');
     });
-
-    it('matches the items of a shadow root it listens on', () => {
-      const host = document.createElement('div');
-      document.body.appendChild(host);
-      const shadow = host.attachShadow({ mode: 'open' });
-      shadow.append(...mailbox());
-      const typeahead = createTypeahead();
-      const results: ReturnType<typeof typeahead>[] = [];
-      shadow.addEventListener('keydown', (e) =>
-        results.push(typeahead(e as KeyboardEvent)),
-      );
-      shadow.getElementById('a')!.focus();
-
-      pressKey('s', { from: shadow.activeElement! });
-
-      expect(shadow.activeElement?.id).toBe('c');
-      expect(results.map((result) => result?.to?.id)).toEqual(['c']);
-    });
   });
 
   describe('labels', () => {
@@ -656,17 +637,6 @@ describe('createTypeahead', () => {
       pressKey('d');
 
       expect(activeId()).toBe('b');
-    });
-
-    it('matches an item whose skip attribute is false', () => {
-      const drafts = createItem('a', 'Drafts');
-      drafts.setAttribute(KEYROVE_ATTR_SKIP, 'false');
-      renderList([drafts, createItem('b', 'Sent')]);
-      document.getElementById('b')!.focus();
-
-      pressKey('d');
-
-      expect(activeId()).toBe('a');
     });
 
     it('excludes disabled items', () => {

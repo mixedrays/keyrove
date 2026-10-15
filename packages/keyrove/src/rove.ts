@@ -8,15 +8,8 @@
  * skips, layout and roving stop apply exactly as they do for keys.
  */
 
-import { readConfig, rootTest } from './config.js';
-import {
-  attributeRoot,
-  moveFocus,
-  readGroup,
-  resolveRoot,
-  stopHolder,
-  stopSource,
-} from './group.js';
+import { readConfig } from './config.js';
+import { readGroups } from './group.js';
 import { resolveTarget } from './position.js';
 import type { KeyRoveOptions, MoveResult, StrideAction } from './types.js';
 
@@ -69,24 +62,16 @@ export const rove = (
   action: StrideAction,
   options: KeyRoveOptions = {},
 ): MoveResult | null => {
-  const isRoot = rootTest(options);
-  const root = resolveRoot(element as Element | null, element, isRoot);
+  const group = readGroups(options).at(element as Element | null, element);
 
-  if (!root) return null;
+  if (!group) return null;
 
-  const config = readConfig(root, options);
+  const config = readConfig(group.root, options);
 
   if (config.layout.kind === 'list' && action.endsWith('Row')) return null;
 
-  const { items: elements, focused } = readGroup(root, config.readItems);
-  const from =
-    focused ??
-    stopHolder(
-      root,
-      config.readItems,
-      isRoot ?? attributeRoot,
-      config.isRoving,
-    );
+  const { items: elements, focused } = group;
+  const from = focused ?? group.stop;
   const intent = from ? action : ENTRY[action];
 
   if (!intent) return null;
@@ -99,24 +84,10 @@ export const rove = (
     fromIndex: from ? elements.indexOf(from) : 0,
     layout: config.layout,
     pageLength: config.pageLength,
-    isSkipped: config.isSkipped,
+    isNavigable: group.isNavigable,
   });
 
   if (!target && !from) return null;
 
-  return moveFocus({
-    action,
-    from,
-    to: target,
-    isRoving: config.isRoving,
-    stopFrom: stopSource(
-      root,
-      from,
-      target,
-      config.readItems,
-      isRoot ?? attributeRoot,
-      config.isRoving,
-    ),
-    onMove: options.onMove,
-  });
+  return group.move({ action, from, to: target, onMove: options.onMove });
 };

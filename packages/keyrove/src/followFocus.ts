@@ -9,15 +9,7 @@
  * way a keypress does, so one config object serves every handler.
  */
 
-import { itemsReader, rootTest, rovingTest, skipTest } from './config.js';
-import {
-  attributeRoot,
-  listenerElement,
-  ownItems,
-  placeStop,
-  readGroup,
-  resolveRoot,
-} from './group.js';
+import { listenerElement, readGroups } from './group.js';
 import type { KeyRoveEvent, RovingTabindexOptions } from './types.js';
 
 /**
@@ -46,31 +38,25 @@ export const followFocus = (
   e: Pick<KeyRoveEvent, 'target' | 'currentTarget'>,
   options: RovingTabindexOptions = {},
 ): Element | null => {
-  const isRoot = rootTest(options);
-  const readItems = itemsReader(options);
+  const groups = readGroups(options);
   const scope = listenerElement(e.currentTarget);
 
   let from = e.target as Element | null;
 
   while (from) {
-    const root = resolveRoot(from, e.currentTarget, isRoot);
+    const group = groups.at(from, e.currentTarget);
 
-    if (!root) return null;
+    if (!group) return null;
 
-    const { focused } = readGroup(root, readItems);
+    const { root, focused } = group;
 
     if (focused) {
-      const isRoving = rovingTest(options);
+      // Only a navigable item of the group's own roving ones takes the stop.
+      if (!group.isNavigable(focused) || !group.roving.includes(focused)) {
+        return null;
+      }
 
-      if (!isRoving(focused) || skipTest(options)(focused)) return null;
-
-      const items = ownItems(root, readItems, isRoot ?? attributeRoot).filter(
-        isRoving,
-      );
-
-      if (!items.includes(focused)) return null;
-
-      placeStop(items, focused);
+      group.placeStop(focused);
 
       return focused;
     }

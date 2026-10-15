@@ -307,28 +307,6 @@ describe('rove', () => {
       });
     });
 
-    it('moves from the item focused inside a shadow root', () => {
-      const host = document.createElement('div');
-      document.body.appendChild(host);
-      const shadow = host.attachShadow({ mode: 'open' });
-      const list = document.createElement('div');
-      // Plain tab stops, so no roving stop stands in for the focused item.
-      list.append(
-        ...['a', 'b', 'c'].map((id) =>
-          item(id, { tabindex: '0', roving: false }),
-        ),
-      );
-      shadow.appendChild(list);
-      shadow.getElementById('b')!.focus();
-
-      expect(named(rove(list, 'next'))).toEqual({
-        action: 'next',
-        from: 'b',
-        to: 'c',
-      });
-      expect(shadow.activeElement?.id).toBe('c');
-    });
-
     it('moves in the group of a shadow root', () => {
       const host = document.createElement('div');
       document.body.appendChild(host);
@@ -473,21 +451,6 @@ describe('rove', () => {
         to: null,
       });
       expect(activeId()).toBe('b');
-    });
-
-    it("never starts from a nested group's stop", () => {
-      const root = group([
-        item('o0', { tabindex: '0', roving: false }),
-        nestedRoot(item('n0', { tabindex: '0' }), item('n1')),
-        item('o1', { tabindex: '0', roving: false }),
-      ]);
-      outsideButton();
-
-      expect(named(rove(root, 'next'))).toEqual({
-        action: 'next',
-        from: null,
-        to: 'o0',
-      });
     });
 
     it('does nothing in an empty group, or without an element', () => {

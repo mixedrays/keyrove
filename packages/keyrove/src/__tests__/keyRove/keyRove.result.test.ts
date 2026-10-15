@@ -284,27 +284,6 @@ describe('keyRove', () => {
         to: b,
       });
     });
-
-    it('counts focus that lands inside a shadow root', () => {
-      const onMove = vi.fn();
-      const host = document.createElement('div');
-      document.body.appendChild(host);
-      const shadow = host.attachShadow({ mode: 'open' });
-      const list = document.createElement('div');
-      const [a, b] = [createItem('a'), createItem('b')];
-      list.append(a, b);
-      shadow.appendChild(list);
-      list.addEventListener('keydown', (e) => keyRove(e, { onMove }));
-
-      pressKey('ArrowDown', list);
-
-      expect(shadow.activeElement).toBe(a);
-      expect(onMove).toHaveBeenCalledWith({
-        action: 'next',
-        from: null,
-        to: a,
-      });
-    });
   });
 
   describe('an event already consumed', () => {

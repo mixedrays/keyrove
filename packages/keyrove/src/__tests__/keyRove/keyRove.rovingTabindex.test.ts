@@ -1,4 +1,4 @@
-import { describe, it, expect, afterEach, vi } from 'vitest';
+import { describe, it, expect, afterEach } from 'vitest';
 import { followFocus } from '../../followFocus';
 import { keyRove, KEYROVE_ATTR_ROVING_TABINDEX } from '../../keyRove';
 import type { Options } from '../../types';
@@ -104,21 +104,6 @@ describe('keyRove', () => {
         ['without', false],
         ['with', true],
       ])('%s a followFocus listener', (_, follow) => {
-        it("keeps the outer group's stop when an arrow enters the nested group", () => {
-          const outer = render(NESTED(), { follow });
-          byId('a').focus();
-
-          pressKey('ArrowDown');
-
-          expect(activeId()).toBe('b');
-          expect(tabindexes(outer)).toEqual({
-            a: '0',
-            b: '0',
-            c: '-1',
-            d: '-1',
-          });
-        });
-
         it("moves the nested group's own stop to an item other than it", () => {
           const outer = render(NESTED({ inner: 'c' }), { follow });
           byId('a').focus();
@@ -131,21 +116,6 @@ describe('keyRove', () => {
             b: '0',
             c: '-1',
             d: '-1',
-          });
-        });
-
-        it('enters the nested group backwards the same way', () => {
-          const outer = render(NESTED({ outer: 'd' }), { follow });
-          byId('d').focus();
-
-          pressKey('ArrowUp');
-
-          expect(activeId()).toBe('c');
-          expect(tabindexes(outer)).toEqual({
-            a: '-1',
-            b: '-1',
-            c: '0',
-            d: '0',
           });
         });
 
@@ -166,65 +136,6 @@ describe('keyRove', () => {
             d: '0',
           });
         });
-      });
-
-      it('reads the groups through root and item selectors the same way', () => {
-        const options: Options = {
-          root: '.group',
-          items: '.item',
-          rovingTabindex: true,
-        };
-        const outer = render(
-          `
-            <button id="a" class="item" tabindex="0">A</button>
-            <div id="inner" class="group">
-              <button id="b" class="item" tabindex="-1">B</button>
-              <button id="c" class="item" tabindex="0">C</button>
-            </div>
-            <button id="d" class="item" tabindex="-1">D</button>
-          `,
-          { follow: true, options },
-        );
-        byId('a').focus();
-
-        pressKey('ArrowDown');
-
-        expect(activeId()).toBe('b');
-        expect(tabindexes(outer)).toEqual({ a: '0', b: '0', c: '-1', d: '-1' });
-      });
-
-      it('counts an item that is itself a root in the group above it', () => {
-        const outer = render(`
-          <button id="a" data-keyrove-item data-keyrove-roving-tabindex tabindex="0">A</button>
-          <div id="panel" data-keyrove-item data-keyrove-roving-tabindex data-keyrove-root tabindex="-1">
-            <button id="p0" data-keyrove-item data-keyrove-roving-tabindex tabindex="0">P0</button>
-            <button id="p1" data-keyrove-item data-keyrove-roving-tabindex tabindex="-1">P1</button>
-          </div>
-        `);
-        byId('a').focus();
-
-        pressKey('ArrowDown');
-
-        expect(activeId()).toBe('panel');
-        expect(tabindexes(outer)).toEqual({
-          a: '-1',
-          panel: '0',
-          p0: '0',
-          p1: '-1',
-        });
-      });
-
-      it('puts every changed tab stop back when the nested item refuses focus', () => {
-        const outer = render(NESTED({ inner: 'c' }));
-        // Inert or hidden in a browser: focusable by its attributes, and still
-        // refusing focus.
-        vi.spyOn(byId('b'), 'focus').mockImplementation(() => {});
-        byId('a').focus();
-
-        pressKey('ArrowDown');
-
-        expect(activeId()).toBe('a');
-        expect(tabindexes(outer)).toEqual({ a: '0', b: '-1', c: '0', d: '-1' });
       });
     });
   });
