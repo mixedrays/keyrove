@@ -10,3 +10,7 @@ export const buildElements = (count: number, skipped: number[] = []) =>
   });
 
 export const idOf = (el: Element | null | undefined) => el?.id;
+
+/** Lands on every element but the skipped ones, as a group's navigable test does. */
+export const isNavigable = (element: Element) =>
+  !element.hasAttribute(KEYROVE_ATTR_SKIP);

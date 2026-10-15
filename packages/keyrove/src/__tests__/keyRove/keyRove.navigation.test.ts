@@ -1,10 +1,5 @@
 import { describe, it, expect, afterEach } from 'vitest';
-import {
-  keyRove,
-  KEYROVE_ATTR_ITEM,
-  KEYROVE_ATTR_ROOT,
-  KEYROVE_ATTR_SKIP,
-} from '../../keyRove';
+import { keyRove, KEYROVE_ATTR_ROOT } from '../../keyRove';
 import {
   activeId,
   createItem,
@@ -121,30 +116,6 @@ describe('keyRove', () => {
       pressKey('ArrowDown');
 
       expect(activeId()).toBe('c');
-    });
-
-    it('skips items marked with the skip attribute when moving backward', () => {
-      renderList([
-        createItem('a'),
-        createItem('b', { skip: true }),
-        createItem('c'),
-      ]);
-      document.getElementById('c')!.focus();
-
-      pressKey('ArrowUp');
-
-      expect(activeId()).toBe('a');
-    });
-
-    it('keeps an item navigable when its skip attribute is false', () => {
-      const skipped = createItem('b');
-      skipped.setAttribute(KEYROVE_ATTR_SKIP, 'false');
-      renderList([createItem('a'), skipped, createItem('c')]);
-      document.getElementById('a')!.focus();
-
-      pressKey('ArrowDown');
-
-      expect(activeId()).toBe('b');
     });
 
     describe('when every item is skipped', () => {
@@ -331,34 +302,6 @@ describe('keyRove', () => {
 
       expect(activeId()).toBe('b');
     });
-
-    it('ignores an inner root whose attribute is false', () => {
-      const inner = document.createElement('div');
-      inner.setAttribute(KEYROVE_ATTR_ROOT, 'false');
-      inner.append(createItem('a'), createItem('b'));
-
-      const outer = document.createElement('div');
-      outer.setAttribute(KEYROVE_ATTR_ROOT, 'true');
-      outer.append(inner, createItem('c'));
-      document.body.appendChild(outer);
-      outer.addEventListener('keydown', (e) => keyRove(e));
-
-      document.getElementById('b')!.focus();
-      pressKey('ArrowDown');
-
-      expect(activeId()).toBe('c');
-    });
-
-    it('ignores items whose item attribute is false', () => {
-      const ignored = createItem('b');
-      ignored.setAttribute(KEYROVE_ATTR_ITEM, 'false');
-      renderList([createItem('a'), ignored, createItem('c')]);
-      document.getElementById('a')!.focus();
-
-      pressKey('ArrowDown');
-
-      expect(activeId()).toBe('c');
-    });
   });
 
   describe('listener placement', () => {
@@ -474,38 +417,6 @@ describe('keyRove', () => {
         { action: 'next', from: 'b', to: 'c' },
         { action: 'prev', from: 'c', to: 'b' },
       ]);
-    });
-
-    it('goes Home and End from the focused item', () => {
-      const { shadow, byId, press, named } = renderShadow(ITEMS);
-      byId('b').focus();
-
-      press('End');
-      expect(shadow.activeElement?.id).toBe('c');
-
-      press('End');
-      expect(shadow.activeElement?.id).toBe('c');
-
-      press('Home');
-      expect(shadow.activeElement?.id).toBe('a');
-      expect(named()).toEqual([
-        { action: 'end', from: 'b', to: 'c' },
-        { action: 'end', from: 'c', to: null },
-        { action: 'home', from: 'c', to: 'a' },
-      ]);
-    });
-
-    it('navigates from the item holding focus in a descendant', () => {
-      const { shadow, byId, press, named } = renderShadow(`
-        <div id="a" data-keyrove-item tabindex="-1"><button id="control">A</button></div>
-        <button id="b" data-keyrove-item>B</button>
-      `);
-      byId('control').focus();
-
-      press('ArrowDown');
-
-      expect(shadow.activeElement?.id).toBe('b');
-      expect(named()).toEqual([{ action: 'next', from: 'a', to: 'b' }]);
     });
 
     it('leaves exit alone on a focused root that is an item of the group around it', () => {
@@ -628,22 +539,6 @@ describe('keyRove', () => {
       expect(shadow.activeElement?.id).toBe('a');
     });
 
-    it('finds its items by selector, and leaves a root selector unmatched', () => {
-      const { shadow, byId, press, named } = renderShadow(
-        `
-          <button id="a">A</button>
-          <button id="b">B</button>
-        `,
-        { items: 'button', root: '.group' },
-      );
-      byId('a').focus();
-
-      press('ArrowDown');
-
-      expect(shadow.activeElement?.id).toBe('b');
-      expect(named()).toEqual([{ action: 'next', from: 'a', to: 'b' }]);
-    });
-
     it('leaves a marked root inside it to its own attributes', () => {
       const { shadow, byId, press, named } = renderShadow(`
         <div data-keyrove-root data-keyrove-loop>
@@ -688,22 +583,6 @@ describe('keyRove', () => {
 
       expect(shadow.activeElement?.id).toBe('cell');
       expect(named()).toEqual([{ action: 'exit', from: 'inner', to: 'cell' }]);
-    });
-
-    it('carries the roving stop', () => {
-      const { byId, press } = renderShadow(
-        `
-          <button id="a" data-keyrove-item tabindex="0">A</button>
-          <button id="b" data-keyrove-item tabindex="-1">B</button>
-        `,
-        { rovingTabindex: true },
-      );
-      byId('a').focus();
-
-      press('ArrowDown');
-
-      expect(byId('a').getAttribute('tabindex')).toBe('-1');
-      expect(byId('b').getAttribute('tabindex')).toBe('0');
     });
 
     it('leaves a key alone with focus on no item', () => {

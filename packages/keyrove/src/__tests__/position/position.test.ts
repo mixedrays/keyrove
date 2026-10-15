@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { resolveTarget } from '../../position';
 import type { Layout, ResolveTargetArgs } from '../../types';
-import { buildElements, idOf } from './testUtils';
+import { buildElements, idOf, isNavigable } from './testUtils';
 
 const LIST: Layout = { kind: 'list', cols: 1, horizontal: false, loop: false };
 const LOOP: Layout = { ...LIST, loop: true };
@@ -16,6 +16,7 @@ const resolve = (args: ResolveArgs) =>
     elements: buildElements(4),
     layout: LIST,
     pageLength: 10,
+    isNavigable,
     ...args,
   });
 

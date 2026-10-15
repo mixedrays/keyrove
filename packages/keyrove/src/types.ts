@@ -253,15 +253,14 @@ export type ItemAttributes = {
  * Every setting one move needs, resolved for the root it is navigating:
  * options where they name a field, the root's attributes where they do not.
  * The layers below take these as given and never read a source of their own.
+ * What the group's items are, and which of them a move lands on, are the
+ * group's own readings: see {@link GroupReader}.
  */
 export type GroupConfig = {
   layout: Layout;
   explicit: ExplicitBinding;
   rtl: () => boolean;
   pageLength: number;
-  readItems: ReadItems;
-  isSkipped: IsSkipped;
-  isRoving: IsRoving;
 };
 
 /**
@@ -386,15 +385,14 @@ export type FocusKey = {
 };
 
 /**
- * The readings the group and position layers need but do not make themselves:
- * which elements a root governs, which of them a move passes over, which
- * element scopes a group, and whether the item focus is leaving carries the
- * roving tab stop.
+ * The four readings a group is read by: which elements a root governs, which
+ * of them a move passes over, which element scopes a group, and whether the
+ * item focus is leaving carries the roving tab stop.
  *
- * Each one defaults to the `data-keyrove-*` reading it stands for, so the
- * attribute API passes none of them. They are parameters rather than reads so
- * that a second config source can answer the same questions without either
- * layer knowing where the answers came from.
+ * The group layer resolves them once from options, each falling back to the
+ * `data-keyrove-*` reading it stands for, so the attribute API passes none of
+ * them. Every layer past it asks the {@link Group} instead, and never learns
+ * where the answers came from.
  */
 export type ReadItems = (root: Element) => Element[];
 export type IsSkipped = (element: Element) => boolean;
@@ -428,8 +426,12 @@ export type ResolveTargetArgs = {
   layout: Layout;
   /** Rows per page jump — items, in a list. */
   pageLength: number;
-  /** Whether a move passes an item over. Defaults to the skip attribute. */
-  isSkipped?: IsSkipped;
+  /**
+   * Whether a move can land on an element: the group's navigable test. The
+   * elements it turns down keep their place in the sequence, and their cell
+   * in a grid.
+   */
+  isNavigable: (element: Element) => boolean;
 };
 
 export type ToggleTabIndexArgs = {
@@ -437,35 +439,114 @@ export type ToggleTabIndexArgs = {
   isActive: boolean;
 };
 
-/** What a root governs: its navigable items in DOM order, and the item holding focus. */
+/** The group settings the group layer reads: the four readings' sources. */
+export type GroupReadingOptions = Pick<
+  GroupOptions,
+  'items' | 'root' | 'skip' | 'rovingTabindex'
+>;
+
+/**
+ * One group, resolved for one call: the items its root governs and every
+ * question the handlers ask about them, with the way a move lands in it.
+ *
+ * Read lazily: each answer is read off the DOM the first time it is asked
+ * for, and kept for the life of the call, so a press that is turned away
+ * early reads nothing it does not need, and nothing is read twice. Its two
+ * tests take no `this`, and can be handed on as callbacks.
+ */
 export type Group = {
-  items: Element[];
-  focused: Element | null;
+  /**
+   * The element the group's items are read in: a root, the listener's
+   * element, or a shadow root, which has no attributes.
+   */
+  readonly root: Element;
+  /**
+   * The sequence a move strides through: the root's items in DOM order,
+   * disabled ones aside — `disabled` is the DOM's own word for an element that
+   * takes no part, whichever source named the items. A nested root's items
+   * keep their place in it, and so do skipped ones.
+   */
+  readonly items: Element[];
+  /**
+   * The item holding focus, where focus is anywhere inside it
+   * (`:focus-within`) — the outermost, where items nest. `null` with focus in
+   * none of them.
+   */
+  readonly focused: Element | null;
+  /**
+   * The items the group governs itself: its items less those of a root nested
+   * inside it, which belong to that root — an item that is itself a root
+   * belongs to the group around it. Disabled ones included.
+   */
+  readonly own: Element[];
+  /** The own items that carry the roving stop: the set one stop is shared across. */
+  readonly roving: Element[];
+  /**
+   * The own item holding the roving stop, disabled ones aside: the first that
+   * {@link Group.holdsStop}. `null` where the group has none.
+   */
+  readonly stop: Element | null;
+  /** Whether a move can land on an item: one neither skipped nor disabled. */
+  isNavigable: (item: Element) => boolean;
+  /** Whether an item holds the roving stop: it carries it, and has `tabindex="0"`. */
+  holdsStop: (item: Element) => boolean;
+  /**
+   * Gives `stop` the group's one `tabindex="0"` and every other roving item
+   * `-1` — or all of them `-1` where `stop` is `null`. A nested group's stop
+   * is left alone. Only attributes that change are written, so a group already
+   * in order takes no mutations.
+   */
+  placeStop(stop: Element | null): void;
+  /**
+   * Lands a move through the group's order. The order runs on through a
+   * nested root's items, but each group keeps a stop of its own: a move within
+   * one group carries the stop from `from`, and a move into another carries
+   * that group's own stop, leaving the stop of the group focus left where it
+   * is. A move with no `from` enters from outside, and carries nothing.
+   */
+  move<Action extends string>(move: MoveArgs<Action>): ActionResult<Action>;
+  /**
+   * Lands a move into this group from the one next to it, across a nested
+   * root's boundary: the stop carried is this group's own, wherever focus
+   * came from, and the group focus left keeps its stop for the way back.
+   */
+  cross<Action extends string>(move: MoveArgs<Action>): ActionResult<Action>;
+};
+
+/**
+ * How a handler reads its groups: the four readings, resolved once from its
+ * options, and the two ways to a group — from where an event happened, or from
+ * a root.
+ */
+export type GroupReader = {
+  /**
+   * The group an event at `target` is in: the nearest root at or above it,
+   * else the listener's element. `null` with neither. Resolving from the
+   * target rather than the listener is what lets one delegated listener serve
+   * several groups, and lets a nested root win while focus is in it.
+   */
+  at: (
+    target: Element | null | undefined,
+    listener: EventTarget | null | undefined,
+  ) => Group | null;
+  /** The group `root` governs: an element, or a shadow root a listener is attached to. */
+  of: (root: Element | ShadowRoot) => Group;
+  /** Whether an element is a root, for the walks from one group to the next. */
+  isRoot: IsRoot;
 };
 
 /**
  * What it takes to land a move: the event to claim, the action to report, the
- * item focus is leaving (`null` from outside the group) and the one it lands
- * on (nullish when there is nowhere to go). Generic in the action so each
- * handler's result comes back exactly typed.
+ * item focus is leaving (`null` from outside the group), the one it lands on
+ * (nullish when there is nowhere to go), and who to tell. Generic in the action
+ * so each handler's result comes back exactly typed. Which item the roving
+ * stop is carried from is the group's to decide: see {@link Group.move}.
  */
-export type MoveFocusArgs<Action extends string> = {
+export type MoveArgs<Action extends string> = {
   /** The keypress to claim. A move made from code has none. */
   e?: Pick<KeyRoveEvent, 'preventDefault'>;
   action: Action;
   from: Element | null;
   to: Element | null | undefined;
-  /**
-   * Whether the item focus is leaving carries the roving tab stop. Defaults to
-   * the roving-tabindex attribute.
-   */
-  isRoving?: IsRoving;
-  /**
-   * The item the roving stop is carried from, where that is not `from`: a
-   * move onto a nested group's item, or across a nested root's boundary,
-   * lands in another group, whose own stop moves while the group focus left
-   * keeps its. Nullish carries nothing.
-   */
-  stopFrom?: Element | null;
   onMove?: (move: ActionResult<Action> & { to: Element }) => void;
 };
