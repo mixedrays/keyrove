@@ -8,7 +8,7 @@ import {
 import type { ReactNode } from 'react';
 import { notFound } from 'virtual:docs/site';
 
-import appCss from '../app.css?url';
+import appCss from '../style.css?url';
 import { GENERATED_FILES } from '../../build/addresses.ts';
 import { addresses } from '@/addresses.ts';
 import { DocsLayout } from '@/components/docs-layout.tsx';
