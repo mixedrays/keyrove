@@ -45,6 +45,12 @@ jobs:
       - name: Deploy to Cloudflare Pages
         id: deploy
         uses: cloudflare/wrangler-action@v3
+        # The action installs Wrangler with a bare `pnpm add` at the repo root,
+        # which pnpm refuses in a workspace with more than one package pattern
+        # (`apps/*` and `packages/*`). Lifted for this step alone, so the check
+        # still guards local installs.
+        env:
+          npm_config_ignore_workspace_root_check: true
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
