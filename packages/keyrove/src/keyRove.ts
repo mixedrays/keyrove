@@ -1,7 +1,8 @@
 import { buildBindings } from './bindings.js';
 import { crossBoundary } from './boundary.js';
 import { readConfig, readFocusKeys } from './config.js';
-import { holdsFocus, listenerElement, readGroups } from './group.js';
+import { holdsFocus, readGroups } from './group.js';
+import { listenerElement } from './nesting.js';
 import { resolveTarget } from './position.js';
 import { hasCommandModifier, isEditableTarget, matchesCombo } from './utils.js';
 import type { KeyRoveEvent, KeyRoveOptions, MoveResult } from './types.js';
@@ -82,12 +83,13 @@ export const keyRove = (
   // An item's focus row moves in the item's own group — the nearest root above
   // it, else the listener's element — so `from` is the sibling holding focus,
   // the roving stop stays within one group, and a key pressed while focus is
-  // already inside its item is a consumed no-op. The search starts at the
-  // item's *parent*: a panel is often itself the root of the list inside it,
-  // and its group is the one above.
+  // already inside its item is a consumed no-op. It is the group *around* the
+  // item: a panel is often itself the root of the list inside it, and its
+  // group is the one above. An element outside the listener's reach — one
+  // `focusKeys` names outright — is in no group of keyrove's.
   const group =
     binding.intent === 'focus'
-      ? (groups.at(binding.target.parentElement, scope) ?? groups.of(scope))
+      ? (groups.around(binding.target, scope) ?? groups.of(scope))
       : pressed;
   const { items: elements, focused } = group;
 

@@ -183,6 +183,15 @@ The root is the nearest ancestor of the event target carrying
 the listener is attached to (`currentTarget`). A listener on `document` or
 `window` falls back to `<html>`.
 
+The search doesn't stop at the listener's element. If no root sits between the
+target and the listener, a root above the listener wins, and its items become
+the group, including any outside the listener. Settings can therefore sit on a
+wrapper root while the listener is on an inner element. Moves between groups
+stay inside the listener's element: [exit](#exit-and-enter),
+[focus keys](#focus-keys) and [`followFocus`](#followfocus-event-options) look
+for the group around a nested root or an item no further out than the
+listener's element.
+
 A listener on a shadow root falls back to the shadow root itself. It has no
 attributes, so configure that group with [options](/docs/attributes-and-options),
 or wrap the items in an element carrying `data-keyrove-root`. Reading

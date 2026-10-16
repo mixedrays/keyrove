@@ -9,7 +9,8 @@
  * way a keypress does, so one config object serves every handler.
  */
 
-import { listenerElement, readGroups } from './group.js';
+import { readGroups } from './group.js';
+import { listenerElement } from './nesting.js';
 import type { KeyRoveEvent, RovingTabindexOptions } from './types.js';
 
 /**
@@ -41,13 +42,9 @@ export const followFocus = (
   const groups = readGroups(options);
   const scope = listenerElement(e.currentTarget);
 
-  let from = e.target as Element | null;
+  let group = groups.at(e.target as Element | null, e.currentTarget);
 
-  while (from) {
-    const group = groups.at(from, e.currentTarget);
-
-    if (!group) return null;
-
+  while (group) {
     const { root, focused } = group;
 
     if (focused) {
@@ -63,9 +60,7 @@ export const followFocus = (
 
     // No item of this group holds focus. The group around it may, but never
     // one past the listener's reach.
-    if (!scope || root === scope || !scope.contains(root)) return null;
-
-    from = root.parentElement;
+    group = scope && groups.around(root, scope);
   }
 
   return null;

@@ -9,7 +9,7 @@
  */
 
 import { activeElementOf } from './group.js';
-import type { BoundaryAction, Group, GroupReader, IsRoot } from './types.js';
+import type { BoundaryAction, Group, GroupReader } from './types.js';
 
 // `Node.DOCUMENT_POSITION_FOLLOWING`, spelled out so reading it needs no
 // global `Node`.
@@ -20,29 +20,6 @@ const FOLLOWING = 4;
  * stop the move carries.
  */
 export type Crossing = { group: Group; to: Element };
-
-/**
- * The group a root sits in: the nearest root above it, else the listener's
- * element, and never one past the listener's reach. `null` for a root that
- * is the listener's element, or outside it: nothing around it is keyrove's.
- */
-const outerRoot = (
-  root: Element,
-  scope: Element,
-  isRoot: IsRoot,
-): Element | null => {
-  if (root === scope || !scope.contains(root)) return null;
-
-  for (
-    let element = root.parentElement;
-    element && element !== scope;
-    element = element.parentElement
-  ) {
-    if (isRoot(element)) return element;
-  }
-
-  return scope;
-};
 
 /** A group's own items that a move can land on. */
 const landings = (group: Group) => group.own.filter(group.isNavigable);
@@ -59,11 +36,10 @@ const exit = (
   root: Element,
   scope: Element,
 ): Crossing | null => {
-  const outer = outerRoot(root, scope, groups.isRoot);
+  const group = groups.around(root, scope);
 
-  if (!outer) return null;
+  if (!group) return null;
 
-  const group = groups.of(outer);
   const items = landings(group);
   const after = items.findIndex(
     (item) => root.compareDocumentPosition(item) & FOLLOWING,
@@ -83,11 +59,10 @@ const exit = (
  * where the user left it; else to its first item a move can land on.
  */
 const enter = (groups: GroupReader, item: Element): Crossing | null => {
-  const inner = Array.from(item.querySelectorAll('*')).find(groups.isRoot);
+  const group = groups.inside(item);
 
-  if (!inner) return null;
+  if (!group) return null;
 
-  const group = groups.of(inner);
   const items = landings(group);
   const to = items.find(group.holdsStop) ?? items[0];
 
