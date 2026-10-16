@@ -1,19 +1,18 @@
 import Shiki from '@shikijs/markdown-it';
-import MarkdownIt, {
-  type MarkdownIt as MarkdownItInstance,
-  type Token,
-} from 'markdown-it';
+import MarkdownIt, { type Token } from 'markdown-it';
 
 import { icon } from './icons.ts';
 
 /**
- * Markdown → HTML, with the two bits of structure the docs layout needs:
- * stable heading ids to link at, and the heading list the "On this page" rail
- * is built from.
+ * Markdown → HTML, with the structure the site needs beside it: stable heading
+ * ids to link at, the heading list the "On this page" rail is built from, and
+ * the sections the search index is built from.
  *
- * Both come out of a single parse. `md.render` would hide the token stream, so
- * this parses and renders in two steps and walks the tokens in between —
- * cheaper and less fragile than re-deriving headings from the rendered HTML.
+ * All of it comes out of a single parse. `md.render` would hide the token
+ * stream, so this parses and renders in two steps and walks the tokens in
+ * between — cheaper and less fragile than re-deriving headings from the
+ * rendered HTML, and the ids a search result links to are the ids the page
+ * renders, because they are the same tokens.
  */
 
 /**
@@ -36,14 +35,22 @@ export type Heading = {
  */
 const ANCHORED_TAGS = new Set(['h2', 'h3']);
 
-export type RenderContext = {
-  /** Turns a site-absolute href like `/docs/api` into one this page can use. */
-  resolveHref: (href: string) => string;
+/**
+ * A stretch of a page a search result can land on: the text under one h2 or
+ * h3, up to the next. The first section is what comes before any heading, and
+ * has no id of its own.
+ */
+export type Section = {
+  id: string;
+  heading: string;
+  text: string;
 };
 
-export type RenderedMarkdown = {
-  html: string;
+export type ParsedMarkdown = {
   headings: Heading[];
+  sections: Section[];
+  /** The HTML. The first call loads Shiki, which takes seconds. */
+  render: () => Promise<string>;
 };
 
 /** What a tab calls a block when its fence gives no `title="…"`. */
@@ -150,13 +157,13 @@ const collectHeadings = (tokens: Token[]): Heading[] => {
   return headings;
 };
 
-/** Search uses the same parser and ID allocator, without loading Shiki. */
-const searchParser = MarkdownIt({ html: true, linkify: true });
-
-export const collectSearchSections = (source: string) => {
-  const tokens = searchParser.parse(source, {});
-  collectHeadings(tokens);
-  const sections = [{ id: '', heading: '', text: '' }];
+/**
+ * Splits the page at its anchored headings, keeping the text a reader would
+ * search for: prose, inline code and code blocks. Runs after
+ * `collectHeadings`, whose ids it reads.
+ */
+const collectSections = (tokens: Token[]): Section[] => {
+  const sections: Section[] = [{ id: '', heading: '', text: '' }];
   for (let index = 0; index < tokens.length; index++) {
     const token = tokens[index];
     if (token.type === 'heading_open' && ANCHORED_TAGS.has(token.tag)) {
@@ -179,17 +186,16 @@ export const collectSearchSections = (source: string) => {
 };
 
 /**
- * Rewrites the site-absolute links authors write in markdown.
+ * Opens off-site links in a new tab, with the usual `rel`.
  *
- * Pages are linked as `/docs/api` in the source regardless of where they end up
- * being served from; `resolveHref` is what turns that into a working href for
- * the page currently being rendered. Off-site links are left alone but get the
- * usual `rel`, since they open in a new tab.
+ * Links between pages are written site-absolute, as `/docs/api`, and stay that
+ * way: the router prefixes the deploy base when it renders them, and a second
+ * prefix here would double it.
  */
-const resolveLinks = (tokens: Token[], { resolveHref }: RenderContext) => {
+const openExternalLinks = (tokens: Token[]) => {
   for (const token of tokens) {
     if (token.type === 'inline') {
-      resolveLinks(token.children ?? [], { resolveHref });
+      openExternalLinks(token.children ?? []);
       continue;
     }
 
@@ -198,11 +204,8 @@ const resolveLinks = (tokens: Token[], { resolveHref }: RenderContext) => {
     // markdown-it types attribute values as `string | number`; an href is
     // always the former, but the narrowing has to be written out.
     const href = String(token.attrGet('href') ?? '');
-    if (href === '') continue;
 
-    if (href.startsWith('/')) {
-      token.attrSet('href', resolveHref(href));
-    } else if (/^https?:\/\//.test(href)) {
+    if (/^https?:\/\//.test(href)) {
       token.attrSet('target', '_blank');
       token.attrSet('rel', 'noreferrer');
     }
@@ -210,34 +213,37 @@ const resolveLinks = (tokens: Token[], { resolveHref }: RenderContext) => {
 };
 
 /**
- * Building the highlighter loads Shiki's grammars, so the instance is created
- * once and shared. Rendering itself stays synchronous and per-page.
+ * Building the highlighter loads Shiki's grammars, which takes seconds, so it
+ * is loaded once, on the first render, and shared. Parsing does not wait for
+ * it: Shiki only sets the `highlight` option the fence rule calls, so the
+ * tokens are the same with it or without it.
  */
-let instance: Promise<MarkdownItInstance> | undefined;
+let highlighter: Promise<void> | undefined;
 
-const createRenderer = async () => {
-  const md = MarkdownIt({ html: true, linkify: true, typographer: false });
-
-  md.use(
-    await Shiki({
-      themes: THEMES,
-      // Emit the CSS variables only — with no default colour baked in, the
-      // `dark` variant in style.css is what decides which theme applies.
-      defaultColor: false,
-      transformers: [
-        {
-          pre(node) {
-            // Carry the site's panel styling over and drop Shiki's inline
-            // background, so blocks keep their border and spacing; only the
-            // tokens inside get themed.
-            node.properties.class = `code-block ${node.properties.class ?? ''}`;
-            node.properties['data-lang'] = this.options.lang;
-            delete node.properties.style;
-          },
+const loadHighlighter = () =>
+  (highlighter ??= Shiki({
+    themes: THEMES,
+    // Emit the CSS variables only — with no default colour baked in, the
+    // `dark` variant in style.css is what decides which theme applies.
+    defaultColor: false,
+    transformers: [
+      {
+        pre(node) {
+          // Carry the site's panel styling over and drop Shiki's inline
+          // background, so blocks keep their border and spacing; only the
+          // tokens inside get themed.
+          node.properties.class = `code-block ${node.properties.class ?? ''}`;
+          node.properties['data-lang'] = this.options.lang;
+          delete node.properties.style;
         },
-      ],
-    }),
-  );
+      },
+    ],
+  }).then((plugin) => {
+    md.use(plugin);
+  }));
+
+const createRenderer = () => {
+  const md = MarkdownIt({ html: true, linkify: true, typographer: false });
 
   /*
    * Blocks written back to back are one panel with a tab per block: the
@@ -284,7 +290,7 @@ const createRenderer = async () => {
       }
     }
 
-    // renderMarkdown always passes one; the fallback only satisfies the type.
+    // render() always passes one; the fallback only satisfies the type.
     const page = (env ?? {}) as { codeTabs?: number };
     if (isFirst) page.codeTabs = (page.codeTabs ?? 0) + 1;
     const id = `code-tabs-${page.codeTabs}`;
@@ -375,16 +381,24 @@ const createRenderer = async () => {
   return md;
 };
 
-export const renderMarkdown = async (
-  source: string,
-  context: RenderContext,
-): Promise<RenderedMarkdown> => {
-  instance ??= createRenderer();
-  const md = await instance;
+const md = createRenderer();
 
+/**
+ * Parses a page once. The headings and sections are read off the tokens
+ * straight away; `render` turns the same tokens into HTML, so every id either
+ * of them names is an id the HTML carries.
+ */
+export const parseMarkdown = (source: string): ParsedMarkdown => {
   const tokens = md.parse(source, {});
   const headings = collectHeadings(tokens);
-  resolveLinks(tokens, context);
+  openExternalLinks(tokens);
 
-  return { html: md.renderer.render(tokens, md.options, {}), headings };
+  return {
+    headings,
+    sections: collectSections(tokens),
+    render: async () => {
+      await loadHighlighter();
+      return md.renderer.render(tokens, md.options, {});
+    },
+  };
 };
