@@ -67,10 +67,8 @@ const hasClass = (element: DomElement, name: string) =>
  * for `dangerouslySetInnerHTML`, rather than as a tree React would reconcile.
  */
 const isOpaque = (element: DomElement) =>
-  hasClass(element, 'demo-preview') ||
   hasClass(element, 'demo-panel-preview') ||
-  'data-demo-readout' in element.attribs ||
-  'data-hero-readout' in element.attribs;
+  'data-demo-readout' in element.attribs;
 
 export const toHtmlTree = (html: string): HtmlNode[] => {
   const options = {

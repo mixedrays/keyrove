@@ -411,9 +411,9 @@
    * demo markup, which is a list inside this prose — override without
    * escalating. The demo exclusions are explicit for the same reason: a
    * `.demo-surface` is a `<ul>` whose items are `<li>` — the tree's with more
-   * `<ul>`s nested in them — a `.demo-log-list` is an `<ol>` of the same, and
-   * none of them should pick up list styling. The landing page's `.hero-facts`
-   * and `.hero-folders` are `<ul>`s on the same terms.
+   * `<ul>`s nested in them — and none of them should pick up list styling.
+   * The landing page's `.hero-facts` and `.hero-folders` are `<ul>`s on the
+   * same terms.
    */
   .markdown {
     @apply text-zinc-700 dark:text-zinc-300;
@@ -469,7 +469,7 @@
     @apply mt-4 list-disc space-y-2 pl-6;
   }
 
-  .markdown :where(ol:not(.demo-log-list)) {
+  .markdown :where(ol) {
     @apply mt-4 list-decimal space-y-2 pl-6;
   }
 
@@ -626,8 +626,8 @@
    * The demo column. A wash of the accent sits behind the frame to lift it off
    * the page, and the frame takes a solid ground so the wash shows only
    * around it. The wash's colour is a variable set here rather than a `dark:`
-   * utility on the pseudo-element, for the reason demos.css gives: that
-   * utility ends in a `:where()` clause, which cannot follow `::before`.
+   * utility on the pseudo-element: that utility ends in a `:where()` clause,
+   * which cannot follow `::before`.
    */
   .hero-demo {
     @apply relative isolate min-w-0;
