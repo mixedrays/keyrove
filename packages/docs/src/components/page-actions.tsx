@@ -1,12 +1,11 @@
 import type { PageInfo } from 'virtual:docs/site';
 
-import { createHrefResolver, toMarkdownPath } from '../../build/paths.ts';
+import { twinPath } from '../../build/addresses.ts';
+import { addresses } from '@/addresses.ts';
 import { Icon } from '@/components/icon.tsx';
 import { SiteLink } from '@/components/site-link.tsx';
 import { Button } from '@/components/ui/button.tsx';
 import { useFlash } from '@/lib/utils.ts';
-
-const resolveHref = createHrefResolver(import.meta.env.BASE_URL);
 
 /**
  * "Copy page" — fetches the page's own `.md` twin and puts it on the clipboard.
@@ -19,7 +18,7 @@ function CopyPageButton({ href }: { href: string }) {
 
   const copy = async () => {
     try {
-      const response = await fetch(resolveHref(href));
+      const response = await fetch(addresses.href(href));
       if (!response.ok) throw new Error(String(response.status));
 
       await navigator.clipboard.writeText(await response.text());
@@ -57,15 +56,15 @@ function CopyPageButton({ href }: { href: string }) {
  * it stops at the text instead of running under the glyph beside it.
  */
 export function PageActions({ page }: { page: PageInfo }) {
-  const markdownHref = `/${toMarkdownPath(page.route)}`;
+  const twin = twinPath(page.route);
 
   return (
     <div className="page-actions">
-      <SiteLink href={markdownHref} className="page-action">
+      <SiteLink href={twin} className="page-action">
         <Icon name="markdown" className="size-3.5" />
         <span>View as Markdown</span>
       </SiteLink>
-      <CopyPageButton href={markdownHref} />
+      <CopyPageButton href={twin} />
       <a href={page.sourceUrl} className="page-action">
         <Icon name="github" className="size-3.5" />
         <span>View source</span>

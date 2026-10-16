@@ -9,6 +9,6 @@ import { serveFile } from '@/server/files.ts';
  */
 export const Route = createFileRoute('/{$}.md')({
   server: {
-    handlers: { GET: ({ params }) => serveFile(`${params._splat}.md`) },
+    handlers: { GET: ({ pathname }) => serveFile(pathname) },
   },
 });

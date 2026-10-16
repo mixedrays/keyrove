@@ -4,6 +4,7 @@ import { fileURLToPath } from 'node:url';
 
 import matter from 'gray-matter';
 
+import { GENERATED_FILES } from './addresses.ts';
 import { loadLastModified } from './git.ts';
 
 /**
@@ -83,7 +84,7 @@ export type NavGroup = { label: string; pages: Page[]; links: NavLink[] };
  * the pager walks pages, and this is not one.
  */
 const EXTRA_LINKS: Record<string, NavLink[]> = {
-  Guide: [{ label: 'llms.txt', href: '/llms.txt' }],
+  Guide: [{ label: 'llms.txt', href: GENERATED_FILES.llmsTxt.path }],
 };
 
 /** Frontmatter is authored by hand, so treat every field as missing until proven otherwise. */
