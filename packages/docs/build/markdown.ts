@@ -1,8 +1,6 @@
 import Shiki from '@shikijs/markdown-it';
 import MarkdownIt, { type Token } from 'markdown-it';
 
-import { icon } from './icons.ts';
-
 /**
  * Markdown → HTML, with the structure the site needs beside it: stable heading
  * ids to link at, the heading list the "On this page" rail is built from, and
@@ -96,19 +94,14 @@ const hasFlag = (info: string, flag: string) =>
 const wantsCopy = (info: string) => hasFlag(info, 'copy');
 
 /**
- * The copy button a code panel carries, shared with the demos' source blocks.
- * It copies the visible block beside it in the same container. The markup
- * marks where it goes and what it is called; src/components/markdown.tsx swaps
- * in the component that copies.
+ * The copy button a code panel carries, the demos' source blocks among them.
+ * It copies the visible block beside it in the same container. The markup is
+ * a placeholder (see build/placeholders.ts) saying only where the button goes
+ * and what it is called: src/components/markdown.tsx swaps in the component,
+ * which draws its own glyphs.
  */
-const copyButton = (label: string) =>
-  [
-    '<button type="button" class="code-copy" data-copy-code',
-    `aria-label="${label}">`,
-    icon('copy', 'size-3.5 icon-idle'),
-    icon('check', 'size-3.5 icon-done'),
-    '</button>',
-  ].join(' ');
+const COPY_BUTTON =
+  '<button class="code-copy" aria-label="Copy to clipboard"></button>';
 
 /** The visible text of a heading, with the markdown syntax dropped. */
 const plainText = (token: Token): string =>
@@ -251,12 +244,13 @@ const createRenderer = () => {
    * package managers. Nothing marks a group but the adjacency itself — any
    * prose between two blocks keeps them apart.
    *
-   * The tabs are stamped here as ARIA markup — which tab is selected, what
-   * each is called — and src/components/markdown.tsx hands that to Base UI's
-   * tabs, which switch them and own their arrow keys. The first tab is the
-   * one selected unless a later fence is flagged `selected` — the landing
-   * page's point is the script, and the markup is only what it runs on. Ids
-   * are numbered per page through `env`, which a render gets fresh.
+   * The tabs are stamped here as a placeholder (see build/placeholders.ts)
+   * carrying what each tab is called and which one is selected, and
+   * src/components/markdown.tsx hands that to Base UI's tabs, which draw the
+   * rest of the ARIA wiring, switch the tabs and own their arrow keys. The
+   * first tab is the one selected unless a later fence is flagged `selected`
+   * — the landing page's point is the script, and the markup is only what it
+   * runs on.
    *
    * A fence flagged `copy` gets a copy button in the top corner, over the block
    * or at the end of the tab strip. One flagged block is enough to give its
@@ -264,7 +258,6 @@ const createRenderer = () => {
    */
   const renderFence = md.renderer.rules.fence!;
   const isFence = (token: Token | undefined) => token?.type === 'fence';
-  const copy = copyButton('Copy to clipboard');
 
   md.renderer.rules.fence = (tokens, index, options, env, self) => {
     const block = renderFence(tokens, index, options, env, self);
@@ -272,55 +265,34 @@ const createRenderer = () => {
     const isLast = !isFence(tokens[index + 1]);
     if (isFirst && isLast) {
       return wantsCopy(tokens[index].info)
-        ? `<div class="code-copyable">${copy}${block}</div>\n`
+        ? `<div class="code-copyable">${COPY_BUTTON}${block}</div>\n`
         : block;
     }
 
-    let start = index;
-    while (isFence(tokens[start - 1])) start--;
-    const position = index - start;
-
-    // Worked out afresh for each block of the group, since each one renders
-    // on its own and has to know whether it is the panel left showing.
-    let chosen = start;
-    for (let i = start; isFence(tokens[i]); i++) {
-      if (hasFlag(tokens[i].info, 'selected')) {
-        chosen = i;
-        break;
-      }
-    }
-
-    // render() always passes one; the fallback only satisfies the type.
-    const page = (env ?? {}) as { codeTabs?: number };
-    if (isFirst) page.codeTabs = (page.codeTabs ?? 0) + 1;
-    const id = `code-tabs-${page.codeTabs}`;
-
     let open = '';
     if (isFirst) {
-      const tabs: string[] = [];
-      let copyable = false;
-      for (let i = index; isFence(tokens[i]); i++) {
-        copyable ||= wantsCopy(tokens[i].info);
-        const selected = i === chosen;
-        tabs.push(
-          `<button type="button" role="tab" class="code-tab" id="${id}-tab-${i - index}"` +
-            ` aria-controls="${id}-panel-${i - index}" aria-selected="${selected}"` +
-            ` tabindex="${selected ? 0 : -1}" data-keyrove-item>` +
-            `${md.utils.escapeHtml(tabLabel(tokens[i].info))}</button>`,
-        );
-      }
+      // The first block opens the group, so it stamps every tab.
+      const fences: Token[] = [];
+      for (let i = index; isFence(tokens[i]); i++) fences.push(tokens[i]);
+      const chosen = Math.max(
+        0,
+        fences.findIndex((fence) => hasFlag(fence.info, 'selected')),
+      );
+
+      const tabs = fences.map(
+        (fence, position) =>
+          `<button role="tab" class="code-tab" aria-selected="${position === chosen}">` +
+          `${md.utils.escapeHtml(tabLabel(fence.info))}</button>`,
+      );
 
       open =
-        (copyable
-          ? `<div class="code-tabs code-copyable" data-code-tabs>${copy}`
+        (fences.some((fence) => wantsCopy(fence.info))
+          ? `<div class="code-tabs code-copyable" data-code-tabs>${COPY_BUTTON}`
           : '<div class="code-tabs" data-code-tabs>') +
-        `<div class="code-tabs-bar" role="tablist" data-keyrove-orientation="horizontal">${tabs.join('')}</div>`;
+        `<div class="code-tabs-bar" role="tablist">${tabs.join('')}</div>`;
     }
 
-    const panel =
-      `<div class="code-tabs-panel" role="tabpanel" id="${id}-panel-${position}"` +
-      ` aria-labelledby="${id}-tab-${position}"${index === chosen ? '' : ' hidden'}>` +
-      `${block}</div>`;
+    const panel = `<div class="code-tabs-panel" role="tabpanel">${block}</div>`;
 
     return `${open}${panel}${isLast ? '</div>\n' : ''}`;
   };

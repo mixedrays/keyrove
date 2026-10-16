@@ -13,6 +13,11 @@ import type {
   HtmlProps,
 } from '../../build/html-tree.ts';
 import {
+  isOpaque,
+  placeholderOf,
+  type SwappedPlaceholder,
+} from '../../build/placeholders.ts';
+import {
   CopyCodeButton,
   CopyCommandButton,
 } from '@/components/copy-button.tsx';
@@ -32,15 +37,10 @@ import { mountHero } from '@/hero.ts';
  * build/markdown.ts renders the HTML and build/html-tree.ts turns it into a
  * tree of elements at build time; this draws the tree, swapping in a component
  * wherever the markup stands for one: a link to another page becomes a router
- * link, a group of code blocks becomes Base UI tabs, a copy button gets its
- * click, and a demo gets its behaviour.
+ * link, and every placeholder build/placeholders.ts lists that is not opaque
+ * becomes the component `DRAW` names for it — a group of code blocks becomes
+ * Base UI tabs, a copy button gets its click, and a demo gets its behaviour.
  */
-
-const classes = (props: HtmlProps) =>
-  typeof props.className === 'string' ? props.className.split(/\s+/) : [];
-
-const hasClass = (props: HtmlProps, name: string) =>
-  classes(props).includes(name);
 
 const elements = (children: HtmlNode[]) =>
   children.filter((child): child is HtmlElement => typeof child !== 'string');
@@ -51,6 +51,9 @@ const textOf = (nodes: HtmlNode[]): string =>
     .join('');
 
 const str = (value: unknown) => (typeof value === 'string' ? value : '');
+
+const placeholder = ([tag, props]: HtmlElement) =>
+  placeholderOf(tag, str(props.className), (attribute) => attribute in props);
 
 /**
  * Code blocks written back to back, as build/markdown.ts stamps them — or the
@@ -71,9 +74,7 @@ function CodeTabs({
 
   const tabs = elements(list[2]).filter(([, tab]) => tab.role === 'tab');
   const panels = parts.filter(([, child]) => child.role === 'tabpanel');
-  const copy = parts.find(
-    ([tag, child]) => tag === 'button' && hasClass(child, 'code-copy'),
-  );
+  const copy = parts.find((part) => placeholder(part) === 'copyCode');
   const selected = Math.max(
     0,
     tabs.findIndex(([, tab]) => tab['aria-selected'] === 'true'),
@@ -149,16 +150,60 @@ function Hero({ props, children }: { props: HtmlProps; children: HtmlNode[] }) {
   );
 }
 
+/** Draws a placeholder; `key` is its place among its siblings. */
+type Draw = (props: HtmlProps, children: HtmlNode[], key: number) => ReactNode;
+
+/**
+ * What draws each placeholder React swaps. Keyed by build/placeholders.ts, so
+ * a placeholder added there without a component here does not compile.
+ */
+const DRAW: Record<SwappedPlaceholder, Draw> = {
+  codeTabs: (props, children, key) => (
+    <CodeTabs key={key} props={props} children={children} />
+  ),
+  demo: (props, children, key) => (
+    <Demo key={key} props={props} children={children} />
+  ),
+  hero: (props, children, key) => (
+    <Hero key={key} props={props} children={children} />
+  ),
+  copyCode: (props, _children, key) => (
+    <CopyCodeButton key={key} label={str(props['aria-label'])} />
+  ),
+  copyCommand: (props, children, key) => (
+    <CopyCommandButton
+      key={key}
+      command={str(props['data-copy-command'])}
+      label={str(props['aria-label'])}
+    >
+      {render(children)}
+    </CopyCommandButton>
+  ),
+  // On the arrows like everything else. The list is written in markdown,
+  // which cannot mark its links as items, so `items` names them instead.
+  // Nothing takes focus on arrival: the heading saying the page is missing is
+  // what a screen reader should reach first, so the hint under the list says
+  // how to get in.
+  notFoundLinks: (props, children, key) => (
+    <div
+      key={key}
+      {...props}
+      onKeyDown={(event) => keyRove(event, { items: 'a' })}
+    >
+      {render(children)}
+    </div>
+  ),
+};
+
 /**
  * The component an element stands for, or undefined for a plain element.
  * `key` is the element's place among its siblings.
  */
-const replace = (
-  [tag, props, children]: HtmlElement,
-  key: number,
-): ReactNode => {
+const replace = (element: HtmlElement, key: number): ReactNode => {
+  const [tag, props, children] = element;
   const href = str(props.href);
 
+  // Any markdown link to another page, rather than a placeholder.
   if (tag === 'a' && href.startsWith('/')) {
     return (
       <SiteLink key={key} {...props} href={href}>
@@ -167,52 +212,11 @@ const replace = (
     );
   }
 
-  if ('data-code-tabs' in props) {
-    return <CodeTabs key={key} props={props} children={children} />;
-  }
+  // An opaque placeholder is drawn as the HTML build/html-tree.ts kept.
+  const name = placeholder(element);
+  if (name === undefined || isOpaque(name)) return undefined;
 
-  if ('data-demo' in props) {
-    return <Demo key={key} props={props} children={children} />;
-  }
-
-  if (hasClass(props, 'hero-demo')) {
-    return <Hero key={key} props={props} children={children} />;
-  }
-
-  if (tag === 'button' && hasClass(props, 'code-copy')) {
-    return <CopyCodeButton key={key} label={str(props['aria-label'])} />;
-  }
-
-  if (tag === 'button' && 'data-copy-command' in props) {
-    return (
-      <CopyCommandButton
-        key={key}
-        command={str(props['data-copy-command'])}
-        label={str(props['aria-label'])}
-      >
-        {render(children)}
-      </CopyCommandButton>
-    );
-  }
-
-  // The 404's list of places to go instead, on the arrows like everything
-  // else. It is written in markdown, which cannot mark its links as items, so
-  // `items` names them instead. Nothing takes focus on arrival: the heading
-  // saying the page is missing is what a screen reader should reach first, so
-  // the hint under the list says how to get in.
-  if ('data-not-found-links' in props) {
-    return (
-      <div
-        key={key}
-        {...props}
-        onKeyDown={(event) => keyRove(event, { items: 'a' })}
-      >
-        {render(children)}
-      </div>
-    );
-  }
-
-  return undefined;
+  return DRAW[name](props, children, key);
 };
 
 const render = (nodes: HtmlNode[]): ReactNode[] =>

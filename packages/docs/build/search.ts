@@ -1,6 +1,7 @@
 import MiniSearch from 'minisearch';
 
 import { searchOptions, type SearchDocument } from '../src/search-model.ts';
+import { pagePath } from './addresses.ts';
 import type { RenderedPage } from './page-render.ts';
 
 export const toSearchIndex = (rendered: RenderedPage[]): string => {
@@ -8,7 +9,7 @@ export const toSearchIndex = (rendered: RenderedPage[]): string => {
     .filter(({ page }) => page.layout === 'docs' && !page.noindex)
     .flatMap(({ page, sections }) =>
       sections.map((section) => {
-        const url = `/${page.route}${section.id ? `#${section.id}` : ''}`;
+        const url = `${pagePath(page.route)}${section.id ? `#${section.id}` : ''}`;
         return {
           id: url,
           url,

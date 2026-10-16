@@ -1,9 +1,7 @@
 import { Link } from '@tanstack/react-router';
 import type { ComponentProps } from 'react';
 
-import { createHrefResolver } from '../../build/paths.ts';
-
-const resolveHref = createHrefResolver(import.meta.env.BASE_URL);
+import { addresses } from '@/addresses.ts';
 
 /**
  * A file the site serves rather than a page — `/llms.txt`, `/docs/api.md` —
@@ -27,7 +25,7 @@ export function SiteLink({
 
   if (!href.startsWith('/') || isFile(path)) {
     return (
-      <a href={href.startsWith('/') ? resolveHref(href) : href} {...props} />
+      <a href={href.startsWith('/') ? addresses.href(href) : href} {...props} />
     );
   }
 

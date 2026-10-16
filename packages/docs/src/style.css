@@ -325,7 +325,7 @@
   }
 
   /*
-   * The sidebars' key hints, added by src/components/nav-keys.tsx. Faded in rather than displayed,
+   * The sidebars' key hints, added by src/components/keyboard-rail.tsx. Faded in rather than displayed,
    * so showing one never reflows the heading beside it. A pointer sees the
    * shortcut on hover; keyboard focus inside sees the arrows too, since Tab
    * leaves a roving list rather than walking it.

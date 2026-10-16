@@ -6,6 +6,8 @@ import {
 } from 'html-react-parser';
 import { DomUtils, parseDocument } from 'htmlparser2';
 
+import { isOpaque, placeholderOf } from './placeholders.ts';
+
 /**
  * A page's rendered HTML as a tree React can draw without parsing anything.
  *
@@ -57,24 +59,26 @@ const library = {
   isValidElement: isElement,
 };
 
-const hasClass = (element: DomElement, name: string) =>
-  (element.attribs.class ?? '').split(/\s+/).includes(name);
-
 /**
- * Elements whose contents React draws once and never touches again: a demo's
- * live preview, which keyrove and the demo's own script rearrange as the
- * reader presses keys, and the readouts they write to. They are kept as HTML,
- * for `dangerouslySetInnerHTML`, rather than as a tree React would reconcile.
+ * Whether an element's contents are kept as HTML, for
+ * `dangerouslySetInnerHTML`, rather than as a tree React would reconcile: a
+ * placeholder build/placeholders.ts marks opaque, which React draws once and
+ * something else rearranges from then on.
  */
-const isOpaque = (element: DomElement) =>
-  hasClass(element, 'demo-panel-preview') ||
-  'data-demo-readout' in element.attribs;
+const hasOpaqueContents = (element: DomElement) => {
+  const name = placeholderOf(
+    element.name,
+    element.attribs.class ?? '',
+    (attribute) => attribute in element.attribs,
+  );
+  return name !== undefined && isOpaque(name);
+};
 
 export const toHtmlTree = (html: string): HtmlNode[] => {
   const options = {
     library,
     replace: (node: DOMNode) => {
-      if (node.type !== 'tag' || !isOpaque(node as DomElement)) return;
+      if (node.type !== 'tag' || !hasOpaqueContents(node as DomElement)) return;
       const element = node as DomElement;
 
       return library.createElement(element.name, {
