@@ -16,6 +16,7 @@ import { Sheet } from '@/components/ui/sheet.tsx';
  */
 export function DocsLayout({ children }: { children: ReactNode }) {
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const openDrawer = useCallback(() => setDrawerOpen(true), []);
   const closeDrawer = useCallback(() => setDrawerOpen(false), []);
   const searching = useSearchOpen();
   const router = useRouter();
@@ -47,8 +48,8 @@ export function DocsLayout({ children }: { children: ReactNode }) {
           code block or table scrolls inside itself instead of stretching the
           grid past the viewport. */}
       <div className="docs-shell">
-        <Sidebar onReveal={() => setDrawerOpen(true)} />
-        <SidebarDrawer onClose={closeDrawer} />
+        <Sidebar />
+        <SidebarDrawer onOpen={openDrawer} onClose={closeDrawer} />
         {children}
       </div>
       <SiteFooter layout="docs" />

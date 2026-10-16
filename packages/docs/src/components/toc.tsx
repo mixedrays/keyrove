@@ -1,18 +1,18 @@
-import { followFocus, keyRove } from '@mixedrays/keyrove';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import type { Heading } from '../../build/markdown.ts';
 import {
-  KeysHint,
-  navGroup,
-  useNavShortcut,
-  useRovingStop,
-  type NavShortcut,
-} from '@/components/nav-keys.tsx';
+  useKeyboardRail,
+  type KeyboardRail,
+} from '@/components/keyboard-rail.tsx';
 
-const SHORTCUT: NavShortcut = { combo: 'alt+shift+KeyO', label: 'Alt+Shift+O' };
-
-const group = navGroup('.toc-link');
+const RAIL: KeyboardRail = {
+  items: '.toc-link',
+  shortcut: { combo: 'alt+shift+KeyO', label: 'Alt+Shift+O' },
+  // The tab stop follows the highlight, so Tab and the chord land on the
+  // section in view — until focus is in the rail, where it is the reader's.
+  stop: '[data-active]',
+};
 
 /**
  * Clears the sticky header plus a little breathing room, so a heading counts
@@ -29,7 +29,7 @@ const OFFSET = 96;
  * enough to satisfy an observer threshold at all.
  */
 export function Toc({ headings }: { headings: Heading[] }) {
-  const root = useRef<HTMLElement>(null);
+  const rail = useKeyboardRail(RAIL);
   const [active, setActive] = useState<string>();
 
   useEffect(() => {
@@ -74,26 +74,14 @@ export function Toc({ headings }: { headings: Heading[] }) {
     };
   }, [headings]);
 
-  // The tab stop follows the highlight, so Tab and the chord land on the
-  // section in view — until focus is in the rail, where it is the reader's.
-  useRovingStop(root, group, '[data-active]', active);
-  useNavShortcut(root, group, SHORTCUT);
-
   // Nothing to list on a page with no headings, and the rail carries nothing
   // else, so it is left out entirely rather than sitting empty.
   if (headings.length === 0) return null;
 
   return (
-    <aside
-      ref={root}
-      className="toc"
-      aria-labelledby="docs-toc-heading"
-      aria-keyshortcuts={SHORTCUT.label}
-      onKeyDown={(event) => keyRove(event, group)}
-      onFocus={(event) => followFocus(event, group)}
-    >
+    <aside {...rail.props} className="toc" aria-labelledby="docs-toc-heading">
       <div className="toc-inner">
-        <KeysHint label={SHORTCUT.label} />
+        {rail.hint}
         <p id="docs-toc-heading" className="toc-heading">
           On this page
         </p>
