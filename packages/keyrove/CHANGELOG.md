@@ -1,5 +1,11 @@
 # Changelog
 
+## [2.6.0](https://github.com/mixedrays/keyrove/compare/v2.5.1...v2.6.0) (2026-10-16)
+
+### Features
+
+* stop group walks at the listener's element ([8002ab9](https://github.com/mixedrays/keyrove/commit/8002ab9aa0fe033596fec643a07f9f48c0bf1e19))
+
 ## [2.5.1](https://github.com/mixedrays/keyrove/compare/v2.5.0...v2.5.1) (2026-09-30)
 
 ### Bug Fixes
