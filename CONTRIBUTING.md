@@ -13,6 +13,22 @@ pnpm install
 pnpm dev
 ```
 
+## Branches
+
+Work happens on `develop`; `main` only receives merges from `develop`. Start
+every change from an up-to-date `develop`:
+
+```sh
+git switch develop
+git pull
+git switch -c feat/short-description
+```
+
+Prefix the branch name with the type of change, as in
+[commit messages](#commit-messages): `feat/`, `fix/`, `refactor/`, `docs/`,
+`chore/`. When the change is ready, push the branch and open a pull request into
+`develop`, not `main`.
+
 ## Before opening a pull request
 
 Run the same checks CI runs:
@@ -33,7 +49,7 @@ pnpm build
 There are two READMEs. The root `README.md` is a short entry point that links to
 the docs site; `packages/keyrove/README.md` is the detailed one published to
 npm. A change to the public API usually touches the package README and the docs
-under `packages/docs/content`, and the root README only if the basic example
+under `apps/docs/content`, and the root README only if the basic example
 changes.
 
 ## Commit messages
@@ -51,7 +67,7 @@ anything large.
 
 ## Still to be written
 
-- Which branch pull requests should target, and how they are reviewed.
+- How pull requests are reviewed.
 - Guidelines for adding examples and docs pages.
 
 ## License

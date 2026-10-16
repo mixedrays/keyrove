@@ -10,7 +10,7 @@ import { docsContent, listPrerenderPaths } from './vite-plugin-content.ts';
 // output, so `pnpm dev` hot-reloads library edits without a build step in
 // between. The published package still ships `dist` — see its `exports`.
 const keyroveSource = fileURLToPath(
-  new URL('../keyrove/src/index.ts', import.meta.url),
+  new URL('../../packages/keyrove/src/index.ts', import.meta.url),
 );
 
 /**

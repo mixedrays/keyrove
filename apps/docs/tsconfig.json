@@ -9,7 +9,7 @@
     "types": ["vite/client", "node"],
     "paths": {
       "@/*": ["./src/*"],
-      "@mixedrays/keyrove": ["../keyrove/src/index.ts"]
+      "@mixedrays/keyrove": ["../../packages/keyrove/src/index.ts"]
     }
   },
   "include": [

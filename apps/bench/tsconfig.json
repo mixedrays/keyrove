@@ -6,7 +6,7 @@
     "resolveJsonModule": true,
     "types": ["vite/client", "node"],
     "paths": {
-      "@mixedrays/keyrove": ["../keyrove/src/index.ts"]
+      "@mixedrays/keyrove": ["../../packages/keyrove/src/index.ts"]
     }
   },
   "include": ["src", "scripts", "tests", "vite.config.ts"]

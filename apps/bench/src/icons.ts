@@ -15,7 +15,7 @@ import {
 
 /**
  * The bench's icons, drawn as the docs site draws its own (see
- * packages/docs/build/icons.ts): lucide at a 1.75 stroke, inlined into the
+ * apps/docs/build/icons.ts): lucide at a 1.75 stroke, inlined into the
  * HTML at build time so none of them wait on the bundle.
  */
 

@@ -45,8 +45,8 @@ const toAuthorName = (author: string) => author.replace(/\s*<.*$/, '').trim();
 const docs = readManifest('../package.json');
 const workspace = readManifest('../../../package.json');
 // The published library, which is the one an npm link should point at — the
-// docs package is private and its name is not a package name.
-const library = readManifest('../../keyrove/package.json');
+// docs package is private, so npm has no page for it.
+const library = readManifest('../../../packages/keyrove/package.json');
 
 /**
  * Where the site is deployed.
@@ -123,7 +123,7 @@ const renderFacts = () =>
  */
 const LICENSE_PLACEHOLDER = /^<div data-license><\/div>$/gm;
 
-const licenseText = readText('../../keyrove/LICENSE')
+const licenseText = readText('../../../packages/keyrove/LICENSE')
   .replace(/^.*\n/, '')
   .trim();
 

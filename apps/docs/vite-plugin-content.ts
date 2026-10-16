@@ -149,7 +149,7 @@ const toGenerated = (
 };
 
 /** Where the source markdown lives, for the "View source" link. */
-const SOURCE_BASE = `${META.repoUrl}/blob/main/packages/docs/content`;
+const SOURCE_BASE = `${META.repoUrl}/blob/main/apps/docs/content`;
 
 /**
  * What the chrome needs from a page without its body: enough to list it in the

@@ -5,11 +5,14 @@ framework-agnostic keyboard navigation library for lists, grids and trees.
 
 ## Packages
 
+Published packages live under `packages/`; the docs site and the benchmark,
+which are never published, live under `apps/`.
+
 | Package                    | Path                                 | Description                                         |
 | -------------------------- | ------------------------------------ | --------------------------------------------------- |
 | `@mixedrays/keyrove`       | [packages/keyrove](packages/keyrove) | The library. Published to npm.                      |
-| `@mixedrays/keyrove/docs`  | [packages/docs](packages/docs)       | Documentation site and landing page. Not published. |
-| `@mixedrays/keyrove/bench` | [packages/bench](packages/bench)     | Browser benchmark and its UI. Not published.        |
+| `@mixedrays/keyrove-docs`  | [apps/docs](apps/docs)               | Documentation site and landing page. Not published. |
+| `@mixedrays/keyrove-bench` | [apps/bench](apps/bench)             | Browser benchmark and its UI. Not published.        |
 
 ## Getting started
 
@@ -39,7 +42,7 @@ Run from the repo root:
 | `pnpm publish:npm`    | Publishes the library to npm. See [Releasing](#releasing). |
 
 The benchmark's method and recorded results are in
-[packages/bench](packages/bench/README.md), with how to compare releases:
+[apps/bench](apps/bench/README.md), with how to compare releases:
 `pnpm bench:headless -- --ref v2.1.0 --ref v2.2.0` benchmarks each tag and
 saves a report for it, and `pnpm bench` compares them side by side.
 
@@ -47,7 +50,7 @@ Any script can be aimed at one package with a filter:
 
 ```sh
 pnpm --filter @mixedrays/keyrove test
-pnpm --filter @mixedrays/keyrove/docs build
+pnpm --filter @mixedrays/keyrove-docs build
 ```
 
 ## Browser tests
@@ -100,7 +103,7 @@ npm, it publishes nothing.
 ## How the docs site works
 
 Every page is one markdown file under
-[packages/docs/content](packages/docs/content), and its path is its URL:
+[apps/docs/content](apps/docs/content), and its path is its URL:
 `content/docs/examples/basic.md` is served at `/docs/examples/basic`. Adding a
 page means adding a file — the sidebar, the "On this page" rail, the prev/next
 pager, and `llms.txt` are all derived from what is on disk.
@@ -147,7 +150,7 @@ is a link, so a modified click still opens it in a new tab.
 The content plugin generates the index in development and production.
 Markdown edits invalidate the development cache and reload the page,
 including search. Run the search indexing tests with
-`pnpm --filter @mixedrays/keyrove/docs test`.
+`pnpm --filter @mixedrays/keyrove-docs test`.
 
 ### Sidebar navigation
 
@@ -181,13 +184,13 @@ menu.addEventListener('keydown', (e) => keyRove(e));
 ````
 
 A demo is two things, both named after it: its markup, one file under
-[packages/docs/content/_demos](packages/docs/content/_demos), and its entry in
-[packages/docs/build/demo-definitions.ts](packages/docs/build/demo-definitions.ts),
+[apps/docs/content/_demos](apps/docs/content/_demos), and its entry in
+[apps/docs/build/demo-definitions.ts](apps/docs/build/demo-definitions.ts),
 which declares what it adds to navigation — group options, extra handlers
 such as typeahead, and decorative icons. A fragment without an entry, or an
 entry without a fragment, fails the docs tests.
 
-[packages/docs/build/demos.ts](packages/docs/build/demos.ts) stamps the
+[apps/docs/build/demos.ts](apps/docs/build/demos.ts) stamps the
 fragment into the page twice, once as live elements and once as the source
 block under them, so the two cannot drift. Repeated items wrapped in
 `<!-- fold -->` … `<!-- /fold -->` still run but collapse to one comment in the
@@ -202,15 +205,15 @@ in `data-demo-class` on the placeholder rather than in the fragment, so what a
 reader copies is markup they can paste as-is. The attributes go in any order;
 a placeholder the build cannot read fails it.
 
-[packages/docs/src/demos.ts](packages/docs/src/demos.ts) wires the behaviour
+[apps/docs/src/demos.ts](apps/docs/src/demos.ts) wires the behaviour
 markup cannot carry: the keydown listener and the extras the entry lists.
-[packages/docs/src/readout.ts](packages/docs/src/readout.ts) writes the
+[apps/docs/src/readout.ts](apps/docs/src/readout.ts) writes the
 readout, for the panels and the landing page's hero alike. React draws the
 panel around a demo, with its code tabs and copy button, but leaves the live
 preview as the fragment's own markup, which keyrove rearranges as keys are
 pressed.
 
-[demo-panel.css](packages/docs/src/demo-panel.css) owns the shared presentation;
+[demo-panel.css](apps/docs/src/demo-panel.css) owns the shared presentation;
 the embedding page owns column widths and spacing. No hero or landing classes
 are required. Code-only examples can use a
 `<div class="demo-panel demo-panel--code">` around adjacent fenced blocks,
@@ -221,12 +224,12 @@ with blank lines between the wrapper and the fences.
 The site is a [TanStack Start](https://tanstack.com/start) app, and its UI
 components are [shadcn/ui](https://ui.shadcn.com) on
 [Base UI](https://base-ui.com) primitives, in
-[packages/docs/src/components/ui](packages/docs/src/components/ui). They keep
+[apps/docs/src/components/ui](apps/docs/src/components/ui). They keep
 shadcn's API but not its styles: each passes the class style.css already draws
 that part of the site with, since a Tailwind utility on the component would
 outrank every rule in the stylesheet's components layer. `components.json`
 is set up for the shadcn CLI, so `pnpm dlx shadcn@latest add <component>`
-works from `packages/docs`.
+works from `apps/docs`.
 
 Keyboard navigation is split by who has it built in. Base UI owns it where its
 component does — the code tabs and the landing page's pattern tabs, the search
@@ -236,12 +239,12 @@ the landing hero and every demo.
 
 ### Build
 
-[packages/docs/vite-plugin-content.ts](packages/docs/vite-plugin-content.ts)
+[apps/docs/vite-plugin-content.ts](apps/docs/vite-plugin-content.ts)
 hands the content to the app as virtual modules: the sidebar and each page's
 metadata in one, each page's rendered body in a chunk of its own, and the
 generated files — the `.md` twins, `llms.txt`, the sitemap — in a third that
 only the server routes under
-[packages/docs/src/routes](packages/docs/src/routes) import. Markdown renders
+[apps/docs/src/routes](apps/docs/src/routes) import. Markdown renders
 through the same code in dev and in the build. A page's body reaches the
 browser as a tree of elements built at build time rather than as HTML, so
 there is no HTML parser in the bundle and nothing for hydration to disagree
@@ -263,7 +266,7 @@ relative asset paths, so links are absolute to `base` — set `DOCS_BASE` when
 deploying to a subpath:
 
 ```sh
-DOCS_BASE=/keyrove/ pnpm --filter @mixedrays/keyrove/docs build
+DOCS_BASE=/keyrove/ pnpm --filter @mixedrays/keyrove-docs build
 ```
 
 `DOCS_SITE_URL` sets the origin used for the links in `llms.txt`.
@@ -271,7 +274,7 @@ DOCS_BASE=/keyrove/ pnpm --filter @mixedrays/keyrove/docs build
 ### Resolving the library
 
 The docs site aliases `@mixedrays/keyrove` to the library's TypeScript source
-(see [packages/docs/vite.config.ts](packages/docs/vite.config.ts)), so
+(see [apps/docs/vite.config.ts](apps/docs/vite.config.ts)), so
 `pnpm dev` hot-reloads library edits without a build step in between. The
 published package still ships `dist` — nothing about its `exports` changes.
 

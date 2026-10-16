@@ -18,4 +18,4 @@ for setup and behavior. The project is open source under the
 
 To read a page as Markdown, append `.md` to its URL or choose **View as
 Markdown** under the page title. **View source** opens its source file under
-`packages/docs/content` in the repository.
+`apps/docs/content` in the repository.

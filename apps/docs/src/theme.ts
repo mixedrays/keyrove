@@ -1,6 +1,6 @@
 /**
  * The light/dark choice, without a framework: the docs' React toggle and the
- * benchmark's plain page (packages/bench) both flip the theme through this,
+ * benchmark's plain page (apps/bench) both flip the theme through this,
  * so a choice made on one holds on the other when both share an origin.
  *
  * Both glyphs ship in the button and style.css shows one per theme, so a

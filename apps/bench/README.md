@@ -113,7 +113,7 @@ to see reports saved since.
 | `results/`                  | Saved reports. `recorded.json` is the run the Results below come from.                     |
 
 The UI uses the docs site's stylesheet and theme helpers directly from
-`packages/docs/src`, so it looks like the site with no copy to keep in step.
+`apps/docs/src`, so it looks like the site with no copy to keep in step.
 
 The reports in `results/` and the modules in `src/` other than `main.ts` do
 not touch the page, so another package can import them to show the numbers,

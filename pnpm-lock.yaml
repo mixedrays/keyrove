@@ -12,11 +12,11 @@ importers:
         specifier: ^3.9.6
         version: 3.9.6
 
-  packages/bench:
+  apps/bench:
     dependencies:
       '@mixedrays/keyrove':
         specifier: workspace:*
-        version: link:../keyrove
+        version: link:../../packages/keyrove
     devDependencies:
       '@tailwindcss/vite':
         specifier: ^4.3.3
@@ -37,14 +37,14 @@ importers:
         specifier: ^8.2.1
         version: 8.2.2(@types/node@26.3.0)(jiti@2.7.0)
 
-  packages/docs:
+  apps/docs:
     dependencies:
       '@base-ui/react':
         specifier: ^1.8.0
         version: 1.8.0(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
       '@mixedrays/keyrove':
         specifier: workspace:*
-        version: link:../keyrove
+        version: link:../../packages/keyrove
       '@tanstack/react-router':
         specifier: ^1.170.41
         version: 1.170.41(react-dom@19.3.0(react@19.3.0))(react@19.3.0)

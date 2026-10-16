@@ -1,5 +1,5 @@
 {
-  "name": "@mixedrays/keyrove/bench",
+  "name": "@mixedrays/keyrove-bench",
   "version": "1.0.0",
   "private": true,
   "description": "Browser benchmark for keyrove's keydown handling, with a UI to run it and to compare runs across versions.",
