@@ -18,7 +18,7 @@ move focus the way keyboard users expect, in any framework.
 <div class="hero-actions">
 
 [Get started](/docs/introduction) [Examples](/docs/examples)
-<span class="hero-install"><code>npm i @mixedrays/keyrove</code><button type="button" data-copy-command="npm i @mixedrays/keyrove" aria-label="Copy install command"><span data-icon="copy" class="size-3.5 icon-idle"></span><span data-icon="check" class="size-3.5 icon-done"></span></button></span>
+<span class="hero-install"><code>npm i @mixedrays/keyrove</code><button data-copy-command="npm i @mixedrays/keyrove" aria-label="Copy install command"><span data-icon="copy" class="size-3.5 icon-idle"></span><span data-icon="check" class="size-3.5 icon-done"></span></button></span>
 
 </div>
 
@@ -159,12 +159,12 @@ Each example adds just one behavior to the list you already know.
 <div class="landing-section-demo">
 
 <div class="pattern-tabs" data-code-tabs>
-<div class="pattern-tabs-bar" role="tablist" aria-label="List behavior" data-keyrove-orientation="horizontal">
-<button type="button" role="tab" class="pattern-tab" id="behavior-tab-0" aria-controls="behavior-panel-0" aria-selected="true" tabindex="0" data-keyrove-item>Looping</button>
-<button type="button" role="tab" class="pattern-tab" id="behavior-tab-1" aria-controls="behavior-panel-1" aria-selected="false" tabindex="-1" data-keyrove-item>Horizontal</button>
-<button type="button" role="tab" class="pattern-tab" id="behavior-tab-2" aria-controls="behavior-panel-2" aria-selected="false" tabindex="-1" data-keyrove-item>One tab stop</button>
+<div class="pattern-tabs-bar" role="tablist" aria-label="List behavior">
+<button role="tab" class="pattern-tab" aria-selected="true">Looping</button>
+<button role="tab" class="pattern-tab" aria-selected="false">Horizontal</button>
+<button role="tab" class="pattern-tab" aria-selected="false">One tab stop</button>
 </div>
-<div class="pattern-panel" role="tabpanel" id="behavior-panel-0" aria-labelledby="behavior-tab-0">
+<div class="pattern-panel" role="tabpanel">
 
 <div data-demo="landing-loop" data-demo-label="looping folders"></div>
 
@@ -180,7 +180,7 @@ Press <kbd class="kbd">↓</kbd> on Sent to return to Inbox.
 [Looping lists](/docs/examples/looping-lists)
 
 </div>
-<div class="pattern-panel" role="tabpanel" id="behavior-panel-1" aria-labelledby="behavior-tab-1" hidden>
+<div class="pattern-panel" role="tabpanel">
 
 <div data-demo="landing-horizontal" data-demo-label="horizontal folders"></div>
 
@@ -196,7 +196,7 @@ Use <kbd class="kbd">←</kbd> and <kbd class="kbd">→</kbd> to move between fo
 [Horizontal lists](/docs/examples/horizontal-lists)
 
 </div>
-<div class="pattern-panel" role="tabpanel" id="behavior-panel-2" aria-labelledby="behavior-tab-2" hidden>
+<div class="pattern-panel" role="tabpanel">
 
 <div data-demo="landing-roving" data-demo-label="one tab stop"></div>
 
@@ -288,11 +288,11 @@ to update.
 <div class="landing-section-demo">
 
 <div class="pattern-tabs" data-code-tabs>
-<div class="pattern-tabs-bar" role="tablist" aria-label="Grid layout" data-keyrove-orientation="horizontal">
-<button type="button" role="tab" class="pattern-tab" id="layout-tab-0" aria-controls="layout-panel-0" aria-selected="true" tabindex="0" data-keyrove-item>Fixed columns</button>
-<button type="button" role="tab" class="pattern-tab" id="layout-tab-1" aria-controls="layout-panel-1" aria-selected="false" tabindex="-1" data-keyrove-item>Responsive</button>
+<div class="pattern-tabs-bar" role="tablist" aria-label="Grid layout">
+<button role="tab" class="pattern-tab" aria-selected="true">Fixed columns</button>
+<button role="tab" class="pattern-tab" aria-selected="false">Responsive</button>
 </div>
-<div class="pattern-panel" role="tabpanel" id="layout-panel-0" aria-labelledby="layout-tab-0">
+<div class="pattern-panel" role="tabpanel">
 
 <div data-demo="landing-grid" data-demo-label="time slots"></div>
 
@@ -306,7 +306,7 @@ slots.addEventListener('keydown', (e) => keyRove(e));
 Use all four arrows. <kbd class="kbd">Home</kbd> and <kbd class="kbd">End</kbd> jump to the ends of a row.
 
 </div>
-<div class="pattern-panel" role="tabpanel" id="layout-panel-1" aria-labelledby="layout-tab-1" hidden>
+<div class="pattern-panel" role="tabpanel">
 
 <div data-demo="responsive" data-demo-label="responsive months"></div>
 
@@ -386,12 +386,12 @@ Start with the part you need; the same handler stays underneath.
 <div class="landing-section-demo">
 
 <div class="pattern-tabs" data-code-tabs>
-<div class="pattern-tabs-bar" role="tablist" aria-label="Advanced examples" data-keyrove-orientation="horizontal">
-<button type="button" role="tab" class="pattern-tab" id="advanced-tab-0" aria-controls="advanced-panel-0" aria-selected="true" tabindex="0" data-keyrove-item>Shortcuts</button>
-<button type="button" role="tab" class="pattern-tab" id="advanced-tab-1" aria-controls="advanced-panel-1" aria-selected="false" tabindex="-1" data-keyrove-item>Nested groups</button>
-<button type="button" role="tab" class="pattern-tab" id="advanced-tab-2" aria-controls="advanced-panel-2" aria-selected="false" tabindex="-1" data-keyrove-item>Tree</button>
+<div class="pattern-tabs-bar" role="tablist" aria-label="Advanced examples">
+<button role="tab" class="pattern-tab" aria-selected="true">Shortcuts</button>
+<button role="tab" class="pattern-tab" aria-selected="false">Nested groups</button>
+<button role="tab" class="pattern-tab" aria-selected="false">Tree</button>
 </div>
-<div class="pattern-panel" role="tabpanel" id="advanced-panel-0" aria-labelledby="advanced-tab-0">
+<div class="pattern-panel" role="tabpanel">
 
 <div data-demo="landing-tools" data-demo-label="drawing tools"></div>
 
@@ -407,7 +407,7 @@ Press <kbd class="kbd">P</kbd> for Pen, then <kbd class="kbd">↓</kbd> to conti
 [Focus keys](/docs/examples/focus-keys)
 
 </div>
-<div class="pattern-panel" role="tabpanel" id="advanced-panel-1" aria-labelledby="advanced-tab-1" hidden>
+<div class="pattern-panel" role="tabpanel">
 
 <div data-demo="nested" data-demo-label="message actions"></div>
 
@@ -424,7 +424,7 @@ Use <kbd class="kbd">↑</kbd>/<kbd class="kbd">↓</kbd> in the menu. Focus a r
 [Nested roots](/docs/examples/nested-roots)
 
 </div>
-<div class="pattern-panel" role="tabpanel" id="advanced-panel-2" aria-labelledby="advanced-tab-2" hidden>
+<div class="pattern-panel" role="tabpanel">
 
 <div data-demo="tree" data-demo-label="project files"></div>
 
@@ -494,7 +494,7 @@ Install the package, mark the items, and pass `keydown` to `keyRove`.
 <div class="hero-actions">
 
 [Get started](/docs/introduction)
-<span class="hero-install"><code>npm i @mixedrays/keyrove</code><button type="button" data-copy-command="npm i @mixedrays/keyrove" aria-label="Copy install command"><span data-icon="copy" class="size-3.5 icon-idle"></span><span data-icon="check" class="size-3.5 icon-done"></span></button></span>
+<span class="hero-install"><code>npm i @mixedrays/keyrove</code><button data-copy-command="npm i @mixedrays/keyrove" aria-label="Copy install command"><span data-icon="copy" class="size-3.5 icon-idle"></span><span data-icon="check" class="size-3.5 icon-done"></span></button></span>
 
 </div>
 
