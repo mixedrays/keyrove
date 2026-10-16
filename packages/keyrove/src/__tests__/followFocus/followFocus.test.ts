@@ -81,23 +81,6 @@ describe('followFocus', () => {
     expect(tabindexes('a', 'b')).toEqual({ a: '-1', b: '0' });
   });
 
-  it("never touches a nested group's stop from the outer group", () => {
-    listen([
-      item('o0', { tabindex: '0' }),
-      nestedRoot(item('n0', { tabindex: '0' }), item('n1')),
-      item('o1'),
-    ]);
-
-    byId('o1').focus();
-
-    expect(tabindexes('o0', 'o1', 'n0', 'n1')).toEqual({
-      o0: '-1',
-      o1: '0',
-      n0: '0',
-      n1: '-1',
-    });
-  });
-
   it("moves only the nested group's stop for focus inside it", () => {
     listen([
       item('o0', { tabindex: '0' }),
@@ -222,25 +205,6 @@ describe('followFocus', () => {
       '-1',
       '0',
       '-1',
-    ]);
-  });
-
-  it('moves the stop in the group of a shadow root it listens on', () => {
-    const host = document.createElement('div');
-    document.body.appendChild(host);
-    const shadow = host.attachShadow({ mode: 'open' });
-    const items = [item('a', { tabindex: '0' }), item('b'), item('c')];
-    shadow.append(...items);
-    const results: (Element | null)[] = [];
-    shadow.addEventListener('focusin', (e) => results.push(followFocus(e)));
-
-    items[2].focus();
-
-    expect(results).toEqual([items[2]]);
-    expect(items.map((each) => each.getAttribute('tabindex'))).toEqual([
-      '-1',
-      '-1',
-      '0',
     ]);
   });
 

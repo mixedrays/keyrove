@@ -9,15 +9,8 @@
  * way a keypress does, so one config object serves every handler.
  */
 
-import { itemsReader, rootTest, rovingTest, skipTest } from './config.js';
-import {
-  attributeRoot,
-  listenerElement,
-  ownItems,
-  placeStop,
-  readGroup,
-  resolveRoot,
-} from './group.js';
+import { readGroups } from './group.js';
+import { listenerElement } from './nesting.js';
 import type { KeyRoveEvent, RovingTabindexOptions } from './types.js';
 
 /**
@@ -46,40 +39,28 @@ export const followFocus = (
   e: Pick<KeyRoveEvent, 'target' | 'currentTarget'>,
   options: RovingTabindexOptions = {},
 ): Element | null => {
-  const isRoot = rootTest(options);
-  const readItems = itemsReader(options);
+  const groups = readGroups(options);
   const scope = listenerElement(e.currentTarget);
 
-  let from = e.target as Element | null;
+  let group = groups.at(e.target as Element | null, e.currentTarget);
 
-  while (from) {
-    const root = resolveRoot(from, e.currentTarget, isRoot);
-
-    if (!root) return null;
-
-    const { focused } = readGroup(root, readItems);
+  while (group) {
+    const { root, focused } = group;
 
     if (focused) {
-      const isRoving = rovingTest(options);
+      // Only a navigable item of the group's own roving ones takes the stop.
+      if (!group.isNavigable(focused) || !group.roving.includes(focused)) {
+        return null;
+      }
 
-      if (!isRoving(focused) || skipTest(options)(focused)) return null;
-
-      const items = ownItems(root, readItems, isRoot ?? attributeRoot).filter(
-        isRoving,
-      );
-
-      if (!items.includes(focused)) return null;
-
-      placeStop(items, focused);
+      group.placeStop(focused);
 
       return focused;
     }
 
     // No item of this group holds focus. The group around it may, but never
     // one past the listener's reach.
-    if (!scope || root === scope || !scope.contains(root)) return null;
-
-    from = root.parentElement;
+    group = scope && groups.around(root, scope);
   }
 
   return null;

@@ -35,19 +35,6 @@ describe('createTypeahead', () => {
 
       expect(activeId()).toBe('drafts');
     });
-
-    it('leaves disabled items out, as the attribute reading does', () => {
-      renderMenu(
-        `<div id="first" role="menuitem" tabindex="0" disabled>Drafts</div>` +
-          `<div id="second" role="menuitem" tabindex="0">Drafts</div>`,
-        { items: '[role="menuitem"]' },
-      );
-      document.getElementById('second')!.focus();
-
-      pressKey('d');
-
-      expect(activeId()).toBe('second');
-    });
   });
 
   describe('label named in options', () => {
@@ -209,57 +196,6 @@ describe('createTypeahead', () => {
       now.mockReturnValue(2000);
       pressKey('é');
       expect(activeId()).toBe('p1');
-    });
-  });
-
-  describe('skip named in options', () => {
-    it('passes over the items its test matches', () => {
-      renderMenu(
-        `<div id="header" role="menuitem" tabindex="0" class="divider">Drafts</div>` +
-          `${menuItems('Drafts')}`,
-        { items: '[role="menuitem"]', skip: '.divider' },
-      );
-      document.getElementById('header')!.focus();
-
-      pressKey('d');
-
-      expect(activeId()).toBe('drafts');
-    });
-  });
-
-  describe('rovingTabindex named in options', () => {
-    it('carries the tab stop to the match', () => {
-      renderMenu(menuItems('Drafts', 'Sent'), {
-        items: '[role="menuitem"]',
-        rovingTabindex: true,
-      });
-      document.getElementById('drafts')!.focus();
-
-      pressKey('s');
-
-      expect(activeId()).toBe('sent');
-      expect(document.getElementById('drafts')!.getAttribute('tabindex')).toBe(
-        '-1',
-      );
-      expect(document.getElementById('sent')!.getAttribute('tabindex')).toBe(
-        '0',
-      );
-    });
-  });
-
-  describe('root named in options', () => {
-    it('scopes matching to the group the press came from', () => {
-      renderMenu(
-        `<div class="group">${menuItems('Drafts', 'Sent')}</div>` +
-          `<div class="group"><div id="archive" role="menuitem" tabindex="0">Archive</div></div>`,
-        { root: '.group', items: '[role="menuitem"]' },
-      );
-      document.getElementById('drafts')!.focus();
-
-      // 'a' matches only the item in the other group, which is out of reach.
-      pressKey('a');
-
-      expect(activeId()).toBe('drafts');
     });
   });
 

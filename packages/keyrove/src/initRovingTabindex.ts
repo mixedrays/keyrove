@@ -8,8 +8,7 @@
  * user left somewhere valid stays there.
  */
 
-import { itemsReader, rootTest, rovingTest, skipTest } from './config.js';
-import { attributeRoot, ownItems, placeStop } from './group.js';
+import { readGroups } from './group.js';
 import type { InitRovingTabindexOptions } from './types.js';
 
 /**
@@ -41,23 +40,15 @@ export const initRovingTabindex = (
 ): Element | null => {
   if (!root) return null;
 
-  const isRoving = rovingTest(options);
-  const isSkipped = skipTest(options);
-  const items = ownItems(
-    root as Element,
-    itemsReader(options),
-    rootTest(options) ?? attributeRoot,
-  ).filter(isRoving);
-  const navigable = items.filter(
-    (item) => !isSkipped(item) && !item.hasAttribute('disabled'),
-  );
+  const group = readGroups(options).of(root);
+  const navigable = group.roving.filter(group.isNavigable);
   const stop =
     navigable.find((item) => item === options.initial) ??
-    navigable.find((item) => item.getAttribute('tabindex') === '0') ??
+    navigable.find(group.holdsStop) ??
     navigable[0] ??
     null;
 
-  placeStop(items, stop);
+  group.placeStop(stop);
 
   return stop;
 };

@@ -53,6 +53,6 @@ jobs:
           # TanStack Start writes the prerendered site to `dist/client`; the
           # server build beside it in `dist/server` only runs the prerender.
           command: >-
-            pages deploy packages/docs/dist/client
+            pages deploy apps/docs/dist/client
             --project-name=keyrove
             --branch=main

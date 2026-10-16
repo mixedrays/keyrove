@@ -1,15 +1,8 @@
 import { buildBindings } from './bindings.js';
 import { crossBoundary } from './boundary.js';
-import { readConfig, readFocusKeys, rootTest } from './config.js';
-import {
-  attributeRoot,
-  holdsFocus,
-  listenerElement,
-  moveFocus,
-  readGroup,
-  resolveRoot,
-  stopSource,
-} from './group.js';
+import { readConfig, readFocusKeys } from './config.js';
+import { holdsFocus, readGroups } from './group.js';
+import { listenerElement } from './nesting.js';
 import { resolveTarget } from './position.js';
 import { hasCommandModifier, isEditableTarget, matchesCombo } from './utils.js';
 import type { KeyRoveEvent, KeyRoveOptions, MoveResult } from './types.js';
@@ -56,19 +49,19 @@ export const keyRove = (
   // modifier — so there is nothing to look up.
   if (editable && !hasCommandModifier(e)) return null;
 
-  // What marks a root is the one setting read before the root is known: it is
-  // what finds it.
-  const isRoot = rootTest(options);
-  const root = resolveRoot(eventTarget, e.currentTarget, isRoot);
+  // The group is resolved before anything else is read: its root is what the
+  // rest of the settings are read off.
+  const groups = readGroups(options);
+  const pressed = groups.at(eventTarget, e.currentTarget);
 
-  if (!root) return null;
+  if (!pressed) return null;
 
   // A move is relative to the root focus is in; a focus key names its element
   // outright and is heard as far as the listener reaches — across sibling
   // groups and out of nested roots — so its lookup spans the listener's
   // element, not the root.
-  const scope = listenerElement(e.currentTarget) ?? root;
-  const config = readConfig(root, options);
+  const scope = listenerElement(e.currentTarget) ?? pressed.root;
+  const config = readConfig(pressed.root, options);
   const { onMove } = options;
 
   // First match wins: one keypress resolves to at most one action, and the
@@ -90,26 +83,26 @@ export const keyRove = (
   // An item's focus row moves in the item's own group — the nearest root above
   // it, else the listener's element — so `from` is the sibling holding focus,
   // the roving stop stays within one group, and a key pressed while focus is
-  // already inside its item is a consumed no-op. The search starts at the
-  // item's *parent*: a panel is often itself the root of the list inside it,
-  // and its group is the one above.
+  // already inside its item is a consumed no-op. It is the group *around* the
+  // item: a panel is often itself the root of the list inside it, and its
+  // group is the one above. An element outside the listener's reach — one
+  // `focusKeys` names outright — is in no group of keyrove's.
   const group =
     binding.intent === 'focus'
-      ? (resolveRoot(binding.target.parentElement, scope, isRoot) ?? scope)
-      : root;
-  const { items: elements, focused } = readGroup(group, config.readItems);
+      ? (groups.around(binding.target, scope) ?? groups.of(scope))
+      : pressed;
+  const { items: elements, focused } = group;
 
   // A focus key on an element that is none of that group's items names a
   // destination in no group: there is no sibling to report as `from` or to
   // take the roving stop from. Focus inside the element already makes `from`
   // the element itself — the same consumed no-op an item's key makes.
   if (binding.intent === 'focus' && !elements.includes(binding.target)) {
-    return moveFocus({
+    return group.move({
       e,
       action: 'focus',
       from: holdsFocus(binding.target) ? binding.target : null,
       to: binding.target,
-      isRoving: config.isRoving,
       onMove,
     });
   }
@@ -119,24 +112,15 @@ export const keyRove = (
   // claims its key only where there is somewhere to go: the keys it suits,
   // Escape and Enter, are otherwise the page's.
   if (binding.intent === 'exit' || binding.intent === 'enter') {
-    const crossing = crossBoundary(
-      binding.intent,
-      root,
-      scope,
-      focused,
-      config,
-      isRoot ?? attributeRoot,
-    );
+    const crossing = crossBoundary(binding.intent, groups, group, scope);
 
     if (!crossing) return null;
 
-    return moveFocus({
+    return crossing.group.cross({
       e,
       action: binding.intent,
       from: focused,
       to: crossing.to,
-      isRoving: config.isRoving,
-      stopFrom: crossing.stopFrom,
       onMove,
     });
   }
@@ -156,7 +140,7 @@ export const keyRove = (
           fromIndex: focused ? elements.indexOf(focused) : -1,
           layout: config.layout,
           pageLength: config.pageLength,
-          isSkipped: config.isSkipped,
+          isNavigable: group.isNavigable,
         });
 
   // With neither a target nor a focused item, keyrove has nothing to move
@@ -166,20 +150,11 @@ export const keyRove = (
   // edge) — the group owns its bound keys up to its own boundary.
   if (!target && !focused) return null;
 
-  return moveFocus({
+  return group.move({
     e,
     action: binding.intent,
     from: focused,
     to: target,
-    isRoving: config.isRoving,
-    stopFrom: stopSource(
-      group,
-      focused,
-      target,
-      config.readItems,
-      isRoot ?? attributeRoot,
-      config.isRoving,
-    ),
     onMove,
   });
 };

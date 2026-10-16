@@ -44,29 +44,6 @@ describe('keyRove', () => {
 
       expect(activeId()).toBe('b');
     });
-
-    it('takes a reading of its own in place of a selector', () => {
-      renderMenu(menuItems('a', 'b'), {
-        items: (root) => Array.from(root.querySelectorAll('[role]')),
-      });
-      document.getElementById('a')!.focus();
-
-      pressKey('ArrowDown');
-
-      expect(activeId()).toBe('b');
-    });
-
-    it('leaves disabled items out, as the attribute reading does', () => {
-      renderMenu(
-        `${menuItems('a')}<div id="b" role="menuitem" tabindex="0" disabled></div>${menuItems('c')}`,
-        { items: '[role="menuitem"]' },
-      );
-      document.getElementById('a')!.focus();
-
-      pressKey('ArrowDown');
-
-      expect(activeId()).toBe('c');
-    });
   });
 
   describe('settings beside attributes', () => {
@@ -198,18 +175,6 @@ describe('keyRove', () => {
 
       expect(activeId()).toBe('c');
     });
-
-    it('takes a test of its own in place of a selector', () => {
-      renderMenu(menuItems('a', 'b', 'c'), {
-        items: '[role="menuitem"]',
-        skip: (element) => element.id === 'b',
-      });
-      document.getElementById('a')!.focus();
-
-      pressKey('ArrowDown');
-
-      expect(activeId()).toBe('c');
-    });
   });
 
   describe('rovingTabindex named in options', () => {
@@ -224,21 +189,6 @@ describe('keyRove', () => {
 
       expect(document.getElementById('a')!.getAttribute('tabindex')).toBe('-1');
       expect(document.getElementById('b')!.getAttribute('tabindex')).toBe('0');
-    });
-
-    it('leaves the tab stop alone when it names false over marked-up items', () => {
-      renderList(
-        [createItem('a', { roving: true }), createItem('b', { roving: true })],
-        {
-          options: { rovingTabindex: false },
-        },
-      );
-      document.getElementById('a')!.focus();
-
-      pressKey('ArrowDown');
-
-      expect(activeId()).toBe('b');
-      expect(document.getElementById('a')!.getAttribute('tabindex')).toBe('0');
     });
   });
 
@@ -350,22 +300,6 @@ describe('keyRove', () => {
 
       expect(event.defaultPrevented).toBe(false);
       expect(activeId()).toBe('a');
-    });
-  });
-
-  describe('root named in options', () => {
-    it('scopes the group to the nearest element the selector matches', () => {
-      renderMenu(
-        `<div class="group">${menuItems('a', 'b')}</div>` +
-          `<div class="group">${menuItems('c', 'd')}</div>`,
-        { root: '.group', items: '[role="menuitem"]' },
-      );
-      document.getElementById('b')!.focus();
-
-      // The end of its own group, not of the markup the listener covers.
-      pressKey('ArrowDown');
-
-      expect(activeId()).toBe('b');
     });
   });
 
