@@ -97,6 +97,41 @@ describe('readGroups', () => {
       expect(ids(group!.items)).toEqual(['a', 'b']);
     });
 
+    it("reads the group around a root, within the listener's reach, by the root option", () => {
+      render(`
+        <div id="listener">
+          <div id="outer" class="group">
+            <div data-keyrove-root>
+              <div id="inner" class="group"></div>
+            </div>
+          </div>
+        </div>
+      `);
+      const groups = readGroups({ root: '.group' });
+
+      expect(groups.around(byId('inner'), byId('listener'))?.root).toBe(
+        byId('outer'),
+      );
+      expect(groups.around(byId('outer'), byId('listener'))?.root).toBe(
+        byId('listener'),
+      );
+      expect(groups.around(byId('listener'), byId('listener'))).toBeNull();
+    });
+
+    it('reads the group nested in an item by the root option', () => {
+      render(`
+        <div id="item">
+          <div data-keyrove-root>
+            <div id="inner" class="group"></div>
+          </div>
+        </div>
+      `);
+      const groups = readGroups({ root: '.group' });
+
+      expect(groups.inside(byId('item'))?.root).toBe(byId('inner'));
+      expect(groups.inside(byId('inner'))).toBeNull();
+    });
+
     it('matches no root selector on a shadow root, and reads its items by selector', () => {
       const shadow = shadowOf(
         `<button id="a"></button><button id="b"></button>`,

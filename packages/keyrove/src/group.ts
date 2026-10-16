@@ -17,6 +17,7 @@ import {
   KEYROVE_ATTR_ROVING_TABINDEX,
   KEYROVE_ATTR_SKIP,
 } from './attributes.js';
+import { innerRoot, outerRoot, ownerRoot, rootAt } from './nesting.js';
 import { hasEnabledAttribute, toggleTabIndex } from './utils.js';
 import type {
   ActionResult,
@@ -106,55 +107,6 @@ export const holdsFocus = (element: Element): boolean => {
   const active = activeElementOf(element);
 
   return !!active && element.contains(active);
-};
-
-// `Node.DOCUMENT_NODE`, spelled out so reading it needs no global `Node`.
-const DOCUMENT_NODE = 9;
-
-/**
- * The element a listener sits on. A listener on the document, or the window,
- * has no element of its own, so the document element stands in: `<html>`
- * answers attribute reads and item queries like any root, with nothing set.
- *
- * A listener on a shadow root has no element to stand in: no single one
- * contains every top-level child. The shadow root is handed back as it is — a
- * fragment that answers item queries and holds focus like any root, and has
- * no attributes, so every attribute read of it is unset (see `readAttribute`).
- */
-export const listenerElement = (
-  listener: EventTarget | null | undefined,
-): Element | null => {
-  if (!listener) return null;
-
-  // Told apart by values, not by which properties exist: a form exposes its
-  // controls as named properties, so `<input name="document">` makes
-  // `'document' in form` true. A control can stand in for `nodeType` or
-  // `window` too, but it is an element, never 9 or the form itself.
-  if ((listener as Node).nodeType === DOCUMENT_NODE) {
-    return (listener as Document).documentElement;
-  }
-  if ((listener as Window).window === listener) {
-    return (listener as Window).document.documentElement;
-  }
-
-  return listener as Element;
-};
-
-/**
- * The group an item of `root` belongs to: the nearest root above its
- * *parent*, short of `root` itself, else `root`. The resolution a focus key's
- * move uses, so an item that is itself a root belongs to the group around it.
- */
-const ownerRoot = (item: Element, root: Element, isRoot: IsRoot): Element => {
-  for (
-    let element = item.parentElement;
-    element && element !== root;
-    element = element.parentElement
-  ) {
-    if (isRoot(element)) return element;
-  }
-
-  return root;
 };
 
 // `disabled` is the DOM's own word for an element that takes no part, and it
@@ -391,18 +343,14 @@ const createReader = (
     of: (root) => new ResolvedGroup(root, readings),
   };
 
+  // The group of a root the nesting walks found, where they found one.
+  const ofFound = (root: Element | null) => (root ? readings.of(root) : null);
+
   return {
-    at: (target, listener) => {
-      for (let element = target; element; element = element.parentElement) {
-        if (isRoot(element)) return readings.of(element);
-      }
-
-      const root = listenerElement(listener);
-
-      return root ? readings.of(root) : null;
-    },
+    at: (target, listener) => ofFound(rootAt(target, listener, isRoot)),
     of: readings.of,
-    isRoot,
+    around: (element, reach) => ofFound(outerRoot(element, reach, isRoot)),
+    inside: (item) => ofFound(innerRoot(item, isRoot)),
   };
 };
 

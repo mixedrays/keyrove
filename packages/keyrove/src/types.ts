@@ -515,15 +515,18 @@ export type Group = {
 
 /**
  * How a handler reads its groups: the four readings, resolved once from its
- * options, and the two ways to a group — from where an event happened, or from
- * a root.
+ * options, and the ways to a group — from where an event happened, from a
+ * root, and from one group to the next. Every walk between roots is the
+ * nesting module's; a handler asks for the group it lands on.
  */
 export type GroupReader = {
   /**
    * The group an event at `target` is in: the nearest root at or above it,
    * else the listener's element. `null` with neither. Resolving from the
    * target rather than the listener is what lets one delegated listener serve
-   * several groups, and lets a nested root win while focus is in it.
+   * several groups, and lets a nested root win while focus is in it. The walk
+   * is not bounded by the listener: a root above the listener's element wins
+   * where none sits between.
    */
   at: (
     target: Element | null | undefined,
@@ -531,8 +534,14 @@ export type GroupReader = {
   ) => Group | null;
   /** The group `root` governs: an element, or a shadow root a listener is attached to. */
   of: (root: Element | ShadowRoot) => Group;
-  /** Whether an element is a root, for the walks from one group to the next. */
-  isRoot: IsRoot;
+  /**
+   * The group around `element` — a nested root, or an item — within `reach`,
+   * the listener's element: the nearest root above it, else `reach`. `null`
+   * for `reach` itself, or anything outside it.
+   */
+  around: (element: Element, reach: Element) => Group | null;
+  /** The group nested in `item`: its first root inside, outermost first. `null` with none. */
+  inside: (item: Element) => Group | null;
 };
 
 /**
