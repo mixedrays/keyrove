@@ -3,6 +3,14 @@ import path from 'node:path';
 import type { Plugin } from 'vite';
 
 import {
+  createAddresses,
+  GENERATED_FILES,
+  pagePath,
+  twinPath,
+  type Addresses,
+  type GeneratedFile,
+} from './build/addresses.ts';
+import {
   CONTENT_DIR,
   loadPages,
   toNav,
@@ -15,7 +23,6 @@ import { toHead } from './build/head.ts';
 import { faviconSvg } from './build/icons.ts';
 import { META } from './build/meta.ts';
 import { renderPage, type RenderedPage } from './build/page-render.ts';
-import { FAVICON_FILE, toMarkdownPath } from './build/paths.ts';
 import {
   toLlmsFullTxt,
   toLlmsTxt,
@@ -70,7 +77,7 @@ type Site = {
   byRoute: Map<string, RenderedPage>;
 };
 
-/** A generated file, keyed by the path it is served at. */
+/** A generated file, keyed by the site path it is served at. */
 type Generated = { type: string; body: string };
 
 const loadSite = async (): Promise<Site> => {
@@ -98,51 +105,41 @@ export const listPrerenderPaths = async (): Promise<string[]> => {
   const pages = await loadPages();
 
   return [
-    ...pages.flatMap((page) => [
-      `/${page.route}`,
-      `/${toMarkdownPath(page.route)}`,
-    ]),
-    ...GENERATED_FILES.map((file) => `/${file}`),
+    ...pages.flatMap((page) => [pagePath(page.route), twinPath(page.route)]),
+    ...Object.values(GENERATED_FILES).map((file) => file.path),
   ];
 };
 
-/** The non-page files, listed once so the prerender asks for exactly these. */
-const GENERATED_FILES = [
-  'search-index.json',
-  'llms.txt',
-  'llms-full.txt',
-  'sitemap.xml',
-  'robots.txt',
-  FAVICON_FILE,
-];
-
-const toGenerated = (site: Site, base: string): Record<string, Generated> => {
+const toGenerated = (
+  site: Site,
+  addresses: Addresses,
+): Record<string, Generated> => {
   const landing = site.pages.find((page) => page.layout === 'landing');
   const rendered = (page: Page) => site.byRoute.get(page.route)!;
 
-  const files: Record<string, Generated> = {
-    'search-index.json': {
-      type: 'application/json',
-      body: toSearchIndex(site.pages.map(rendered)),
-    },
-    'llms.txt': {
-      type: 'text/plain',
-      body: toLlmsTxt(landing, site.nav, base),
-    },
-    'llms-full.txt': {
-      type: 'text/plain',
-      body: toLlmsFullTxt(landing, site.readingOrder.map(rendered), base),
-    },
-    'sitemap.xml': {
-      type: 'application/xml',
-      body: toSitemap(site.pages, base),
-    },
-    'robots.txt': { type: 'text/plain', body: toRobotsTxt(base) },
-    [FAVICON_FILE]: { type: 'image/svg+xml', body: faviconSvg },
+  // Keyed by the registry, so a file declared there without a body here does
+  // not typecheck.
+  const bodies: Record<GeneratedFile, string> = {
+    searchIndex: toSearchIndex(site.pages.map(rendered)),
+    llmsTxt: toLlmsTxt(landing, site.nav, addresses),
+    llmsFullTxt: toLlmsFullTxt(
+      landing,
+      site.readingOrder.map(rendered),
+      addresses,
+    ),
+    sitemap: toSitemap(site.pages, addresses),
+    robotsTxt: toRobotsTxt(addresses),
+    favicon: faviconSvg,
   };
 
+  const files: Record<string, Generated> = {};
+
+  for (const [name, { path, type }] of Object.entries(GENERATED_FILES)) {
+    files[path] = { type, body: bodies[name as GeneratedFile] };
+  }
+
   for (const page of site.pages) {
-    files[toMarkdownPath(page.route)] = {
+    files[twinPath(page.route)] = {
       type: 'text/markdown',
       body: rendered(page).markdown,
     };
@@ -169,7 +166,7 @@ const toPageInfo = (page: Page) => ({
   sourceUrl: `${SOURCE_BASE}/${path.relative(CONTENT_DIR, page.file)}`,
 });
 
-const toSiteModule = (site: Site, base: string) => {
+const toSiteModule = (site: Site, addresses: Addresses) => {
   const data = {
     meta: {
       packageVersion: META.packageVersion,
@@ -189,7 +186,11 @@ const toSiteModule = (site: Site, base: string) => {
     // router has no page for — it has no loader of its own to fetch it with.
     notFound: {
       route: NOT_FOUND_ROUTE,
-      head: toHead(site.byRoute.get(NOT_FOUND_ROUTE)!.page, site.nav, base),
+      head: toHead(
+        site.byRoute.get(NOT_FOUND_ROUTE)!.page,
+        site.nav,
+        addresses,
+      ),
     },
   };
 
@@ -209,7 +210,7 @@ const toSiteModule = (site: Site, base: string) => {
 };
 
 export const docsContent = (): Plugin => {
-  let base = '/';
+  let addresses = createAddresses({ base: '/', siteUrl: META.siteUrl });
   let site: Promise<Site> | undefined;
 
   const getSite = () => (site ??= loadSite());
@@ -224,7 +225,7 @@ export const docsContent = (): Plugin => {
     return `export default ${JSON.stringify({
       tree: await rendered.tree(),
       headings: rendered.headings,
-      head: toHead(rendered.page, nav, base),
+      head: toHead(rendered.page, nav, addresses),
     })};`;
   };
 
@@ -232,7 +233,7 @@ export const docsContent = (): Plugin => {
     name: 'keyrove-docs-content',
 
     configResolved(config) {
-      base = config.base;
+      addresses = createAddresses({ base: config.base, siteUrl: META.siteUrl });
     },
 
     resolveId(id) {
@@ -245,10 +246,10 @@ export const docsContent = (): Plugin => {
       if (!id.startsWith(RESOLVED)) return;
       const virtual = id.slice(RESOLVED.length);
 
-      if (virtual === SITE_ID) return toSiteModule(await getSite(), base);
+      if (virtual === SITE_ID) return toSiteModule(await getSite(), addresses);
 
       if (virtual === FILES_ID) {
-        const files = toGenerated(await getSite(), base);
+        const files = toGenerated(await getSite(), addresses);
         return `export const files = ${JSON.stringify(files)};`;
       }
 

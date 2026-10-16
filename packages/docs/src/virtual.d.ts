@@ -47,6 +47,6 @@ declare module 'virtual:docs/site' {
 }
 
 declare module 'virtual:docs/files' {
-  /** Every non-page file, keyed by the path it is served at, e.g. `docs/api.md`. */
+  /** Every non-page file, keyed by the site path it is served at, e.g. `/docs/api.md`. */
   export const files: Record<string, { type: string; body: string }>;
 }

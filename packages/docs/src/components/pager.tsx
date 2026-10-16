@@ -1,5 +1,6 @@
 import { pages, readingOrder } from 'virtual:docs/site';
 
+import { pagePath } from '../../build/addresses.ts';
 import { SiteLink } from '@/components/site-link.tsx';
 
 function Side({
@@ -14,7 +15,7 @@ function Side({
   if (route === undefined) return <span />;
 
   return (
-    <SiteLink href={`/${route}`} className={`pager-link ${align}`}>
+    <SiteLink href={pagePath(route)} className={`pager-link ${align}`}>
       <span className="pager-label">{label}</span>
       <span className="pager-title">{pages[route].title}</span>
     </SiteLink>

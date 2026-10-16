@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import { meta } from 'virtual:docs/site';
 
+import { GENERATED_FILES } from '../../build/addresses.ts';
 import { Icon } from '@/components/icon.tsx';
 import { SearchTrigger } from '@/components/search.tsx';
 import { SiteLink } from '@/components/site-link.tsx';
@@ -123,7 +124,7 @@ export function SiteFooter({ layout }: { layout: Layout }) {
           <a href={meta.npmUrl} className="footer-link">
             npm
           </a>
-          <SiteLink href="/llms.txt" className="footer-link">
+          <SiteLink href={GENERATED_FILES.llmsTxt.path} className="footer-link">
             llms.txt
           </SiteLink>
         </nav>

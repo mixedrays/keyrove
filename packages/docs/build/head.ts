@@ -1,6 +1,5 @@
+import type { Addresses } from './addresses.ts';
 import type { NavGroup, Page } from './content.ts';
-import { META } from './meta.ts';
-import { createHrefResolver, routeToPath, toMarkdownPath } from './paths.ts';
 import { toStructuredData } from './structured-data.ts';
 
 /**
@@ -57,7 +56,11 @@ const toTitle = (page: Page) =>
  * and says so instead — it is served at every dead URL, so it has no canonical
  * URL of its own to claim.
  */
-export const toHead = (page: Page, nav: NavGroup[], base: string): Head => {
+export const toHead = (
+  page: Page,
+  nav: NavGroup[],
+  addresses: Addresses,
+): Head => {
   const title = toTitle(page);
   const meta: HeadMeta[] = [
     { title },
@@ -71,11 +74,8 @@ export const toHead = (page: Page, nav: NavGroup[], base: string): Head => {
     };
   }
 
-  const resolveHref = createHrefResolver(base);
-  const toUrl = (route: string) =>
-    `${META.siteUrl}${resolveHref(routeToPath(route))}`;
-  const url = toUrl(page.route);
-  const image = `${META.siteUrl}${resolveHref(OG_IMAGE.path)}`;
+  const url = addresses.pageUrl(page.route);
+  const image = addresses.url(OG_IMAGE.path);
 
   return {
     meta: [
@@ -103,7 +103,7 @@ export const toHead = (page: Page, nav: NavGroup[], base: string): Head => {
         'script:ld+json': toStructuredData({
           page,
           nav,
-          toUrl,
+          toUrl: addresses.pageUrl,
           imageUrl: image,
         }),
       },
@@ -115,7 +115,7 @@ export const toHead = (page: Page, nav: NavGroup[], base: string): Head => {
       {
         rel: 'alternate',
         type: 'text/markdown',
-        href: `${META.siteUrl}${resolveHref(toMarkdownPath(page.route))}`,
+        href: addresses.twinUrl(page.route),
       },
     ],
   };

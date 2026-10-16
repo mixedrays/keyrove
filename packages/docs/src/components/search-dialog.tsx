@@ -6,6 +6,8 @@ import {
   type RefObject,
 } from 'react';
 
+import { GENERATED_FILES } from '../../build/addresses.ts';
+import { addresses } from '@/addresses.ts';
 import { Icon } from '@/components/icon.tsx';
 import { SiteLink } from '@/components/site-link.tsx';
 import {
@@ -43,7 +45,7 @@ let engine: Promise<Find> | undefined;
 const loadEngine = () => {
   engine ??= Promise.all([
     import('@/search-engine.ts'),
-    fetch(`${import.meta.env.BASE_URL}search-index.json`).then((response) => {
+    fetch(addresses.href(GENERATED_FILES.searchIndex.path)).then((response) => {
       if (!response.ok) throw new Error(`Search index: ${response.status}`);
       return response.text();
     }),

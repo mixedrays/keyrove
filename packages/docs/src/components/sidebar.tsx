@@ -3,6 +3,7 @@ import { useLocation } from '@tanstack/react-router';
 import { useCallback, useEffect, useRef } from 'react';
 import { nav, pages } from 'virtual:docs/site';
 
+import { pagePath } from '../../build/addresses.ts';
 import { Icon } from '@/components/icon.tsx';
 import {
   KeysHint,
@@ -41,7 +42,7 @@ function SidebarNav() {
                 the generated llms.txt, which has no route to mark as current. */}
             {entry.pages.map((route) => (
               <li key={route}>
-                <SiteLink href={`/${route}`} className="sidebar-link">
+                <SiteLink href={pagePath(route)} className="sidebar-link">
                   {pages[route].title}
                 </SiteLink>
               </li>

@@ -9,7 +9,8 @@ import type { ReactNode } from 'react';
 import { notFound } from 'virtual:docs/site';
 
 import appCss from '../app.css?url';
-import { FAVICON_FILE } from '../../build/paths.ts';
+import { GENERATED_FILES } from '../../build/addresses.ts';
+import { addresses } from '@/addresses.ts';
 import { DocsLayout } from '@/components/docs-layout.tsx';
 import { DocsPage } from '@/components/docs-page.tsx';
 import { SearchProvider } from '@/components/search.tsx';
@@ -75,7 +76,7 @@ export const Route = createRootRoute({
       {
         rel: 'icon',
         type: 'image/svg+xml',
-        href: `${import.meta.env.BASE_URL}${FAVICON_FILE}`,
+        href: addresses.href(GENERATED_FILES.favicon.path),
       },
       // The stylesheet twice: a preload, then the link that applies it. The
       // preload is for Cloudflare Pages rather than for the browser, which

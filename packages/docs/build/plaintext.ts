@@ -1,7 +1,11 @@
+import {
+  GENERATED_FILES,
+  pagePath,
+  twinPath,
+  type Addresses,
+} from './addresses.ts';
 import type { NavGroup, Page } from './content.ts';
-import { META } from './meta.ts';
 import type { RenderedPage } from './page-render.ts';
-import { routeToPath, toMarkdownPath } from './paths.ts';
 
 /**
  * The machine-readable half of the site: llms.txt and llms-full.txt, and the
@@ -12,10 +16,6 @@ import { routeToPath, toMarkdownPath } from './paths.ts';
  * build/page-render.ts; the files here index and collect the twins.
  */
 
-/** A page's absolute URL: `docs/api` → `https://keyrove.pages.dev/docs/api`. */
-const toPageUrl = (route: string, base: string) =>
-  `${META.siteUrl}${base}${routeToPath(route).replace(/^\//, '')}`;
-
 /**
  * llms.txt — an index pointing at each page's markdown.
  *
@@ -25,16 +25,13 @@ const toPageUrl = (route: string, base: string) =>
 export const toLlmsTxt = (
   landing: Page | undefined,
   nav: NavGroup[],
-  base: string,
+  addresses: Addresses,
 ) => {
-  const url = (route: string) =>
-    `${META.siteUrl}${base}${toMarkdownPath(route)}`;
-
   const sections = nav.map((group) => {
     const entries = group.pages
       .map((page) => {
         const summary = page.description === '' ? '' : `: ${page.description}`;
-        return `- [${page.title}](${url(page.route)})${summary}`;
+        return `- [${page.title}](${addresses.twinUrl(page.route)})${summary}`;
       })
       .join('\n');
 
@@ -49,8 +46,8 @@ export const toLlmsTxt = (
     `> ${intro}`,
     '',
     'Every page on this site is also available as markdown by appending `.md` to its URL —',
-    `for example ${base}docs/api renders the API reference, and ${base}docs/api.md returns its source.`,
-    `All of the pages below, in full and in this order, are one file at ${META.siteUrl}${base}llms-full.txt.`,
+    `for example ${addresses.href(pagePath('docs/api'))} renders the API reference, and ${addresses.href(twinPath('docs/api'))} returns its source.`,
+    `All of the pages below, in full and in this order, are one file at ${addresses.url(GENERATED_FILES.llmsFullTxt.path)}.`,
   ].join('\n');
 
   return `${[preamble, ...sections].join('\n\n')}\n`;
@@ -67,28 +64,25 @@ export const toLlmsTxt = (
 export const toLlmsFullTxt = (
   landing: Page | undefined,
   readingOrder: RenderedPage[],
-  base: string,
+  addresses: Addresses,
 ) => {
   const preamble = [
     '# keyrove',
     '',
     `> ${landing?.description ?? ''}`,
     '',
-    `The full text of every page indexed by ${META.siteUrl}${base}llms.txt, in the same order.`,
+    `The full text of every page indexed by ${addresses.url(GENERATED_FILES.llmsTxt.path)}, in the same order.`,
   ].join('\n');
 
   const pages = readingOrder.map(
     ({ page, markdown }) =>
-      `Source: ${toPageUrl(page.route, base)}\n\n${markdown.trimEnd()}`,
+      `Source: ${addresses.pageUrl(page.route)}\n\n${markdown.trimEnd()}`,
   );
 
   // Blank lines on both sides of each rule: straight under a line of text,
   // `---` would make that line a heading instead.
   return `${[preamble, ...pages].join('\n\n---\n\n')}\n`;
 };
-
-/** The URL a page's markdown is served at, for the "View as Markdown" link. */
-export const markdownHref = (page: Page) => `${routeToPath(page.route)}.md`;
 
 /**
  * sitemap.xml — every indexable page, as an absolute URL.
@@ -102,7 +96,7 @@ export const markdownHref = (page: Page) => `${routeToPath(page.route)}.md`;
  * dropped for a page git cannot date: the field is worth having only while
  * every date in it is true.
  */
-export const toSitemap = (pages: Page[], base: string) => {
+export const toSitemap = (pages: Page[], addresses: Addresses) => {
   const urls = pages
     .filter((page) => !page.noindex)
     // The landing page carries no `order`, so it sorts last among the pages;
@@ -114,7 +108,7 @@ export const toSitemap = (pages: Page[], base: string) => {
           ? ''
           : `<lastmod>${page.lastModified}</lastmod>`;
 
-      return `  <url><loc>${toPageUrl(page.route, base)}</loc>${lastmod}</url>`;
+      return `  <url><loc>${addresses.pageUrl(page.route)}</loc>${lastmod}</url>`;
     })
     .join('\n');
 
@@ -152,7 +146,7 @@ const AI_CRAWLERS = [
 
 const CONTENT_SIGNAL = 'search=yes, ai-input=yes, ai-train=yes';
 
-export const toRobotsTxt = (base: string) =>
+export const toRobotsTxt = (addresses: Addresses) =>
   `User-agent: *
 Content-Signal: ${CONTENT_SIGNAL}
 Allow: /
@@ -161,5 +155,5 @@ ${AI_CRAWLERS.map((agent) => `User-agent: ${agent}`).join('\n')}
 Content-Signal: ${CONTENT_SIGNAL}
 Allow: /
 
-Sitemap: ${META.siteUrl}${base}sitemap.xml
+Sitemap: ${addresses.url(GENERATED_FILES.sitemap.path)}
 `;
