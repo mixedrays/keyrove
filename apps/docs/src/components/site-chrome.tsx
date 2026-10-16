@@ -102,7 +102,7 @@ export function SiteFooter({ layout }: { layout: Layout }) {
             keyrove
           </SiteLink>
           <span>
-            v{meta.packageVersion} &middot;{' '}
+            v{meta.packageVersion} &middot; docs v{meta.docsVersion} &middot;{' '}
             <SiteLink href="/docs/license" className="footer-link">
               MIT licensed
             </SiteLink>

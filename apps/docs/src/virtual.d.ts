@@ -28,6 +28,8 @@ declare module 'virtual:docs/site' {
 
   export const meta: {
     packageVersion: string;
+    /** The docs package's own version, which moves when the site is released. */
+    docsVersion: string;
     repoUrl: string;
     npmUrl: string;
   };
