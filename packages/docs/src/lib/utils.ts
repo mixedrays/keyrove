@@ -1,10 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
 
-// Where shadcn's components look for class merging (see components.json). The
-// ones in src/components/ui join the site's own classes instead, so nothing
-// imports it yet and the bundle leaves it out.
-export { cn } from 'cn';
-
 /** Apple keyboards print their modifiers as glyphs: `⌘ K` rather than `Ctrl K`. */
 export const isApple = () => /Mac|iPhone|iPad|iPod/.test(navigator.platform);
 

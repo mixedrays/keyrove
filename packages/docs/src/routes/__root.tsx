@@ -8,7 +8,7 @@ import {
 import type { ReactNode } from 'react';
 import { notFound } from 'virtual:docs/site';
 
-import appCss from '../app.css?url';
+import appCss from '../style.css?url';
 import { FAVICON_FILE } from '../../build/paths.ts';
 import { DocsLayout } from '@/components/docs-layout.tsx';
 import { DocsPage } from '@/components/docs-page.tsx';

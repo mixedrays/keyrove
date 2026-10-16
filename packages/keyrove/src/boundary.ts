@@ -19,7 +19,7 @@ const FOLLOWING = 4;
  * Where a boundary move lands, and the group it lands in, whose own roving
  * stop the move carries.
  */
-export type Crossing = { group: Group; to: Element };
+type Crossing = { group: Group; to: Element };
 
 /** A group's own items that a move can land on. */
 const landings = (group: Group) => group.own.filter(group.isNavigable);

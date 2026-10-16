@@ -18,8 +18,6 @@ export const createHrefResolver =
   (href: string): string =>
     `${base}${href.replace(/^\//, '')}`;
 
-export type HrefResolver = ReturnType<typeof createHrefResolver>;
-
 /** `docs/examples/basic` → `/docs/examples/basic`; the landing page → `/`. */
 export const routeToPath = (route: string) => `/${route}`;
 

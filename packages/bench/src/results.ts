@@ -12,7 +12,7 @@ import type {
 } from './types.ts';
 
 /** A 60 Hz frame, in microseconds: the budget a keydown shares. */
-export const FRAME_US = 1_000_000 / 60;
+const FRAME_US = 1_000_000 / 60;
 
 /** Section names in the order the run recorded them. */
 export const sectionsOf = (results: BenchResults) => [
@@ -20,8 +20,7 @@ export const sectionsOf = (results: BenchResults) => [
 ];
 
 /** A case is its page and its label; the same pair names it in any run. */
-export const caseKey = (fixture: string, label: string) =>
-  `${fixture}\u0000${label}`;
+const caseKey = (fixture: string, label: string) => `${fixture}\u0000${label}`;
 
 export const indexCases = (results: BenchResults) =>
   new Map(

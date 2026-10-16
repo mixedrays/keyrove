@@ -31,7 +31,7 @@ export type DemoExtra = 'typeahead' | 'selection' | 'folds' | 'branches';
 export type ItemIcon = IconName | { closed: IconName; open: IconName };
 
 /** A live item, as an entry's `icons` sees it. */
-export type DemoItem = {
+type DemoItem = {
   /** The item's text, trimmed. */
   label: string;
   /** Whether it carries `aria-expanded`: a folder rather than a file. */

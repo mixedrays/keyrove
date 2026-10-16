@@ -1,6 +1,5 @@
 import {
   Archive,
-  ArrowRight,
   ArrowRightToLine,
   Bold,
   Circle,
@@ -9,7 +8,6 @@ import {
   CircleDot,
   CircleSlash,
   Code,
-  Command,
   FileCode,
   FileDown,
   FileJson,
@@ -29,7 +27,6 @@ import {
   PenTool,
   Pin,
   Pipette,
-  RefreshCw,
   Reply,
   Scan,
   Send,
@@ -37,7 +34,6 @@ import {
   SkipForward,
   Sparkles,
   Square,
-  TextCursorInput,
   Trash2,
   Type,
   Underline,
@@ -62,17 +58,13 @@ import {
 
 const ICONS = {
   ...CHROME_ICONS,
-  'arrow-right': fromLucide(ArrowRight),
 
-  // The landing page's feature cards and next steps, placed from the markdown
+  // The landing page's illustrations and next steps, placed from the markdown
   // with the placeholder `expandIcons` reads.
-  command: fromLucide(Command),
   layers: fromLucide(Layers),
-  refresh: fromLucide(RefreshCw),
   skip: fromLucide(SkipForward),
   sparkles: fromLucide(Sparkles),
   tab: fromLucide(ArrowRightToLine),
-  'text-cursor': fromLucide(TextCursorInput),
 
   // The mail folders in the landing page's hero demo.
   inbox: fromLucide(Inbox),

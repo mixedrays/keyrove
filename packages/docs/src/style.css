@@ -752,54 +752,46 @@
   }
 
   /*
-   * The two card grids: what else the library does, and where to go next.
+   * The card grid of next steps.
    * Each card is one link. The title carries it, so the link's name is the
    * title, and its `::after` is stretched over the card so the whole card
    * takes the click; the ring a focused link would draw round its text is
    * drawn round the card instead.
    */
-  .feature-grid {
-    @apply mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3;
-  }
-
   .next-steps {
     @apply mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4;
   }
 
-  :is(.feature, .next-step) {
-    @apply relative rounded-xl border border-zinc-200 bg-white p-5 transition-colors hover:border-indigo-300 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-indigo-700;
-  }
-
   .next-step {
-    @apply dark:bg-zinc-950;
+    @apply relative rounded-xl border border-zinc-200 bg-white p-5 transition-colors hover:border-indigo-300 dark:border-zinc-800 dark:bg-zinc-950 dark:hover:border-indigo-700;
   }
 
-  :is(.feature, .next-step):has(a:focus-visible) {
+  .next-step:has(a:focus-visible) {
     @apply outline-2 outline-offset-2 outline-indigo-600 dark:outline-indigo-400;
   }
 
-  :is(.feature-icon, .next-step-icon) {
+  .next-step-icon {
     @apply size-9 rounded-lg bg-indigo-50 p-2 text-indigo-600 dark:bg-indigo-500/15 dark:text-indigo-400;
   }
 
-  :is(.feature, .next-step) :where(h3) {
+  .next-step :where(h3) {
     @apply mt-4 text-base;
   }
 
-  .markdown :is(.feature, .next-step) h3 a {
+  .markdown .next-step h3 a {
     @apply text-zinc-900 no-underline outline-none dark:text-zinc-100;
   }
 
-  .markdown :is(.feature, .next-step):hover h3 a {
+  .markdown .next-step:hover h3 a {
     @apply text-indigo-600 dark:text-indigo-400;
   }
 
-  :is(.feature, .next-step) h3 a::after {
+  .next-step h3 a::after {
     content: '';
     @apply absolute inset-0 rounded-xl;
   }
 
-  :is(.feature, .next-step) :where(p) {
+  .next-step :where(p) {
     @apply mt-2 text-sm leading-6 text-zinc-600 dark:text-zinc-400;
   }
 

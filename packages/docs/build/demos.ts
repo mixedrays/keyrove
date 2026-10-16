@@ -27,15 +27,13 @@ import { decorateDemo } from './demo-icons.ts';
  * stray block below it.
  */
 
-export const DEMOS_DIR = fileURLToPath(
-  new URL('../content/_demos/', import.meta.url),
-);
+const DEMOS_DIR = fileURLToPath(new URL('../content/_demos/', import.meta.url));
 
 /** Demo name — its filename without the extension — to its markup. */
 export type Demos = Map<string, string>;
 
 /** What the reader gets: HTML for a page, a fenced block for the `.md` twin. */
-export type DemoTarget = 'html' | 'markdown';
+type DemoTarget = 'html' | 'markdown';
 
 /**
  * A folded region: markup that runs but is not worth reading.

@@ -46,7 +46,7 @@ export type Section = {
   text: string;
 };
 
-export type ParsedMarkdown = {
+type ParsedMarkdown = {
   headings: Heading[];
   sections: Section[];
   /** The HTML. The first call loads Shiki, which takes seconds. */
@@ -101,7 +101,7 @@ const wantsCopy = (info: string) => hasFlag(info, 'copy');
  * marks where it goes and what it is called; src/components/markdown.tsx swaps
  * in the component that copies.
  */
-export const copyButton = (label: string) =>
+const copyButton = (label: string) =>
   [
     '<button type="button" class="code-copy" data-copy-code',
     `aria-label="${label}">`,

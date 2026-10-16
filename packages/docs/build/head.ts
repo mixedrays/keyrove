@@ -11,13 +11,13 @@ import { toStructuredData } from './structured-data.ts';
  * carries the manifests or the site's origin around just to rebuild it.
  */
 
-export type HeadMeta =
+type HeadMeta =
   | { title: string }
   | { name: string; content: string }
   | { property: string; content: string }
   | { 'script:ld+json': Record<string, unknown> };
 
-export type HeadLink = { rel: string; href: string; type?: string };
+type HeadLink = { rel: string; href: string; type?: string };
 
 export type Head = { meta: HeadMeta[]; links: HeadLink[] };
 

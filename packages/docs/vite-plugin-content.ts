@@ -57,7 +57,7 @@ const RESOLVED = '\0';
  * 200 with the landing page — a soft 404, and the same content indexed under
  * every wrong address.
  */
-export const NOT_FOUND_ROUTE = '404';
+const NOT_FOUND_ROUTE = '404';
 
 type Site = {
   pages: Page[];

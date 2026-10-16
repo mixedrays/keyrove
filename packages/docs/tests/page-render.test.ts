@@ -11,7 +11,7 @@ test('the .md twin shows each demo as its source and drops icons', () => {
   const { markdown } = renderPage(
     page(
       'docs/guide',
-      'Intro <span data-icon="layers" class="size-5"></span>text.\n\n<div data-demo="menu"></div>\n\n```js\nkeyRove(menu);\n```',
+      'Intro <span data-icon="layers" class="size-5"></span>text.\n\n<div data-demo="menu" data-demo-label="menu"></div>\n\n```js\nkeyRove(menu);\n```',
       { title: 'Guide', description: 'How to rove.' },
     ),
     demos,
