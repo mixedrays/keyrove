@@ -12,5 +12,11 @@
       "@mixedrays/keyrove": ["../keyrove/src/index.ts"]
     }
   },
-  "include": ["src", "build", "vite.config.ts", "vite-plugin-content.ts"]
+  "include": [
+    "src",
+    "build",
+    "tests",
+    "vite.config.ts",
+    "vite-plugin-content.ts"
+  ]
 }

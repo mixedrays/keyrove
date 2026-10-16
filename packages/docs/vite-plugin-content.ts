@@ -10,17 +10,15 @@ import {
   type NavGroup,
   type Page,
 } from './build/content.ts';
-import { expandDemos, loadDemos, type Demos } from './build/demos.ts';
+import { loadDemos } from './build/demos.ts';
 import { toHead } from './build/head.ts';
-import { toHtmlTree } from './build/html-tree.ts';
-import { expandIcons, faviconSvg } from './build/icons.ts';
-import { renderMarkdown } from './build/markdown.ts';
-import { expandMeta, META } from './build/meta.ts';
+import { faviconSvg } from './build/icons.ts';
+import { META } from './build/meta.ts';
+import { renderPage, type RenderedPage } from './build/page-render.ts';
 import { FAVICON_FILE, toMarkdownPath } from './build/paths.ts';
 import {
   toLlmsFullTxt,
   toLlmsTxt,
-  toMarkdown,
   toRobotsTxt,
   toSitemap,
 } from './build/plaintext.ts';
@@ -63,10 +61,13 @@ export const NOT_FOUND_ROUTE = '404';
 
 type Site = {
   pages: Page[];
-  demos: Demos;
   nav: NavGroup[];
   readingOrder: Page[];
-  byRoute: Map<string, Page>;
+  /**
+   * Every page, parsed once when the site loads. Its HTML tree is rendered the
+   * first time a page module asks for it, and kept.
+   */
+  byRoute: Map<string, RenderedPage>;
 };
 
 /** A generated file, keyed by the path it is served at. */
@@ -84,10 +85,11 @@ const loadSite = async (): Promise<Site> => {
 
   return {
     pages,
-    demos,
     nav,
     readingOrder: toReadingOrder(nav),
-    byRoute: new Map(pages.map((page) => [page.route, page])),
+    byRoute: new Map(
+      pages.map((page) => [page.route, renderPage(page, demos)]),
+    ),
   };
 };
 
@@ -116,11 +118,12 @@ const GENERATED_FILES = [
 
 const toGenerated = (site: Site, base: string): Record<string, Generated> => {
   const landing = site.pages.find((page) => page.layout === 'landing');
+  const rendered = (page: Page) => site.byRoute.get(page.route)!;
 
   const files: Record<string, Generated> = {
     'search-index.json': {
       type: 'application/json',
-      body: toSearchIndex(site.pages, site.demos),
+      body: toSearchIndex(site.pages.map(rendered)),
     },
     'llms.txt': {
       type: 'text/plain',
@@ -128,7 +131,7 @@ const toGenerated = (site: Site, base: string): Record<string, Generated> => {
     },
     'llms-full.txt': {
       type: 'text/plain',
-      body: toLlmsFullTxt(landing, site.readingOrder, site.demos, base),
+      body: toLlmsFullTxt(landing, site.readingOrder.map(rendered), base),
     },
     'sitemap.xml': {
       type: 'application/xml',
@@ -141,7 +144,7 @@ const toGenerated = (site: Site, base: string): Record<string, Generated> => {
   for (const page of site.pages) {
     files[toMarkdownPath(page.route)] = {
       type: 'text/markdown',
-      body: toMarkdown(page, site.demos),
+      body: rendered(page).markdown,
     };
   }
 
@@ -186,7 +189,7 @@ const toSiteModule = (site: Site, base: string) => {
     // router has no page for — it has no loader of its own to fetch it with.
     notFound: {
       route: NOT_FOUND_ROUTE,
-      head: toHead(site.byRoute.get(NOT_FOUND_ROUTE)!, site.nav, base),
+      head: toHead(site.byRoute.get(NOT_FOUND_ROUTE)!.page, site.nav, base),
     },
   };
 
@@ -208,27 +211,20 @@ const toSiteModule = (site: Site, base: string) => {
 export const docsContent = (): Plugin => {
   let base = '/';
   let site: Promise<Site> | undefined;
-  /** Rendering runs Shiki; each page is rendered once, not once per environment. */
-  const rendered = new Map<string, Promise<string>>();
 
   const getSite = () => (site ??= loadSite());
 
-  const renderPage = async (route: string) => {
-    const { byRoute, nav, demos } = await getSite();
-    const page = byRoute.get(route);
-    if (!page) throw new Error(`[docs] no page at the route "/${route}".`);
+  const toPageModule = async (route: string) => {
+    const { byRoute, nav } = await getSite();
+    const rendered = byRoute.get(route);
+    if (!rendered) throw new Error(`[docs] no page at the route "/${route}".`);
 
-    // Links stay site-absolute here: the router prefixes the deploy base when
-    // it renders them, and a second prefix would double it.
-    const { html, headings } = await renderMarkdown(
-      expandMeta(expandDemos(page.body, demos, 'html')),
-      { resolveHref: (href) => href },
-    );
-
+    // The tree is rendered once and kept, so the second environment to load
+    // this module does not run Shiki over the page again.
     return `export default ${JSON.stringify({
-      tree: toHtmlTree(expandIcons(html)),
-      headings,
-      head: toHead(page, nav, base),
+      tree: await rendered.tree(),
+      headings: rendered.headings,
+      head: toHead(rendered.page, nav, base),
     })};`;
   };
 
@@ -257,13 +253,7 @@ export const docsContent = (): Plugin => {
       }
 
       if (virtual.startsWith(PAGE_PREFIX)) {
-        const route = virtual.slice(PAGE_PREFIX.length);
-        let module = rendered.get(route);
-        if (!module) {
-          module = renderPage(route);
-          rendered.set(route, module);
-        }
-        return module;
+        return toPageModule(virtual.slice(PAGE_PREFIX.length));
       }
     },
 
@@ -275,7 +265,6 @@ export const docsContent = (): Plugin => {
         if (!file.startsWith(CONTENT_DIR)) return;
 
         site = undefined;
-        rendered.clear();
 
         for (const environment of Object.values(server.environments)) {
           const graph = environment.moduleGraph;

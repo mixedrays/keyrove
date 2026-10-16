@@ -1,35 +1,16 @@
 import type { NavGroup, Page } from './content.ts';
-import { expandDemos, type Demos } from './demos.ts';
-import { stripIcons } from './icons.ts';
+import { META } from './meta.ts';
+import type { RenderedPage } from './page-render.ts';
 import { routeToPath, toMarkdownPath } from './paths.ts';
-import { expandMeta, META } from './meta.ts';
 
 /**
- * The machine-readable half of the site: the markdown twins, llms.txt and
- * llms-full.txt, and the two files crawlers look for.
+ * The machine-readable half of the site: llms.txt and llms-full.txt, and the
+ * two files crawlers look for.
  *
  * Every page is served twice: as HTML at `/docs/api`, and as markdown at
- * `/docs/api.md`. The markdown is not the raw source file — frontmatter is
- * site plumbing, so it is replaced by the title and description it carried,
- * leaving a document that stands on its own when fetched in isolation.
+ * `/docs/api.md`. The markdown twin is one of a page's projections, made in
+ * build/page-render.ts; the files here index and collect the twins.
  */
-
-/**
- * A page as standalone markdown.
- *
- * Demos are expanded on the way out, so the markup a page documents reaches a
- * reader who never runs the site — the placeholder on its own carries none of
- * it.
- */
-export const toMarkdown = (page: Page, demos: Demos) => {
-  const heading = `# ${page.title}`;
-  const lead = page.description === '' ? '' : `\n\n> ${page.description}`;
-  const body = stripIcons(
-    expandMeta(expandDemos(page.body, demos, 'markdown')),
-  );
-
-  return `${heading}${lead}\n\n${body}\n`;
-};
 
 /** A page's absolute URL: `docs/api` → `https://keyrove.pages.dev/docs/api`. */
 const toPageUrl = (route: string, base: string) =>
@@ -85,8 +66,7 @@ export const toLlmsTxt = (
  */
 export const toLlmsFullTxt = (
   landing: Page | undefined,
-  readingOrder: Page[],
-  demos: Demos,
+  readingOrder: RenderedPage[],
   base: string,
 ) => {
   const preamble = [
@@ -98,8 +78,8 @@ export const toLlmsFullTxt = (
   ].join('\n');
 
   const pages = readingOrder.map(
-    (page) =>
-      `Source: ${toPageUrl(page.route, base)}\n\n${toMarkdown(page, demos).trimEnd()}`,
+    ({ page, markdown }) =>
+      `Source: ${toPageUrl(page.route, base)}\n\n${markdown.trimEnd()}`,
   );
 
   // Blank lines on both sides of each rule: straight under a line of text,
