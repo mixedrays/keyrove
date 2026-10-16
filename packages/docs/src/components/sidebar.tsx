@@ -1,16 +1,11 @@
-import { followFocus, initRovingTabindex, keyRove } from '@mixedrays/keyrove';
-import { useLocation } from '@tanstack/react-router';
-import { useCallback, useEffect, useRef } from 'react';
+import { useEffect, type ReactNode } from 'react';
 import { nav, pages } from 'virtual:docs/site';
 
 import { Icon } from '@/components/icon.tsx';
 import {
-  KeysHint,
-  navGroup,
-  useNavShortcut,
-  useRovingStop,
-  type NavShortcut,
-} from '@/components/nav-keys.tsx';
+  useKeyboardRail,
+  type KeyboardRail,
+} from '@/components/keyboard-rail.tsx';
 import { SiteLink } from '@/components/site-link.tsx';
 import { Button } from '@/components/ui/button.tsx';
 import { SheetContent, SheetTrigger } from '@/components/ui/sheet.tsx';
@@ -22,19 +17,21 @@ import { SheetContent, SheetTrigger } from '@/components/ui/sheet.tsx';
  * arrows with one tab stop, which starts on the current page.
  */
 
-const SHORTCUT: NavShortcut = { combo: 'alt+shift+KeyE', label: 'Alt+Shift+E' };
-
-const group = navGroup('.sidebar-link');
+const RAIL: KeyboardRail = {
+  items: '.sidebar-link',
+  shortcut: { combo: 'alt+shift+KeyE', label: 'Alt+Shift+E' },
+  stop: '[aria-current="page"]',
+};
 
 /** Tailwind's `lg`, where the column replaces the drawer. */
 const DESKTOP = '(min-width: 64rem)';
 
-function SidebarNav() {
+function SidebarNav({ hint }: { hint: ReactNode }) {
   return (
     <nav className="sidebar-nav" aria-label="Docs">
       {nav.map((entry, index) => (
         <div className="sidebar-group" key={entry.label}>
-          {index === 0 && <KeysHint label={SHORTCUT.label} />}
+          {index === 0 && hint}
           <p className="sidebar-heading">{entry.label}</p>
           <ul>
             {/* Pages first, then whatever the group carries that is not one —
@@ -61,27 +58,12 @@ function SidebarNav() {
 }
 
 /** The column, from `lg` up. Hidden below it, where the drawer stands in. */
-export function Sidebar({ onReveal }: { onReveal: () => void }) {
-  const root = useRef<HTMLElement>(null);
-  const pathname = useLocation({ select: (location) => location.pathname });
-
-  useRovingStop(root, group, '[aria-current="page"]', pathname);
-  useNavShortcut(root, group, SHORTCUT, () => {
-    if (matchMedia(DESKTOP).matches) return false;
-    onReveal();
-    return true;
-  });
+export function Sidebar() {
+  const rail = useKeyboardRail(RAIL);
 
   return (
-    <aside
-      ref={root}
-      id="docs-sidebar"
-      className="sidebar"
-      aria-keyshortcuts={SHORTCUT.label}
-      onKeyDown={(event) => keyRove(event, group)}
-      onFocus={(event) => followFocus(event, group)}
-    >
-      <SidebarNav />
+    <aside {...rail.props} id="docs-sidebar" className="sidebar">
+      <SidebarNav hint={rail.hint} />
     </aside>
   );
 }
@@ -89,22 +71,23 @@ export function Sidebar({ onReveal }: { onReveal: () => void }) {
 /**
  * The drawer, below `lg`. Base UI's sheet traps focus while it is open, closes
  * on Escape and on the backdrop, and hands focus back to the menu button; it
- * opens on the current page's link.
+ * opens on the current page's link. Below `lg` the chord opens it, too.
  */
-export function SidebarDrawer({ onClose }: { onClose: () => void }) {
-  const root = useRef<HTMLDivElement | null>(null);
-
-  // The drawer's links exist only while it is open, so its tab stop is set
-  // as they arrive rather than on navigation.
-  const attach = useCallback((element: HTMLDivElement | null) => {
-    root.current = element;
-    if (element) {
-      initRovingTabindex(element, {
-        ...group,
-        initial: element.querySelector('[aria-current="page"]'),
-      });
-    }
-  }, []);
+export function SidebarDrawer({
+  onOpen,
+  onClose,
+}: {
+  onOpen: () => void;
+  onClose: () => void;
+}) {
+  const rail = useKeyboardRail({
+    ...RAIL,
+    reveal: () => {
+      if (matchMedia(DESKTOP).matches) return false;
+      onOpen();
+      return true;
+    },
+  });
 
   // The drawer is the narrow layout's alone; widening the window past `lg`
   // with it open would leave a backdrop over the column that replaced it.
@@ -117,25 +100,20 @@ export function SidebarDrawer({ onClose }: { onClose: () => void }) {
 
   return (
     <SheetContent
-      ref={attach}
+      {...rail.props}
       id="docs-sidebar-drawer"
       side="left"
       className="sidebar-drawer"
       overlayClassName="sidebar-backdrop"
       aria-label="Navigation"
-      initialFocus={() =>
-        root.current?.querySelector<HTMLElement>('[aria-current="page"]') ??
-        true
-      }
-      onKeyDown={(event) => keyRove(event, group)}
-      onFocus={(event) => followFocus(event, group)}
+      initialFocus={() => rail.findStop() ?? true}
       // Navigating within the drawer should not leave it covering the page it
       // just moved to.
       onClick={(event) => {
         if ((event.target as Element).closest('a')) onClose();
       }}
     >
-      <SidebarNav />
+      <SidebarNav hint={rail.hint} />
     </SheetContent>
   );
 }
