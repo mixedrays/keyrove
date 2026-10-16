@@ -170,6 +170,7 @@ const toSiteModule = (site: Site, addresses: Addresses) => {
   const data = {
     meta: {
       packageVersion: META.packageVersion,
+      docsVersion: META.version,
       repoUrl: META.repoUrl,
       npmUrl: META.npmUrl,
     },

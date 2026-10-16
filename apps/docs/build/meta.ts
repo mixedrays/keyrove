@@ -79,6 +79,11 @@ if (
 
 export const META = {
   version,
+  /**
+   * The docs package's manifest on GitHub, where `version` is set — on `main`,
+   * the branch the site deploys from, like the "View source" links.
+   */
+  versionUrl: `${repoUrl}/blob/main/apps/docs/package.json`,
   siteUrl,
   repoUrl,
   /** The repository without its scheme, e.g. `github.com/mixedrays/keyrove`. */
@@ -106,10 +111,10 @@ const PLACEHOLDER = /^<div data-about><\/div>$/gm;
 
 const renderFacts = () =>
   [
-    // Both versions, each beside what it numbers: the footer shows the
-    // package's, and a lone "Docs version" reads as the release it documents.
+    // Both versions, each beside what it numbers: a lone "Docs version" reads
+    // as the release it documents.
     `- **Package** — [${META.packageName}](${META.npmUrl}) ${META.packageVersion} on npm`,
-    `- **Docs version** — ${META.version}, numbered separately from the package`,
+    `- **Docs version** — [${META.version}](${META.versionUrl}), numbered separately from the package`,
     `- **Repository** — [${META.repoLabel}](${META.repoUrl})`,
     `- **Author** — [@${META.author}](${META.authorUrl})`,
   ].join('\n');
