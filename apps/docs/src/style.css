@@ -145,13 +145,13 @@
     @apply mx-auto flex h-14 max-w-[90rem] items-center justify-between gap-4 px-6;
   }
 
-  /* The mark is the keyboard glyph the nav used to spend on Examples. It takes
-     the accent colour so it reads as a logo rather than a fourth nav icon. */
+  /* The logo (src/brand.ts): its letters take the text colour, and the focus
+     ring round the k takes the accent. */
   .wordmark {
-    @apply inline-flex items-center gap-2 text-base font-semibold tracking-tight;
+    @apply inline-flex items-center;
   }
 
-  .wordmark svg {
+  .wordmark-ring {
     @apply text-indigo-600 dark:text-indigo-400;
   }
 

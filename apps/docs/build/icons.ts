@@ -39,12 +39,8 @@ import {
   Underline,
 } from 'lucide';
 
-import {
-  CHROME_ICONS,
-  fromLucide,
-  LUCIDE_STROKE_WIDTH,
-  type IconDef,
-} from '../src/icons.ts';
+import { MARK } from '../src/brand.ts';
+import { CHROME_ICONS, fromLucide, type IconDef } from '../src/icons.ts';
 
 /**
  * Icons, rendered into the page HTML at build time.
@@ -108,33 +104,27 @@ const ICONS = {
 export type IconName = keyof typeof ICONS;
 
 /**
- * The keyboard mark on its own, as the body of `favicon.svg`.
+ * The logo's square mark (src/brand.ts), as the body of `favicon.svg`.
  *
- * The same glyph at the same weight as the header wordmark, with the two
- * changes a standalone document forces: `currentColor` has nothing to inherit
- * from out here, so the accent is written out; and there is no stylesheet, so
- * the dark variant the wordmark gets from `dark:` is an inline media query.
+ * The header colours the wordmark from the page: its letters are
+ * `currentColor` and its ring follows `dark:`. A favicon has no page to
+ * inherit from, so it writes the colours out, and switches them with an
+ * inline media query.
  *
  * A file rather than a `data:` URI, which browsers accept but Google Search
  * does not: it shows a favicon beside a result only when it can fetch one from
  * a URL, and falls back to a generic globe otherwise.
  */
 export const faviconSvg = (() => {
-  const { viewBox, body } = ICONS.keyboard;
-
   const svg = [
-    '<svg xmlns="http://www.w3.org/2000/svg"',
-    `viewBox="${viewBox}"`,
-    'fill="none"',
-    // indigo-600 and, below, indigo-400 — the wordmark's two colours. The mark
-    // sits on browser chrome rather than on the page, so it follows the system
-    // theme whatever the header toggle has been set to.
-    'stroke="#4f46e5"',
-    `stroke-width="${LUCIDE_STROKE_WIDTH}"`,
-    'stroke-linecap="round"',
-    'stroke-linejoin="round">',
-    '<style>@media (prefers-color-scheme: dark) { svg { stroke: #818cf8 } }</style>',
-    body,
+    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${MARK.viewBox}">`,
+    // indigo-600 and zinc-900, then indigo-400 and zinc-100 — the header's
+    // colours. The mark sits on browser chrome rather than on the page, so it
+    // follows the system theme whatever the header toggle has been set to.
+    '<style>rect { stroke: #4f46e5 } path { fill: #18181b }',
+    '@media (prefers-color-scheme: dark) { rect { stroke: #818cf8 } path { fill: #f4f4f5 } }</style>',
+    MARK.ring,
+    MARK.letter,
     '</svg>',
   ].join(' ');
 

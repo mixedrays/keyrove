@@ -6,6 +6,7 @@ import { Icon } from '@/components/icon.tsx';
 import { SearchTrigger } from '@/components/search.tsx';
 import { SiteLink } from '@/components/site-link.tsx';
 import { ThemeToggle } from '@/components/theme-toggle.tsx';
+import { Wordmark } from '@/components/wordmark.tsx';
 
 /**
  * The header and footer every page shares.
@@ -34,8 +35,7 @@ export function SiteHeader({
         <div className="flex items-center gap-2">
           {menu}
           <SiteLink href="/" className="wordmark">
-            <Icon name="keyboard" className="size-6" />
-            keyrove
+            <Wordmark className="h-6" />
           </SiteLink>
         </div>
         <div className="flex items-center gap-1 sm:gap-4">
@@ -98,8 +98,7 @@ export function SiteFooter({ layout }: { layout: Layout }) {
       >
         <p className="footer-meta">
           <SiteLink href="/" className="wordmark">
-            <Icon name="keyboard" className="size-5" />
-            keyrove
+            <Wordmark className="h-5" />
           </SiteLink>
           <span>
             v{meta.packageVersion} &middot; docs v{meta.docsVersion} &middot;{' '}
