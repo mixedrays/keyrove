@@ -158,6 +158,37 @@ const carryStop = (from: Element, to: Element) => {
 };
 
 /**
+ * A move's destination and the rest of its walk, as {@link MoveArgs} takes
+ * them: the first item `walk` hands out by `isNavigable`, the group's own
+ * test, and a `retarget` that carries the same walk on rather than starting
+ * it again.
+ *
+ * `land` asks `retarget` with a test that turns down every item refused so
+ * far: one that only grows stricter, and so turns down every item the walk
+ * has passed too. The walk goes on by it from where it stopped, and lands
+ * where starting again would, at one pass over the items rather than one per
+ * refusal.
+ */
+export const walkOn = (
+  walk: (
+    isNavigable: (item: Element) => boolean,
+  ) => Iterator<Element, null | undefined>,
+  isNavigable: (item: Element) => boolean,
+) => {
+  let test = isNavigable;
+  const targets = walk((item) => test(item));
+
+  return {
+    to: targets.next().value,
+    retarget: (stricter: (item: Element) => boolean) => {
+      test = stricter;
+
+      return targets.next().value;
+    },
+  };
+};
+
+/**
  * Claims the key and lands focus on `to`, reporting the move.
  *
  * Call it only once a handler has decided the press is its own:
@@ -171,12 +202,12 @@ const carryStop = (from: Element, to: Element) => {
  * and `onMove` fires with the move that happened.
  *
  * A `to` that does not take focus — not focusable, inert, hidden — has its tab
- * stop put back where it was, and the move walks on: `retarget` resolves it
- * again with every refusing item passed over, by `isNavigable`, and the next
- * destination is tried the same way. Each pass passes over one more item, so
- * the walk ends. Where nothing beyond takes focus, or there is no `retarget`,
- * the move is the same consumed no-op. A move whose first destination takes
- * focus pays for none of it.
+ * stop put back where it was, and the move walks on: `retarget` hands out the
+ * next destination by `isNavigable` with every refusing item passed over, and
+ * it is tried the same way. Each pass passes over one more item, so the walk
+ * ends. Where nothing beyond takes focus, or there is no `retarget`, the move
+ * is the same consumed no-op. A move whose first destination takes focus pays
+ * for none of it.
  */
 const land = <Action extends string>(
   { e, action, from, to, retarget, onMove }: MoveArgs<Action>,

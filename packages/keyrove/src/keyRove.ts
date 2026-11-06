@@ -1,9 +1,9 @@
 import { buildBindings } from './bindings.js';
 import { crossBoundary } from './boundary.js';
 import { readConfig, readFocusKeys } from './config.js';
-import { holdsFocus, readGroups } from './group.js';
+import { holdsFocus, readGroups, walkOn } from './group.js';
 import { listenerElement } from './nesting.js';
-import { resolveTarget } from './position.js';
+import { walkTargets } from './position.js';
 import { hasCommandModifier, isEditablePress, matchesCombo } from './utils.js';
 import type { KeyRoveEvent, KeyRoveOptions, MoveResult } from './types.js';
 
@@ -148,18 +148,20 @@ export const keyRove = (
 
   const { intent } = binding;
   const fromIndex = focused ? elements.indexOf(focused) : -1;
-  // The move's walk, by a navigable test: the group's own, and the same test
-  // passing over each item that refused focus when the group walks on.
-  const resolve = (isNavigable: (item: Element) => boolean) =>
-    resolveTarget({
-      intent,
-      elements,
-      fromIndex,
-      layout: config.layout,
-      pageLength: config.pageLength,
-      isNavigable,
-    });
-  const target = resolve(group.isNavigable);
+  // The move's walk: its destination by the group's navigable test, and the
+  // rest of it to carry on past each item that refuses focus.
+  const { to: target, retarget } = walkOn(
+    (isNavigable) =>
+      walkTargets({
+        intent,
+        elements,
+        fromIndex,
+        layout: config.layout,
+        pageLength: config.pageLength,
+        isNavigable,
+      }),
+    group.isNavigable,
+  );
 
   // With neither a target nor a focused item, keyrove has nothing to move
   // from or to and the key is left with its browser default rather than
@@ -173,7 +175,7 @@ export const keyRove = (
     action: intent,
     from: focused,
     to: target,
-    retarget: resolve,
+    retarget,
     onMove,
   });
 };

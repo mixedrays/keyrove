@@ -3,16 +3,22 @@
  * here touches the DOM, so the same code can serve a page built elsewhere.
  */
 
+import { ITEMS_PER_GROUP } from './plan.ts';
 import type {
   BenchCase,
   BenchOptions,
   BenchReport,
   BenchResults,
+  Fixture,
   LibraryInfo,
 } from './types.ts';
 
 /** A 60 Hz frame, in microseconds: the budget a keydown shares. */
 const FRAME_US = 1_000_000 / 60;
+
+/** How many items a fixture's page holds. */
+export const itemCount = (fixture: Fixture) =>
+  fixture.items ?? fixture.groups * ITEMS_PER_GROUP;
 
 /** Section names in the order the run recorded them. */
 export const sectionsOf = (results: BenchResults) => [
@@ -44,6 +50,8 @@ export const SECTION_NOTES: Record<string, string> = {
   diagnostics: 'The two parts of the focus-key lookup, each timed on its own.',
   columns:
     'Arrow keys in four-column grids, with the column count fixed at 4 or read from the layout.',
+  'refused focus':
+    'Arrow keys between two items with a run of 1 to 1,000 items between them that refuse focus, so the move walks on past each, and the same run marked skipped.',
 };
 
 /**

@@ -1,4 +1,3 @@
-import { ITEMS_PER_GROUP } from './plan.ts';
 import {
   caseRows,
   compareCases,
@@ -7,6 +6,7 @@ import {
   formatChange,
   formatTime,
   indexCases,
+  itemCount,
   sectionsOf,
   skipReason,
   summarize,
@@ -37,7 +37,7 @@ export const toMarkdown = (
     '| ------- | -----: | ----: | ---------: | ---- | -------: | ---------: |',
     ...results.fixtures.map(
       (fixture) =>
-        `| ${fixture.name} | ${fixture.groups} | ${fixture.groups * ITEMS_PER_GROUP} | ${fixture.focusKeys ?? 0} | ${fixture.grid ?? '-'} | ${fixture.elements} | ${fixture.buildMs.toFixed(2)} |`,
+        `| ${fixture.name} | ${fixture.groups} | ${itemCount(fixture)} | ${fixture.focusKeys ?? 0} | ${fixture.grid ?? '-'} | ${fixture.elements} | ${fixture.buildMs.toFixed(2)} |`,
     ),
   ];
 

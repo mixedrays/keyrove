@@ -570,10 +570,12 @@ export type MoveArgs<Action extends string> = {
   from: Element | null;
   to: Element | null | undefined;
   /**
-   * The move resolved again, by `isNavigable`: the group's navigable test,
-   * passing over every item that has refused focus so far. Asked each time a
-   * destination refuses, until one takes focus or none is left. Without it a
-   * refusal ends the move, as it does for a destination named outright.
+   * The next destination of the move's walk, by `isNavigable`: the group's
+   * navigable test, passing over every item that has refused focus so far.
+   * Asked each time a destination refuses, until one takes focus or none is
+   * left. The test only grows stricter, so the walk can go on from where it
+   * stopped rather than start again. Without it a refusal ends the move, as
+   * it does for a destination named outright.
    */
   retarget?: (
     isNavigable: (item: Element) => boolean,
