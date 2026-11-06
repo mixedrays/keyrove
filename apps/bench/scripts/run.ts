@@ -16,12 +16,10 @@
  * `performance.now()` its finer resolution. Chrome drives the page over the
  * DevTools protocol with focus emulation on, so a headless window behaves as
  * a focused one. Chrome is found at CHROME_PATH, else at its usual install
- * locations.
+ * locations (see chrome.ts).
  */
 
-import { spawn, spawnSync, type ChildProcess } from 'node:child_process';
-import { existsSync } from 'node:fs';
-import { mkdtemp, rm, writeFile } from 'node:fs/promises';
+import { mkdtemp, writeFile } from 'node:fs/promises';
 import { arch, cpus, platform, release, tmpdir, totalmem } from 'node:os';
 import { dirname, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -32,6 +30,7 @@ import { build, preview } from 'vite';
 import { toMarkdown } from '../src/report.ts';
 import { describeLibrary, timingLine } from '../src/results.ts';
 import type { BenchReport, BenchResults } from '../src/types.ts';
+import { findChrome, removeDir, withChrome } from './chrome.ts';
 import { buildLibrary, prepareSource, reportName } from './library.ts';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
@@ -70,50 +69,6 @@ const checkArgs = () => {
   }
 };
 
-const findChrome = () => {
-  const candidates = [
-    process.env.CHROME_PATH,
-    '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
-    '/Applications/Chromium.app/Contents/MacOS/Chromium',
-    'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
-  ];
-  const found = candidates.find((path) => path && existsSync(path));
-  if (found) return found;
-
-  for (const name of ['google-chrome', 'google-chrome-stable', 'chromium']) {
-    const which = spawnSync('which', [name], { encoding: 'utf8' });
-    if (which.status === 0) return which.stdout.trim();
-  }
-
-  throw new Error('Chrome not found. Set CHROME_PATH to its executable.');
-};
-
-/** Starts Chrome and resolves with its DevTools WebSocket URL. */
-const launch = (chrome: string, profile: string) =>
-  new Promise<{ child: ChildProcess; url: string }>((ready, fail) => {
-    const child = spawn(chrome, [
-      '--headless=new',
-      '--remote-debugging-port=0',
-      `--user-data-dir=${profile}`,
-      '--no-first-run',
-      '--no-default-browser-check',
-      '--disable-extensions',
-      '--disable-background-timer-throttling',
-      '--disable-renderer-backgrounding',
-      '--disable-backgrounding-occluded-windows',
-      'about:blank',
-    ]);
-    let stderr = '';
-    child.stderr!.on('data', (chunk) => {
-      stderr += chunk;
-      const match = stderr.match(/DevTools listening on (ws:\/\/\S+)/);
-      if (match) ready({ child, url: match[1] });
-    });
-    child.on('exit', (code) =>
-      fail(new Error(`Chrome exited (${code}) before DevTools started.`)),
-    );
-  });
-
 type Message = {
   id?: number;
   method?: string;
@@ -138,6 +93,13 @@ const connect = (url: string) =>
     let id = 0;
 
     socket.onerror = () => fail(new Error(`Cannot connect to ${url}`));
+    // A call Chrome can no longer answer fails rather than waiting forever.
+    socket.onclose = () => {
+      for (const call of pending.values()) {
+        call.fail(new Error('The DevTools connection closed.'));
+      }
+      pending.clear();
+    };
     socket.onmessage = ({ data }) => {
       const message: Message = JSON.parse(String(data));
       const call = message.id === undefined ? null : pending.get(message.id);
@@ -172,6 +134,12 @@ const status = (text: string) => {
   if (process.stderr.isTTY) process.stderr.write(`\r\x1b[2K${text}`);
 };
 
+/** A line on stderr that doesn't stop the run, below any status line. */
+const warn = (message: string) => {
+  status('');
+  console.error(`Warning: ${message}`);
+};
+
 /** Builds the harness page against `library`, into `outDir`. */
 const buildHarness = (library: string, outDir: string) =>
   build({
@@ -187,20 +155,8 @@ const buildHarness = (library: string, outDir: string) =>
     },
   });
 
-/** Serves a built harness and runs it in a fresh headless Chrome. */
-const runHarness = async (chrome: string, harness: string, label: string) => {
-  // The bench's own config, for its headers, serving the scratch build.
-  const server = await preview({
-    root,
-    logLevel: 'warn',
-    build: { outDir: harness },
-    preview: { host: '127.0.0.1', port: 0, open: false },
-  });
-  const origin = server.resolvedUrls?.local[0];
-  if (!origin) throw new Error('The preview server did not report its URL.');
-
-  const profile = await mkdtemp(join(tmpdir(), 'keyrove-bench-chrome-'));
-  const { child, url } = await launch(chrome, profile);
+/** Runs the harness at `origin` in the Chrome whose DevTools are at `url`. */
+const runPage = async (url: string, origin: string, label: string) => {
   const cdp = await connect(url);
 
   try {
@@ -258,11 +214,35 @@ const runHarness = async (chrome: string, harness: string, label: string) => {
       browser: `${version.product} (headless), V8 ${version.jsVersion}`,
     };
   } finally {
+    // Chrome answers, then exits on its own; withChrome waits for that.
     await cdp.send('Browser.close').catch(() => {});
     cdp.close();
-    child.kill();
-    await server.close();
-    await rm(profile, { recursive: true, force: true });
+  }
+};
+
+/** Serves a built harness and runs it in a fresh headless Chrome. */
+const runHarness = async (chrome: string, harness: string, label: string) => {
+  // The bench's own config, for its headers, serving the scratch build.
+  const server = await preview({
+    root,
+    logLevel: 'warn',
+    build: { outDir: harness },
+    preview: { host: '127.0.0.1', port: 0, open: false },
+  });
+
+  try {
+    const origin = server.resolvedUrls?.local[0];
+    if (!origin) throw new Error('The preview server did not report its URL.');
+
+    return await withChrome(chrome, ({ url }) => runPage(url, origin, label), {
+      warn,
+    });
+  } finally {
+    await server
+      .close()
+      .catch((error: Error) =>
+        warn(`Could not stop the preview server: ${error.message}`),
+      );
   }
 };
 
@@ -301,7 +281,7 @@ const benchmark = async (chrome: string, ref: string | undefined) => {
 
     return { label, report };
   } finally {
-    await rm(scratch, { recursive: true, force: true });
+    await removeDir(scratch, warn);
   }
 };
 
