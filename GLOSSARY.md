@@ -61,11 +61,11 @@ _Avoid_: Vertical group, one-dimensional group
 
 **Grid**:
 A group with a column count above one, whose item sequence fills consecutive rows of that many items.
-In keyrove, "grid" means a column count above one, which a CSS grid can supply; neither the ARIA `grid` role nor on-screen geometry makes a group a grid.
+In keyrove, "grid" means a column count above one, which a CSS grid or a wrapping layout can supply; neither the ARIA `grid` role nor on-screen geometry makes a group a grid on its own.
 _Avoid_: Matrix, table, spatial navigation
 
 **Column count**:
-The number of items per row of a group's item sequence, either fixed or counted from the root's CSS grid columns. A column count of one makes a list.
+The number of items per row of a group's item sequence, either fixed or counted on screen, from the root's CSS grid columns or from the items on its first line. A column count of one makes a list.
 _Avoid_: Row length, width
 
 **Orientation**:

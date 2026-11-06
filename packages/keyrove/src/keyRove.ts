@@ -64,7 +64,7 @@ export const keyRove = (
   // groups and out of nested roots — so its lookup spans the listener's
   // element, not the root.
   const scope = listenerElement(e.currentTarget) ?? pressed.root;
-  const config = readConfig(pressed.root, options);
+  const config = readConfig(pressed, options);
   const { onMove } = options;
 
   // First match wins: one keypress resolves to at most one action, and the

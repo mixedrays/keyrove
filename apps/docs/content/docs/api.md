@@ -195,7 +195,8 @@ listener's element.
 A listener on a shadow root falls back to the shadow root itself. It has no
 attributes, so configure that group with [options](/docs/attributes-and-options),
 or wrap the items in an element carrying `data-keyrove-root`. Reading
-direction and `cols: 'auto'` are read from the host element.
+direction and the grid tracks `cols: 'auto'` counts are read from the host
+element.
 
 - The root's attributes configure the group. They are read on every keypress,
   so changing one takes effect at once; see
@@ -380,7 +381,7 @@ keyRove(e, { items: '[role="menuitem"]' }); // override item lookup only
 | ---------------- | ------------------------------------------------------------------------ | ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `items`          | `string \| (root: Element) => Element[]`                                 | `data-keyrove-item`            | The group's items: a selector run inside the root, or a function returning them. Elements carrying `disabled` or matching `:disabled` are never navigable.                     |
 | `root`           | `string`                                                                 | `data-keyrove-root`            | Selector a [root](#roots) answers to, matched at or above the event's target.                                                                                                  |
-| `cols`           | `number \| 'auto'`                                                       | `data-keyrove-cols`            | Columns. Above 1 the group is a grid. `'auto'` counts the root's CSS grid tracks on every keypress.                                                                            |
+| `cols`           | `number \| 'auto'`                                                       | `data-keyrove-cols`            | Columns. Above 1 the group is a grid. `'auto'` counts the root's CSS grid tracks on every keypress, or else the items on a wrapping layout's first line.                       |
 | `loop`           | `boolean`                                                                | `data-keyrove-loop`            | Whether next/prev wrap at the ends. Lists only.                                                                                                                                |
 | `orientation`    | `'horizontal' \| 'vertical'`                                             | `data-keyrove-orientation`     | `'horizontal'` re-points a list's default arrows; see [RTL](#horizontal-groups-and-rtl).                                                                                       |
 | `pageLength`     | `number`                                                                 | `data-keyrove-page-length`     | Rows per page jump — items, in a list.                                                                                                                                         |
@@ -778,7 +779,7 @@ On the root, read on every keypress:
 | Attribute                    | Default                                                  | Meaning                                                                                                                                                                                                                 |
 | ---------------------------- | -------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `data-keyrove-root`          | —                                                        | Marks the root explicitly, instead of the listener's element.                                                                                                                                                           |
-| `data-keyrove-cols`          | `1`                                                      | Column count; above 1 the group navigates as a grid. Values below 1 fall back to the default. `auto` counts the tracks of the root's CSS grid on every keypress; see [responsive grid](/docs/examples/responsive-grid). |
+| `data-keyrove-cols`          | `1`                                                      | Column count; above 1 the group navigates as a grid. Values below 1 fall back to the default. `auto` counts grid tracks, or else first-line items, per keypress; see [responsive grid](/docs/examples/responsive-grid). |
 | `data-keyrove-page-length`   | `10`                                                     | Items per page jump; rows, in a grid. Values below 1 fall back to the default.                                                                                                                                          |
 | `data-keyrove-loop`          | —                                                        | Next and prev wrap past the ends of a list. Grids never wrap. See [looping lists](/docs/examples/looping-lists).                                                                                                        |
 | `data-keyrove-orientation`   | —                                                        | `horizontal` re-points a list's next/prev defaults at `ArrowRight`/`ArrowLeft`, RTL-aware. See [horizontal lists](/docs/examples/horizontal-lists).                                                                     |
@@ -1051,7 +1052,7 @@ All group settings are optional; see [options](#options) for fallbacks.
 type GroupOptions = {
   items?: string | ((root: Element) => Element[]);
   root?: string;
-  cols?: number | 'auto';
+  cols?: number | 'auto'; // 'auto': the grid's tracks, else the first line's items
   loop?: boolean;
   orientation?: 'horizontal' | 'vertical';
   pageLength?: number;

@@ -145,8 +145,9 @@ el.addEventListener('keydown', (e) =>
 );
 ```
 
-For a CSS grid, `data-keyrove-cols="auto"` or `{ cols: 'auto' }` reads the
-column count from the layout; see [responsive grid](/docs/examples/responsive-grid).
+For a CSS grid or a wrapping layout, `data-keyrove-cols="auto"` or
+`{ cols: 'auto' }` reads the column count from the layout; see
+[responsive grid](/docs/examples/responsive-grid).
 
 ## One object, both handlers
 

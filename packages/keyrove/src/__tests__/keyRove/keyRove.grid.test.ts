@@ -381,6 +381,21 @@ describe('keyRove', () => {
 
       expect(activeId()).toBe('2');
     });
+
+    it('reads no layout for a numeric count', () => {
+      const style = vi.spyOn(CSSStyleDeclaration.prototype, 'getPropertyValue');
+      const rect = vi.spyOn(Element.prototype, 'getBoundingClientRect');
+      const rects = vi.spyOn(Element.prototype, 'getClientRects');
+      renderGrid(9, 3);
+      document.getElementById('0')!.focus();
+
+      pressKey('ArrowDown');
+
+      expect(activeId()).toBe('3');
+      expect(style).not.toHaveBeenCalledWith('grid-template-columns');
+      expect(rect).not.toHaveBeenCalled();
+      expect(rects).not.toHaveBeenCalled();
+    });
   });
 
   describe('grid key bindings', () => {

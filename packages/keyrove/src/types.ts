@@ -182,7 +182,8 @@ export type GroupOptions = {
   root?: string;
   /**
    * Columns. Above 1 the group is a grid. `'auto'` counts the tracks of the
-   * root's CSS grid on every keypress. Defaults to the cols attribute.
+   * root's CSS grid on every keypress, or, where it has none, the items on
+   * the first line of a wrapping layout. Defaults to the cols attribute.
    */
   cols?: number | 'auto';
   /**

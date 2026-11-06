@@ -66,7 +66,7 @@ export const rove = (
 
   if (!group) return null;
 
-  const config = readConfig(group.root, options);
+  const config = readConfig(group, options);
 
   if (config.layout.kind === 'list' && action.endsWith('Row')) return null;
 

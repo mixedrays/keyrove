@@ -40,8 +40,9 @@ attribute is not needed.
 
 ## Counted on every keypress
 
-`auto` reads the root's computed `grid-template-columns` during each call.
-No resize listener or observer is needed to keep the count current.
+`auto` reads the root's computed `grid-template-columns` during each call, or,
+where that has no tracks to count, the positions of the items on the first
+line. No resize listener or observer is needed to keep the count current.
 
 ## The stylesheet owns the breakpoints
 
@@ -64,19 +65,59 @@ way.
 
 ## What auto counts
 
-- The root must be the grid container, with one item per cell in DOM order.
-  Each item must span one track. Spanning items, subgrids and row wrappers do
-  not match this navigation model, including when `items` selects descendants.
+- On a CSS grid, the root must be the grid container, with one item per cell
+  in DOM order. Each item must span one track. Spanning items, subgrids and
+  row wrappers do not match this navigation model, including when `items`
+  selects descendants.
 - Named lines, such as `[full-start]`, are not counted as columns.
-- If the computed value does not resolve to a list of pixel track sizes, the
-  count falls back to one and the group navigates as a list. This includes a
-  flex container or a grid that is not laid out.
+- If the computed value does not resolve to a list of pixel track sizes — a
+  flex container, a block of inline-block items, or a grid that is not laid
+  out — `auto` counts the items on the first line instead; see
+  [wrapping layouts](#wrapping-layouts). Where nothing is laid out at all, as
+  in jsdom, that count is one and the group navigates as a list.
 
-## Layouts that are not grids
+## Wrapping layouts
 
-A `flex-wrap` row has no track list to count, so `auto` sees one column. Copy
-the count in yourself instead, right before the call. Here the stylesheet
-publishes it as `--cols`:
+A `flex-wrap` row, or inline-block items in a block container, has no track
+list, so `auto` counts the items laid out on the first line: from the first
+item, every item that starts above the first item's bottom edge. Items of
+different heights centred on one line (`align-items: center`) count as that
+line. Only the first line is measured, plus one item, so the cost grows with
+the column count rather than with the group.
+
+```html
+<div data-keyrove-cols="auto" style="display: flex; flex-wrap: wrap">
+  <button data-keyrove-item>…</button>
+  …
+</div>
+```
+
+The count follows the layout. A card gallery whose cards wrap by width folds
+by however many fit, without a stylesheet stating the number. Some outcomes
+follow from it:
+
+- A single-line flex row is a one-row grid of all its items, so its next and
+  previous keys are <kbd class="kbd">←</kbd> and <kbd class="kbd">→</kbd>, and
+  <kbd class="kbd">↑</kbd> and <kbd class="kbd">↓</kbd> are row moves with
+  nowhere to go. For a toolbar, use `data-keyrove-orientation="horizontal"`
+  rather than `auto`.
+- A `flex-direction: column` root stacks its items, so its first line holds
+  one and it stays a list.
+- The item sequence is document order. `flex-direction: row-reverse`,
+  `wrap-reverse` and `order` change only what is on screen, so the fold no
+  longer matches it.
+- An item with no box, such as one with `display: none`, ends the count: it
+  takes no place on screen but keeps one in the sequence. Leave hidden items
+  out of a wrapping group's items, with `items` or by removing the item
+  attribute.
+- The first line is counted from the first item, skipped items included, as
+  skipped items keep their place in the fold.
+
+## When the first line is not representative
+
+Where the first line holds a different number of items from the rest, such as
+a wide featured card at the start, count the columns yourself and copy the
+count in right before the call. Here the stylesheet publishes it as `--cols`:
 
 ```ts
 months.addEventListener('keydown', (e) => {
