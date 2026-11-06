@@ -116,8 +116,9 @@ const typeahead = createTypeahead({ foldDiacritics: false });
 
 The handler returns `null` when it left the key alone and
 `{ action: 'typeahead', from, to }` when it consumed it, with `to: null` when
-the match is already focused or cannot receive focus. `onMove` fires only
-after a successful focus move.
+the match is already focused or no match can receive focus. A match that cannot
+receive focus is passed over for the next one. `onMove` fires only after a
+successful focus move.
 
 Type "swez" quickly to see each result in the readout:
 

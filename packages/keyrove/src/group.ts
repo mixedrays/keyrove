@@ -167,43 +167,59 @@ const carryStop = (from: Element, to: Element) => {
  * one that is the focused item already, is a consumed no-op — focus and the
  * tab stop stay put, `onMove` stays quiet, and the result carries `to: null`.
  * Otherwise the roving tab stop follows when `isRoving` accepts the item it is
- * carried from, which `stopSource` names once the move is known to go
- * somewhere, `to` is focused, and `onMove` fires with the move that happened.
+ * carried from, which `stopSource` names for the destination, `to` is focused,
+ * and `onMove` fires with the move that happened.
  *
- * A `to` that does not take focus — not focusable, inert, hidden — is the same
- * consumed no-op, with the tab stop put back where it was.
+ * A `to` that does not take focus — not focusable, inert, hidden — has its tab
+ * stop put back where it was, and the move walks on: `retarget` resolves it
+ * again with every refusing item passed over, by `isNavigable`, and the next
+ * destination is tried the same way. Each pass passes over one more item, so
+ * the walk ends. Where nothing beyond takes focus, or there is no `retarget`,
+ * the move is the same consumed no-op. A move whose first destination takes
+ * focus pays for none of it.
  */
 const land = <Action extends string>(
-  { e, action, from, to, onMove }: MoveArgs<Action>,
+  { e, action, from, to, retarget, onMove }: MoveArgs<Action>,
   isRoving: IsRoving,
-  stopSource: () => Element | null,
+  isNavigable: (item: Element) => boolean,
+  stopSource: (to: Element) => Element | null,
 ): ActionResult<Action> => {
   e?.preventDefault();
 
-  if (!to || to === from) return { action, from, to: null };
+  let refused: Set<Element> | undefined;
 
-  // The stop moves before focus does: `tabindex="0"` is what makes a bare item
-  // focusable in the first place.
-  const stopFrom = stopSource();
-  const putBack =
-    stopFrom && stopFrom !== to && isRoving(stopFrom)
-      ? carryStop(stopFrom, to)
-      : undefined;
+  // A `retarget` that hands back an item already refused would go round for
+  // ever: it ends the walk instead.
+  while (to && to !== from && !refused?.has(to)) {
+    // The stop moves before focus does: `tabindex="0"` is what makes a bare
+    // item focusable in the first place.
+    const stopFrom = stopSource(to);
+    const putBack =
+      stopFrom && stopFrom !== to && isRoving(stopFrom)
+        ? carryStop(stopFrom, to)
+        : undefined;
 
-  (to as HTMLElement).focus();
+    (to as HTMLElement).focus();
 
-  // `focus()` fails silently, so whether focus landed on `to` or inside it is
-  // read off the tree.
-  if (!holdsFocus(to)) {
+    // `focus()` fails silently, so whether focus landed on `to` or inside it
+    // is read off the tree.
+    if (holdsFocus(to)) {
+      const move = { action, from, to };
+      onMove?.(move);
+
+      return move;
+    }
+
     putBack?.();
 
-    return { action, from, to: null };
+    if (!retarget) break;
+
+    const passed = (refused ??= new Set());
+    passed.add(to);
+    to = retarget((item) => !passed.has(item) && isNavigable(item));
   }
 
-  const move = { action, from, to };
-  onMove?.(move);
-
-  return move;
+  return { action, from, to: null };
 };
 
 /**
@@ -302,13 +318,17 @@ class ResolvedGroup implements Group {
   }
 
   move<Action extends string>(move: MoveArgs<Action>): ActionResult<Action> {
-    return land(move, this.readings.isRoving, () =>
-      this.stopSource(move.from, move.to),
+    const { isRoving, isNavigable } = this.readings;
+
+    return land(move, isRoving, isNavigable, (to) =>
+      this.stopSource(move.from, to),
     );
   }
 
   cross<Action extends string>(move: MoveArgs<Action>): ActionResult<Action> {
-    return land(move, this.readings.isRoving, () => this.stop);
+    const { isRoving, isNavigable } = this.readings;
+
+    return land(move, isRoving, isNavigable, () => this.stop);
   }
 
   /**
@@ -317,11 +337,8 @@ class ResolvedGroup implements Group {
    * where the move goes from one group to another. `null` from outside, or
    * where the group moved into has no stop to carry.
    */
-  private stopSource(
-    from: Element | null,
-    to: Element | null | undefined,
-  ): Element | null {
-    if (!from || !to) return from;
+  private stopSource(from: Element | null, to: Element): Element | null {
+    if (!from) return null;
 
     const { root } = this;
     const { isRoot } = this.readings;

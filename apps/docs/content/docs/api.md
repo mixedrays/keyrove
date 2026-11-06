@@ -237,9 +237,14 @@ on where focus is:
 - **[Exit and enter](#exit-and-enter).** Unhandled when no destination is found;
   consumed when a target is chosen, even if it cannot receive focus.
 
-Give targets native focusability or a `tabindex`. If a target cannot take
-focus, such as a hidden or inert element, the key is consumed without moving.
-The roving stop is restored and `onMove` does not fire.
+Give targets native focusability or a `tabindex`. If a move's target cannot
+take focus, such as a hidden or inert element, the move passes over it and
+tries the next one it would reach, the same way it passes over a skipped item.
+The roving stop is put back on every item passed over, and `onMove` fires once,
+for the item that took focus. When nothing beyond can take focus, the key is
+consumed without moving. A [focus key](#focus-keys) and
+[exit and enter](#exit-and-enter) name a single destination, so they are
+consumed without moving if it cannot take focus.
 
 Unbound keys keep their browser behavior and remain available to your
 handlers. <kbd class="kbd">Tab</kbd>, <kbd class="kbd">Shift</kbd>+<kbd class="kbd">Tab</kbd>, <kbd class="kbd">Enter</kbd>, <kbd class="kbd">Space</kbd> and <kbd class="kbd">Escape</kbd> are unbound by default.
@@ -400,7 +405,7 @@ settings accepted by [`createTypeahead`](#createtypeahead-options).
 
 Fired _after_ focus has moved, and only when it actually moved. A consumed key
 with nowhere to go, at the end of a list or the edge of a grid, fires nothing,
-and neither does a move whose target does not take focus.
+and neither does a move where no target takes focus.
 
 ```ts
 keyRove(e, {
@@ -422,7 +427,7 @@ focus left, or `null` when no item was focused or the destination is a non-item.
   This includes a key another handler already consumed.
 - `{ action, from, to }`: the key was consumed. `to` is the newly focused
   element, or `null` for a consumed no-op, where the group owns the key but
-  there is nowhere left to go, or the target did not take focus.
+  there is nowhere left to go, or no target could take focus.
 
 A non-null result means the key was consumed. Chain handlers with `||` to
 pass only unhandled keys to the next one:
@@ -573,7 +578,8 @@ it.
 The handler follows the `keyRove` contract: `null` when the key was left
 untouched or [already consumed](#return-value), which leaves the buffer
 unchanged, and `{ action: 'typeahead', from, to }` when it was consumed, with
-`to: null` when the match is already focused or cannot receive focus.
+`to: null` when the match is already focused or no match can receive focus. A
+match that cannot receive focus is passed over for the next one.
 `onMove` fires after focus has moved and only when it actually moved, so both
 handlers can feed the same follow-focus logic. The roving tab stop moves with
 the match, as for an arrow move.

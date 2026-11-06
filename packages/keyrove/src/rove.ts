@@ -76,18 +76,29 @@ export const rove = (
 
   if (!intent) return null;
 
-  const target = resolveTarget({
-    intent,
-    elements,
-    // An entry is `home` or `end`, which go by the group's ends, not by an
-    // index.
-    fromIndex: from ? elements.indexOf(from) : 0,
-    layout: config.layout,
-    pageLength: config.pageLength,
-    isNavigable: group.isNavigable,
-  });
+  // An entry is `home` or `end`, which go by the group's ends, not by an
+  // index.
+  const fromIndex = from ? elements.indexOf(from) : 0;
+  // The walk is resolved again, passing over each item that refused focus,
+  // as a key's is.
+  const resolve = (isNavigable: (item: Element) => boolean) =>
+    resolveTarget({
+      intent,
+      elements,
+      fromIndex,
+      layout: config.layout,
+      pageLength: config.pageLength,
+      isNavigable,
+    });
+  const target = resolve(group.isNavigable);
 
   if (!target && !from) return null;
 
-  return group.move({ action, from, to: target, onMove: options.onMove });
+  return group.move({
+    action,
+    from,
+    to: target,
+    retarget: resolve,
+    onMove: options.onMove,
+  });
 };

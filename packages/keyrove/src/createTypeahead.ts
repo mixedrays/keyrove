@@ -143,11 +143,16 @@ export const createTypeahead = ({
       matchMode === 'cycle' && buffer.length === 1 && focused
         ? items.indexOf(focused) + 1
         : 0;
-    const target = [...items.slice(start), ...items.slice(0, start)].find(
-      (item) =>
-        group.isNavigable(item) &&
-        fold(getLabel(item, label)).startsWith(buffer),
-    );
+    const rotation = [...items.slice(start), ...items.slice(0, start)];
+    // The first match the navigable test accepts: the group's own, and, where
+    // a match refuses focus, the same test passing over it, so the move lands
+    // on the next match in the rotation.
+    const match = (isNavigable: (item: Element) => boolean) =>
+      rotation.find(
+        (item) =>
+          isNavigable(item) && fold(getLabel(item, label)).startsWith(buffer),
+      );
+    const target = match(group.isNavigable);
 
     // No match leaves the key untouched — the character still joined the
     // buffer, so a mistyped prefix goes quiet until the reset clears it.
@@ -161,6 +166,7 @@ export const createTypeahead = ({
       action: 'typeahead',
       from: focused,
       to: target,
+      retarget: match,
       onMove,
     });
   };

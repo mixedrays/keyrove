@@ -160,7 +160,7 @@ In keyrove, consuming a key never stops its propagation.
 _Avoid_: Handled key, captured key, swallowed key
 
 **Consumed no-op**:
-A consumed key that produces no move, such as an action at the end of a list or toward a destination that cannot receive focus.
+A consumed key that produces no move, such as an action at the end of a list or one where no destination can receive focus.
 _Avoid_: Failed move, ignored key
 
 **Untouched key**:

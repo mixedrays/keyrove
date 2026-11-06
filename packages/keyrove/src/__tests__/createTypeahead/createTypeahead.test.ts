@@ -803,6 +803,35 @@ describe('createTypeahead', () => {
     });
   });
 
+  describe('a match that refuses focus, with another beyond it', () => {
+    it('lands on the next match and puts the passed-over stop back', () => {
+      const onMove = vi.fn();
+      const items = [
+        createItem('a', 'Drafts', { roving: true }),
+        createItem('b', 'Sent', { roving: true, tabindex: '-1' }),
+        createItem('c', 'Inbox', { roving: true, tabindex: '-1' }),
+        createItem('d', 'Spam', { roving: true, tabindex: '-1' }),
+      ];
+      const { results } = renderList(items, { options: { onMove } });
+      vi.spyOn(items[1], 'focus').mockImplementation(() => {});
+      items[0].focus();
+
+      pressKey('s');
+
+      expect(activeId()).toBe('d');
+      expect(results).toEqual([
+        { action: 'typeahead', from: items[0], to: items[3] },
+      ]);
+      expect(onMove).toHaveBeenCalledTimes(1);
+      expect(items.map((item) => item.getAttribute('tabindex'))).toEqual([
+        '-1',
+        '-1',
+        '-1',
+        '0',
+      ]);
+    });
+  });
+
   describe('across nested groups', () => {
     it("moves the matched item's own group stop and keeps the outer one", () => {
       const inner = document.createElement('div');
