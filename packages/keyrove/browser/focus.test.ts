@@ -13,7 +13,7 @@ import {
   keyRove,
   rove,
 } from '../src/index';
-import type { KeyRoveOptions, MoveResult } from '../src/index';
+import type { KeyRoveOptions, MoveResult, TypeaheadResult } from '../src/index';
 import {
   activeId,
   byId,
@@ -363,6 +363,37 @@ describe('inside a shadow root', () => {
       { action: 'nextRow', from: 'b', to: 'e' },
       { action: 'homeRow', from: 'e', to: 'd' },
     ]);
+  });
+
+  it('leaves keys typed into a field in an item to the field', async () => {
+    // A web component's input in a light-DOM list: the listener on the list
+    // sees each press retargeted to the host.
+    mount(`
+      <div id="list">
+        <button id="a" data-keyrove-item>Apple</button>
+        <div id="b" data-keyrove-item tabindex="-1"><div id="field"></div></div>
+        <button id="c" data-keyrove-item>Cherry</button>
+      </div>
+    `);
+    const shadow = byId('field').attachShadow({ mode: 'open' });
+    shadow.innerHTML = '<input id="inner">';
+    const input = shadow.getElementById('inner') as HTMLInputElement;
+    const typeahead = createTypeahead();
+    const results: (MoveResult | TypeaheadResult | null)[] = [];
+    byId('list').addEventListener('keydown', (e) =>
+      results.push(keyRove(e) || typeahead(e)),
+    );
+    input.focus();
+
+    await press('c');
+    expect(input.value).toBe('c');
+
+    await press('{Home}');
+    expect(input.selectionStart).toBe(0);
+
+    await press('{ArrowDown}');
+    expect(activeId()).toBe('inner');
+    expect(results).toEqual([null, null, null]);
   });
 });
 

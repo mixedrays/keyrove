@@ -10,7 +10,7 @@
 
 import { KEYROVE_ATTR_TYPEAHEAD } from './attributes.js';
 import { readGroups } from './group.js';
-import { hasCommandModifier, isEditableTarget } from './utils.js';
+import { hasCommandModifier, isEditablePress } from './utils.js';
 import type {
   KeyRoveEvent,
   TypeaheadOptions,
@@ -97,11 +97,11 @@ export const createTypeahead = ({
     // is how capitals are typed).
     if (e.key?.length !== 1 || hasCommandModifier(e)) return null;
 
-    const eventTarget = e.target as Element | null;
+    // Read where the press began, as `keyRove` does, so a field inside a
+    // shadow root keeps its typing; the group is found from the host.
+    if (isEditablePress(e)) return null;
 
-    if (isEditableTarget(eventTarget)) return null;
-
-    const group = groups.at(eventTarget, e.currentTarget);
+    const group = groups.at(e.target as Element | null, e.currentTarget);
 
     if (!group) return null;
 

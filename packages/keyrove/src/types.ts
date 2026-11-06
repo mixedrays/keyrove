@@ -79,6 +79,15 @@ export type KeyRoveEvent = {
   // deliberately stay on the physical `code`. Optional: an event without it
   // still navigates; it just never typeaheads.
   key?: string;
+  // The path the press travels (`Event.composedPath()`). Only the editable
+  // guard reads it, for the element the press began on: a listener outside a
+  // shadow root sees `target` retargeted to the host, never the field inside.
+  // Optional: absent, the guard reads `target` alone.
+  composedPath?: () => EventTarget[];
+  // The native event behind a framework's synthetic one, as React passes it:
+  // React's events carry no `composedPath` of their own, so the guard reads
+  // it here instead. Optional like `composedPath`.
+  nativeEvent?: { composedPath?: () => EventTarget[] };
 };
 
 /**

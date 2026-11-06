@@ -279,6 +279,12 @@ their caret, value and typing keys. Editable targets include:
   so navigating from them takes nothing away: a list of checkbox rows keeps
   its arrows.
 
+The check starts from the element the press began on, so a field inside an
+open shadow root counts, such as a web component's input under a listener
+outside it. A closed shadow root hides its field, and the press reads as
+coming from the shadow host. A component with a closed root has to keep its
+keys itself, for example by stopping their propagation inside the root.
+
 A [focus key](#focus-keys) with <kbd class="kbd">Ctrl</kbd>, <kbd class="kbd">Alt</kbd> or <kbd class="kbd">Meta</kbd> can run inside an editable
 field. These shortcuts can still conflict with text input: Windows can report
 <kbd class="kbd">AltGr</kbd> as <kbd class="kbd">Ctrl</kbd>+<kbd class="kbd">Alt</kbd>, so a `ctrl+alt+` focus key may fire while typing characters
@@ -917,16 +923,24 @@ type KeyRoveEvent = {
   isComposing?: boolean;
   defaultPrevented?: boolean;
   key?: string;
+  composedPath?: () => EventTarget[];
+  nativeEvent?: { composedPath?: () => EventTarget[] };
 };
 ```
 
-The modifier flags, `isComposing`, `defaultPrevented` and `key` are optional so
-a hand-built event object still qualifies. A missing flag reads as "not held",
-a missing `isComposing` as "not composing" and a missing `defaultPrevented` as
-not [consumed](#return-value). An object of your own that bridges events must
-forward them, or every press matches as unmodified and unconsumed. Only
-[typeahead](#createtypeahead-options) reads `key`; an event without it
-navigates but never typeaheads.
+The modifier flags, `isComposing`, `defaultPrevented`, `key`, `composedPath`
+and `nativeEvent` are optional so a hand-built event object still qualifies. A
+missing flag reads as "not held", a missing `isComposing` as "not composing"
+and a missing `defaultPrevented` as not [consumed](#return-value). An object of
+your own that bridges events must forward them, or every press matches as
+unmodified and unconsumed. Only [typeahead](#createtypeahead-options) reads
+`key`; an event without it navigates but never typeaheads.
+
+Only the [editable-target](#editable-targets) check reads the composed path,
+to find the element the press began on. React's synthetic events have no
+`composedPath` of their own, so the check reads `nativeEvent.composedPath()`
+instead. Without either, it reads `target` alone, and a field inside a shadow
+root reads as its host.
 
 ### KeyRoveCode
 

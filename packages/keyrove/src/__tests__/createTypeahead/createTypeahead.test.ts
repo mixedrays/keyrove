@@ -526,6 +526,44 @@ describe('createTypeahead', () => {
       pressKey('s', { from: shadow.activeElement! });
       expect(shadow.activeElement?.id).toBe('a');
     });
+
+    describe('in an item of a light-DOM list', () => {
+      // A web component's control in item `b`: a listener on the list sees
+      // the press retargeted to the host.
+      const renderShadowControl = (html: string) => {
+        const host = document.createElement('div');
+        const shadow = host.attachShadow({ mode: 'open' });
+        shadow.innerHTML = html;
+        const item = createItem('b', '', { tabindex: '-1' });
+        item.appendChild(host);
+        const rendered = renderList([
+          createItem('a', 'Apple'),
+          item,
+          createItem('c', 'Cherry'),
+        ]);
+
+        return { ...rendered, inner: shadow.getElementById('inner')! };
+      };
+
+      it('leaves typing in an input to the input', () => {
+        const { inner, results } = renderShadowControl('<input id="inner">');
+        inner.focus();
+
+        const event = pressKey('c', { from: inner, composed: true });
+
+        expect(results).toEqual([null]);
+        expect(event.defaultPrevented).toBe(false);
+      });
+
+      it('matches from a button', () => {
+        const { inner } = renderShadowControl('<button id="inner">B</button>');
+        inner.focus();
+
+        pressKey('c', { from: inner, composed: true });
+
+        expect(activeId()).toBe('c');
+      });
+    });
   });
 
   describe('labels', () => {
