@@ -154,6 +154,21 @@ describe('initRovingTabindex', () => {
       });
     });
 
+    it('never gives the stop to an item a disabled fieldset disables', () => {
+      const fieldset = document.createElement('fieldset');
+      fieldset.disabled = true;
+      fieldset.append(item('holder', { tabindex: '0' }), item('fresh'));
+      const root = group(fieldset, item('a'), item('b'));
+
+      expect(initRovingTabindex(root)).toBe(document.getElementById('a'));
+      expect(tabindexes('holder', 'fresh', 'a', 'b')).toEqual({
+        holder: '-1',
+        fresh: '-1',
+        a: '0',
+        b: '-1',
+      });
+    });
+
     it('collapses several stops to the first navigable one of them', () => {
       const root = group(
         item('a'),

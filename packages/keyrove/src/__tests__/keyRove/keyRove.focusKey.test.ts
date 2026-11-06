@@ -261,6 +261,44 @@ describe('keyRove', () => {
       expect(disabled.defaultPrevented).toBe(false);
     });
 
+    describe('on a control a disabled fieldset disables', () => {
+      /** Item A, then button B with its own key inside `<fieldset disabled>`. */
+      const renderFieldset = (options?: Parameters<typeof keyRove>[1]) => {
+        const results: RoveResult[] = [];
+        const fieldset = document.createElement('fieldset');
+        fieldset.disabled = true;
+        fieldset.innerHTML = `<button id="b" ${KEYROVE_ATTR_ITEM} ${KEYROVE_ATTR_FOCUS_KEY}="KeyB">B</button>`;
+        renderList([createItem('a'), fieldset], {
+          options,
+          onResult: (result) => results.push(result),
+        });
+
+        return results;
+      };
+
+      it('leaves the key untouched when the attribute declares it', () => {
+        const results = renderFieldset();
+        byId('a').focus();
+
+        const event = pressKey('KeyB');
+
+        expect(activeId()).toBe('a');
+        expect(event.defaultPrevented).toBe(false);
+        expect(results).toEqual([null]);
+      });
+
+      it('leaves the key untouched when the focusKeys map names it', () => {
+        const results = renderFieldset({ focusKeys: { KeyB: '#b' } });
+        byId('a').focus();
+
+        const event = pressKey('KeyB');
+
+        expect(activeId()).toBe('a');
+        expect(event.defaultPrevented).toBe(false);
+        expect(results).toEqual([null]);
+      });
+    });
+
     it('ignores a bare attribute without a combo', () => {
       const results: RoveResult[] = [];
       renderList([createItem('a'), createItem('b', { focusKey: '' })], {

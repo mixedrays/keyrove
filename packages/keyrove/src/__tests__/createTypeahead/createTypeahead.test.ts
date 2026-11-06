@@ -2,6 +2,7 @@ import { describe, it, expect, afterEach, vi } from 'vitest';
 import { createTypeahead } from '../../createTypeahead';
 import {
   KEYROVE_ATTR_FOCUS_KEY,
+  KEYROVE_ATTR_ITEM,
   KEYROVE_ATTR_NEXT_KEY,
   KEYROVE_ATTR_ROOT,
 } from '../../keyRove';
@@ -650,6 +651,32 @@ describe('createTypeahead', () => {
       pressKey('d');
 
       expect(activeId()).toBe('b');
+    });
+
+    it('matches nothing in a control a disabled fieldset disables, and leaves the key untouched', () => {
+      const button = (id: string, label: string) => {
+        const el = document.createElement('button');
+        el.id = id;
+        el.textContent = label;
+        el.setAttribute(KEYROVE_ATTR_ITEM, '');
+
+        return el;
+      };
+      const fieldset = document.createElement('fieldset');
+      fieldset.disabled = true;
+      fieldset.appendChild(button('b', 'Banana'));
+      const { results } = renderList([
+        button('a', 'Apple'),
+        fieldset,
+        button('c', 'Cherry'),
+      ]);
+      document.getElementById('a')!.focus();
+
+      const event = pressKey('b');
+
+      expect(results[results.length - 1]).toBeNull();
+      expect(event.defaultPrevented).toBe(false);
+      expect(activeId()).toBe('a');
     });
   });
 

@@ -201,8 +201,10 @@ direction and `cols: 'auto'` are read from the host element.
   so changing one takes effect at once; see
   [responsive grid](/docs/examples/responsive-grid).
 - Items are all enabled `data-keyrove-item` elements under the root, in DOM
-  order, except those carrying `disabled`. This includes items in nested
-  roots. Use sibling roots to keep attribute-selected sequences separate.
+  order, except disabled ones: those carrying `disabled` or matching
+  `:disabled`, as a control inside a `<fieldset disabled>` does. This
+  includes items in nested roots. Use sibling roots to keep
+  attribute-selected sequences separate.
   With [roving tabindex](/docs/examples/roving-tabindex), each root keeps its
   own tab stop: a move onto a nested root's item moves that root's stop and
   leaves the outer group's in place.
@@ -320,7 +322,8 @@ editable targets. The reported action is `'focus'`.
 - Focus keys sit first in the [binding table](#precedence), so they win any
   collision with the root's bindings or the defaults. Two elements naming one
   combo resolve to the first in DOM order. The attribute scan excludes targets
-  with an enabled `data-keyrove-skip` or a `disabled` attribute.
+  with an enabled `data-keyrove-skip` or a `disabled` attribute, and those
+  matching `:disabled`, such as a control inside a `<fieldset disabled>`.
 - The element need not be an item. An item stays in its group's order, so the
   arrows reach it too; any other element is reached by its key alone.
 - On an item, the move happens in the item's own group: the nearest root above
@@ -364,7 +367,7 @@ keyRove(e, { items: '[role="menuitem"]' }); // override item lookup only
 
 | Option           | Type                                                                     | Falls back to                  | Meaning                                                                                                                                                                        |
 | ---------------- | ------------------------------------------------------------------------ | ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `items`          | `string \| (root: Element) => Element[]`                                 | `data-keyrove-item`            | The group's items: a selector run inside the root, or a function returning them. Elements carrying `disabled` are never navigable.                                             |
+| `items`          | `string \| (root: Element) => Element[]`                                 | `data-keyrove-item`            | The group's items: a selector run inside the root, or a function returning them. Elements carrying `disabled` or matching `:disabled` are never navigable.                     |
 | `root`           | `string`                                                                 | `data-keyrove-root`            | Selector a [root](#roots) answers to, matched at or above the event's target.                                                                                                  |
 | `cols`           | `number \| 'auto'`                                                       | `data-keyrove-cols`            | Columns. Above 1 the group is a grid. `'auto'` counts the root's CSS grid tracks on every keypress.                                                                            |
 | `loop`           | `boolean`                                                                | `data-keyrove-loop`            | Whether next/prev wrap at the ends. Lists only.                                                                                                                                |
@@ -748,13 +751,13 @@ explains scope and replacement exceptions.
 
 On an item:
 
-| Attribute                      | Meaning                                                                                                                                                                              |
-| ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `data-keyrove-item`            | Marks an element as navigable. It is the position whenever focus is anywhere inside it.                                                                                              |
-| `data-keyrove-skip`            | Passed over when moving; keeps its place in the sequence. `disabled` also excludes an element, but removes it from the sequence entirely, so in a grid it shifts the cells after it. |
-| `data-keyrove-roving-tabindex` | Moves the `tabindex="0"` tab stop along with focus.                                                                                                                                  |
-| `data-keyrove-focus-key`       | [Combo](#combos) that focuses this element from anywhere under the listener, e.g. `ctrl+shift+KeyE`. Works without `data-keyrove-item`, too.                                         |
-| `data-keyrove-typeahead`       | Label for [type-to-focus](#createtypeahead-options), when the item's own text is not it.                                                                                             |
+| Attribute                      | Meaning                                                                                                                                                                                                                            |
+| ------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `data-keyrove-item`            | Marks an element as navigable. It is the position whenever focus is anywhere inside it.                                                                                                                                            |
+| `data-keyrove-skip`            | Passed over when moving; keeps its place in the sequence. A disabled element, carrying `disabled` or inside a `<fieldset disabled>`, is excluded too, but leaves the sequence entirely, so in a grid it shifts the cells after it. |
+| `data-keyrove-roving-tabindex` | Moves the `tabindex="0"` tab stop along with focus.                                                                                                                                                                                |
+| `data-keyrove-focus-key`       | [Combo](#combos) that focuses this element from anywhere under the listener, e.g. `ctrl+shift+KeyE`. Works without `data-keyrove-item`, too.                                                                                       |
+| `data-keyrove-typeahead`       | Label for [type-to-focus](#createtypeahead-options), when the item's own text is not it.                                                                                                                                           |
 
 On the root, read on every keypress:
 

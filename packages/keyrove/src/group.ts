@@ -109,10 +109,18 @@ export const holdsFocus = (element: Element): boolean => {
   return !!active && element.contains(active);
 };
 
-// `disabled` is the DOM's own word for an element that takes no part, and it
-// means the same whichever source named the items: such an item is in no
-// group's sequence, and never holds a stop.
-const isDisabled = (item: Element) => item.hasAttribute('disabled');
+/**
+ * Whether an element takes no part: it carries `disabled`, the DOM's own word
+ * for that, or matches `:disabled`, as a control inside a `<fieldset
+ * disabled>` does without carrying the attribute itself. The attribute counts
+ * on any element, though `:disabled` matches only form controls. It means the
+ * same whichever source named the items: such an item is in no group's
+ * sequence and never holds a stop, and such an element is no focus key's
+ * destination. `aria-disabled` is no part of it: an element carrying it still
+ * takes focus.
+ */
+export const isDisabled = (element: Element) =>
+  element.hasAttribute('disabled') || element.matches(':disabled');
 
 /**
  * Gives `stop` the group's one `tabindex="0"` and every other of its roving
