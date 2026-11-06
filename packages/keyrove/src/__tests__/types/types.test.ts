@@ -57,6 +57,9 @@ describe('public type names', () => {
       currentTarget: Element;
       preventDefault: () => void;
       nativeEvent: KeyboardEvent;
+      // React's parameter is a union of modifier names, narrower than the
+      // DOM's `string`.
+      getModifierState(key: 'Alt' | 'AltGraph' | 'Control' | 'Shift'): boolean;
     };
 
     expectTypeOf<KeyboardEvent>().toExtend<KeyRoveEvent>();

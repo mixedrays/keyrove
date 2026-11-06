@@ -97,9 +97,11 @@ export const isComboSet = (value: string | null | undefined): value is string =>
 /**
  * Whether Ctrl, Alt or Meta is held: a command rather than typing. Shift on
  * its own is typing — it is how capitals are entered — so it does not count.
+ * Nor does a press with AltGr held: Windows reports AltGr as Ctrl+Alt, yet
+ * the press types a character, such as "@" or "€" on a German layout.
  */
 export const hasCommandModifier = (e: KeyRoveEvent): boolean =>
-  !!(e.ctrlKey || e.altKey || e.metaKey);
+  !e.getModifierState?.('AltGraph') && !!(e.ctrlKey || e.altKey || e.metaKey);
 
 // An editable target owns the keys keyrove binds: arrows and Home/End move
 // the caret there, and printable keys type. `closest` rather than `matches`,

@@ -67,6 +67,12 @@ export type KeyRoveEvent = {
   altKey?: boolean;
   shiftKey?: boolean;
   metaKey?: boolean;
+  // Whether AltGr is held (`KeyboardEvent.getModifierState`). Windows reports
+  // AltGr as Ctrl+Alt, so this is how a press that types "@" or "€" tells
+  // itself apart from a Ctrl+Alt command. Only `'AltGraph'` is asked, which
+  // lets React's narrower `ModifierKey` parameter fit too. Optional: absent,
+  // Ctrl+Alt reads as a command.
+  getModifierState?: (key: 'AltGraph') => boolean;
   // Whether an input method is mid-composition (`KeyboardEvent.isComposing`).
   // Optional like the flags: absent reads as "not composing".
   isComposing?: boolean;

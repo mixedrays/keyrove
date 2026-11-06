@@ -70,7 +70,9 @@ else:
 - a single character, with none of <kbd class="kbd">Ctrl</kbd>,
   <kbd class="kbd">Alt</kbd> or <kbd class="kbd">Meta</kbd> held.
   <kbd class="kbd">Shift</kbd> is allowed; it is how capitals are typed, and
-  matching ignores case anyway;
+  matching ignores case anyway. <kbd class="kbd">AltGr</kbd> is allowed too,
+  even where Windows reports it as <kbd class="kbd">Ctrl</kbd>+<kbd class="kbd">Alt</kbd>,
+  so "ł" on a Polish layout reaches _Łódź_;
 - not inside an [editable target](/docs/examples/editable-targets), so a field
   inside an item keeps its letters;
 - a space only once the buffer holds a character, so the spacebar keeps

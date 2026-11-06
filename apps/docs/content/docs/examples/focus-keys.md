@@ -130,10 +130,10 @@ In the demo, `ctrl+shift+Digit1` reaches out of the text area; a bare `Digit1`
 would type a "1" there and focus the panel from everywhere else.
 
 Choose shortcuts that do not conflict with editing commands or text input.
-For example, <kbd class="kbd">Ctrl</kbd>+<kbd class="kbd">B</kbd> can mean bold; <kbd class="kbd">Alt</kbd>+letter can type accented characters on
-macOS; and Windows can report <kbd class="kbd">AltGr</kbd> as <kbd class="kbd">Ctrl</kbd>+<kbd class="kbd">Alt</kbd>. A `ctrl+alt+` focus shortcut
-can therefore fire during text entry. No focus key runs while `isComposing`
-is true.
+For example, <kbd class="kbd">Ctrl</kbd>+<kbd class="kbd">B</kbd> can mean bold, and <kbd class="kbd">Alt</kbd>+letter can type accented characters on
+macOS. A press with <kbd class="kbd">AltGr</kbd> held counts as typing, even where Windows reports it
+as <kbd class="kbd">Ctrl</kbd>+<kbd class="kbd">Alt</kbd>, so a `ctrl+alt+` focus shortcut does not fire while typing € or @ in
+a field. No focus key runs while `isComposing` is true.
 
 ## Precedence and ties
 

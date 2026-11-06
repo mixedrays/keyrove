@@ -148,7 +148,7 @@ A combo assigned to one destination element, item or not, rather than to a strid
 _Avoid_: Focus shortcut, access key, jump key
 
 **Editable target**:
-An event target inside a text field, select, editable content, or another input whose native behavior uses the keys keyrove binds. From an editable target, only focus keys pressed with Control, Alt, or Meta act.
+An event target inside a text field, select, editable content, or another input whose native behavior uses the keys keyrove binds. From an editable target, only focus keys pressed with Control, Alt, or Meta act, unless AltGr is held.
 In keyrove, buttons, checkboxes, and similar inputs are not editable targets, so navigation works from them.
 _Avoid_: Input, form field, text input
 

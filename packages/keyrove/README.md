@@ -207,7 +207,7 @@ for the full list and focus-shortcut exception.
 
 Set `data-keyrove-focus-key` on an element to focus it from anywhere under
 the listener. Ctrl/Alt/Meta shortcuts also work inside editable fields, except
-during input-method composition.
+during input-method composition or while AltGr is held.
 
 ```html
 <div id="panels">
@@ -311,7 +311,8 @@ text. Empty values fall through; text content is trimmed and whitespace is
 collapsed. Matching uses the typed character (`e.key`), while navigation
 bindings use the physical code (`e.code`).
 
-Typing inside editable fields and Ctrl/Alt/Meta combinations are ignored.
+Typing inside editable fields and Ctrl/Alt/Meta combinations are ignored;
+a press with AltGr held counts as typing.
 Space joins the buffer only after another character. An unmatched character
 stays in the buffer but leaves its browser behavior unchanged.
 
