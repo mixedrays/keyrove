@@ -44,7 +44,7 @@ An item that keeps its place in the item sequence but is not navigable. Skipping
 _Avoid_: Disabled item, hidden item, removed item
 
 **Disabled item**:
-An item carrying the `disabled` attribute, which removes it from the item sequence and from focus-key destinations.
+An item carrying the `disabled` attribute, or disabled by an ancestor `<fieldset disabled>` (it matches `:disabled`), which removes it from the item sequence and from focus-key destinations.
 In keyrove, `aria-disabled` alone does not make a disabled item.
 _Avoid_: Skipped item, inactive item, unavailable item
 

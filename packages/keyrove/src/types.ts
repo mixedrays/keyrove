@@ -154,8 +154,9 @@ export type Move = MoveResult & { to: Element };
 export type GroupOptions = {
   /**
    * The group's items: a selector run inside the root, or a reading of your
-   * own. Defaults to the item attribute. Items carrying `disabled` are never
-   * navigable, whichever reading found them.
+   * own. Defaults to the item attribute. Disabled items, carrying `disabled`
+   * or matching `:disabled` as a control in a `<fieldset disabled>` does, are
+   * never navigable, whichever reading found them.
    */
   items?: string | ReadItems;
   /**
@@ -463,8 +464,9 @@ export type Group = {
   /**
    * The sequence a move strides through: the root's items in DOM order,
    * disabled ones aside — `disabled` is the DOM's own word for an element that
-   * takes no part, whichever source named the items. A nested root's items
-   * keep their place in it, and so do skipped ones.
+   * takes no part, whichever source named the items, and a control inside a
+   * `<fieldset disabled>` matches `:disabled` without carrying it. A nested
+   * root's items keep their place in it, and so do skipped ones.
    */
   readonly items: Element[];
   /**

@@ -80,7 +80,8 @@ else:
 Matching is by prefix. A character that matches nothing is left to the
 browser but still joins the buffer, so a mistyped prefix goes quiet until the
 reset clears it rather than jumping somewhere unexpected. Items carrying
-`data-keyrove-skip` or `disabled` are never matched.
+`data-keyrove-skip` or `disabled`, or disabled by a `<fieldset disabled>`, are
+never matched.
 
 ## When the text is not the label
 
