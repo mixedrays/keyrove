@@ -45,7 +45,10 @@ This is also how to measure Firefox or Safari: open the URL that
 
 `pnpm bench:headless` prints Markdown tables. Chrome or Chromium is found at
 `CHROME_PATH`, else at its usual install locations. The runner turns on
-focus emulation, so the headless page behaves as a focused window.
+focus emulation, so the headless page behaves as a focused window. Each run
+gets a fresh Chrome profile in the temp directory, removed once Chrome has
+exited; if a profile or scratch directory can't be removed, the runner
+names it in a warning and still prints and saves the report.
 
 To update the recorded run, run with `--record`. Then replace the tables
 under [Results](#results) with the printed output.
