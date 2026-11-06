@@ -413,7 +413,9 @@ const result = keyRove(e, {
 ```
 
 `onMove` runs only after focus moves successfully. Consumed keys at an edge,
-or targets that cannot take focus, do not trigger it.
+or moves where no target can take focus, do not trigger it. A move passes over
+a target that cannot take focus, such as a hidden or inert item, and lands on
+the next one that can.
 
 `action` names the move: `'next'`, `'prev'`, `'home'`, `'end'`, `'pageUp'`,
 `'pageDown'`; the grid actions `'nextRow'`, `'prevRow'`, `'homeRow'`, `'endRow'`;

@@ -62,7 +62,7 @@ covers that part of the contract in a real browser: a small suite under
 library's public entry and drives it with real key presses and clicks. It
 checks that Tab and Shift+Tab enter, leave and return to a roving group, that
 nested groups keep their own stops, that navigation works in a shadow root,
-and that a hidden or inert target leaves focus and the stop alone.
+and that a move passes over a hidden or inert target, leaving its stop alone.
 
 It runs on Vitest's browser mode with Playwright, in headless Chromium.
 Install the browser once:

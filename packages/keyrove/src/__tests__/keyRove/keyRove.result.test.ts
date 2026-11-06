@@ -249,6 +249,60 @@ describe('keyRove', () => {
       ]);
     });
 
+    it('walks on past every refusing item, firing onMove once, for the item that took focus', () => {
+      const onMove = vi.fn();
+      const items = ['a', 'b', 'c', 'd'].map((id) =>
+        createItem(id, { roving: true, tabindex: '-1' }),
+      );
+      items[0].setAttribute('tabindex', '0');
+      items[2].removeAttribute('tabindex');
+      const results: RoveResult[] = [];
+      renderList(items, {
+        options: { onMove },
+        onResult: (r) => results.push(r),
+      });
+      // Inert or hidden in a browser: focusable by its attributes, and still
+      // refusing focus.
+      vi.spyOn(items[1], 'focus').mockImplementation(() => {});
+      vi.spyOn(items[2], 'focus').mockImplementation(() => {});
+      byId('a').focus();
+
+      pressKey('ArrowDown');
+
+      expect(activeId()).toBe('d');
+      expect(results).toEqual([
+        { action: 'next', from: byId('a'), to: byId('d') },
+      ]);
+      expect(onMove).toHaveBeenCalledTimes(1);
+      expect(onMove).toHaveBeenCalledWith({
+        action: 'next',
+        from: byId('a'),
+        to: byId('d'),
+      });
+      expect(items.map((item) => item.getAttribute('tabindex'))).toEqual([
+        '-1',
+        '-1',
+        null,
+        '0',
+      ]);
+    });
+
+    it('does not walk on from a focus key whose item refuses focus', () => {
+      const b = createItem('b');
+      b.setAttribute(KEYROVE_ATTR_FOCUS_KEY, 'KeyP');
+      const results: RoveResult[] = [];
+      renderList([createItem('a'), b, createItem('c')], {
+        onResult: (r) => results.push(r),
+      });
+      vi.spyOn(b, 'focus').mockImplementation(() => {});
+      byId('a').focus();
+
+      pressKey('KeyP');
+
+      expect(activeId()).toBe('a');
+      expect(results).toEqual([{ action: 'focus', from: byId('a'), to: null }]);
+    });
+
     it('still moves to a bare item the roving stop makes focusable', () => {
       const onMove = vi.fn();
       const b = bareItem('b');

@@ -134,17 +134,32 @@ export const keyRove = (
   // entered from the keyboard — and so is a focus key, which is the point.
   if (!focused && !binding.enters) return null;
 
-  const target =
-    binding.intent === 'focus'
-      ? binding.target
-      : resolveTarget({
-          intent: binding.intent,
-          elements,
-          fromIndex: focused ? elements.indexOf(focused) : -1,
-          layout: config.layout,
-          pageLength: config.pageLength,
-          isNavigable: group.isNavigable,
-        });
+  // A focus key names its element outright: one destination, and no walk to
+  // carry on should it refuse focus.
+  if (binding.intent === 'focus') {
+    return group.move({
+      e,
+      action: 'focus',
+      from: focused,
+      to: binding.target,
+      onMove,
+    });
+  }
+
+  const { intent } = binding;
+  const fromIndex = focused ? elements.indexOf(focused) : -1;
+  // The move's walk, by a navigable test: the group's own, and the same test
+  // passing over each item that refused focus when the group walks on.
+  const resolve = (isNavigable: (item: Element) => boolean) =>
+    resolveTarget({
+      intent,
+      elements,
+      fromIndex,
+      layout: config.layout,
+      pageLength: config.pageLength,
+      isNavigable,
+    });
+  const target = resolve(group.isNavigable);
 
   // With neither a target nor a focused item, keyrove has nothing to move
   // from or to and the key is left with its browser default rather than
@@ -155,9 +170,10 @@ export const keyRove = (
 
   return group.move({
     e,
-    action: binding.intent,
+    action: intent,
     from: focused,
     to: target,
+    retarget: resolve,
     onMove,
   });
 };

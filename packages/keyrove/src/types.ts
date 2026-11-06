@@ -558,9 +558,10 @@ export type GroupReader = {
 /**
  * What it takes to land a move: the event to claim, the action to report, the
  * item focus is leaving (`null` from outside the group), the one it lands on
- * (nullish when there is nowhere to go), and who to tell. Generic in the action
- * so each handler's result comes back exactly typed. Which item the roving
- * stop is carried from is the group's to decide: see {@link Group.move}.
+ * (nullish when there is nowhere to go), how to walk on where that one refuses
+ * focus, and who to tell. Generic in the action so each handler's result comes
+ * back exactly typed. Which item the roving stop is carried from is the
+ * group's to decide: see {@link Group.move}.
  */
 export type MoveArgs<Action extends string> = {
   /** The keypress to claim. A move made from code has none. */
@@ -568,5 +569,14 @@ export type MoveArgs<Action extends string> = {
   action: Action;
   from: Element | null;
   to: Element | null | undefined;
+  /**
+   * The move resolved again, by `isNavigable`: the group's navigable test,
+   * passing over every item that has refused focus so far. Asked each time a
+   * destination refuses, until one takes focus or none is left. Without it a
+   * refusal ends the move, as it does for a destination named outright.
+   */
+  retarget?: (
+    isNavigable: (item: Element) => boolean,
+  ) => Element | null | undefined;
   onMove?: (move: ActionResult<Action> & { to: Element }) => void;
 };
