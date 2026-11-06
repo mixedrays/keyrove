@@ -24,7 +24,8 @@ see [configuration differences](/docs/attributes-and-options#configuration-diffe
 ## Disabled elements
 
 Anything carrying the `disabled` attribute is excluded automatically, with no
-`data-keyrove-skip` needed:
+`data-keyrove-skip` needed. So is a control a `<fieldset disabled>` disables,
+since it matches `:disabled`:
 
 ```html
 <button data-keyrove-item tabindex="0">Rename</button>

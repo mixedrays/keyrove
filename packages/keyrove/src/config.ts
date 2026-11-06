@@ -22,7 +22,7 @@ import {
   KEYROVE_ATTR_ORIENTATION,
   KEYROVE_ATTR_PAGE_LENGTH,
 } from './attributes.js';
-import { attributeSkip } from './group.js';
+import { attributeSkip, isDisabled } from './group.js';
 import { keyAttribute } from './keyAttribute.js';
 import {
   hasEnabledAttribute,
@@ -204,8 +204,7 @@ export const readFocusKeys = (
         }));
 
   return declared.filter(
-    (key): key is FocusKey =>
-      !!key.target && !key.target.hasAttribute('disabled'),
+    (key): key is FocusKey => !!key.target && !isDisabled(key.target),
   );
 };
 

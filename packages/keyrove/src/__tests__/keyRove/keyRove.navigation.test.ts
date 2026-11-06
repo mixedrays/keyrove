@@ -269,6 +269,74 @@ describe('keyRove', () => {
         from: null,
       });
     });
+
+    describe('disabled by an ancestor fieldset', () => {
+      /** A, then B inside `<fieldset disabled>`, then C. */
+      const renderFieldsetList = (
+        inner = '<button id="b" data-keyrove-item>B</button>',
+      ) => {
+        const results: RoveResult[] = [];
+        const container = document.createElement('div');
+        container.innerHTML = `
+          <button id="a" data-keyrove-item>A</button>
+          <fieldset id="fieldset" disabled>${inner}</fieldset>
+          <button id="c" data-keyrove-item>C</button>
+        `;
+        document.body.appendChild(container);
+        container.addEventListener('keydown', (e) => {
+          results.push(keyRove(e));
+        });
+
+        return results;
+      };
+
+      it('passes over a control the fieldset disables, both ways', () => {
+        const results = renderFieldsetList();
+        document.getElementById('a')!.focus();
+
+        pressKey('ArrowDown');
+
+        expect(activeId()).toBe('c');
+        expect(results[results.length - 1]).toMatchObject({
+          action: 'next',
+          from: document.getElementById('a'),
+          to: document.getElementById('c'),
+        });
+
+        pressKey('ArrowUp');
+
+        expect(activeId()).toBe('a');
+        expect(results[results.length - 1]).toMatchObject({
+          action: 'prev',
+          from: document.getElementById('c'),
+          to: document.getElementById('a'),
+        });
+      });
+
+      it('keeps a focusable non-control inside the fieldset as an item', () => {
+        renderFieldsetList(
+          '<div id="b" data-keyrove-item tabindex="-1">B</div>',
+        );
+        document.getElementById('a')!.focus();
+
+        pressKey('ArrowDown');
+
+        expect(activeId()).toBe('b');
+      });
+
+      it('puts the control back in the sequence once the fieldset is enabled', () => {
+        renderFieldsetList();
+        document.getElementById('a')!.focus();
+
+        pressKey('ArrowDown');
+        expect(activeId()).toBe('c');
+
+        document.getElementById('fieldset')!.removeAttribute('disabled');
+        pressKey('ArrowUp');
+
+        expect(activeId()).toBe('b');
+      });
+    });
   });
 
   describe('position within an item', () => {
