@@ -71,7 +71,10 @@ export const pressKey = (
     code = '',
     from = document.activeElement as Element,
     ...modifiers
-  }: Pick<KeyboardEventInit, 'ctrlKey' | 'altKey' | 'shiftKey' | 'metaKey'> & {
+  }: Pick<
+    KeyboardEventInit,
+    'ctrlKey' | 'altKey' | 'shiftKey' | 'metaKey' | 'composed'
+  > & {
     code?: string;
     from?: Element;
   } = {},

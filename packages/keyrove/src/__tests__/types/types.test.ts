@@ -49,4 +49,17 @@ describe('public type names', () => {
     expectTypeOf<KeyRoveEvent['code']>().toEqualTypeOf<KeyRoveCode>();
     expectTypeOf<string>().toExtend<KeyRoveCode>();
   });
+
+  it('accepts native events and React-style synthetic ones, path included', () => {
+    type SyntheticKeyboardEvent = {
+      code: string;
+      target: EventTarget;
+      currentTarget: Element;
+      preventDefault: () => void;
+      nativeEvent: KeyboardEvent;
+    };
+
+    expectTypeOf<KeyboardEvent>().toExtend<KeyRoveEvent>();
+    expectTypeOf<SyntheticKeyboardEvent>().toExtend<KeyRoveEvent>();
+  });
 });

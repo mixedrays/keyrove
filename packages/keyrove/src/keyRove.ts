@@ -4,7 +4,7 @@ import { readConfig, readFocusKeys } from './config.js';
 import { holdsFocus, readGroups } from './group.js';
 import { listenerElement } from './nesting.js';
 import { resolveTarget } from './position.js';
-import { hasCommandModifier, isEditableTarget, matchesCombo } from './utils.js';
+import { hasCommandModifier, isEditablePress, matchesCombo } from './utils.js';
 import type { KeyRoveEvent, KeyRoveOptions, MoveResult } from './types.js';
 
 // The attribute constants ship alongside the handler that reads them, so
@@ -41,8 +41,11 @@ export const keyRove = (
   // half-converted word.
   if (e.isComposing) return null;
 
+  // A press from a field inside a shadow root reaches a listener outside it
+  // retargeted to the host, so the guard reads where the press began; the
+  // group is still found from the host, in the listener's own tree.
   const eventTarget = e.target as Element | null;
-  const editable = isEditableTarget(eventTarget);
+  const editable = isEditablePress(e);
 
   // Typing. An editable target keeps every press that could be text or caret
   // movement, and nothing keyrove binds fires from one without a command

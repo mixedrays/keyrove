@@ -40,6 +40,10 @@ The test is on the event's target and its ancestors:
 - an `input` of any type other than `button`, `checkbox`, `color`, `file`,
   `image`, `reset` and `submit`.
 
+A field inside an open shadow root, such as a web component's input, counts
+too: the test also starts from the element the press began on, before the
+event was retargeted to the shadow host. A closed shadow root hides its field.
+
 The input list is drawn by what the bound keys do natively. Arrows move a
 caret in a text field, step a `number`, slide a `range` and move between
 `radio` buttons; on a checkbox or a button they do nothing, so navigating from
