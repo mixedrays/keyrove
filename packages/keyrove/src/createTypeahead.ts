@@ -9,7 +9,7 @@
  */
 
 import { KEYROVE_ATTR_TYPEAHEAD } from './attributes.js';
-import { readGroups } from './group.js';
+import { readGroups, walkOn } from './group.js';
 import { hasCommandModifier, isEditablePress } from './utils.js';
 import type {
   KeyRoveEvent,
@@ -144,15 +144,21 @@ export const createTypeahead = ({
         ? items.indexOf(focused) + 1
         : 0;
     const rotation = [...items.slice(start), ...items.slice(0, start)];
-    // The first match the navigable test accepts: the group's own, and, where
-    // a match refuses focus, the same test passing over it, so the move lands
-    // on the next match in the rotation.
-    const match = (isNavigable: (item: Element) => boolean) =>
-      rotation.find(
-        (item) =>
-          isNavigable(item) && fold(getLabel(item, label)).startsWith(buffer),
-      );
-    const target = match(group.isNavigable);
+    // The first match the navigable test accepts, and, where a match refuses
+    // focus, the next one in the rotation: one pass over it, so each label is
+    // read once however many matches refuse.
+    const { to: target, retarget } = walkOn(function* (
+      isNavigable,
+    ): Generator<Element, undefined> {
+      for (const item of rotation) {
+        if (
+          isNavigable(item) &&
+          fold(getLabel(item, label)).startsWith(buffer)
+        ) {
+          yield item;
+        }
+      }
+    }, group.isNavigable);
 
     // No match leaves the key untouched — the character still joined the
     // buffer, so a mistyped prefix goes quiet until the reset clears it.
@@ -166,7 +172,7 @@ export const createTypeahead = ({
       action: 'typeahead',
       from: focused,
       to: target,
-      retarget: match,
+      retarget,
       onMove,
     });
   };

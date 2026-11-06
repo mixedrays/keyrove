@@ -12,71 +12,83 @@
 import type { ResolveTargetArgs } from './types.js';
 
 /**
- * Binds the group's navigable test into the walk every move is made of: the
- * first element `isNavigable` accepts, from index `i` in steps of `step`;
- * `undefined` once the walk leaves either end. The moves differ by where they
- * start, by what they stride, and by the fallback when the walk comes back
- * empty — never by which items they can land on, so that test is bound once
- * per resolution.
+ * The walk every move is made of: each element `isNavigable` accepts, from
+ * index `i` in steps of `step`, until the walk leaves either end. An item is
+ * tested only as the walk reaches it, so a test that turns down more items as
+ * the walk goes on is read afresh at every step.
  */
-const scanner =
-  (isNavigable: ResolveTargetArgs['isNavigable']) =>
-  (elements: Element[], i: number, step: number): Element | undefined => {
-    for (; i >= 0 && i < elements.length; i += step) {
-      if (isNavigable(elements[i])) {
-        return elements[i];
-      }
-    }
-  };
+function* scan(
+  elements: Element[],
+  i: number,
+  step: number,
+  isNavigable: ResolveTargetArgs['isNavigable'],
+): Generator<Element, undefined> {
+  for (; i >= 0 && i < elements.length; i += step) {
+    if (isNavigable(elements[i])) yield elements[i];
+  }
+}
 
 /**
- * Resolves the element an intent lands on, or `null`/`undefined` when there
- * is nowhere to go (a grid edge, an empty group).
+ * Every element an intent can land on, in the order the move tries them: the
+ * stride's own walk first, then its fallback once that walk comes back empty
+ * — the clamp or the wrap past a list's end, the clamp after a page jump.
+ * The moves differ by where they start, by what they stride, and by that
+ * fallback — never by which items they can land on, which is `isNavigable`'s
+ * to say.
  *
- * Entry is handled here: with `fromIndex: -1` a directional intent resolves
- * to the first navigable item — the last, for `prev` on a looping list. The
+ * The first element is the move's destination. The rest are where it goes
+ * instead when that one turns out not to take focus: a test that turns down
+ * every item refused so far turns down every item the walk has passed too, so
+ * carrying the walk on lands where resolving the move again would, at one
+ * pass over the items rather than one pass per refusal. Once done it returns
+ * what the move resolves to when there is nowhere to go: `null` for a move
+ * that stops at an edge (a grid's, or a row's), `undefined` for one that goes
+ * by the group's ends and found none.
+ *
+ * Entry is handled here: with `fromIndex: -1` a directional intent starts at
+ * the first navigable item — the last, for `prev` on a looping list. The
  * caller gates the bindings that do not enter before ever asking.
  */
-export const resolveTarget = ({
+export function* walkTargets({
   intent,
   elements,
   fromIndex,
   layout: { kind, cols, loop },
   pageLength,
   isNavigable,
-}: ResolveTargetArgs): Element | null | undefined => {
-  const scan = scanner(isNavigable);
+}: ResolveTargetArgs): Generator<Element, null | undefined> {
   const lastIndex = elements.length - 1;
-  // The group's ends: its first and last navigable items. When every item is
-  // skipped there are none, and a move that goes by the ends lands nowhere —
-  // a skipped item is never a destination, whichever move is asking.
-  const first = () => scan(elements, 0, 1);
-  const last = () => scan(elements, lastIndex, -1);
+  const walk = (i: number, step: number, sequence = elements) =>
+    scan(sequence, i, step, isNavigable);
+  // The group's ends: its first and last navigable items, and on from there.
+  // When every item is skipped there are none, and a move that goes by the
+  // ends lands nowhere — a skipped item is never a destination, whichever
+  // move is asking.
+  const first = () => walk(0, 1);
+  const last = () => walk(lastIndex, -1);
 
-  if (fromIndex < 0) return intent === 'prev' && loop ? last() : first();
+  if (fromIndex < 0) return yield* intent === 'prev' && loop ? last() : first();
 
   switch (intent) {
     // Past its end a list clamps, or wraps when it loops; a grid stops at its
     // edge and never wraps, per the APG grid pattern.
     case 'next':
-      return (
-        scan(elements, fromIndex + 1, 1) ||
-        (kind === 'grid' ? null : loop ? first() : last())
-      );
+      yield* walk(fromIndex + 1, 1);
+      return kind === 'grid' ? null : yield* loop ? first() : last();
     case 'prev':
-      return (
-        scan(elements, fromIndex - 1, -1) ||
-        (kind === 'grid' ? null : loop ? last() : first())
-      );
+      yield* walk(fromIndex - 1, -1);
+      return kind === 'grid' ? null : yield* loop ? last() : first();
     // A row move keeps its column, stepping a further row over a skipped cell.
     case 'nextRow':
-      return scan(elements, fromIndex + cols, cols) || null;
+      yield* walk(fromIndex + cols, cols);
+      return null;
     case 'prevRow':
-      return scan(elements, fromIndex - cols, -cols) || null;
+      yield* walk(fromIndex - cols, -cols);
+      return null;
     case 'home':
-      return first();
+      return yield* first();
     case 'end':
-      return last();
+      return yield* last();
     case 'homeRow':
     case 'endRow': {
       // A row end goes by its own row alone: a row of nothing but skipped
@@ -84,11 +96,10 @@ export const resolveTarget = ({
       const rowStart = fromIndex - (fromIndex % cols);
       const row = elements.slice(rowStart, rowStart + cols);
 
-      return (
-        (intent === 'homeRow'
-          ? scan(row, 0, 1)
-          : scan(row, row.length - 1, -1)) || null
-      );
+      yield* intent === 'homeRow'
+        ? walk(0, 1, row)
+        : walk(row.length - 1, -1, row);
+      return null;
     }
     // A page jump is a request to travel as far as possible: overshooting an
     // end, or finding only skipped items from where it lands onward, clamps to
@@ -98,12 +109,17 @@ export const resolveTarget = ({
       const direction = intent === 'pageUp' ? -1 : 1;
       const landing = fromIndex + pageLength * cols * direction;
 
-      return (
-        (landing >= 0 &&
-          landing <= lastIndex &&
-          scan(elements, landing, direction)) ||
-        (direction < 0 ? first() : last())
-      );
+      if (landing >= 0 && landing <= lastIndex) yield* walk(landing, direction);
+      return yield* direction < 0 ? first() : last();
     }
   }
-};
+}
+
+/**
+ * Resolves the element an intent lands on, or `null`/`undefined` when there
+ * is nowhere to go (a grid edge, an empty group): the first destination of
+ * its walk, {@link walkTargets}.
+ */
+export const resolveTarget = (
+  args: ResolveTargetArgs,
+): Element | null | undefined => walkTargets(args).next().value;

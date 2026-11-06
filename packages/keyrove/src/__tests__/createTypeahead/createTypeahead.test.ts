@@ -870,6 +870,32 @@ describe('createTypeahead', () => {
     });
   });
 
+  describe('a run of matches that refuse focus', () => {
+    it('reads each label before them once, however many refuse', () => {
+      const label = vi.fn((item: Element) => item.textContent!);
+      const others = ['Archive', 'Drafts', 'Inbox'].map((name, i) =>
+        createItem(`o${i}`, name),
+      );
+      const refusing = [0, 1, 2, 3].map((i) => createItem(`r${i}`, 'Spam'));
+      const items = [...others, ...refusing, createItem('sent', 'Sent')];
+      renderList(items, { options: { label } });
+      for (const item of refusing) {
+        vi.spyOn(item, 'focus').mockImplementation(() => {});
+      }
+      others[0].focus();
+
+      pressKey('s');
+
+      expect(activeId()).toBe('sent');
+      for (const item of others) {
+        expect(
+          label.mock.calls.filter(([read]) => read === item),
+          item.id,
+        ).toHaveLength(1);
+      }
+    });
+  });
+
   describe('across nested groups', () => {
     it("moves the matched item's own group stop and keeps the outer one", () => {
       const inner = document.createElement('div');

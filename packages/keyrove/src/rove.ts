@@ -9,8 +9,8 @@
  */
 
 import { readConfig } from './config.js';
-import { readGroups } from './group.js';
-import { resolveTarget } from './position.js';
+import { readGroups, walkOn } from './group.js';
+import { walkTargets } from './position.js';
 import type { KeyRoveOptions, MoveResult, StrideAction } from './types.js';
 
 // Where each move enters a group it has no position in: a forward move at the
@@ -79,18 +79,19 @@ export const rove = (
   // An entry is `home` or `end`, which go by the group's ends, not by an
   // index.
   const fromIndex = from ? elements.indexOf(from) : 0;
-  // The walk is resolved again, passing over each item that refused focus,
-  // as a key's is.
-  const resolve = (isNavigable: (item: Element) => boolean) =>
-    resolveTarget({
-      intent,
-      elements,
-      fromIndex,
-      layout: config.layout,
-      pageLength: config.pageLength,
-      isNavigable,
-    });
-  const target = resolve(group.isNavigable);
+  // The walk carries on past each item that refuses focus, as a key's does.
+  const { to: target, retarget } = walkOn(
+    (isNavigable) =>
+      walkTargets({
+        intent,
+        elements,
+        fromIndex,
+        layout: config.layout,
+        pageLength: config.pageLength,
+        isNavigable,
+      }),
+    group.isNavigable,
+  );
 
   if (!target && !from) return null;
 
@@ -98,7 +99,7 @@ export const rove = (
     action,
     from,
     to: target,
-    retarget: resolve,
+    retarget,
     onMove: options.onMove,
   });
 };
