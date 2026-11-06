@@ -608,6 +608,34 @@ describe('createTypeahead', () => {
     });
   });
 
+  describe('a character typed with AltGr', () => {
+    // Windows reports AltGr as Ctrl+Alt, with the AltGraph modifier state set
+    // too: on a Polish programmer layout, AltGr+L types "ł" and AltGr+O "ó".
+    const ALTGR = { ctrlKey: true, altKey: true, modifierAltGraph: true };
+
+    it('joins the buffer like any typed character', () => {
+      const { results } = renderList(
+        [
+          createItem('a', 'Kraków'),
+          createItem('b', 'Lublin'),
+          createItem('c', 'Łeba'),
+          createItem('d', 'Łódź'),
+        ],
+        { chainKeyRove: true },
+      );
+      document.getElementById('a')!.focus();
+
+      const first = pressKey('ł', { code: 'KeyL', ...ALTGR });
+      expect(activeId()).toBe('c');
+      expect(first.defaultPrevented).toBe(true);
+
+      // the buffer is "łó", which only Łódź starts with
+      pressKey('ó', { code: 'KeyO', ...ALTGR });
+      expect(activeId()).toBe('d');
+      expect(results.map((result) => result?.to?.id)).toEqual(['c', 'd']);
+    });
+  });
+
   describe('keys that never typeahead', () => {
     it('ignores presses with Ctrl, Alt, or Meta held', () => {
       const { results } = renderList(mailbox());

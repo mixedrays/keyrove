@@ -62,8 +62,9 @@ chained after it also receives the event.
 
 A [focus key](/docs/examples/focus-keys) with <kbd class="kbd">Ctrl</kbd>, <kbd class="kbd">Alt</kbd> or <kbd class="kbd">Meta</kbd> can move focus
 from an editable field. Bare keys and <kbd class="kbd">Shift</kbd>-only combinations remain available
-for typing. Choose shortcuts carefully: some modifiers also produce text,
-including <kbd class="kbd">AltGr</kbd> reported as <kbd class="kbd">Ctrl</kbd>+<kbd class="kbd">Alt</kbd>.
+for typing. A press with <kbd class="kbd">AltGr</kbd> held counts as typing too, even where Windows
+reports it as <kbd class="kbd">Ctrl</kbd>+<kbd class="kbd">Alt</kbd>. Choose shortcuts carefully: <kbd class="kbd">Alt</kbd>+letter can still type
+accented characters on macOS.
 
 [Typeahead](/docs/examples/typeahead) never captures typing inside a field.
 

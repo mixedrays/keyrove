@@ -548,6 +548,87 @@ describe('keyRove', () => {
       expect(shifted.defaultPrevented).toBe(false);
     });
 
+    describe('with AltGr held', () => {
+      // Windows reports AltGr as Ctrl+Alt, with the AltGraph modifier state
+      // set too: AltGr+Q types "@" on a German layout.
+      const ALTGR = { ctrlKey: true, altKey: true, modifierAltGraph: true };
+
+      const renderFieldAndPanel = () => {
+        const results: RoveResult[] = [];
+
+        document.body.innerHTML = `
+          <div id="list">
+            <input id="field">
+            <section id="panel" tabindex="-1" ${KEYROVE_ATTR_FOCUS_KEY}="ctrl+alt+KeyQ"></section>
+            <button id="x" ${KEYROVE_ATTR_ITEM}>Xylo</button>
+          </div>`;
+
+        const node = byId('list');
+        const listen = (e: Event) => {
+          results.push(keyRove(e as KeyboardEvent));
+        };
+        node.addEventListener('keydown', listen);
+        detach = () => node.removeEventListener('keydown', listen);
+
+        return results;
+      };
+
+      it('leaves the press to the field: it types a character there', () => {
+        const results = renderFieldAndPanel();
+        byId('field').focus();
+
+        const event = pressKey('KeyQ', undefined, ALTGR);
+
+        expect(results).toEqual([null]);
+        expect(event.defaultPrevented).toBe(false);
+        expect(activeId()).toBe('field');
+      });
+
+      it('still fires the focus key from the field on Ctrl+Alt without AltGr', () => {
+        const results = renderFieldAndPanel();
+        byId('field').focus();
+
+        const event = pressKey('KeyQ', undefined, {
+          ctrlKey: true,
+          altKey: true,
+        });
+
+        expect(results.map((result) => result?.to?.id)).toEqual(['panel']);
+        expect(event.defaultPrevented).toBe(true);
+        expect(activeId()).toBe('panel');
+      });
+
+      it('still fires the focus key outside a field, where no text is lost', () => {
+        const results = renderFieldAndPanel();
+        byId('x').focus();
+
+        const event = pressKey('KeyQ', undefined, ALTGR);
+
+        expect(results.map((result) => result?.to?.id)).toEqual(['panel']);
+        expect(event.defaultPrevented).toBe(true);
+        expect(activeId()).toBe('panel');
+      });
+
+      it('reads Ctrl+Alt as a command on an event with no modifier state', () => {
+        renderFieldAndPanel();
+        const field = byId('field');
+        field.focus();
+        const preventDefault = vi.fn();
+
+        const result = keyRove({
+          code: 'KeyQ',
+          ctrlKey: true,
+          altKey: true,
+          target: field,
+          currentTarget: byId('list'),
+          preventDefault,
+        });
+
+        expect(result?.to?.id).toBe('panel');
+        expect(preventDefault).toHaveBeenCalled();
+      });
+    });
+
     it('keeps a chorded move out of the field — only a focus key reaches out', () => {
       const host = createItem('host');
       const field = document.createElement('textarea');

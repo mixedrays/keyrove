@@ -293,9 +293,9 @@ coming from the shadow host. A component with a closed root has to keep its
 keys itself, for example by stopping their propagation inside the root.
 
 A [focus key](#focus-keys) with <kbd class="kbd">Ctrl</kbd>, <kbd class="kbd">Alt</kbd> or <kbd class="kbd">Meta</kbd> can run inside an editable
-field. These shortcuts can still conflict with text input: Windows can report
-<kbd class="kbd">AltGr</kbd> as <kbd class="kbd">Ctrl</kbd>+<kbd class="kbd">Alt</kbd>, so a `ctrl+alt+` focus key may fire while typing characters
-such as € or @.
+field. A press with <kbd class="kbd">AltGr</kbd> held counts as typing, so it stays in the field even
+though Windows reports it as <kbd class="kbd">Ctrl</kbd>+<kbd class="kbd">Alt</kbd>: typing € or @ never fires a `ctrl+alt+`
+focus key. Outside a field, such a focus key still fires on the AltGr press.
 
 When `isComposing` is true, no binding runs, including focus shortcuts. All
 keys remain available to the input method.
@@ -569,7 +569,9 @@ typing:
 
 - a single character, with none of <kbd class="kbd">Ctrl</kbd>,
   <kbd class="kbd">Alt</kbd> or <kbd class="kbd">Meta</kbd> held
-  (<kbd class="kbd">Shift</kbd> is allowed; it is how capitals are typed);
+  (<kbd class="kbd">Shift</kbd> is allowed; it is how capitals are typed, and
+  so is <kbd class="kbd">AltGr</kbd>, even where Windows reports it as
+  <kbd class="kbd">Ctrl</kbd>+<kbd class="kbd">Alt</kbd>);
 - not inside an [editable target](#editable-targets);
 - a space only once the buffer holds a character, so the spacebar keeps
   scrolling and clicking.
@@ -929,6 +931,7 @@ type KeyRoveEvent = {
   altKey?: boolean;
   shiftKey?: boolean;
   metaKey?: boolean;
+  getModifierState?: (key: 'AltGraph') => boolean;
   isComposing?: boolean;
   defaultPrevented?: boolean;
   key?: string;
@@ -937,13 +940,20 @@ type KeyRoveEvent = {
 };
 ```
 
-The modifier flags, `isComposing`, `defaultPrevented`, `key`, `composedPath`
-and `nativeEvent` are optional so a hand-built event object still qualifies. A
-missing flag reads as "not held", a missing `isComposing` as "not composing"
-and a missing `defaultPrevented` as not [consumed](#return-value). An object of
-your own that bridges events must forward them, or every press matches as
-unmodified and unconsumed. Only [typeahead](#createtypeahead-options) reads
-`key`; an event without it navigates but never typeaheads.
+The modifier flags, `getModifierState`, `isComposing`, `defaultPrevented`,
+`key`, `composedPath` and `nativeEvent` are optional so a hand-built event
+object still qualifies. A missing flag reads as "not held", a missing
+`isComposing` as "not composing" and a missing `defaultPrevented` as not
+[consumed](#return-value). An object of your own that bridges events must
+forward them, or every press matches as unmodified and unconsumed. Only
+[typeahead](#createtypeahead-options) reads `key`; an event without it
+navigates but never typeaheads.
+
+`getModifierState` is asked only about `'AltGraph'`, to tell a press that
+types a character with <kbd class="kbd">AltGr</kbd> from a <kbd class="kbd">Ctrl</kbd>+<kbd class="kbd">Alt</kbd> command: such a press is
+typing, both in an [editable target](#editable-targets) and for typeahead.
+Without it, <kbd class="kbd">Ctrl</kbd>+<kbd class="kbd">Alt</kbd> always reads as a command. Combo matching does not read
+it.
 
 Only the [editable-target](#editable-targets) check reads the composed path,
 to find the element the press began on. React's synthetic events have no
