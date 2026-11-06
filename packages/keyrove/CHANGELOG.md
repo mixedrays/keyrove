@@ -1,5 +1,11 @@
 # Changelog
 
+## [2.6.1](https://github.com/mixedrays/keyrove/compare/v2.6.0...v2.6.1) (2026-11-06)
+
+### Bug Fixes
+
+* treat items disabled by a fieldset as disabled ([a47c158](https://github.com/mixedrays/keyrove/commit/a47c158603b9ed83ff85157bb7813beb10df2316))
+
 ## [2.6.0](https://github.com/mixedrays/keyrove/compare/v2.5.1...v2.6.0) (2026-10-16)
 
 ### Features
