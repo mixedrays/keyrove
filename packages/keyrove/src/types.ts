@@ -274,7 +274,8 @@ export type ItemAttributes = {
  * group's own readings: see {@link GroupReader}.
  */
 export type GroupConfig = {
-  layout: Layout;
+  /** Read on first ask: with `auto`, it reads the page's layout. */
+  readonly layout: Layout;
   explicit: ExplicitBinding;
   rtl: () => boolean;
   pageLength: number;
@@ -433,6 +434,14 @@ export type BuildBindingsArgs = {
    * `next`/`prev` default on a horizontal axis could flip, never otherwise.
    */
   rtl: () => boolean;
+};
+
+export type FindBindingArgs = Omit<BuildBindingsArgs, 'layout'> & {
+  /**
+   * The group's layout, asked for only when the press could be a move in some
+   * layout: with `auto`, reading it reads the page's layout.
+   */
+  layout: () => Layout;
 };
 
 export type ResolveTargetArgs = {

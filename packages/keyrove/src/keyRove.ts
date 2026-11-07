@@ -1,10 +1,10 @@
-import { buildBindings } from './bindings.js';
+import { findBinding } from './bindings.js';
 import { crossBoundary } from './boundary.js';
 import { readConfig, readFocusKeys } from './config.js';
 import { holdsFocus, readGroups, walkOn } from './group.js';
 import { listenerElement } from './nesting.js';
 import { walkTargets } from './position.js';
-import { hasCommandModifier, isEditablePress, matchesCombo } from './utils.js';
+import { hasCommandModifier, isEditablePress } from './utils.js';
 import type { KeyRoveEvent, KeyRoveOptions, MoveResult } from './types.js';
 
 // The attribute constants ship alongside the handler that reads them, so
@@ -69,13 +69,14 @@ export const keyRove = (
 
   // First match wins: one keypress resolves to at most one action, and the
   // table's order is the precedence — an element's own key over the explicit
-  // bindings over the defaults.
-  const binding = buildBindings({
+  // bindings over the defaults. The layout is read only for a press that
+  // could be a move, so a key nothing binds never reads the page's layout.
+  const binding = findBinding(e, {
     explicit: config.explicit,
     focus: readFocusKeys(scope, options),
-    layout: config.layout,
+    layout: () => config.layout,
     rtl: config.rtl,
-  }).find(({ combo }) => matchesCombo(e, combo));
+  });
 
   if (!binding) return null;
 

@@ -123,7 +123,9 @@ const countTracks = (root: Element): number => {
  * a `flex-wrap` row, inline-block items: the items on the first line. The walk
  * goes from the first item and stops at the first one starting below the
  * first item's box, so items of different heights centred on one line still
- * count as that line, and only the first line is read, plus one item.
+ * count as that line, and only the first line is read, plus one item. Each
+ * item is read once, by its first box: one call per item, where the
+ * bounding rect would be a second.
  *
  * It counts the item sequence, which keeps a skipped item in its slot, as the
  * fold does, and reads each item where it sits, in a shadow root as anywhere.
@@ -132,21 +134,18 @@ const countTracks = (root: Element): number => {
  * no box leaves the group a list.
  */
 const countFirstLine = (items: readonly Element[]): number => {
-  const hasBox = (item: Element) => item.getClientRects().length > 0;
-  const first = items[0];
+  // Where an item starts on screen: its first box, or none without a box.
+  const firstBox = (item: Element): DOMRect | undefined =>
+    item.getClientRects()[0];
+  const first = items[0] && firstBox(items[0]);
 
-  if (!first || !hasBox(first)) return 1;
-
-  const { bottom, height } = first.getBoundingClientRect();
-
-  if (height === 0) return 1;
+  if (!first || first.height === 0) return 1;
 
   let columns = 1;
 
   while (
     columns < items.length &&
-    hasBox(items[columns]) &&
-    items[columns].getBoundingClientRect().top < bottom
+    (firstBox(items[columns])?.top ?? Infinity) < first.bottom
   ) {
     columns++;
   }
@@ -167,8 +166,8 @@ const countColumns = (group: ConfigGroup): number => {
 
 /**
  * The group's column count. `auto`, from either source and in any case in the
- * attribute, counts the columns on screen on every keypress; a number is taken
- * as it stands, where it is usable.
+ * attribute, counts the columns on screen each time the layout is read; a
+ * number is taken as it stands, where it is usable.
  */
 const readColumns = (
   group: ConfigGroup,
@@ -231,10 +230,15 @@ const readLayout = (
  */
 const readExplicitBinding =
   (root: Element, { keys }: GroupOptions): ExplicitBinding =>
-  (intent) =>
-    [keys?.[intent], readAttribute(root, keyAttribute(intent))].find(
-      isComboSet,
-    );
+  (intent) => {
+    const option = keys?.[intent];
+
+    if (isComboSet(option)) return option;
+
+    const attribute = readAttribute(root, keyAttribute(intent));
+
+    return isComboSet(attribute) ? attribute : undefined;
+  };
 
 /**
  * The focus keys in reach of a keypress: the `focusKeys` map where one is
@@ -279,13 +283,21 @@ export const readFocusKeys = (
 export const readConfig = (
   group: ConfigGroup,
   options: GroupOptions,
-): GroupConfig => ({
-  layout: readLayout(group, options),
-  explicit: readExplicitBinding(group.root, options),
-  // Resolved on demand: read only when an unbound `next`/`prev` default on a
-  // horizontal axis could flip, never otherwise.
-  rtl: () => isRtl(group.root),
-  pageLength:
-    count(options.pageLength) ??
-    parseAttributeInt(group.root, KEYROVE_ATTR_PAGE_LENGTH, 10),
-});
+): GroupConfig => {
+  let layout: Layout | undefined;
+
+  return {
+    // Read on first ask, and kept: `auto` reads the page's layout, which a
+    // press no move could claim never needs.
+    get layout() {
+      return (layout ??= readLayout(group, options));
+    },
+    explicit: readExplicitBinding(group.root, options),
+    // Resolved on demand: read only when an unbound `next`/`prev` default on a
+    // horizontal axis could flip, never otherwise.
+    rtl: () => isRtl(group.root),
+    pageLength:
+      count(options.pageLength) ??
+      parseAttributeInt(group.root, KEYROVE_ATTR_PAGE_LENGTH, 10),
+  };
+};

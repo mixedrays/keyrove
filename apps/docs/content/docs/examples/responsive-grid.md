@@ -44,6 +44,10 @@ attribute is not needed.
 where that has no tracks to count, the positions of the items on the first
 line. No resize listener or observer is needed to keep the count current.
 
+Only a press that could move reads the layout: an arrow, Home/End, a page key,
+or a key a move is bound to. Any other key, and a focus key, reads none, so
+typing into typeahead never asks the browser for the layout.
+
 ## The stylesheet owns the breakpoints
 
 The panel declares itself a container with `container-type: inline-size`; the

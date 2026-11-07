@@ -1,8 +1,11 @@
 import { describe, it, expect, vi } from 'vitest';
-import { buildBindings } from '../../bindings';
+import { buildBindings, findBinding } from '../../bindings';
+import { matchesCombo } from '../../utils';
 import type {
   BoundaryAction,
   BuildBindingsArgs,
+  FocusKey,
+  KeyRoveEvent,
   Layout,
   StrideAction,
 } from '../../types';
@@ -435,5 +438,152 @@ describe('buildBindings', () => {
         { combo: 'Enter, ArrowRight', intent: 'enter', enters: false },
       ]);
     });
+  });
+});
+
+describe('findBinding', () => {
+  const press = (
+    code: string,
+    modifiers: Pick<KeyRoveEvent, 'ctrlKey' | 'altKey' | 'shiftKey'> = {},
+  ): KeyRoveEvent => ({
+    code,
+    target: null,
+    currentTarget: null,
+    preventDefault: () => {},
+    ...modifiers,
+  });
+
+  type FindOverrides = {
+    explicit?: Explicit;
+    focus?: FocusKey[];
+    layout?: Layout;
+    rtl?: boolean;
+  };
+
+  const find = (
+    e: KeyRoveEvent,
+    {
+      explicit = {},
+      focus = [],
+      layout = LIST,
+      rtl = false,
+    }: FindOverrides = {},
+  ) => {
+    const readLayout = vi.fn(() => layout);
+    const binding = findBinding(e, {
+      explicit: lookup(explicit),
+      focus,
+      layout: readLayout,
+      rtl: () => rtl,
+    });
+
+    return { binding, readLayout };
+  };
+
+  it('leaves the layout unread for a press no move could claim', () => {
+    const { binding, readLayout } = find(press('KeyQ'));
+
+    expect(binding).toBeUndefined();
+    expect(readLayout).not.toHaveBeenCalled();
+  });
+
+  it('resolves a focus key without the layout', () => {
+    const target = document.createElement('button');
+    const { binding, readLayout } = find(press('KeyF', { altKey: true }), {
+      focus: [{ combo: 'alt+KeyF', target }],
+    });
+
+    expect(binding).toEqual({
+      combo: 'alt+KeyF',
+      intent: 'focus',
+      enters: true,
+      target,
+    });
+    expect(readLayout).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    ['ArrowUp', {}],
+    ['ArrowDown', {}],
+    ['ArrowLeft', {}],
+    ['ArrowRight', {}],
+    ['Home', {}],
+    ['End', {}],
+    ['Home', { ctrlKey: true }],
+    ['End', { ctrlKey: true }],
+    ['PageUp', {}],
+    ['PageDown', {}],
+  ] as const)(
+    'reads the layout for %s %o, a default key in some layout',
+    (code, modifiers) => {
+      const { readLayout } = find(press(code, modifiers));
+
+      expect(readLayout).toHaveBeenCalledOnce();
+    },
+  );
+
+  it('reads the layout for a key bound to a move the layout may lack', () => {
+    const explicit = { nextRow: 'KeyJ' };
+
+    const inList = find(press('KeyJ'), { explicit });
+    expect(inList.readLayout).toHaveBeenCalledOnce();
+    expect(inList.binding).toBeUndefined();
+
+    const inGrid = find(press('KeyJ'), { explicit, layout: GRID });
+    expect(inGrid.binding?.intent).toBe('nextRow');
+  });
+
+  it('reads the layout for a bound boundary move', () => {
+    const { binding, readLayout } = find(press('Escape'), {
+      explicit: { exit: 'Escape' },
+    });
+
+    expect(binding?.intent).toBe('exit');
+    expect(readLayout).toHaveBeenCalledOnce();
+  });
+
+  it('resolves every press as the first match of the full table', () => {
+    const target = document.createElement('button');
+    const setups: FindOverrides[] = [
+      {},
+      { layout: GRID },
+      { layout: { ...LIST, horizontal: true }, rtl: true },
+      { explicit: { next: 'KeyJ', prev: 'none', nextRow: 'KeyN' } },
+      { explicit: { home: 'ctrl+Home', exit: 'Escape' }, layout: GRID },
+      { focus: [{ combo: 'ArrowDown', target }] },
+      { focus: [{ combo: 'KeyQ, alt+KeyF', target }], layout: GRID },
+    ];
+    const presses = [
+      press('KeyQ'),
+      press('KeyJ'),
+      press('KeyN'),
+      press('Escape'),
+      press('KeyF', { altKey: true }),
+      press('ArrowUp'),
+      press('ArrowDown'),
+      press('ArrowLeft'),
+      press('ArrowRight'),
+      press('ArrowDown', { shiftKey: true }),
+      press('Home'),
+      press('Home', { ctrlKey: true }),
+      press('End', { ctrlKey: true }),
+      press('PageDown'),
+    ];
+
+    for (const setup of setups) {
+      const { explicit = {}, focus = [], layout = LIST, rtl = false } = setup;
+      const table = buildBindings({
+        explicit: lookup(explicit),
+        focus,
+        layout,
+        rtl: () => rtl,
+      });
+
+      for (const e of presses) {
+        expect(find(e, setup).binding).toEqual(
+          table.find(({ combo }) => matchesCombo(e, combo)),
+        );
+      }
+    }
   });
 });
