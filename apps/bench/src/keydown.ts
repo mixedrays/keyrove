@@ -24,16 +24,20 @@ import type {
 
 import {
   CASE_COUNT,
+  COLUMN_KEYS,
+  COLUMNS,
   DEFAULT_OPTIONS,
   FOCUS_KEY_COUNTS,
-  GRIDS,
   ITEMS_PER_GROUP,
+  LAYOUT_STATES,
   REFUSALS,
   SIZES,
 } from './plan.ts';
 import type {
   BenchCase,
   BenchOptions,
+  ColumnLayout,
+  ColumnSpec,
   Fixture,
   Outcome,
   RefusalSpec,
@@ -62,7 +66,12 @@ const event = (
   preventDefault: noop,
 });
 
-type PageSpec = { groups: number; focusKeys?: number; grid?: string };
+type PageSpec = {
+  groups: number;
+  focusKeys?: number;
+  grid?: string;
+  layout?: ColumnLayout;
+};
 
 /** What a fixture is built from: everything it reports but its measurements. */
 type FixtureSpec = Omit<Fixture, 'name' | 'buildMs' | 'elements'>;
@@ -72,30 +81,52 @@ const itemMarkup = (id: string, n: number, attributes = '') =>
   `<button data-keyrove-item id="${id}"${attributes}><span>Item ${n}</span><span>meta</span></button>`;
 
 /**
+ * Each column layout's styles: the root's, and each item's where it needs
+ * one. `flex-wrap` holds four items a line, `flex row` all 20 on one line,
+ * and `flex column` one a line.
+ */
+const LAYOUT_STYLES: Record<ColumnLayout, { root: string; item?: string }> = {
+  grid: { root: 'display:grid;grid-template-columns:repeat(4,4rem)' },
+  'flex-wrap': {
+    root: 'display:flex;flex-wrap:wrap;width:16rem',
+    item: 'flex:0 0 25%;box-sizing:border-box',
+  },
+  'flex row': { root: 'display:flex' },
+  'flex column': { root: 'display:flex;flex-direction:column' },
+};
+
+/**
  * A page of `groups` roots with 20 button items each, every item holding two
  * spans: three elements per item. `focusKeys` items spread evenly over the
  * page carry a focus key of their own, each a distinct combo that no case
- * presses. `grid` lays each group out as a four-column CSS grid, with `cols`
- * set to `4` or `auto`.
+ * presses. `grid` sets each group's `cols`, and `layout` lays it out, as a
+ * four-column CSS grid unless it names a flex layout.
  */
-const pageMarkup = ({ groups, focusKeys = 0, grid }: PageSpec) => {
+const pageMarkup = ({
+  groups,
+  focusKeys = 0,
+  grid,
+  layout = 'grid',
+}: PageSpec) => {
   const total = groups * ITEMS_PER_GROUP;
   const every = focusKeys ? Math.floor(total / focusKeys) : 0;
+  const styles = LAYOUT_STYLES[layout];
+  const itemStyle = grid && styles.item ? ` style="${styles.item}"` : '';
   const parts: string[] = [];
   let n = 0;
 
   for (let g = 0; g < groups; g++) {
-    const layout = grid
-      ? ` data-keyrove-cols="${grid}" style="display:grid;grid-template-columns:repeat(4,4rem)"`
+    const columns = grid
+      ? ` data-keyrove-cols="${grid}" style="${styles.root}"`
       : '';
-    parts.push(`<div class="group" id="g${g}" data-keyrove-root${layout}>`);
+    parts.push(`<div class="group" id="g${g}" data-keyrove-root${columns}>`);
 
     for (let i = 0; i < ITEMS_PER_GROUP; i++, n++) {
       const key =
         every && n % every === 0 && n / every < focusKeys
           ? ` data-keyrove-focus-key="ctrl+alt+F${n / every + 1}"`
           : '';
-      parts.push(itemMarkup(`g${g}i${i}`, i, key));
+      parts.push(itemMarkup(`g${g}i${i}`, i, `${key}${itemStyle}`));
     }
     parts.push('</div>');
   }
@@ -134,6 +165,22 @@ const refusalMarkup = ({ count, hidden, roving, skip }: RefusalSpec) => {
 /** The name a refused-focus page goes by. */
 const refusalName = ({ count, hidden, roving, skip }: RefusalSpec) =>
   `${count} × ${hidden}${roving ? ', roving' : ''}${skip ? ', skipped' : ''}`;
+
+/** The name a column page goes by. The grids keep their earlier names. */
+const columnName = ({ layout, cols }: ColumnSpec) =>
+  layout === 'grid' ? `M, cols="${cols}"` : `M, ${layout}, cols="${cols}"`;
+
+let dirtied = false;
+
+/**
+ * Changes the fixture's padding, so the next read of the layout lays the page
+ * out again: what a page pays when something wrote to the DOM earlier in the
+ * same task, another keydown listener say.
+ */
+const dirtyLayout = () => {
+  dirtied = !dirtied;
+  host().style.paddingLeft = dirtied ? '1px' : '';
+};
 
 /** Builds `markup` into the fixture host and lays it out, timing both. */
 const build = (markup: () => string) => {
@@ -270,6 +317,16 @@ const probe = (): Supports => {
     return keyRove(event('ArrowDown', items[0], root))?.to === items[2];
   });
 
+  // Two items a line in a flex-wrap row, which has no grid tracks: ArrowDown
+  // lands a row down only if `auto` counts the items on the first line.
+  const wrapColumns = tryIt(() => {
+    host().innerHTML = `<div data-keyrove-root data-keyrove-cols="auto" style="display:flex;flex-wrap:wrap;width:8rem">${'<button data-keyrove-item style="flex:0 0 50%;box-sizing:border-box">x</button>'.repeat(4)}</div>`;
+    const root = host().firstElementChild!;
+    const items = Array.from(root.querySelectorAll('button'));
+    items[0].focus();
+    return keyRove(event('ArrowDown', items[0], root))?.to === items[2];
+  });
+
   // A hidden item between two others: ArrowDown reaches the third only if
   // the move walks on past the item that refuses focus.
   const refusedFocus = tryIt(() => {
@@ -282,11 +339,13 @@ const probe = (): Supports => {
   });
 
   host().innerHTML = '';
-  return { focusKeysMap, autoColumns, refusedFocus };
+  return { focusKeysMap, autoColumns, refusedFocus, wrapColumns };
 };
 
 const NO_FOCUS_KEYS_MAP = 'this version has no focusKeys option';
 const NO_AUTO_COLUMNS = 'this version cannot read columns from the layout';
+const NO_WRAP_COLUMNS =
+  'this version reads a layout with no grid tracks as a list, so the key does not move';
 const NO_REFUSED_FOCUS =
   'this version stops at an item that refuses focus instead of moving past it';
 
@@ -326,7 +385,10 @@ export const runBench: RunBench = async ({
     });
   };
 
-  /** Times one press from `start`, with the listener on `currentTarget`. */
+  /**
+   * Times one press from `start`, with the listener on `currentTarget`.
+   * `before` runs ahead of every press, inside the timing.
+   */
   const run = async (
     section: string,
     label: string,
@@ -335,11 +397,17 @@ export const runBench: RunBench = async ({
     currentTarget: EventTarget,
     code: () => string,
     config?: KeyRoveOptions,
+    before?: () => void,
   ) => {
     signal?.throwIfAborted();
     start.focus();
-    const call = () =>
-      keyRove(event(code(), document.activeElement, currentTarget), config);
+    const call = () => {
+      before?.();
+      return keyRove(
+        event(code(), document.activeElement, currentTarget),
+        config,
+      );
+    };
     const result = outcome(call());
     start.focus();
     const timing = measure(call, options);
@@ -479,14 +547,23 @@ export const runBench: RunBench = async ({
       await yieldToBrowser();
     }
 
-    // C: a fixed column count against `auto`, which reads the layout.
-    for (const grid of GRIDS) {
-      const name = `M, cols="${grid}"`;
-      if (grid === 'auto' && !supports.autoColumns) {
-        for (const key of ['unbound', 'bound, moves focus']) {
+    // C: a fixed column count against `auto`, which reads the layout, in a
+    // grid and in flex layouts, on a laid-out page and with the layout
+    // dirtied before each press.
+    for (const column of COLUMNS) {
+      const { layout, cols } = column;
+      const name = columnName(column);
+      const auto = cols === 'auto';
+      const labels = COLUMN_KEYS.flatMap((key) =>
+        LAYOUT_STATES.map((state) => `cols="${cols}", ${key}${state}`),
+      );
+      const forced = 'layout dirtied, then read, no handler';
+
+      if (auto && !supports.autoColumns) {
+        for (const label of [...labels, forced]) {
           skip({
             section: 'columns',
-            label: `cols="${grid}", ${key}`,
+            label,
             fixture: name,
             reason: NO_AUTO_COLUMNS,
           });
@@ -496,24 +573,66 @@ export const runBench: RunBench = async ({
 
       const { fixture, group } = await page(
         name,
-        { groups: 100, grid },
-        pageMarkup,
+        { groups: 100, grid: cols },
+        (spec) => pageMarkup({ ...spec, layout }),
       );
+      const moves =
+        layout === 'flex column'
+          ? { prev: 'ArrowUp', next: 'ArrowDown' }
+          : { prev: 'ArrowLeft', next: 'ArrowRight' };
+      // Without first-line counting, a flex row with `auto` is a list, where
+      // ArrowRight is unbound.
+      const movesHere =
+        !auto ||
+        layout === 'grid' ||
+        layout === 'flex column' ||
+        supports.wrapColumns;
 
-      for (const [key, start, code] of keys(group, {
-        prev: 'ArrowLeft',
-        next: 'ArrowRight',
-      })) {
+      for (const [key, start, code] of keys(group, moves)) {
         if (key === 'bound, no move') continue;
-        await run(
-          'columns',
-          `cols="${grid}", ${key}`,
-          fixture,
-          start,
-          group,
-          code,
-        );
+
+        for (const state of LAYOUT_STATES) {
+          const label = `cols="${cols}", ${key}${state}`;
+
+          if (key !== 'unbound' && !movesHere) {
+            skip({
+              section: 'columns',
+              label,
+              fixture: name,
+              reason: NO_WRAP_COLUMNS,
+            });
+            continue;
+          }
+
+          await run(
+            'columns',
+            label,
+            fixture,
+            start,
+            group,
+            code,
+            undefined,
+            state ? dirtyLayout : undefined,
+          );
+          host().style.paddingLeft = '';
+        }
       }
+
+      // What the dirtied layout costs to read on this page, with no handler:
+      // the most a layout read in the handler can add to a press.
+      signal?.throwIfAborted();
+      record({
+        section: 'columns',
+        label: forced,
+        fixture,
+        result: '-',
+        ...measure(() => {
+          dirtyLayout();
+          sink = host().offsetHeight;
+        }, options),
+      });
+      host().style.paddingLeft = '';
+      await yieldToBrowser();
     }
 
     // D: a move past a run of items that refuse focus, local listener. Each

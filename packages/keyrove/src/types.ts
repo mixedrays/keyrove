@@ -182,7 +182,8 @@ export type GroupOptions = {
   root?: string;
   /**
    * Columns. Above 1 the group is a grid. `'auto'` counts the tracks of the
-   * root's CSS grid on every keypress. Defaults to the cols attribute.
+   * root's CSS grid on every keypress, or, where it has none, the items on
+   * the first line of a wrapping layout. Defaults to the cols attribute.
    */
   cols?: number | 'auto';
   /**
@@ -273,7 +274,8 @@ export type ItemAttributes = {
  * group's own readings: see {@link GroupReader}.
  */
 export type GroupConfig = {
-  layout: Layout;
+  /** Read on first ask: with `auto`, it reads the page's layout. */
+  readonly layout: Layout;
   explicit: ExplicitBinding;
   rtl: () => boolean;
   pageLength: number;
@@ -432,6 +434,14 @@ export type BuildBindingsArgs = {
    * `next`/`prev` default on a horizontal axis could flip, never otherwise.
    */
   rtl: () => boolean;
+};
+
+export type FindBindingArgs = Omit<BuildBindingsArgs, 'layout'> & {
+  /**
+   * The group's layout, asked for only when the press could be a move in some
+   * layout: with `auto`, reading it reads the page's layout.
+   */
+  layout: () => Layout;
 };
 
 export type ResolveTargetArgs = {
