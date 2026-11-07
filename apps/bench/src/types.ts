@@ -31,6 +31,12 @@ export type Fixture = {
   elements: number;
 };
 
+/** How a column page lays out each group. */
+export type ColumnLayout = 'grid' | 'flex-wrap' | 'flex row' | 'flex column';
+
+/** A column page: each group laid out by `layout`, carrying `cols`. */
+export type ColumnSpec = { layout: ColumnLayout; cols: string };
+
 /**
  * A refused-focus page: `count` items between the two the press moves
  * between, each hidden by `hidden`. `roving` gives every item a roving tab
@@ -83,6 +89,12 @@ export type Supports = {
    * from a run recorded before the field existed.
    */
   refusedFocus?: boolean;
+  /**
+   * `cols="auto"` counts the items on the first line of a layout with no
+   * grid tracks, such as `flex-wrap` (after 2.6.1). Absent from a run
+   * recorded before the field existed.
+   */
+  wrapColumns?: boolean;
 };
 
 export type BenchResults = {

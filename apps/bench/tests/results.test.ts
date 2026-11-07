@@ -76,24 +76,24 @@ test('the Markdown report prints the README table rows', () => {
 
   assert.ok(markdown.startsWith('## Environment\n\n- Library: '));
   assert.ok(
-    markdown.includes('| S | 10 | 200 | 0 | - | 618 | 1.43 |'),
+    markdown.includes('| S | 10 | 200 | 0 | - | 618 | 1.63 |'),
     'fixture row',
   );
   assert.ok(
     markdown.includes(
-      '| M, cols="auto" | 100 | 2000 | 0 | auto | 6108 | 10.85 |',
+      '| M, cols="auto" | 100 | 2000 | 0 | auto | 6108 | 11.34 |',
     ),
     'grid fixture row',
   );
   assert.ok(
     markdown.includes(
-      '| 1000 × display: none | 1 | 1002 | 0 | - | 3015 | 1.62 |',
+      '| 1000 × display: none | 1 | 1002 | 0 | - | 3015 | 1.69 |',
     ),
     'refused-focus fixture row',
   );
   assert.ok(
     markdown.includes(
-      '| S | local, unbound | unhandled | 2.55 | 2.53–2.60 | 4096 |',
+      '| S | local, unbound | unhandled | 1.28 | 1.19–1.50 | 8192 |',
     ),
     'case row',
   );
@@ -310,11 +310,11 @@ test('the Markdown report can be in milliseconds', () => {
   assert.ok(markdown.includes('| Median (ms) | p10–p90 (ms) |'));
   assert.ok(
     markdown.includes(
-      '| S | local, unbound | unhandled | 0.00255 | 0.00253–0.00260 | 4096 |',
+      '| S | local, unbound | unhandled | 0.00128 | 0.00119–0.00150 | 8192 |',
     ),
   );
   // Build times stay in milliseconds whatever the unit.
-  assert.ok(markdown.includes('| S | 10 | 200 | 0 | - | 618 | 1.43 |'));
+  assert.ok(markdown.includes('| S | 10 | 200 | 0 | - | 618 | 1.63 |'));
 });
 
 test('frame shares show as many places as they need', () => {
