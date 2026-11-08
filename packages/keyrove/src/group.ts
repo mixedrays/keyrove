@@ -18,7 +18,7 @@ import {
   KEYROVE_ATTR_SKIP,
 } from './attributes.js';
 import { innerRoot, outerRoot, ownerRoot, rootAt } from './nesting.js';
-import { hasEnabledAttribute, toggleTabIndex } from './utils.js';
+import { hasEnabledAttribute } from './utils.js';
 import type {
   ActionResult,
   Group,
@@ -129,10 +129,10 @@ export const isDisabled = (element: Element) =>
  */
 const placeStop = (items: Element[], stop: Element | null) => {
   for (const item of items) {
-    const isActive = item === stop;
+    const tabindex = item === stop ? '0' : '-1';
 
-    if (item.getAttribute('tabindex') !== (isActive ? '0' : '-1')) {
-      toggleTabIndex({ root: item, isActive });
+    if (item.getAttribute('tabindex') !== tabindex) {
+      item.setAttribute('tabindex', tabindex);
     }
   }
 };
@@ -146,8 +146,8 @@ const carryStop = (from: Element, to: Element) => {
     (element) => [element, element.getAttribute('tabindex')] as const,
   );
 
-  toggleTabIndex({ root: from, isActive: false });
-  toggleTabIndex({ root: to, isActive: true });
+  from.setAttribute('tabindex', '-1');
+  to.setAttribute('tabindex', '0');
 
   return () => {
     for (const [element, value] of before) {

@@ -223,7 +223,12 @@ export type KeyRoveOptions = GroupOptions & {
   onMove?: (move: Move) => void;
 };
 
-/** {@link KeyRoveOptions} under its earlier name, kept for existing imports. */
+/**
+ * {@link KeyRoveOptions} under its earlier name, kept for existing imports.
+ *
+ * @deprecated Use {@link KeyRoveOptions}. `Options` will be removed in the
+ * next major version.
+ */
 export type Options = KeyRoveOptions;
 
 /**

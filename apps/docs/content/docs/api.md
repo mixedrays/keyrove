@@ -16,7 +16,7 @@ order: 4
 | [`matchesCombo(event, combo)`](#matchescombo-event-combo)                | Tests a key combination in your own handlers.     |
 | [`initRovingTabindex(root, options?)`](#initrovingtabindex-root-options) | Initializes or repairs a group's roving tab stop. |
 | [`followFocus(event, options?)`](#followfocus-event-options)             | Updates the roving tab stop on `focusin`.         |
-| [`toggleTabIndex({ root, isActive })`](#toggletabindex-root-isactive)    | Sets one element's `tabindex` to `0` or `-1`.     |
+| [`toggleTabIndex({ root, isActive })`](#toggletabindex-root-isactive)    | Deprecated. Sets one element's `tabindex`.        |
 | [`data-keyrove-*`](#attributes)                                          | Configures items and roots in markup.             |
 | [`KEYROVE_ATTR_*`](#constants)                                           | Constants for attribute names.                    |
 | [Types](#types)                                                          | Event, configuration and result types.            |
@@ -744,6 +744,11 @@ the helpers wired together.
 
 ## toggleTabIndex({ root, isActive })
 
+> **Deprecated.** It will be removed in the next major version. For a roving
+> group, [`initRovingTabindex`](#initrovingtabindex-root-options) keeps its
+> one tab stop and [`followFocus`](#followfocus-event-options) moves it with
+> focus. For a stop you manage yourself, set `element.tabIndex`.
+
 Sets `tabindex` to `0` or `-1` on a single element.
 
 ```ts
@@ -759,12 +764,9 @@ toggleTabIndex({ root: firstItem, isActive: true });
 
 Returns nothing.
 
-Use it where you manage one element's tab stop yourself. For a whole roving
-group, [`initRovingTabindex`](#initrovingtabindex-root-options) keeps exactly
-one `0` for you, and [`followFocus`](#followfocus-event-options) moves it with
-focus that keyRove did not move. Descendant tab stops are left alone; roving tabindex
-only needs the item itself to carry the stop. A nullish `root` is a no-op, so a
-query that found nothing needs no guard.
+Descendant tab stops are left alone; roving tabindex only needs the item
+itself to carry the stop. A nullish `root` is a no-op, so a query that found
+nothing needs no guard.
 
 ## Attributes
 
@@ -916,7 +918,7 @@ import type {
   InitRovingTabindexOptions,
   ItemAttributeOptions,
   ItemAttributes,
-  Options, // the earlier name of KeyRoveOptions
+  Options, // deprecated: the earlier name of KeyRoveOptions
   RootAttributeOptions,
   RootAttributes,
   RovingTabindexOptions,
@@ -1043,12 +1045,14 @@ type Move = MoveResult & { to: Element };
 ### KeyRoveOptions
 
 What [`keyRove`](#options) and [`rove`](#rove-element-action-options) take:
-the group settings and `onMove`. `Options` is its earlier name and remains
-exported as the same type.
+the group settings and `onMove`. `Options` is its earlier name, still
+exported as the same type. It is deprecated and will be removed in the next
+major version.
 
 ```ts
 type KeyRoveOptions = GroupOptions & { onMove?: (move: Move) => void };
 
+/** @deprecated Use KeyRoveOptions. */
 type Options = KeyRoveOptions;
 ```
 

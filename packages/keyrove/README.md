@@ -446,10 +446,11 @@ An event an earlier handler already consumed with `preventDefault()` returns
 focus once per press. keyrove never stops propagation. Check
 `e.defaultPrevented` in your own handler if it should skip consumed keys too.
 
-`toggleTabIndex({ root, isActive })` is exported for cases where you manage one
-element's tab stop yourself. For a whole roving group,
-`initRovingTabindex(root, options?)` keeps exactly one stop, and
-`followFocus(event, options?)` moves it with focus keyRove did not move.
+For a whole roving group, `initRovingTabindex(root, options?)` keeps exactly
+one stop, and `followFocus(event, options?)` moves it with focus keyRove did
+not move. For one element's tab stop you manage yourself, set
+`element.tabIndex`. `toggleTabIndex({ root, isActive })` is deprecated and
+will be removed in the next major version.
 
 ## Moves without a keypress
 
