@@ -12,7 +12,7 @@ import {
   KEYROVE_ATTR_PAGE_UP_KEY,
   KEYROVE_ATTR_PREV_KEY,
   KEYROVE_ATTR_PREV_ROW_KEY,
-} from '../../keyRove';
+} from '../../attributes';
 import type { StrideAction } from '../../types';
 import {
   activeId,

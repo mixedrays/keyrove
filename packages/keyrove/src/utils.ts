@@ -169,6 +169,11 @@ export const isEditablePress = (e: KeyRoveEvent): boolean => {
  *
  * Descendant `tabindex` values are deliberately left alone — they belong to the
  * consumer. Roving tabindex only needs the item itself to carry the tab stop.
+ *
+ * @deprecated For a roving group, `initRovingTabindex` keeps its one tab stop
+ * and `followFocus` moves it with focus. For a stop you manage yourself, set
+ * `element.tabIndex`. `toggleTabIndex` will be removed in the next major
+ * version.
  */
 export const toggleTabIndex = ({ root, isActive }: ToggleTabIndexArgs) => {
   if (!root) return;

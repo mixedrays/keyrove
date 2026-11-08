@@ -8,7 +8,6 @@ import {
   followFocus,
   keyRove,
   matchesCombo,
-  toggleTabIndex,
 } from '@mixedrays/keyrove';
 
 import { demoDefinition, type DemoExtra } from '../build/demo-definitions.ts';
@@ -173,8 +172,8 @@ const wireTree = (
   };
 
   const moveTo = (from: Element | null, to: Element) => {
-    toggleTabIndex({ root: from, isActive: false });
-    toggleTabIndex({ root: to, isActive: true });
+    from?.setAttribute('tabindex', '-1');
+    to.setAttribute('tabindex', '0');
     (to as HTMLElement).focus();
   };
 

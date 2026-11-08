@@ -322,10 +322,18 @@ match was already focused or could not receive focus. `onMove` runs only after
 a successful move.
 
 Share `items`, `root`, `skip` and `rovingTabindex` with `keyRove` so both
-handlers use the same group rules:
+handlers use the same group rules. An `onMove` in the shared object receives
+either handler's move, so type its argument `AnyMove`:
 
 ```ts
-const config = { items: '[role="menuitem"]', loop: true, rovingTabindex: true };
+import { keyRove, createTypeahead, type AnyMove } from '@mixedrays/keyrove';
+
+const config = {
+  items: '[role="menuitem"]',
+  loop: true,
+  rovingTabindex: true,
+  onMove: ({ action, to }: AnyMove) => console.log(action, to),
+};
 const typeahead = createTypeahead(config);
 
 menu.addEventListener('keydown', (e) => keyRove(e, config) || typeahead(e));
@@ -379,7 +387,7 @@ while its attribute applies per item. See
 | `data-keyrove-enter-key`       | `keys.enter`     | root | —           | Combo entering the root nested in the focused item.                                                                               |
 | `data-keyrove-focus-key`       | `focusKeys`      | any  | —           | Combo focusing this element, from anywhere under the listener, e.g. `ctrl+shift+KeyE`. As an option: combo → element or selector. |
 | `data-keyrove-loop`            | `loop`           | root | —           | Next/prev wrap past the ends of a list. Grids never wrap.                                                                         |
-| `data-keyrove-orientation`     | `orientation`    | root | —           | `horizontal` maps a list's default keys to `ArrowRight`/`ArrowLeft`, RTL-aware.                                                   |
+| `data-keyrove-orientation`     | `orientation`    | root | —           | `horizontal`, in any case, maps a list's default keys to `ArrowRight`/`ArrowLeft`, RTL-aware.                                     |
 | `data-keyrove-typeahead`       | `label`          | item | text        | Label for type-to-focus, when the item's own text is not it. As an option: `(item) => string`.                                    |
 
 `keyRove` takes every option but `label`. `rove` takes the same options and
@@ -438,10 +446,11 @@ An event an earlier handler already consumed with `preventDefault()` returns
 focus once per press. keyrove never stops propagation. Check
 `e.defaultPrevented` in your own handler if it should skip consumed keys too.
 
-`toggleTabIndex({ root, isActive })` is exported for cases where you manage one
-element's tab stop yourself. For a whole roving group,
-`initRovingTabindex(root, options?)` keeps exactly one stop, and
-`followFocus(event, options?)` moves it with focus keyRove did not move.
+For a whole roving group, `initRovingTabindex(root, options?)` keeps exactly
+one stop, and `followFocus(event, options?)` moves it with focus keyRove did
+not move. For one element's tab stop you manage yourself, set
+`element.tabIndex`. `toggleTabIndex({ root, isActive })` is deprecated and
+will be removed in the next major version.
 
 ## Moves without a keypress
 

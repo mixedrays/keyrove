@@ -1,12 +1,12 @@
 import { vi } from 'vitest';
 import {
-  keyRove,
   KEYROVE_ATTR_ITEM,
   KEYROVE_ATTR_SKIP,
   KEYROVE_ATTR_COLS,
   KEYROVE_ATTR_FOCUS_KEY,
   KEYROVE_ATTR_ROVING_TABINDEX,
-} from '../../keyRove';
+} from '../../attributes';
+import { keyRove } from '../../keyRove';
 
 export type RoveResult = ReturnType<typeof keyRove>;
 

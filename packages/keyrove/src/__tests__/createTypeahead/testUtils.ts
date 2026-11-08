@@ -1,12 +1,12 @@
 import { vi } from 'vitest';
 import { createTypeahead } from '../../createTypeahead';
 import {
-  keyRove,
   KEYROVE_ATTR_ITEM,
   KEYROVE_ATTR_SKIP,
   KEYROVE_ATTR_ROVING_TABINDEX,
   KEYROVE_ATTR_TYPEAHEAD,
-} from '../../keyRove';
+} from '../../attributes';
+import { keyRove } from '../../keyRove';
 
 export type ItemSpec = {
   skip?: boolean;

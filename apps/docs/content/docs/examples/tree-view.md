@@ -88,12 +88,7 @@ hidden descendants directly from the DOM.
 <div data-demo="tree" data-demo-label="file tree"></div>
 
 ```ts
-import {
-  createTypeahead,
-  keyRove,
-  matchesCombo,
-  toggleTabIndex,
-} from '@mixedrays/keyrove';
+import { createTypeahead, keyRove, matchesCombo } from '@mixedrays/keyrove';
 
 const tree = document.querySelector('#files');
 
@@ -117,8 +112,8 @@ const toggle = (item, open) => {
 };
 
 const moveTo = (from, to) => {
-  toggleTabIndex({ root: from, isActive: false });
-  toggleTabIndex({ root: to, isActive: true });
+  from.tabIndex = -1;
+  to.tabIndex = 0;
   to.focus();
 };
 
