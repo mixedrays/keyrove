@@ -114,12 +114,3 @@ export function* walkTargets({
     }
   }
 }
-
-/**
- * Resolves the element an intent lands on, or `null`/`undefined` when there
- * is nowhere to go (a grid edge, an empty group): the first destination of
- * its walk, {@link walkTargets}.
- */
-export const resolveTarget = (
-  args: ResolveTargetArgs,
-): Element | null | undefined => walkTargets(args).next().value;

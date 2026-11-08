@@ -7,10 +7,6 @@ import { walkTargets } from './position.js';
 import { hasCommandModifier, isEditablePress } from './utils.js';
 import type { KeyRoveEvent, KeyRoveOptions, MoveResult } from './types.js';
 
-// The attribute constants ship alongside the handler that reads them, so
-// consumers can spread them into markup; see `attributes.ts`.
-export * from './attributes.js';
-
 /**
  * Handles keyboard navigation within the provided event's current target.
  * @param e - The keydown event, native or framework-synthetic.

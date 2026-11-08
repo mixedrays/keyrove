@@ -1,11 +1,18 @@
 import { describe, it, expect } from 'vitest';
-import { resolveTarget, walkTargets } from '../../position';
+import { walkTargets } from '../../position';
 import type { Layout, ResolveTargetArgs } from '../../types';
 import { buildElements, idOf, isNavigable } from './testUtils';
 
 const LIST: Layout = { kind: 'list', cols: 1, horizontal: false, loop: false };
 const LOOP: Layout = { ...LIST, loop: true };
 const GRID: Layout = { kind: 'grid', cols: 3, horizontal: true, loop: false };
+
+/**
+ * The element an intent lands on, or `null`/`undefined` when there is nowhere
+ * to go (a grid edge, an empty group): the first destination of its walk.
+ */
+const resolveTarget = (args: ResolveTargetArgs): Element | null | undefined =>
+  walkTargets(args).next().value;
 
 type ResolveArgs = Pick<ResolveTargetArgs, 'intent' | 'fromIndex'> &
   Partial<ResolveTargetArgs>;

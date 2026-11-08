@@ -1,10 +1,10 @@
 import { describe, it, expect, afterEach, vi } from 'vitest';
 import {
-  keyRove,
   KEYROVE_ATTR_COLS,
   KEYROVE_ATTR_NEXT_KEY,
   KEYROVE_ATTR_SKIP,
-} from '../../keyRove';
+} from '../../attributes';
+import { keyRove } from '../../keyRove';
 import {
   activeId,
   createItem,

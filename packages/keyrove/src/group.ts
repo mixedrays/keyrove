@@ -23,12 +23,12 @@ import type {
   ActionResult,
   Group,
   GroupReader,
-  GroupReadingOptions,
   IsRoot,
   IsRoving,
   IsSkipped,
   MoveArgs,
   ReadItems,
+  RovingTabindexOptions,
 } from './types.js';
 
 // The attribute source's answers to the four questions this layer asks about
@@ -57,11 +57,11 @@ export const attributeSkip: IsSkipped = (element) =>
  * What marks a root: a `root` selector where one is named, else the attribute.
  * A shadow root handed to `rove` is asked too, and matches no selector.
  */
-const rootTest = ({ root }: GroupReadingOptions): IsRoot =>
+const rootTest = ({ root }: RovingTabindexOptions): IsRoot =>
   root ? (element) => !!element.matches?.(root) : attributeRoot;
 
 /** How the items are found: a selector run in the root, a reading of your own, or the attribute. */
-const itemsReader = ({ items }: GroupReadingOptions): ReadItems => {
+const itemsReader = ({ items }: RovingTabindexOptions): ReadItems => {
   if (!items) return attributeItems;
 
   if (typeof items === 'string') {
@@ -72,7 +72,7 @@ const itemsReader = ({ items }: GroupReadingOptions): ReadItems => {
 };
 
 /** Which items a move passes over: a selector or a test of your own, else the attribute. */
-const skipTest = ({ skip }: GroupReadingOptions): IsSkipped => {
+const skipTest = ({ skip }: RovingTabindexOptions): IsSkipped => {
   if (!skip) return attributeSkip;
 
   return typeof skip === 'string' ? (element) => element.matches(skip) : skip;
@@ -83,7 +83,7 @@ const skipTest = ({ skip }: GroupReadingOptions): IsSkipped => {
  * for the group where options name it, else the attribute's reading of that
  * item.
  */
-const rovingTest = ({ rovingTabindex }: GroupReadingOptions): IsRoving =>
+const rovingTest = ({ rovingTabindex }: RovingTabindexOptions): IsRoving =>
   rovingTabindex === undefined ? attributeRoving : () => rovingTabindex;
 
 /**
@@ -425,7 +425,7 @@ const attributeReader = createReader(
  * resolved here once, options first and the attributes where options say
  * nothing, and every group read through the result answers by them.
  */
-export const readGroups = (options: GroupReadingOptions): GroupReader =>
+export const readGroups = (options: RovingTabindexOptions): GroupReader =>
   !options.root &&
   !options.items &&
   !options.skip &&

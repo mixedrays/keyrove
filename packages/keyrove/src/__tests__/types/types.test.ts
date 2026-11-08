@@ -1,4 +1,6 @@
 import { describe, expect, expectTypeOf, it } from 'vitest';
+import * as attributes from '../../attributes';
+import * as entry from '../../index';
 import {
   itemAttributes,
   keyRove,
@@ -13,6 +15,8 @@ import type {
   KeyRoveEvent,
   KeyRoveOptions,
   Options,
+  RovingTabindexOptions,
+  TypeaheadOptions,
 } from '../../index';
 
 // Checked by the typecheck; the runtime assertions only keep vitest honest.
@@ -64,5 +68,24 @@ describe('public type names', () => {
 
     expectTypeOf<KeyboardEvent>().toExtend<KeyRoveEvent>();
     expectTypeOf<SyntheticKeyboardEvent>().toExtend<KeyRoveEvent>();
+  });
+
+  it('builds the typeahead options on the roving tabindex options', () => {
+    expectTypeOf<RovingTabindexOptions>().toEqualTypeOf<
+      Pick<GroupOptions, 'items' | 'root' | 'skip' | 'rovingTabindex'>
+    >();
+    expectTypeOf<TypeaheadOptions>().toExtend<RovingTabindexOptions>();
+    expectTypeOf<
+      Pick<TypeaheadOptions, keyof RovingTabindexOptions>
+    >().toEqualTypeOf<RovingTabindexOptions>();
+  });
+});
+
+describe('public constants', () => {
+  it('exports every attribute constant from the package entry', () => {
+    expect(
+      Object.keys(entry).filter((name) => name.startsWith('KEYROVE_ATTR_')),
+    ).toEqual(expect.arrayContaining(Object.keys(attributes)));
+    expect(Object.keys(attributes)).toHaveLength(22);
   });
 });

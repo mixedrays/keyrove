@@ -134,7 +134,7 @@ export type BoundaryAction = 'exit' | 'enter';
  * position. It is the one move whose `*-key` attribute sits on its
  * destination.
  */
-export type MoveAction = StrideAction | 'exit' | 'enter' | 'focus';
+export type MoveAction = StrideAction | BoundaryAction | 'focus';
 
 /**
  * The shape every handler returns for a consumed keypress, parameterised by
@@ -201,7 +201,7 @@ export type GroupOptions = {
    * move to no key, freeing its default. `exit` and `enter` have no default,
    * and move across a nested root's boundary: `{ exit: 'Escape' }`.
    */
-  keys?: Partial<Record<StrideAction | 'exit' | 'enter', KeyCombo | 'none'>>;
+  keys?: Partial<Record<StrideAction | BoundaryAction, KeyCombo | 'none'>>;
   /**
    * Elements reachable by a combo of their own: a {@link KeyCombo} → the
    * element, or a selector resolved within the listener's reach. Replaces the
@@ -225,6 +225,18 @@ export type KeyRoveOptions = GroupOptions & {
 
 /** {@link KeyRoveOptions} under its earlier name, kept for existing imports. */
 export type Options = KeyRoveOptions;
+
+/**
+ * What `initRovingTabindex` and `followFocus` take: the group settings that
+ * decide which elements are a group's roving items. The same fields {@link GroupOptions}
+ * names, falling back the same way, so one object serves every export. The
+ * group layer reads its groups by these fields alone, and the typeahead
+ * options build on them.
+ */
+export type RovingTabindexOptions = Pick<
+  GroupOptions,
+  'items' | 'root' | 'skip' | 'rovingTabindex'
+>;
 
 /** Group settings that can be written as attributes on a root. */
 export type RootAttributeOptions = Pick<
@@ -290,10 +302,7 @@ export type GroupConfig = {
  * takes what it needs. The rest of a group's settings are about moves, which
  * typeahead does not make: it has one way to reach an item, its label.
  */
-export type TypeaheadOptions = Pick<
-  GroupOptions,
-  'items' | 'root' | 'skip' | 'rovingTabindex'
-> & {
+export type TypeaheadOptions = RovingTabindexOptions & {
   /**
    * The text an item is matched by. Falling back, where it returns nothing, to
    * the typeahead attribute and then the item's own text — the same chain an
@@ -330,16 +339,6 @@ export type TypeaheadResult = ActionResult<'typeahead'>;
 
 /** The argument a typeahead `onMove` receives: a move that actually happened. */
 export type TypeaheadMove = TypeaheadResult & { to: Element };
-
-/**
- * What `initRovingTabindex` and `followFocus` take: the group settings that
- * decide which elements are a group's roving items. The same fields {@link GroupOptions}
- * names, falling back the same way, so one object serves every export.
- */
-export type RovingTabindexOptions = Pick<
-  GroupOptions,
-  'items' | 'root' | 'skip' | 'rovingTabindex'
->;
 
 /**
  * What `initRovingTabindex` takes: the group settings, and the item the stop
@@ -388,9 +387,10 @@ export type Binding =
   | { combo: string; intent: 'focus'; enters: true; target: Element };
 
 /**
- * Looks up the combo explicitly bound to a move, straight off the root's
- * `*-key` attribute — nullish where the attribute is unset and the move keeps
- * its default key, and `none` where the move is bound to no key.
+ * Looks up the combo explicitly bound to a move: the `keys` option where it
+ * names the move, else the root's `*-key` attribute. Nullish where neither
+ * sets it and the move keeps its default key, and `none` where the move is
+ * bound to no key.
  */
 export type ExplicitBinding = (
   intent: StrideAction | BoundaryAction,
@@ -464,12 +464,6 @@ export type ToggleTabIndexArgs = {
   root: Element | null | undefined;
   isActive: boolean;
 };
-
-/** The group settings the group layer reads: the four readings' sources. */
-export type GroupReadingOptions = Pick<
-  GroupOptions,
-  'items' | 'root' | 'skip' | 'rovingTabindex'
->;
 
 /**
  * One group, resolved for one call: the items its root governs and every

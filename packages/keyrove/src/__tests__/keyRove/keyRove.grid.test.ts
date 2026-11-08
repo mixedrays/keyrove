@@ -5,7 +5,7 @@ import {
   KEYROVE_ATTR_NEXT_ROW_KEY,
   KEYROVE_ATTR_PREV_KEY,
   KEYROVE_ATTR_PREV_ROW_KEY,
-} from '../../keyRove';
+} from '../../attributes';
 import {
   activeId,
   createItem,

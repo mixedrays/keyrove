@@ -1,5 +1,8 @@
 import { describe, it, expect, afterEach } from 'vitest';
-import { KEYROVE_ATTR_NEXT_KEY, KEYROVE_ATTR_ORIENTATION } from '../../keyRove';
+import {
+  KEYROVE_ATTR_NEXT_KEY,
+  KEYROVE_ATTR_ORIENTATION,
+} from '../../attributes';
 import {
   activeId,
   createItem,
