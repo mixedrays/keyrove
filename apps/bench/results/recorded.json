@@ -1,6 +1,6 @@
 {
   "environment": {
-    "Library": "2.6.0 (working tree at d21fa4f, with uncommitted changes)",
+    "Library": "2.6.0 (working tree at 3186092, with uncommitted changes)",
     "Browser": "Chrome/156.0.8078.80 (headless), V8 15.6.75.27",
     "OS": "darwin 25.2.0 arm64",
     "CPU": "Apple M1 Pro × 10",
@@ -8,11 +8,11 @@
     "Node": "v25.2.1",
     "Cross-origin isolated": true,
     "Timing": "100 ms warmup, then 15 batches of ≥ 10 ms per case",
-    "Date": "2026-11-06"
+    "Date": "2026-11-07"
   },
   "library": {
     "version": "2.6.0",
-    "commit": "d21fa4f",
+    "commit": "3186092",
     "dirty": true
   },
   "results": {
@@ -27,116 +27,152 @@
     "supports": {
       "focusKeysMap": true,
       "autoColumns": true,
-      "refusedFocus": true
+      "refusedFocus": true,
+      "wrapColumns": true
     },
     "fixtures": [
       {
         "name": "S",
         "groups": 10,
-        "buildMs": 1.425000011920929,
+        "buildMs": 1.6349999904632568,
         "elements": 618
       },
       {
         "name": "M",
         "groups": 100,
-        "buildMs": 11.089999973773956,
+        "buildMs": 11.450000047683716,
         "elements": 6108
       },
       {
         "name": "L",
         "groups": 1000,
-        "buildMs": 123.14999997615814,
+        "buildMs": 128.9000000357628,
         "elements": 61008
       },
       {
         "name": "L, 0 focus keys",
         "groups": 1000,
         "focusKeys": 0,
-        "buildMs": 127.73500001430511,
+        "buildMs": 136.04499995708466,
         "elements": 61008
       },
       {
         "name": "L, 10 focus keys",
         "groups": 1000,
         "focusKeys": 10,
-        "buildMs": 102.68500000238419,
+        "buildMs": 107.08500003814697,
         "elements": 61008
       },
       {
         "name": "L, 100 focus keys",
         "groups": 1000,
         "focusKeys": 100,
-        "buildMs": 126.12000000476837,
+        "buildMs": 103.56499999761581,
         "elements": 61008
       },
       {
         "name": "L, 1000 focus keys",
         "groups": 1000,
         "focusKeys": 1000,
-        "buildMs": 103.35000002384186,
+        "buildMs": 130.8149999976158,
         "elements": 61008
       },
       {
         "name": "M, cols=\"4\"",
         "groups": 100,
         "grid": "4",
-        "buildMs": 11.409999966621399,
+        "buildMs": 13.634999990463257,
         "elements": 6108
       },
       {
         "name": "M, cols=\"auto\"",
         "groups": 100,
         "grid": "auto",
-        "buildMs": 10.854999959468842,
+        "buildMs": 11.335000038146973,
+        "elements": 6108
+      },
+      {
+        "name": "M, flex-wrap, cols=\"4\"",
+        "groups": 100,
+        "grid": "4",
+        "buildMs": 12.800000011920929,
+        "elements": 6108
+      },
+      {
+        "name": "M, flex-wrap, cols=\"auto\"",
+        "groups": 100,
+        "grid": "auto",
+        "buildMs": 12.27999997138977,
+        "elements": 6108
+      },
+      {
+        "name": "M, flex row, cols=\"auto\"",
+        "groups": 100,
+        "grid": "auto",
+        "buildMs": 11.909999966621399,
+        "elements": 6108
+      },
+      {
+        "name": "M, flex column, cols=\"1\"",
+        "groups": 100,
+        "grid": "1",
+        "buildMs": 9.300000011920929,
+        "elements": 6108
+      },
+      {
+        "name": "M, flex column, cols=\"auto\"",
+        "groups": 100,
+        "grid": "auto",
+        "buildMs": 9.365000009536743,
         "elements": 6108
       },
       {
         "name": "1 × display: none",
         "groups": 1,
         "items": 3,
-        "buildMs": 0.25,
+        "buildMs": 0.3199999928474426,
         "elements": 18
       },
       {
         "name": "10 × display: none",
         "groups": 1,
         "items": 12,
-        "buildMs": 0.17000001668930054,
+        "buildMs": 0.20999997854232788,
         "elements": 45
       },
       {
         "name": "100 × display: none",
         "groups": 1,
         "items": 102,
-        "buildMs": 0.3049999475479126,
+        "buildMs": 0.36500000953674316,
         "elements": 315
       },
       {
         "name": "1000 × display: none",
         "groups": 1,
         "items": 1002,
-        "buildMs": 1.6150000095367432,
+        "buildMs": 1.6949999928474426,
         "elements": 3015
       },
       {
         "name": "1000 × visibility: hidden",
         "groups": 1,
         "items": 1002,
-        "buildMs": 5.675000011920929,
+        "buildMs": 5.610000014305115,
         "elements": 3015
       },
       {
         "name": "1000 × display: none, roving",
         "groups": 1,
         "items": 1002,
-        "buildMs": 1.6200000047683716,
+        "buildMs": 3.1399999856948853,
         "elements": 3015
       },
       {
         "name": "1000 × display: none, skipped",
         "groups": 1,
         "items": 1002,
-        "buildMs": 1.4550000429153442,
+        "buildMs": 1.5049999952316284,
         "elements": 3015
       }
     ],
@@ -147,14 +183,14 @@
         "fixture": {
           "name": "S",
           "groups": 10,
-          "buildMs": 1.425000011920929,
+          "buildMs": 1.6349999904632568,
           "elements": 618
         },
         "result": "-",
         "batch": 16777216,
-        "median": 0.00045627355760302635,
-        "p10": 0.0004500150652120283,
-        "p90": 0.0005593895906486068
+        "median": 0.0004595518099392848,
+        "p10": 0.0004532933246537141,
+        "p90": 0.0005415081965054469
       },
       {
         "section": "listener",
@@ -162,14 +198,14 @@
         "fixture": {
           "name": "S",
           "groups": 10,
-          "buildMs": 1.425000011920929,
+          "buildMs": 1.6349999904632568,
           "elements": 618
         },
         "result": "unhandled",
-        "batch": 4096,
-        "median": 2.54638672049623,
-        "p10": 2.5256347726099193,
-        "p90": 2.6013183523900807
+        "batch": 8192,
+        "median": 1.2829589832108468,
+        "p10": 1.1895751958945766,
+        "p90": 1.4984130903030746
       },
       {
         "section": "listener",
@@ -177,14 +213,14 @@
         "fixture": {
           "name": "S",
           "groups": 10,
-          "buildMs": 1.425000011920929,
+          "buildMs": 1.6349999904632568,
           "elements": 618
         },
         "result": "consumed no-op",
-        "batch": 1024,
-        "median": 9.565429645590484,
-        "p10": 8.764648460783064,
-        "p90": 10.224609344732016
+        "batch": 2048,
+        "median": 8.530273422366008,
+        "p10": 7.949218765133992,
+        "p90": 9.167480486212298
       },
       {
         "section": "listener",
@@ -192,14 +228,14 @@
         "fixture": {
           "name": "S",
           "groups": 10,
-          "buildMs": 1.425000011920929,
+          "buildMs": 1.6349999904632568,
           "elements": 618
         },
         "result": "moved",
         "batch": 512,
-        "median": 22.939453134313226,
-        "p10": 22.59765623603016,
-        "p90": 24.81445309240371
+        "median": 22.50976557843387,
+        "p10": 21.826171781867743,
+        "p90": 24.92187498137355
       },
       {
         "section": "listener",
@@ -207,14 +243,14 @@
         "fixture": {
           "name": "S",
           "groups": 10,
-          "buildMs": 1.425000011920929,
+          "buildMs": 1.6349999904632568,
           "elements": 618
         },
         "result": "unhandled",
-        "batch": 4096,
-        "median": 2.5183105462929234,
-        "p10": 2.495117179933004,
-        "p90": 2.6965332071995363
+        "batch": 8192,
+        "median": 1.209106449095998,
+        "p10": 1.1694335989886895,
+        "p90": 1.4447021530941129
       },
       {
         "section": "listener",
@@ -222,14 +258,14 @@
         "fixture": {
           "name": "S",
           "groups": 10,
-          "buildMs": 1.425000011920929,
+          "buildMs": 1.6349999904632568,
           "elements": 618
         },
         "result": "consumed no-op",
-        "batch": 1024,
-        "median": 8.984374988358468,
-        "p10": 8.696289034560323,
-        "p90": 10.258789057843387
+        "batch": 2048,
+        "median": 8.625488262623549,
+        "p10": 8.098144520772621,
+        "p90": 9.199218737194315
       },
       {
         "section": "listener",
@@ -237,14 +273,14 @@
         "fixture": {
           "name": "S",
           "groups": 10,
-          "buildMs": 1.425000011920929,
+          "buildMs": 1.6349999904632568,
           "elements": 618
         },
         "result": "moved",
         "batch": 512,
-        "median": 23.36914069019258,
-        "p10": 22.86132809240371,
-        "p90": 25.43945307843387
+        "median": 22.23632810637355,
+        "p10": 21.562499925494194,
+        "p90": 25.400390615686774
       },
       {
         "section": "listener",
@@ -252,14 +288,14 @@
         "fixture": {
           "name": "M",
           "groups": 100,
-          "buildMs": 11.089999973773956,
+          "buildMs": 11.450000047683716,
           "elements": 6108
         },
         "result": "unhandled",
-        "batch": 4096,
-        "median": 2.6196288963546976,
-        "p10": 2.474365246598609,
-        "p90": 2.6928710867650807
+        "batch": 16384,
+        "median": 1.2527465805760585,
+        "p10": 1.130065917095635,
+        "p90": 1.2951660173712298
       },
       {
         "section": "listener",
@@ -267,14 +303,14 @@
         "fixture": {
           "name": "M",
           "groups": 100,
-          "buildMs": 11.089999973773956,
+          "buildMs": 11.450000047683716,
           "elements": 6108
         },
         "result": "consumed no-op",
         "batch": 2048,
-        "median": 9.045410173712298,
-        "p10": 8.745117171201855,
-        "p90": 10.148925764951855
+        "median": 8.303222653921694,
+        "p10": 7.866210944484919,
+        "p90": 9.130859369179234
       },
       {
         "section": "listener",
@@ -282,14 +318,14 @@
         "fixture": {
           "name": "M",
           "groups": 100,
-          "buildMs": 11.089999973773956,
+          "buildMs": 11.450000047683716,
           "elements": 6108
         },
         "result": "moved",
         "batch": 512,
-        "median": 23.359375074505806,
-        "p10": 22.783203166909516,
-        "p90": 25.96679690759629
+        "median": 21.62109373603016,
+        "p10": 20.06835932843387,
+        "p90": 24.267578148283064
       },
       {
         "section": "listener",
@@ -297,14 +333,14 @@
         "fixture": {
           "name": "M",
           "groups": 100,
-          "buildMs": 11.089999973773956,
+          "buildMs": 11.450000047683716,
           "elements": 6108
         },
         "result": "unhandled",
-        "batch": 4096,
-        "median": 2.4877929681679234,
-        "p10": 2.4682617076905444,
-        "p90": 2.508544916054234
+        "batch": 8192,
+        "median": 1.1492919875308871,
+        "p10": 1.1431884777266532,
+        "p90": 1.453247074095998
       },
       {
         "section": "listener",
@@ -312,14 +348,14 @@
         "fixture": {
           "name": "M",
           "groups": 100,
-          "buildMs": 11.089999973773956,
+          "buildMs": 11.450000047683716,
           "elements": 6108
         },
         "result": "consumed no-op",
         "batch": 2048,
-        "median": 9.367675782414153,
-        "p10": 8.891601552022621,
-        "p90": 10.31494140625
+        "median": 8.244628901593387,
+        "p10": 7.7929687686264515,
+        "p90": 9.865722648100927
       },
       {
         "section": "listener",
@@ -327,14 +363,14 @@
         "fixture": {
           "name": "M",
           "groups": 100,
-          "buildMs": 11.089999973773956,
+          "buildMs": 11.450000047683716,
           "elements": 6108
         },
         "result": "moved",
         "batch": 512,
-        "median": 23.095703101716936,
-        "p10": 22.714843740686774,
-        "p90": 26.894531212747097
+        "median": 21.79687505122274,
+        "p10": 21.28906245343387,
+        "p90": 23.466796847060323
       },
       {
         "section": "listener",
@@ -342,14 +378,14 @@
         "fixture": {
           "name": "L",
           "groups": 1000,
-          "buildMs": 123.14999997615814,
+          "buildMs": 128.9000000357628,
           "elements": 61008
         },
         "result": "unhandled",
-        "batch": 4096,
-        "median": 2.4926757760113105,
-        "p10": 2.476806635968387,
-        "p90": 2.503662108210847
+        "batch": 8192,
+        "median": 1.1541748026502319,
+        "p10": 1.1315918018226512,
+        "p90": 1.379394525429234
       },
       {
         "section": "listener",
@@ -357,14 +393,14 @@
         "fixture": {
           "name": "L",
           "groups": 1000,
-          "buildMs": 123.14999997615814,
+          "buildMs": 128.9000000357628,
           "elements": 61008
         },
         "result": "consumed no-op",
         "batch": 2048,
-        "median": 9.621582023100927,
-        "p10": 8.867187512805685,
-        "p90": 11.005859385477379
+        "median": 8.271484373835847,
+        "p10": 8.081054693320766,
+        "p90": 9.523925778921694
       },
       {
         "section": "listener",
@@ -372,14 +408,14 @@
         "fixture": {
           "name": "L",
           "groups": 1000,
-          "buildMs": 123.14999997615814,
+          "buildMs": 128.9000000357628,
           "elements": 61008
         },
         "result": "moved",
         "batch": 512,
-        "median": 22.65625004656613,
-        "p10": 22.421875037252903,
-        "p90": 22.890624939464033
+        "median": 22.402343805879354,
+        "p10": 21.914062439464033,
+        "p90": 22.81250001396984
       },
       {
         "section": "listener",
@@ -387,14 +423,14 @@
         "fixture": {
           "name": "L",
           "groups": 1000,
-          "buildMs": 123.14999997615814,
+          "buildMs": 128.9000000357628,
           "elements": 61008
         },
         "result": "unhandled",
-        "batch": 4096,
-        "median": 2.4609374959254637,
-        "p10": 2.4487304617650807,
-        "p90": 2.4792480398900807
+        "batch": 8192,
+        "median": 1.1395263645681553,
+        "p10": 1.1151123107993044,
+        "p90": 1.3745117175858468
       },
       {
         "section": "listener",
@@ -402,14 +438,14 @@
         "fixture": {
           "name": "L",
           "groups": 1000,
-          "buildMs": 123.14999997615814,
+          "buildMs": 128.9000000357628,
           "elements": 61008
         },
         "result": "consumed no-op",
         "batch": 2048,
-        "median": 8.996582037070766,
-        "p10": 8.740234392462298,
-        "p90": 10.114746080944315
+        "median": 8.474121103063226,
+        "p10": 7.841796876164153,
+        "p90": 9.519042971078306
       },
       {
         "section": "listener",
@@ -417,14 +453,14 @@
         "fixture": {
           "name": "L",
           "groups": 1000,
-          "buildMs": 123.14999997615814,
+          "buildMs": 128.9000000357628,
           "elements": 61008
         },
         "result": "moved",
         "batch": 512,
-        "median": 22.763671935535967,
-        "p10": 22.48046873137355,
-        "p90": 23.027343675494194
+        "median": 21.757812472060323,
+        "p10": 21.44531242083758,
+        "p90": 23.320312495343387
       },
       {
         "section": "focus keys",
@@ -433,14 +469,14 @@
           "name": "L, 0 focus keys",
           "groups": 1000,
           "focusKeys": 0,
-          "buildMs": 127.73500001430511,
+          "buildMs": 136.04499995708466,
           "elements": 61008
         },
         "result": "unhandled",
-        "batch": 4096,
-        "median": 2.48535156424623,
-        "p10": 2.4816894438117743,
-        "p90": 2.4987793003674597
+        "batch": 8192,
+        "median": 1.1462402399047278,
+        "p10": 1.0998535144608468,
+        "p90": 1.3452148414216936
       },
       {
         "section": "focus keys",
@@ -449,14 +485,14 @@
           "name": "L, 0 focus keys",
           "groups": 1000,
           "focusKeys": 0,
-          "buildMs": 127.73500001430511,
+          "buildMs": 136.04499995708466,
           "elements": 61008
         },
         "result": "unhandled",
-        "batch": 8192,
-        "median": 2.2503662112285383,
-        "p10": 2.2430419921875,
-        "p90": 2.259521483210847
+        "batch": 16384,
+        "median": 0.9490966804150958,
+        "p10": 0.9197998042509425,
+        "p90": 1.0040283195849042
       },
       {
         "section": "focus keys",
@@ -465,14 +501,14 @@
           "name": "L, 0 focus keys",
           "groups": 1000,
           "focusKeys": 0,
-          "buildMs": 127.73500001430511,
+          "buildMs": 136.04499995708466,
           "elements": 61008
         },
         "result": "unhandled",
-        "batch": 8192,
-        "median": 2.255249026347883,
-        "p10": 2.2473144563264214,
-        "p90": 2.260742192447651
+        "batch": 16384,
+        "median": 0.950622561504133,
+        "p10": 0.9094238303077873,
+        "p90": 1.027221678668866
       },
       {
         "section": "diagnostics",
@@ -481,14 +517,14 @@
           "name": "L, 0 focus keys",
           "groups": 1000,
           "focusKeys": 0,
-          "buildMs": 127.73500001430511,
+          "buildMs": 136.04499995708466,
           "elements": 61008
         },
         "result": "-",
         "batch": 131072,
-        "median": 0.08541107172277407,
-        "p10": 0.0762939453125,
-        "p90": 0.13320922835191595
+        "median": 0.0831222532724496,
+        "p10": 0.08110046428555506,
+        "p90": 0.11058807376684854
       },
       {
         "section": "diagnostics",
@@ -497,14 +533,14 @@
           "name": "L, 0 focus keys",
           "groups": 1000,
           "focusKeys": 0,
-          "buildMs": 127.73500001430511,
+          "buildMs": 136.04499995708466,
           "elements": 61008
         },
         "result": "-",
         "batch": 2097152,
-        "median": 0.005037784575279147,
-        "p10": 0.005023479474175474,
-        "p90": 0.00511407850467549
+        "median": 0.005125999450683594,
+        "p10": 0.005056858071839088,
+        "p90": 0.00521421432608804
       },
       {
         "section": "focus keys",
@@ -513,14 +549,14 @@
           "name": "L, 10 focus keys",
           "groups": 1000,
           "focusKeys": 10,
-          "buildMs": 102.68500000238419,
+          "buildMs": 107.08500003814697,
           "elements": 61008
         },
         "result": "unhandled",
         "batch": 1024,
-        "median": 17.63183594448492,
-        "p10": 17.10937503958121,
-        "p90": 17.934570321813226
+        "median": 16.416015627328306,
+        "p10": 15.874023432843387,
+        "p90": 17.006835900247097
       },
       {
         "section": "focus keys",
@@ -529,14 +565,14 @@
           "name": "L, 10 focus keys",
           "groups": 1000,
           "focusKeys": 10,
-          "buildMs": 102.68500000238419,
+          "buildMs": 107.08500003814697,
           "elements": 61008
         },
         "result": "unhandled",
         "batch": 4096,
-        "median": 4.542236332781613,
-        "p10": 4.536132808425464,
-        "p90": 4.566650386550464
+        "median": 3.2739257731009275,
+        "p10": 3.167724615195766,
+        "p90": 3.3520507713546976
       },
       {
         "section": "focus keys",
@@ -545,14 +581,14 @@
           "name": "L, 10 focus keys",
           "groups": 1000,
           "focusKeys": 10,
-          "buildMs": 102.68500000238419,
+          "buildMs": 107.08500003814697,
           "elements": 61008
         },
         "result": "unhandled",
-        "batch": 2048,
-        "median": 5.131835961947218,
-        "p10": 5.095214844914153,
-        "p90": 5.178222636459395
+        "batch": 4096,
+        "median": 3.8598632818320766,
+        "p10": 3.7683105474570766,
+        "p90": 3.9709472621325403
       },
       {
         "section": "diagnostics",
@@ -561,14 +597,14 @@
           "name": "L, 10 focus keys",
           "groups": 1000,
           "focusKeys": 10,
-          "buildMs": 102.68500000238419,
+          "buildMs": 107.08500003814697,
           "elements": 61008
         },
         "result": "-",
         "batch": 2048,
-        "median": 8.989257796201855,
-        "p10": 8.881835936335847,
-        "p90": 9.072265616850927
+        "median": 9.14794922573492,
+        "p10": 8.959960920037702,
+        "p90": 9.343261714093387
       },
       {
         "section": "diagnostics",
@@ -577,14 +613,14 @@
           "name": "L, 10 focus keys",
           "groups": 1000,
           "focusKeys": 10,
-          "buildMs": 102.68500000238419,
+          "buildMs": 107.08500003814697,
           "elements": 61008
         },
         "result": "-",
         "batch": 16384,
-        "median": 1.0278320296492893,
-        "p10": 1.0263061521982308,
-        "p90": 1.0583496077742893
+        "median": 1.0464477527420968,
+        "p10": 1.0360717787989415,
+        "p90": 1.0559082038525958
       },
       {
         "section": "focus keys",
@@ -593,14 +629,14 @@
           "name": "L, 100 focus keys",
           "groups": 1000,
           "focusKeys": 100,
-          "buildMs": 126.12000000476837,
+          "buildMs": 103.56499999761581,
           "elements": 61008
         },
         "result": "unhandled",
         "batch": 256,
-        "median": 69.35546873137355,
-        "p10": 69.04296856373549,
-        "p90": 69.7460938245058
+        "median": 69.06250002793968,
+        "p10": 68.26171884313226,
+        "p90": 70.62499993480742
       },
       {
         "section": "focus keys",
@@ -609,14 +645,14 @@
           "name": "L, 100 focus keys",
           "groups": 1000,
           "focusKeys": 100,
-          "buildMs": 126.12000000476837,
+          "buildMs": 103.56499999761581,
           "elements": 61008
         },
         "result": "unhandled",
         "batch": 256,
-        "median": 42.851562378928065,
-        "p10": 42.65625006519258,
-        "p90": 43.066406389698386
+        "median": 42.109375121071935,
+        "p10": 41.36718739755452,
+        "p90": 43.55468740686774
       },
       {
         "section": "focus keys",
@@ -625,14 +661,14 @@
           "name": "L, 100 focus keys",
           "groups": 1000,
           "focusKeys": 100,
-          "buildMs": 126.12000000476837,
+          "buildMs": 103.56499999761581,
           "elements": 61008
         },
         "result": "unhandled",
         "batch": 256,
-        "median": 51.07421870343387,
-        "p10": 50.95703131519258,
-        "p90": 51.328124944120646
+        "median": 50.15624989755452,
+        "p10": 49.62890618480742,
+        "p90": 50.91796861961484
       },
       {
         "section": "diagnostics",
@@ -641,14 +677,14 @@
           "name": "L, 100 focus keys",
           "groups": 1000,
           "focusKeys": 100,
-          "buildMs": 126.12000000476837,
+          "buildMs": 103.56499999761581,
           "elements": 61008
         },
         "result": "-",
         "batch": 512,
-        "median": 22.421875037252903,
-        "p10": 22.32421876396984,
-        "p90": 25.61523439362645
+        "median": 24.03320313896984,
+        "p10": 22.998046944849193,
+        "p90": 24.90234375
       },
       {
         "section": "diagnostics",
@@ -657,14 +693,14 @@
           "name": "L, 100 focus keys",
           "groups": 1000,
           "focusKeys": 100,
-          "buildMs": 126.12000000476837,
+          "buildMs": 103.56499999761581,
           "elements": 61008
         },
         "result": "-",
         "batch": 512,
-        "median": 25.09765629656613,
-        "p10": 23.94531248137355,
-        "p90": 25.781249976716936
+        "median": 23.710937472060323,
+        "p10": 22.988281212747097,
+        "p90": 24.01367190759629
       },
       {
         "section": "focus keys",
@@ -673,14 +709,14 @@
           "name": "L, 1000 focus keys",
           "groups": 1000,
           "focusKeys": 1000,
-          "buildMs": 103.35000002384186,
+          "buildMs": 130.8149999976158,
           "elements": 61008
         },
         "result": "unhandled",
         "batch": 16,
-        "median": 608.7500005960464,
-        "p10": 596.2499976158142,
-        "p90": 624.3750005960464
+        "median": 657.8125022351742,
+        "p10": 605.9374995529652,
+        "p90": 737.5000007450581
       },
       {
         "section": "focus keys",
@@ -689,14 +725,14 @@
           "name": "L, 1000 focus keys",
           "groups": 1000,
           "focusKeys": 1000,
-          "buildMs": 103.35000002384186,
+          "buildMs": 130.8149999976158,
           "elements": 61008
         },
         "result": "unhandled",
         "batch": 32,
-        "median": 467.18749962747097,
-        "p10": 452.03124918043613,
-        "p90": 485.6249988079071
+        "median": 460.46875044703484,
+        "p10": 436.87500059604645,
+        "p90": 470.15625052154064
       },
       {
         "section": "focus keys",
@@ -705,14 +741,14 @@
           "name": "L, 1000 focus keys",
           "groups": 1000,
           "focusKeys": 1000,
-          "buildMs": 103.35000002384186,
+          "buildMs": 130.8149999976158,
           "elements": 61008
         },
         "result": "unhandled",
         "batch": 16,
-        "median": 751.2499988079071,
-        "p10": 729.6875007450581,
-        "p90": 905.9375002980232
+        "median": 742.4999997019768,
+        "p10": 725.3125011920929,
+        "p90": 795.0000017881393
       },
       {
         "section": "focus keys",
@@ -721,14 +757,14 @@
           "name": "L, 1000 focus keys",
           "groups": 1000,
           "focusKeys": 1000,
-          "buildMs": 103.35000002384186,
+          "buildMs": 130.8149999976158,
           "elements": 61008
         },
         "result": "unhandled",
-        "batch": 4096,
-        "median": 3.98437499825377,
-        "p10": 3.868408195558004,
-        "p90": 4.312744131311774
+        "batch": 2048,
+        "median": 2.5292968784924597,
+        "p10": 2.463378885295242,
+        "p90": 3.630371094914153
       },
       {
         "section": "diagnostics",
@@ -737,14 +773,14 @@
           "name": "L, 1000 focus keys",
           "groups": 1000,
           "focusKeys": 1000,
-          "buildMs": 103.35000002384186,
+          "buildMs": 130.8149999976158,
           "elements": 61008
         },
         "result": "-",
         "batch": 128,
-        "median": 113.67187509313226,
-        "p10": 109.80468709021807,
-        "p90": 117.53906263038516
+        "median": 110.15625018626451,
+        "p10": 107.57812531664968,
+        "p90": 114.96093729510903
       },
       {
         "section": "diagnostics",
@@ -753,14 +789,14 @@
           "name": "L, 1000 focus keys",
           "groups": 1000,
           "focusKeys": 1000,
-          "buildMs": 103.35000002384186,
+          "buildMs": 130.8149999976158,
           "elements": 61008
         },
         "result": "-",
         "batch": 64,
-        "median": 229.4531250372529,
-        "p10": 224.7656248509884,
-        "p90": 232.10937436670065
+        "median": 229.29687425494194,
+        "p10": 226.7187498509884,
+        "p90": 236.56249977648258
       },
       {
         "section": "columns",
@@ -769,14 +805,30 @@
           "name": "M, cols=\"4\"",
           "groups": 100,
           "grid": "4",
-          "buildMs": 11.409999966621399,
+          "buildMs": 13.634999990463257,
           "elements": 6108
         },
         "result": "unhandled",
-        "batch": 4096,
-        "median": 4.21142578125,
-        "p10": 4.14672851911746,
-        "p90": 4.36767577775754
+        "batch": 8192,
+        "median": 1.1938476527575403,
+        "p10": 1.1737060558516532,
+        "p90": 1.4306640659924597
+      },
+      {
+        "section": "columns",
+        "label": "cols=\"4\", unbound, layout dirtied",
+        "fixture": {
+          "name": "M, cols=\"4\"",
+          "groups": 100,
+          "grid": "4",
+          "buildMs": 13.634999990463257,
+          "elements": 6108
+        },
+        "result": "unhandled",
+        "batch": 8192,
+        "median": 1.3684082077816129,
+        "p10": 1.3537597624235786,
+        "p90": 1.6113281235448085
       },
       {
         "section": "columns",
@@ -785,14 +837,46 @@
           "name": "M, cols=\"4\"",
           "groups": 100,
           "grid": "4",
-          "buildMs": 11.409999966621399,
+          "buildMs": 13.634999990463257,
           "elements": 6108
         },
         "result": "moved",
         "batch": 512,
-        "median": 27.548828162252903,
-        "p10": 26.90429682843387,
-        "p90": 28.00781256519258
+        "median": 26.50390623603016,
+        "p10": 25.488281273283064,
+        "p90": 27.509765699505806
+      },
+      {
+        "section": "columns",
+        "label": "cols=\"4\", bound, moves focus, layout dirtied",
+        "fixture": {
+          "name": "M, cols=\"4\"",
+          "groups": 100,
+          "grid": "4",
+          "buildMs": 13.634999990463257,
+          "elements": 6108
+        },
+        "result": "moved",
+        "batch": 16,
+        "median": 1084.6874974668026,
+        "p10": 1040.312498807907,
+        "p90": 1342.8125008940697
+      },
+      {
+        "section": "columns",
+        "label": "layout dirtied, then read, no handler",
+        "fixture": {
+          "name": "M, cols=\"4\"",
+          "groups": 100,
+          "grid": "4",
+          "buildMs": 13.634999990463257,
+          "elements": 6108
+        },
+        "result": "-",
+        "batch": 16,
+        "median": 973.1249995529652,
+        "p10": 947.187501937151,
+        "p90": 1236.5624979138374
       },
       {
         "section": "columns",
@@ -801,14 +885,30 @@
           "name": "M, cols=\"auto\"",
           "groups": 100,
           "grid": "auto",
-          "buildMs": 10.854999959468842,
+          "buildMs": 11.335000038146973,
           "elements": 6108
         },
         "result": "unhandled",
-        "batch": 2048,
-        "median": 5.363769509131089,
-        "p10": 5.324707017280161,
-        "p90": 5.634765635477379
+        "batch": 16384,
+        "median": 1.2576293956954032,
+        "p10": 1.1480712892080192,
+        "p90": 1.3220214859757107
+      },
+      {
+        "section": "columns",
+        "label": "cols=\"auto\", unbound, layout dirtied",
+        "fixture": {
+          "name": "M, cols=\"auto\"",
+          "groups": 100,
+          "grid": "auto",
+          "buildMs": 11.335000038146973,
+          "elements": 6108
+        },
+        "result": "unhandled",
+        "batch": 8192,
+        "median": 1.3250732445158064,
+        "p10": 1.308593746216502,
+        "p90": 1.5441894574905746
       },
       {
         "section": "columns",
@@ -817,14 +917,446 @@
           "name": "M, cols=\"auto\"",
           "groups": 100,
           "grid": "auto",
-          "buildMs": 10.854999959468842,
+          "buildMs": 11.335000038146973,
           "elements": 6108
         },
         "result": "moved",
         "batch": 512,
-        "median": 30.019531259313226,
-        "p10": 29.130859416909516,
-        "p90": 35.410156240686774
+        "median": 28.54492177721113,
+        "p10": 28.134765685535967,
+        "p90": 29.218749958090484
+      },
+      {
+        "section": "columns",
+        "label": "cols=\"auto\", bound, moves focus, layout dirtied",
+        "fixture": {
+          "name": "M, cols=\"auto\"",
+          "groups": 100,
+          "grid": "auto",
+          "buildMs": 11.335000038146973,
+          "elements": 6108
+        },
+        "result": "moved",
+        "batch": 16,
+        "median": 1033.1249982118607,
+        "p10": 1003.1250007450581,
+        "p90": 1302.1874986588955
+      },
+      {
+        "section": "columns",
+        "label": "layout dirtied, then read, no handler",
+        "fixture": {
+          "name": "M, cols=\"auto\"",
+          "groups": 100,
+          "grid": "auto",
+          "buildMs": 11.335000038146973,
+          "elements": 6108
+        },
+        "result": "-",
+        "batch": 16,
+        "median": 994.6875013411045,
+        "p10": 939.0625022351742,
+        "p90": 1248.4374977648258
+      },
+      {
+        "section": "columns",
+        "label": "cols=\"4\", unbound",
+        "fixture": {
+          "name": "M, flex-wrap, cols=\"4\"",
+          "groups": 100,
+          "grid": "4",
+          "buildMs": 12.800000011920929,
+          "elements": 6108
+        },
+        "result": "unhandled",
+        "batch": 8192,
+        "median": 1.1663818295346573,
+        "p10": 1.1425781267462298,
+        "p90": 1.3934326198068447
+      },
+      {
+        "section": "columns",
+        "label": "cols=\"4\", unbound, layout dirtied",
+        "fixture": {
+          "name": "M, flex-wrap, cols=\"4\"",
+          "groups": 100,
+          "grid": "4",
+          "buildMs": 12.800000011920929,
+          "elements": 6108
+        },
+        "result": "unhandled",
+        "batch": 8192,
+        "median": 1.3562011736212298,
+        "p10": 1.3262939464766532,
+        "p90": 1.5661621146136895
+      },
+      {
+        "section": "columns",
+        "label": "cols=\"4\", bound, moves focus",
+        "fixture": {
+          "name": "M, flex-wrap, cols=\"4\"",
+          "groups": 100,
+          "grid": "4",
+          "buildMs": 12.800000011920929,
+          "elements": 6108
+        },
+        "result": "moved",
+        "batch": 512,
+        "median": 26.40625007916242,
+        "p10": 25.517578120343387,
+        "p90": 27.509765583090484
+      },
+      {
+        "section": "columns",
+        "label": "cols=\"4\", bound, moves focus, layout dirtied",
+        "fixture": {
+          "name": "M, flex-wrap, cols=\"4\"",
+          "groups": 100,
+          "grid": "4",
+          "buildMs": 12.800000011920929,
+          "elements": 6108
+        },
+        "result": "moved",
+        "batch": 256,
+        "median": 50.37109390832484,
+        "p10": 49.746093805879354,
+        "p90": 52.08984389901161
+      },
+      {
+        "section": "columns",
+        "label": "layout dirtied, then read, no handler",
+        "fixture": {
+          "name": "M, flex-wrap, cols=\"4\"",
+          "groups": 100,
+          "grid": "4",
+          "buildMs": 12.800000011920929,
+          "elements": 6108
+        },
+        "result": "-",
+        "batch": 512,
+        "median": 20.048828097060323,
+        "p10": 19.61914054118097,
+        "p90": 20.46874992083758
+      },
+      {
+        "section": "columns",
+        "label": "cols=\"auto\", unbound",
+        "fixture": {
+          "name": "M, flex-wrap, cols=\"auto\"",
+          "groups": 100,
+          "grid": "auto",
+          "buildMs": 12.27999997138977,
+          "elements": 6108
+        },
+        "result": "unhandled",
+        "batch": 8192,
+        "median": 1.1804199239122681,
+        "p10": 1.152954100689385,
+        "p90": 1.4013671825523488
+      },
+      {
+        "section": "columns",
+        "label": "cols=\"auto\", unbound, layout dirtied",
+        "fixture": {
+          "name": "M, flex-wrap, cols=\"auto\"",
+          "groups": 100,
+          "grid": "auto",
+          "buildMs": 12.27999997138977,
+          "elements": 6108
+        },
+        "result": "unhandled",
+        "batch": 8192,
+        "median": 1.3500976565410383,
+        "p10": 1.3165283235139214,
+        "p90": 1.5960693344823085
+      },
+      {
+        "section": "columns",
+        "label": "cols=\"auto\", bound, moves focus",
+        "fixture": {
+          "name": "M, flex-wrap, cols=\"auto\"",
+          "groups": 100,
+          "grid": "auto",
+          "buildMs": 12.27999997138977,
+          "elements": 6108
+        },
+        "result": "moved",
+        "batch": 512,
+        "median": 30.175781343132257,
+        "p10": 29.580078087747097,
+        "p90": 35.41992185637355
+      },
+      {
+        "section": "columns",
+        "label": "cols=\"auto\", bound, moves focus, layout dirtied",
+        "fixture": {
+          "name": "M, flex-wrap, cols=\"auto\"",
+          "groups": 100,
+          "grid": "auto",
+          "buildMs": 12.27999997138977,
+          "elements": 6108
+        },
+        "result": "moved",
+        "batch": 256,
+        "median": 55.48828118480742,
+        "p10": 54.96093747206032,
+        "p90": 56.269531371071935
+      },
+      {
+        "section": "columns",
+        "label": "layout dirtied, then read, no handler",
+        "fixture": {
+          "name": "M, flex-wrap, cols=\"auto\"",
+          "groups": 100,
+          "grid": "auto",
+          "buildMs": 12.27999997138977,
+          "elements": 6108
+        },
+        "result": "-",
+        "batch": 512,
+        "median": 19.589843810535967,
+        "p10": 19.560546847060323,
+        "p90": 19.804687472060323
+      },
+      {
+        "section": "columns",
+        "label": "cols=\"auto\", unbound",
+        "fixture": {
+          "name": "M, flex row, cols=\"auto\"",
+          "groups": 100,
+          "grid": "auto",
+          "buildMs": 11.909999966621399,
+          "elements": 6108
+        },
+        "result": "unhandled",
+        "batch": 8192,
+        "median": 1.1633300746325403,
+        "p10": 1.1346435567247681,
+        "p90": 1.3775634797639214
+      },
+      {
+        "section": "columns",
+        "label": "cols=\"auto\", unbound, layout dirtied",
+        "fixture": {
+          "name": "M, flex row, cols=\"auto\"",
+          "groups": 100,
+          "grid": "auto",
+          "buildMs": 11.909999966621399,
+          "elements": 6108
+        },
+        "result": "unhandled",
+        "batch": 8192,
+        "median": 1.3336181655176915,
+        "p10": 1.303100580116734,
+        "p90": 1.5582275373162702
+      },
+      {
+        "section": "columns",
+        "label": "cols=\"auto\", bound, moves focus",
+        "fixture": {
+          "name": "M, flex row, cols=\"auto\"",
+          "groups": 100,
+          "grid": "auto",
+          "buildMs": 11.909999966621399,
+          "elements": 6108
+        },
+        "result": "moved",
+        "batch": 512,
+        "median": 36.43554693553597,
+        "p10": 35.966796800494194,
+        "p90": 42.333984398283064
+      },
+      {
+        "section": "columns",
+        "label": "cols=\"auto\", bound, moves focus, layout dirtied",
+        "fixture": {
+          "name": "M, flex row, cols=\"auto\"",
+          "groups": 100,
+          "grid": "auto",
+          "buildMs": 11.909999966621399,
+          "elements": 6108
+        },
+        "result": "moved",
+        "batch": 16,
+        "median": 823.7500004470348,
+        "p10": 796.2500005960464,
+        "p90": 954.3749988079071
+      },
+      {
+        "section": "columns",
+        "label": "layout dirtied, then read, no handler",
+        "fixture": {
+          "name": "M, flex row, cols=\"auto\"",
+          "groups": 100,
+          "grid": "auto",
+          "buildMs": 11.909999966621399,
+          "elements": 6108
+        },
+        "result": "-",
+        "batch": 16,
+        "median": 755.937498062849,
+        "p10": 736.5625016391277,
+        "p90": 899.3749991059303
+      },
+      {
+        "section": "columns",
+        "label": "cols=\"1\", unbound",
+        "fixture": {
+          "name": "M, flex column, cols=\"1\"",
+          "groups": 100,
+          "grid": "1",
+          "buildMs": 9.300000011920929,
+          "elements": 6108
+        },
+        "result": "unhandled",
+        "batch": 8192,
+        "median": 1.1541748026502319,
+        "p10": 1.1395263718441129,
+        "p90": 1.3751220758422278
+      },
+      {
+        "section": "columns",
+        "label": "cols=\"1\", unbound, layout dirtied",
+        "fixture": {
+          "name": "M, flex column, cols=\"1\"",
+          "groups": 100,
+          "grid": "1",
+          "buildMs": 9.300000011920929,
+          "elements": 6108
+        },
+        "result": "unhandled",
+        "batch": 8192,
+        "median": 1.3165283162379637,
+        "p10": 1.2951660100952722,
+        "p90": 1.5496826235903427
+      },
+      {
+        "section": "columns",
+        "label": "cols=\"1\", bound, moves focus",
+        "fixture": {
+          "name": "M, flex column, cols=\"1\"",
+          "groups": 100,
+          "grid": "1",
+          "buildMs": 9.300000011920929,
+          "elements": 6108
+        },
+        "result": "moved",
+        "batch": 512,
+        "median": 24.4140625,
+        "p10": 24.01367190759629,
+        "p90": 25.751953129656613
+      },
+      {
+        "section": "columns",
+        "label": "cols=\"1\", bound, moves focus, layout dirtied",
+        "fixture": {
+          "name": "M, flex column, cols=\"1\"",
+          "groups": 100,
+          "grid": "1",
+          "buildMs": 9.300000011920929,
+          "elements": 6108
+        },
+        "result": "moved",
+        "batch": 4,
+        "median": 3570.000007748604,
+        "p10": 3202.5000005960464,
+        "p90": 4273.749992251396
+      },
+      {
+        "section": "columns",
+        "label": "layout dirtied, then read, no handler",
+        "fixture": {
+          "name": "M, flex column, cols=\"1\"",
+          "groups": 100,
+          "grid": "1",
+          "buildMs": 9.300000011920929,
+          "elements": 6108
+        },
+        "result": "-",
+        "batch": 4,
+        "median": 3489.999994635582,
+        "p10": 3087.5000059604645,
+        "p90": 4224.9999940395355
+      },
+      {
+        "section": "columns",
+        "label": "cols=\"auto\", unbound",
+        "fixture": {
+          "name": "M, flex column, cols=\"auto\"",
+          "groups": 100,
+          "grid": "auto",
+          "buildMs": 9.365000009536743,
+          "elements": 6108
+        },
+        "result": "unhandled",
+        "batch": 8192,
+        "median": 1.1676025387714617,
+        "p10": 1.1370849606464617,
+        "p90": 1.4031982427695766
+      },
+      {
+        "section": "columns",
+        "label": "cols=\"auto\", unbound, layout dirtied",
+        "fixture": {
+          "name": "M, flex column, cols=\"auto\"",
+          "groups": 100,
+          "grid": "auto",
+          "buildMs": 9.365000009536743,
+          "elements": 6108
+        },
+        "result": "unhandled",
+        "batch": 8192,
+        "median": 1.3128662103554234,
+        "p10": 1.3079834025120363,
+        "p90": 1.5386962841148488
+      },
+      {
+        "section": "columns",
+        "label": "cols=\"auto\", bound, moves focus",
+        "fixture": {
+          "name": "M, flex column, cols=\"auto\"",
+          "groups": 100,
+          "grid": "auto",
+          "buildMs": 9.365000009536743,
+          "elements": 6108
+        },
+        "result": "moved",
+        "batch": 512,
+        "median": 27.27539069019258,
+        "p10": 26.92382805980742,
+        "p90": 28.046875027939677
+      },
+      {
+        "section": "columns",
+        "label": "cols=\"auto\", bound, moves focus, layout dirtied",
+        "fixture": {
+          "name": "M, flex column, cols=\"auto\"",
+          "groups": 100,
+          "grid": "auto",
+          "buildMs": 9.365000009536743,
+          "elements": 6108
+        },
+        "result": "moved",
+        "batch": 4,
+        "median": 3449.999988079071,
+        "p10": 3200.0000029802322,
+        "p90": 4547.499999403954
+      },
+      {
+        "section": "columns",
+        "label": "layout dirtied, then read, no handler",
+        "fixture": {
+          "name": "M, flex column, cols=\"auto\"",
+          "groups": 100,
+          "grid": "auto",
+          "buildMs": 9.365000009536743,
+          "elements": 6108
+        },
+        "result": "-",
+        "batch": 4,
+        "median": 3343.75,
+        "p10": 3108.7500005960464,
+        "p90": 4696.24999165535
       },
       {
         "section": "refused focus",
@@ -833,14 +1365,14 @@
           "name": "1 × display: none",
           "groups": 1,
           "items": 3,
-          "buildMs": 0.25,
+          "buildMs": 0.3199999928474426,
           "elements": 18
         },
         "result": "moved",
         "batch": 512,
-        "median": 23.03710940759629,
-        "p10": 22.02148432843387,
-        "p90": 26.064453180879354
+        "median": 21.845703129656613,
+        "p10": 21.34765626396984,
+        "p90": 23.193359375
       },
       {
         "section": "refused focus",
@@ -849,14 +1381,14 @@
           "name": "10 × display: none",
           "groups": 1,
           "items": 12,
-          "buildMs": 0.17000001668930054,
+          "buildMs": 0.20999997854232788,
           "elements": 45
         },
         "result": "moved",
         "batch": 512,
-        "median": 29.34570307843387,
-        "p10": 27.81250001862645,
-        "p90": 31.84570313896984
+        "median": 27.470703120343387,
+        "p10": 27.226562495343387,
+        "p90": 30.32226557843387
       },
       {
         "section": "refused focus",
@@ -865,14 +1397,14 @@
           "name": "100 × display: none",
           "groups": 1,
           "items": 102,
-          "buildMs": 0.3049999475479126,
+          "buildMs": 0.36500000953674316,
           "elements": 315
         },
         "result": "moved",
         "batch": 128,
-        "median": 85.9375,
-        "p10": 83.86718761175871,
-        "p90": 98.00781263038516
+        "median": 85.58593736961484,
+        "p10": 82.57812494412065,
+        "p90": 98.47656264901161
       },
       {
         "section": "refused focus",
@@ -881,14 +1413,14 @@
           "name": "1000 × display: none",
           "groups": 1,
           "items": 1002,
-          "buildMs": 1.6150000095367432,
+          "buildMs": 1.6949999928474426,
           "elements": 3015
         },
         "result": "moved",
         "batch": 32,
-        "median": 659.0625010430813,
-        "p10": 610.6249988079071,
-        "p90": 694.0625011920929
+        "median": 629.8437509685755,
+        "p10": 612.8125004470348,
+        "p90": 688.1249994039536
       },
       {
         "section": "refused focus",
@@ -897,14 +1429,14 @@
           "name": "1000 × visibility: hidden",
           "groups": 1,
           "items": 1002,
-          "buildMs": 5.675000011920929,
+          "buildMs": 5.610000014305115,
           "elements": 3015
         },
         "result": "moved",
-        "batch": 16,
-        "median": 618.1249991059303,
-        "p10": 600.9375005960464,
-        "p90": 718.1250005960464
+        "batch": 32,
+        "median": 620.1562490314245,
+        "p10": 608.4374990314245,
+        "p90": 697.9687511920929
       },
       {
         "section": "refused focus",
@@ -913,14 +1445,14 @@
           "name": "1000 × display: none, roving",
           "groups": 1,
           "items": 1002,
-          "buildMs": 1.6200000047683716,
+          "buildMs": 3.1399999856948853,
           "elements": 3015
         },
         "result": "moved",
         "batch": 8,
-        "median": 1439.3749982118607,
-        "p10": 1359.9999994039536,
-        "p90": 1623.1249943375587
+        "median": 1408.1249982118607,
+        "p10": 1350.6250008940697,
+        "p90": 1643.7499970197678
       },
       {
         "section": "refused focus",
@@ -929,14 +1461,14 @@
           "name": "1000 × display: none, skipped",
           "groups": 1,
           "items": 1002,
-          "buildMs": 1.4550000429153442,
+          "buildMs": 1.5049999952316284,
           "elements": 3015
         },
         "result": "moved",
         "batch": 32,
-        "median": 335.31250059604645,
-        "p10": 327.3437488824129,
-        "p90": 379.0624998509884
+        "median": 331.7187484353781,
+        "p10": 323.75000044703484,
+        "p90": 368.1250009685755
       }
     ],
     "skipped": []

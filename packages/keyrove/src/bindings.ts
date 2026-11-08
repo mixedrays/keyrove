@@ -9,11 +9,15 @@
  * precedence of a keypress is one ordered list.
  */
 
-import { isComboSet } from './utils.js';
+import { isComboSet, matchesCombo } from './utils.js';
 import type {
   Binding,
   BoundaryAction,
   BuildBindingsArgs,
+  ExplicitBinding,
+  FindBindingArgs,
+  FocusKey,
+  KeyRoveEvent,
   KnownCode,
   Layout,
   StrideAction,
@@ -72,6 +76,56 @@ const defaultTable = (
   ['pageDown', 'PageDown'],
 ];
 
+// Every row a default table holds, in every layout and direction: a grid both
+// ways round, which binds every arrow, and a list, which binds bare Home/End.
+const EVERY_ROW = (
+  [
+    { kind: 'grid', cols: 2, horizontal: true, loop: false },
+    { kind: 'list', cols: 1, horizontal: false, loop: false },
+  ] satisfies Layout[]
+).flatMap((layout) =>
+  [false, true].flatMap((flip) => defaultTable(layout, flip)),
+);
+
+// What a press must match before any layout could make it a move: a key some
+// default table binds, with or without its modifiers, or the combo a root
+// binds any move to.
+const DEFAULT_CODES = new Set<string>(
+  EVERY_ROW.map(([, combo]) => combo.split('+').pop()!),
+);
+const MOVES = [...new Set(EVERY_ROW.map(([intent]) => intent)), ...BOUNDARY];
+
+/**
+ * Whether a press could be a move in some layout. Every table's moves are
+ * among the defaults and bindings tried here, so a press matching none of
+ * them can be claimed by nothing but a focus key, whatever the layout. The
+ * test may say yes where the table then matches nothing, never the other way
+ * round: a default key counts by its code alone, and a bound combo is parsed
+ * only where its text holds the press's code.
+ */
+const couldMove = (e: KeyRoveEvent, explicit: ExplicitBinding) =>
+  DEFAULT_CODES.has(e.code) ||
+  MOVES.some((intent) => {
+    const combo = explicit(intent);
+
+    return !!combo && combo.includes(e.code) && matchesCombo(e, combo);
+  });
+
+/**
+ * The focus keys as bindings, in DOM order. A combo naming nothing is unset,
+ * as it is for the root keys, and so is `none`: an element has no default key
+ * to take away.
+ */
+const focusBindings = (focus: readonly FocusKey[]): Binding[] =>
+  focus
+    .filter(({ combo }) => isComboSet(combo) && !isNone(combo))
+    .map(({ combo, target }) => ({
+      combo,
+      intent: 'focus',
+      enters: true,
+      target,
+    }));
+
 /**
  * Builds the ordered binding table for a group. The first entry that matches
  * a keypress claims it, so order *is* precedence: the focus keys first, then
@@ -116,17 +170,26 @@ export const buildBindings = ({
   // An element's own key names one element, where a root's names a group and
   // a default names nothing in particular: the most specific declaration in
   // the table, so it sits first — it wins any collision, and two elements
-  // naming one combo resolve to the first in DOM order. A combo naming nothing
-  // is unset, as it is for the root keys, and so is `none`: an element has no
-  // default key to take away.
-  const named: Binding[] = focus
-    .filter(({ combo }) => isComboSet(combo) && !isNone(combo))
-    .map(({ combo, target }) => ({
-      combo,
-      intent: 'focus',
-      enters: true,
-      target,
-    }));
+  // naming one combo resolve to the first in DOM order.
+  return [...focusBindings(focus), ...rebound, ...defaults];
+};
 
-  return [...named, ...rebound, ...defaults];
+/**
+ * The binding a press resolves to: the first entry of the group's table that
+ * matches it. The layout, which `auto` reads off the page, is asked for only
+ * when the press could be a move in some layout. Any other press can match
+ * nothing but a focus key, and those head every table, so it is resolved
+ * among them without the rest of the table.
+ */
+export const findBinding = (
+  e: KeyRoveEvent,
+  { explicit, focus = [], layout, rtl }: FindBindingArgs,
+): Binding | undefined => {
+  const matches = ({ combo }: Binding) => matchesCombo(e, combo);
+
+  if (!couldMove(e, explicit)) return focusBindings(focus).find(matches);
+
+  return buildBindings({ explicit, focus, layout: layout(), rtl }).find(
+    matches,
+  );
 };

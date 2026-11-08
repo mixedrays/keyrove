@@ -3,7 +3,8 @@
 Measures what one `keyRove` call costs in a real browser, on pages of
 increasing size, with the listener on the group or on the document, for
 unbound and bound keys, with and without focus keys, with fixed or `auto`
-columns, and for a move past a run of items that refuse focus.
+columns in grid and flex layouts, and for a move past a run of items that
+refuse focus.
 
 It runs two ways: in a page you open in any browser, or in headless Chrome
 from the command line. Both time the same code on the same page.
@@ -82,7 +83,7 @@ source.
 
 Some cases time features older versions lack: the `focusKeys` option
 arrived in 2.4.0, `cols="auto"` in 2.5.0, and a move past an item that
-refuses focus after 2.6.1. Before running, the harness tries each feature on
+refuses focus and `cols="auto"` on a flex layout after 2.6.1. Before running, the harness tries each feature on
 the library, and a case whose feature is missing is recorded as not run
 rather than timed. It would still run, but it would time
 something other than its label. In a comparison those cases read n/a.
@@ -105,7 +106,7 @@ to see reports saved since.
 | Path                        | What it is                                                                                 |
 | --------------------------- | ------------------------------------------------------------------------------------------ |
 | `src/keydown.ts`            | The benchmark: probes the library's features, builds each fixture, and times the cases.    |
-| `src/plan.ts`               | What a run covers: page sizes, focus-key counts, grids, refusal runs, default timing.      |
+| `src/plan.ts`               | What a run covers: page sizes, focus-key counts, column layouts, refusal runs, timing.     |
 | `harness.html`              | The page the cases run in. It holds the fixture and almost nothing else.                   |
 | `index.html`, `src/main.ts` | The UI. Each run loads a fresh harness in a frame, so none of the UI's markup is measured. |
 | `src/view.ts`               | The UI's results, one report or a comparison, as HTML.                                     |
@@ -137,8 +138,19 @@ per item:
 
 Focus-key fixtures spread 10, 100 or 1,000 `data-keyrove-focus-key`
 attributes evenly over the L page, each a distinct combo that no case
-presses. Grid fixtures lay each M group out as a four-column CSS grid with
-`data-keyrove-cols` set to `4` or `auto`.
+presses.
+
+Column fixtures lay each M group out one way and set `data-keyrove-cols`:
+
+| Layout      | Each group                       | `cols`      | What `auto` reads                |
+| ----------- | -------------------------------- | ----------- | -------------------------------- |
+| grid        | a four-column CSS grid           | `4`, `auto` | the grid's tracks                |
+| flex-wrap   | a wrapping flex row, 4 to a line | `4`, `auto` | the first line's items: 4, and 1 |
+| flex row    | one flex row of all 20           | `auto`      | the first line's items: all 20   |
+| flex column | a flex column, 1 to a line       | `1`, `auto` | the first line's items: 1, and 1 |
+
+The grids keep their earlier names, `M, cols="4"` and `M, cols="auto"`; the
+flex fixtures are named by layout, such as `M, flex-wrap, cols="auto"`.
 
 Refused-focus fixtures are one group each: a visible item, a run of 1 to
 1,000 items hidden with `display: none` or `visibility: hidden`, and another
@@ -152,7 +164,14 @@ Every press starts in the first group:
 - **unbound:** `KeyQ`, which no binding matches.
 - **bound, no move:** `End` on the last item, a consumed no-op.
 - **bound, moves focus:** `ArrowDown`/`ArrowUp` between the first two items,
-  or `ArrowRight`/`ArrowLeft` in a grid, calling `focus()` every time.
+  or `ArrowRight`/`ArrowLeft` in a grid, a flex-wrap or a flex row, calling
+  `focus()` every time.
+- **layout dirtied:** on a column fixture, the unbound key and the move again,
+  with the fixture's padding changed just before each press. A read of the
+  layout in the handler then lays the page out first, as it would after
+  another listener wrote to the DOM earlier in the same task. Each column
+  fixture also times that change and one layout read with no handler at all:
+  what the layout costs on that page.
 - **moves past the run:** `ArrowDown`/`ArrowUp` between the two visible items
   of a refused-focus page, under a local listener. Each press tries `focus()`
   on every hidden item on the way, unless the run is skipped.
@@ -181,12 +200,12 @@ Every press starts in the first group:
 
 ## Results
 
-Recorded on 2026-11-06 in headless Chrome by `pnpm bench:headless -- --record`.
+Recorded on 2026-11-07 in headless Chrome by `pnpm bench:headless -- --record`.
 The same run is in `results/recorded.json`.
 
 ### Environment
 
-- Library: 2.6.0 (working tree at d21fa4f, with uncommitted changes)
+- Library: 2.6.0 (working tree at 3186092, with uncommitted changes)
 - Browser: Chrome/156.0.8078.80 (headless), V8 15.6.75.27
 - OS: darwin 25.2.0 arm64
 - CPU: Apple M1 Pro × 10
@@ -194,28 +213,33 @@ The same run is in `results/recorded.json`.
 - Node: v25.2.1
 - Cross-origin isolated: true
 - Timing: 100 ms warmup, then 15 batches of ≥ 10 ms per case
-- Date: 2026-11-06
+- Date: 2026-11-07
 
 ### Fixtures
 
 | Fixture                       | Groups | Items | Focus keys | Grid | Elements | Build (ms) |
 | ----------------------------- | -----: | ----: | ---------: | ---- | -------: | ---------: |
-| S                             |     10 |   200 |          0 | -    |      618 |       1.43 |
-| M                             |    100 |  2000 |          0 | -    |     6108 |      11.09 |
-| L                             |   1000 | 20000 |          0 | -    |    61008 |     123.15 |
-| L, 0 focus keys               |   1000 | 20000 |          0 | -    |    61008 |     127.74 |
-| L, 10 focus keys              |   1000 | 20000 |         10 | -    |    61008 |     102.69 |
-| L, 100 focus keys             |   1000 | 20000 |        100 | -    |    61008 |     126.12 |
-| L, 1000 focus keys            |   1000 | 20000 |       1000 | -    |    61008 |     103.35 |
-| M, cols="4"                   |    100 |  2000 |          0 | 4    |     6108 |      11.41 |
-| M, cols="auto"                |    100 |  2000 |          0 | auto |     6108 |      10.85 |
-| 1 × display: none             |      1 |     3 |          0 | -    |       18 |       0.25 |
-| 10 × display: none            |      1 |    12 |          0 | -    |       45 |       0.17 |
-| 100 × display: none           |      1 |   102 |          0 | -    |      315 |       0.30 |
-| 1000 × display: none          |      1 |  1002 |          0 | -    |     3015 |       1.62 |
-| 1000 × visibility: hidden     |      1 |  1002 |          0 | -    |     3015 |       5.68 |
-| 1000 × display: none, roving  |      1 |  1002 |          0 | -    |     3015 |       1.62 |
-| 1000 × display: none, skipped |      1 |  1002 |          0 | -    |     3015 |       1.46 |
+| S                             |     10 |   200 |          0 | -    |      618 |       1.63 |
+| M                             |    100 |  2000 |          0 | -    |     6108 |      11.45 |
+| L                             |   1000 | 20000 |          0 | -    |    61008 |     128.90 |
+| L, 0 focus keys               |   1000 | 20000 |          0 | -    |    61008 |     136.04 |
+| L, 10 focus keys              |   1000 | 20000 |         10 | -    |    61008 |     107.09 |
+| L, 100 focus keys             |   1000 | 20000 |        100 | -    |    61008 |     103.56 |
+| L, 1000 focus keys            |   1000 | 20000 |       1000 | -    |    61008 |     130.81 |
+| M, cols="4"                   |    100 |  2000 |          0 | 4    |     6108 |      13.63 |
+| M, cols="auto"                |    100 |  2000 |          0 | auto |     6108 |      11.34 |
+| M, flex-wrap, cols="4"        |    100 |  2000 |          0 | 4    |     6108 |      12.80 |
+| M, flex-wrap, cols="auto"     |    100 |  2000 |          0 | auto |     6108 |      12.28 |
+| M, flex row, cols="auto"      |    100 |  2000 |          0 | auto |     6108 |      11.91 |
+| M, flex column, cols="1"      |    100 |  2000 |          0 | 1    |     6108 |       9.30 |
+| M, flex column, cols="auto"   |    100 |  2000 |          0 | auto |     6108 |       9.37 |
+| 1 × display: none             |      1 |     3 |          0 | -    |       18 |       0.32 |
+| 10 × display: none            |      1 |    12 |          0 | -    |       45 |       0.21 |
+| 100 × display: none           |      1 |   102 |          0 | -    |      315 |       0.37 |
+| 1000 × display: none          |      1 |  1002 |          0 | -    |     3015 |       1.69 |
+| 1000 × visibility: hidden     |      1 |  1002 |          0 | -    |     3015 |       5.61 |
+| 1000 × display: none, roving  |      1 |  1002 |          0 | -    |     3015 |       3.14 |
+| 1000 × display: none, skipped |      1 |  1002 |          0 | -    |     3015 |       1.50 |
 
 ### baseline
 
@@ -227,126 +251,170 @@ The same run is in `results/recorded.json`.
 
 | Fixture | Case                         | Result         | Median (µs) | p10–p90 (µs) | Batch |
 | ------- | ---------------------------- | -------------- | ----------: | -----------: | ----: |
-| S       | local, unbound               | unhandled      |        2.55 |    2.53–2.60 |  4096 |
-| S       | local, bound, no move        | consumed no-op |        9.57 |   8.76–10.22 |  1024 |
-| S       | local, bound, moves focus    | moved          |       22.94 |  22.60–24.81 |   512 |
-| S       | document, unbound            | unhandled      |        2.52 |    2.50–2.70 |  4096 |
-| S       | document, bound, no move     | consumed no-op |        8.98 |   8.70–10.26 |  1024 |
-| S       | document, bound, moves focus | moved          |       23.37 |  22.86–25.44 |   512 |
-| M       | local, unbound               | unhandled      |        2.62 |    2.47–2.69 |  4096 |
-| M       | local, bound, no move        | consumed no-op |        9.05 |   8.75–10.15 |  2048 |
-| M       | local, bound, moves focus    | moved          |       23.36 |  22.78–25.97 |   512 |
-| M       | document, unbound            | unhandled      |        2.49 |    2.47–2.51 |  4096 |
-| M       | document, bound, no move     | consumed no-op |        9.37 |   8.89–10.31 |  2048 |
-| M       | document, bound, moves focus | moved          |       23.10 |  22.71–26.89 |   512 |
-| L       | local, unbound               | unhandled      |        2.49 |    2.48–2.50 |  4096 |
-| L       | local, bound, no move        | consumed no-op |        9.62 |   8.87–11.01 |  2048 |
-| L       | local, bound, moves focus    | moved          |       22.66 |  22.42–22.89 |   512 |
-| L       | document, unbound            | unhandled      |        2.46 |    2.45–2.48 |  4096 |
-| L       | document, bound, no move     | consumed no-op |        9.00 |   8.74–10.11 |  2048 |
-| L       | document, bound, moves focus | moved          |       22.76 |  22.48–23.03 |   512 |
+| S       | local, unbound               | unhandled      |        1.28 |    1.19–1.50 |  8192 |
+| S       | local, bound, no move        | consumed no-op |        8.53 |    7.95–9.17 |  2048 |
+| S       | local, bound, moves focus    | moved          |       22.51 |  21.83–24.92 |   512 |
+| S       | document, unbound            | unhandled      |        1.21 |    1.17–1.44 |  8192 |
+| S       | document, bound, no move     | consumed no-op |        8.63 |    8.10–9.20 |  2048 |
+| S       | document, bound, moves focus | moved          |       22.24 |  21.56–25.40 |   512 |
+| M       | local, unbound               | unhandled      |        1.25 |    1.13–1.30 | 16384 |
+| M       | local, bound, no move        | consumed no-op |        8.30 |    7.87–9.13 |  2048 |
+| M       | local, bound, moves focus    | moved          |       21.62 |  20.07–24.27 |   512 |
+| M       | document, unbound            | unhandled      |        1.15 |    1.14–1.45 |  8192 |
+| M       | document, bound, no move     | consumed no-op |        8.24 |    7.79–9.87 |  2048 |
+| M       | document, bound, moves focus | moved          |       21.80 |  21.29–23.47 |   512 |
+| L       | local, unbound               | unhandled      |        1.15 |    1.13–1.38 |  8192 |
+| L       | local, bound, no move        | consumed no-op |        8.27 |    8.08–9.52 |  2048 |
+| L       | local, bound, moves focus    | moved          |       22.40 |  21.91–22.81 |   512 |
+| L       | document, unbound            | unhandled      |        1.14 |    1.12–1.37 |  8192 |
+| L       | document, bound, no move     | consumed no-op |        8.47 |    7.84–9.52 |  2048 |
+| L       | document, bound, moves focus | moved          |       21.76 |  21.45–23.32 |   512 |
 
 ### focus keys
 
 | Fixture            | Case                            | Result    | Median (µs) |  p10–p90 (µs) | Batch |
 | ------------------ | ------------------------------- | --------- | ----------: | ------------: | ----: |
-| L, 0 focus keys    | 0 × attribute scan              | unhandled |        2.49 |     2.48–2.50 |  4096 |
-| L, 0 focus keys    | 0 × focusKeys map, elements     | unhandled |        2.25 |     2.24–2.26 |  8192 |
-| L, 0 focus keys    | 0 × focusKeys map, selectors    | unhandled |        2.26 |     2.25–2.26 |  8192 |
-| L, 10 focus keys   | 10 × attribute scan             | unhandled |       17.63 |   17.11–17.93 |  1024 |
-| L, 10 focus keys   | 10 × focusKeys map, elements    | unhandled |        4.54 |     4.54–4.57 |  4096 |
-| L, 10 focus keys   | 10 × focusKeys map, selectors   | unhandled |        5.13 |     5.10–5.18 |  2048 |
-| L, 100 focus keys  | 100 × attribute scan            | unhandled |       69.36 |   69.04–69.75 |   256 |
-| L, 100 focus keys  | 100 × focusKeys map, elements   | unhandled |       42.85 |   42.66–43.07 |   256 |
-| L, 100 focus keys  | 100 × focusKeys map, selectors  | unhandled |       51.07 |   50.96–51.33 |   256 |
-| L, 1000 focus keys | 1000 × attribute scan           | unhandled |      608.75 | 596.25–624.38 |    16 |
-| L, 1000 focus keys | 1000 × focusKeys map, elements  | unhandled |      467.19 | 452.03–485.62 |    32 |
-| L, 1000 focus keys | 1000 × focusKeys map, selectors | unhandled |      751.25 | 729.69–905.94 |    16 |
-| L, 1000 focus keys | 1000 on page, local listener    | unhandled |        3.98 |     3.87–4.31 |  4096 |
+| L, 0 focus keys    | 0 × attribute scan              | unhandled |        1.15 |     1.10–1.35 |  8192 |
+| L, 0 focus keys    | 0 × focusKeys map, elements     | unhandled |        0.95 |     0.92–1.00 | 16384 |
+| L, 0 focus keys    | 0 × focusKeys map, selectors    | unhandled |        0.95 |     0.91–1.03 | 16384 |
+| L, 10 focus keys   | 10 × attribute scan             | unhandled |       16.42 |   15.87–17.01 |  1024 |
+| L, 10 focus keys   | 10 × focusKeys map, elements    | unhandled |        3.27 |     3.17–3.35 |  4096 |
+| L, 10 focus keys   | 10 × focusKeys map, selectors   | unhandled |        3.86 |     3.77–3.97 |  4096 |
+| L, 100 focus keys  | 100 × attribute scan            | unhandled |       69.06 |   68.26–70.62 |   256 |
+| L, 100 focus keys  | 100 × focusKeys map, elements   | unhandled |       42.11 |   41.37–43.55 |   256 |
+| L, 100 focus keys  | 100 × focusKeys map, selectors  | unhandled |       50.16 |   49.63–50.92 |   256 |
+| L, 1000 focus keys | 1000 × attribute scan           | unhandled |      657.81 | 605.94–737.50 |    16 |
+| L, 1000 focus keys | 1000 × focusKeys map, elements  | unhandled |      460.47 | 436.88–470.16 |    32 |
+| L, 1000 focus keys | 1000 × focusKeys map, selectors | unhandled |      742.50 | 725.31–795.00 |    16 |
+| L, 1000 focus keys | 1000 on page, local listener    | unhandled |        2.53 |     2.46–3.63 |  2048 |
 
 ### diagnostics
 
 | Fixture            | Case                                      | Result | Median (µs) |  p10–p90 (µs) |   Batch |
 | ------------------ | ----------------------------------------- | ------ | ----------: | ------------: | ------: |
-| L, 0 focus keys    | 0 × querySelectorAll over the document    | -      |        0.09 |     0.08–0.13 |  131072 |
+| L, 0 focus keys    | 0 × querySelectorAll over the document    | -      |        0.08 |     0.08–0.11 |  131072 |
 | L, 0 focus keys    | 0 × matchesCombo, none matching           | -      |        0.01 |     0.01–0.01 | 2097152 |
-| L, 10 focus keys   | 10 × querySelectorAll over the document   | -      |        8.99 |     8.88–9.07 |    2048 |
-| L, 10 focus keys   | 10 × matchesCombo, none matching          | -      |        1.03 |     1.03–1.06 |   16384 |
-| L, 100 focus keys  | 100 × querySelectorAll over the document  | -      |       22.42 |   22.32–25.62 |     512 |
-| L, 100 focus keys  | 100 × matchesCombo, none matching         | -      |       25.10 |   23.95–25.78 |     512 |
-| L, 1000 focus keys | 1000 × querySelectorAll over the document | -      |      113.67 | 109.80–117.54 |     128 |
-| L, 1000 focus keys | 1000 × matchesCombo, none matching        | -      |      229.45 | 224.77–232.11 |      64 |
+| L, 10 focus keys   | 10 × querySelectorAll over the document   | -      |        9.15 |     8.96–9.34 |    2048 |
+| L, 10 focus keys   | 10 × matchesCombo, none matching          | -      |        1.05 |     1.04–1.06 |   16384 |
+| L, 100 focus keys  | 100 × querySelectorAll over the document  | -      |       24.03 |   23.00–24.90 |     512 |
+| L, 100 focus keys  | 100 × matchesCombo, none matching         | -      |       23.71 |   22.99–24.01 |     512 |
+| L, 1000 focus keys | 1000 × querySelectorAll over the document | -      |      110.16 | 107.58–114.96 |     128 |
+| L, 1000 focus keys | 1000 × matchesCombo, none matching        | -      |      229.30 | 226.72–236.56 |      64 |
 
 ### columns
 
-| Fixture        | Case                            | Result    | Median (µs) | p10–p90 (µs) | Batch |
-| -------------- | ------------------------------- | --------- | ----------: | -----------: | ----: |
-| M, cols="4"    | cols="4", unbound               | unhandled |        4.21 |    4.15–4.37 |  4096 |
-| M, cols="4"    | cols="4", bound, moves focus    | moved     |       27.55 |  26.90–28.01 |   512 |
-| M, cols="auto" | cols="auto", unbound            | unhandled |        5.36 |    5.32–5.63 |  2048 |
-| M, cols="auto" | cols="auto", bound, moves focus | moved     |       30.02 |  29.13–35.41 |   512 |
+| Fixture                     | Case                                            | Result    | Median (µs) |    p10–p90 (µs) | Batch |
+| --------------------------- | ----------------------------------------------- | --------- | ----------: | --------------: | ----: |
+| M, cols="4"                 | cols="4", unbound                               | unhandled |        1.19 |       1.17–1.43 |  8192 |
+| M, cols="4"                 | cols="4", unbound, layout dirtied               | unhandled |        1.37 |       1.35–1.61 |  8192 |
+| M, cols="4"                 | cols="4", bound, moves focus                    | moved     |       26.50 |     25.49–27.51 |   512 |
+| M, cols="4"                 | cols="4", bound, moves focus, layout dirtied    | moved     |     1084.69 | 1040.31–1342.81 |    16 |
+| M, cols="4"                 | layout dirtied, then read, no handler           | -         |      973.12 |  947.19–1236.56 |    16 |
+| M, cols="auto"              | cols="auto", unbound                            | unhandled |        1.26 |       1.15–1.32 | 16384 |
+| M, cols="auto"              | cols="auto", unbound, layout dirtied            | unhandled |        1.33 |       1.31–1.54 |  8192 |
+| M, cols="auto"              | cols="auto", bound, moves focus                 | moved     |       28.54 |     28.13–29.22 |   512 |
+| M, cols="auto"              | cols="auto", bound, moves focus, layout dirtied | moved     |     1033.12 | 1003.13–1302.19 |    16 |
+| M, cols="auto"              | layout dirtied, then read, no handler           | -         |      994.69 |  939.06–1248.44 |    16 |
+| M, flex-wrap, cols="4"      | cols="4", unbound                               | unhandled |        1.17 |       1.14–1.39 |  8192 |
+| M, flex-wrap, cols="4"      | cols="4", unbound, layout dirtied               | unhandled |        1.36 |       1.33–1.57 |  8192 |
+| M, flex-wrap, cols="4"      | cols="4", bound, moves focus                    | moved     |       26.41 |     25.52–27.51 |   512 |
+| M, flex-wrap, cols="4"      | cols="4", bound, moves focus, layout dirtied    | moved     |       50.37 |     49.75–52.09 |   256 |
+| M, flex-wrap, cols="4"      | layout dirtied, then read, no handler           | -         |       20.05 |     19.62–20.47 |   512 |
+| M, flex-wrap, cols="auto"   | cols="auto", unbound                            | unhandled |        1.18 |       1.15–1.40 |  8192 |
+| M, flex-wrap, cols="auto"   | cols="auto", unbound, layout dirtied            | unhandled |        1.35 |       1.32–1.60 |  8192 |
+| M, flex-wrap, cols="auto"   | cols="auto", bound, moves focus                 | moved     |       30.18 |     29.58–35.42 |   512 |
+| M, flex-wrap, cols="auto"   | cols="auto", bound, moves focus, layout dirtied | moved     |       55.49 |     54.96–56.27 |   256 |
+| M, flex-wrap, cols="auto"   | layout dirtied, then read, no handler           | -         |       19.59 |     19.56–19.80 |   512 |
+| M, flex row, cols="auto"    | cols="auto", unbound                            | unhandled |        1.16 |       1.13–1.38 |  8192 |
+| M, flex row, cols="auto"    | cols="auto", unbound, layout dirtied            | unhandled |        1.33 |       1.30–1.56 |  8192 |
+| M, flex row, cols="auto"    | cols="auto", bound, moves focus                 | moved     |       36.44 |     35.97–42.33 |   512 |
+| M, flex row, cols="auto"    | cols="auto", bound, moves focus, layout dirtied | moved     |      823.75 |   796.25–954.37 |    16 |
+| M, flex row, cols="auto"    | layout dirtied, then read, no handler           | -         |      755.94 |   736.56–899.37 |    16 |
+| M, flex column, cols="1"    | cols="1", unbound                               | unhandled |        1.15 |       1.14–1.38 |  8192 |
+| M, flex column, cols="1"    | cols="1", unbound, layout dirtied               | unhandled |        1.32 |       1.30–1.55 |  8192 |
+| M, flex column, cols="1"    | cols="1", bound, moves focus                    | moved     |       24.41 |     24.01–25.75 |   512 |
+| M, flex column, cols="1"    | cols="1", bound, moves focus, layout dirtied    | moved     |     3570.00 | 3202.50–4273.75 |     4 |
+| M, flex column, cols="1"    | layout dirtied, then read, no handler           | -         |     3490.00 | 3087.50–4225.00 |     4 |
+| M, flex column, cols="auto" | cols="auto", unbound                            | unhandled |        1.17 |       1.14–1.40 |  8192 |
+| M, flex column, cols="auto" | cols="auto", unbound, layout dirtied            | unhandled |        1.31 |       1.31–1.54 |  8192 |
+| M, flex column, cols="auto" | cols="auto", bound, moves focus                 | moved     |       27.28 |     26.92–28.05 |   512 |
+| M, flex column, cols="auto" | cols="auto", bound, moves focus, layout dirtied | moved     |     3450.00 | 3200.00–4547.50 |     4 |
+| M, flex column, cols="auto" | layout dirtied, then read, no handler           | -         |     3343.75 | 3108.75–4696.25 |     4 |
 
 ### refused focus
 
 | Fixture                       | Case                      | Result | Median (µs) |    p10–p90 (µs) | Batch |
 | ----------------------------- | ------------------------- | ------ | ----------: | --------------: | ----: |
-| 1 × display: none             | local, moves past the run | moved  |       23.04 |     22.02–26.06 |   512 |
-| 10 × display: none            | local, moves past the run | moved  |       29.35 |     27.81–31.85 |   512 |
-| 100 × display: none           | local, moves past the run | moved  |       85.94 |     83.87–98.01 |   128 |
-| 1000 × display: none          | local, moves past the run | moved  |      659.06 |   610.62–694.06 |    32 |
-| 1000 × visibility: hidden     | local, moves past the run | moved  |      618.12 |   600.94–718.13 |    16 |
-| 1000 × display: none, roving  | local, moves past the run | moved  |     1439.37 | 1360.00–1623.12 |     8 |
-| 1000 × display: none, skipped | local, moves past the run | moved  |      335.31 |   327.34–379.06 |    32 |
+| 1 × display: none             | local, moves past the run | moved  |       21.85 |     21.35–23.19 |   512 |
+| 10 × display: none            | local, moves past the run | moved  |       27.47 |     27.23–30.32 |   512 |
+| 100 × display: none           | local, moves past the run | moved  |       85.59 |     82.58–98.48 |   128 |
+| 1000 × display: none          | local, moves past the run | moved  |      629.84 |   612.81–688.12 |    32 |
+| 1000 × visibility: hidden     | local, moves past the run | moved  |      620.16 |   608.44–697.97 |    32 |
+| 1000 × display: none, roving  | local, moves past the run | moved  |     1408.12 | 1350.63–1643.75 |     8 |
+| 1000 × display: none, skipped | local, moves past the run | moved  |      331.72 |   323.75–368.13 |    32 |
 
 ## Findings
 
 1. **Page size and listener placement do not change the cost when there are
    no focus keys.** From 200 to 20,000 items, and with the listener on the
-   group or on the document, an unbound key costs about 2.5 µs. A bound key
-   with nowhere to go costs about 9 µs, and a move, including the browser's
-   `focus()`, costs about 23 µs. A move reads only the target's group. Chrome
+   group or on the document, an unbound key costs about 1.2 µs. A bound key
+   with nowhere to go costs about 8.5 µs, and a move, including the browser's
+   `focus()`, costs about 22 µs. A move reads only the target's group. Chrome
    answers the document query for focus keys in about 0.1 µs when nothing
    matches, even on 61,000 elements.
 2. **Focus keys in the listener's reach are the one cost that grows with the
    page.** It grows linearly with their number and is paid on every keydown
    the listener handles, unbound keys included. Under a document listener,
-   attribute scanning costs 18 µs for 10 focus keys, 69 µs for 100 and
-   0.61 ms for 1,000. A local listener stays at 4 µs with 1,000 focus keys
-   elsewhere on the page. A `focusKeys` map of elements is cheaper (0.47 ms
-   at 1,000). A map of selectors is the most expensive (0.75 ms), because
+   attribute scanning costs 16 µs for 10 focus keys, 69 µs for 100 and
+   0.66 ms for 1,000. A local listener stays at 2.5 µs with 1,000 focus keys
+   elsewhere on the page. A `focusKeys` map of elements is cheaper (0.46 ms
+   at 1,000). A map of selectors is the most expensive (0.74 ms), because
    each selector is queried on every press.
 3. **At 1,000 focus keys, matching the press is the largest share.** Testing
    the press against every combo with `matchesCombo` takes 229 µs, over a
-   third of the 0.61 ms total, and the document query takes 114 µs. The rest
-   is reading and filtering each target and building the binding table.
-4. **Columns and direction cost a few microseconds.** `cols="auto"` adds
-   1.2–2.5 µs over a fixed count. A grid's unbound key costs about 1.6 µs
-   more than a list's, because its default next/prev keys read the computed
-   direction when no `dir` attribute is set.
-5. **A run of items that refuse focus costs one pass over it, and `skip` is
+   third of the 0.66 ms total, and the document query takes 110 µs. The rest
+   is reading and filtering each target.
+4. **Columns cost nothing on a key no move is bound to, and a few
+   microseconds on a move.** An unbound key reads no layout, so it costs
+   about 1.2 µs whatever the columns, `auto` included. A move with
+   `cols="auto"` costs 2 µs more than with a fixed count in a grid, 3–4 µs
+   more in a flex-wrap row of four or a flex column, and 10 µs more in a flex
+   row of 20, where it reads the box of every item on the line.
+5. **A layout that has changed since the last read is laid out by moves
+   alone, whatever the column count.** With the layout dirtied before each
+   press, an unbound key still costs about 1.3 µs on every column page. A
+   move costs one layout of the page, from 20 µs (flex-wrap rows of a fixed
+   width) to 3.5 ms (a flex column), with a fixed count as with `auto`: the
+   browser's `focus()` lays the page out either way.
+6. **A run of items that refuse focus costs one pass over it, and `skip` is
    still the fast path.** A move past 1,000 hidden items that are not skipped
-   tries `focus()` on each and costs 0.66 ms with `display: none` and
+   tries `focus()` on each and costs 0.63 ms with `display: none` and
    0.62 ms with `visibility: hidden`. It costs 1.4 ms when each item carries
    a roving stop, which is carried onto it and put back. From 100 to 1,000
-   items the cost grows 7.7 times. The same 1,000 items marked skipped cost
-   0.34 ms, since no move tries to focus them.
+   items the cost grows 7.4 times. The same 1,000 items marked skipped cost
+   0.33 ms, since no move tries to focus them.
 
 ## Conclusion
 
 No change is warranted. The costliest realistic case measured, 100 focus
 keys under a document listener, stays under 0.1 ms per keydown. Only the
-synthetic 1,000 focus keys reach 0.5–0.8 ms, and a move past 1,000 hidden
+synthetic 1,000 focus keys reach 0.5–0.7 ms, and a move past 1,000 hidden
 items that are not skipped 0.6–1.4 ms. That is under a 16 ms frame,
 and would stay under 10 ms on a CPU ten times slower. Caching items or
 bindings would give up reading the current DOM on every press, and nothing
 measured here pays for it: page size and listener placement make no
 difference.
 
+`cols="auto"` reads the layout only for a press that could move. A move lays
+the page out in `focus()` anyway, so `auto` adds no layout of its own to it.
+The one press where `auto` lays out a changed page that a fixed count would
+not is a bound key with nowhere to go, such as End on the last item.
+
 If pages with hundreds of focus keys under one listener become a real use
 case, the measured follow-up is to memoize each combo string's parsed form
 inside `matchesCombo`. Parsing is a pure function of the string, so the
 cache needs no DOM invalidation. It targets the largest share measured, 229
-of 609 µs at 1,000 focus keys. Run this benchmark before and after such a
+of 658 µs at 1,000 focus keys. Run this benchmark before and after such a
 change.
 
 ## Limitations
