@@ -208,10 +208,11 @@ const readLayout = (
     kind: 'list',
     cols: 1,
     // `horizontal` redirects only the *default* keys — an explicit binding
-    // still wins in the table. Nothing but the literal value "horizontal"
-    // switches anything, from either source.
+    // still wins in the table. Nothing but "horizontal" switches anything:
+    // the option as typed, the attribute trimmed and in any case.
     horizontal:
-      (orientation ?? readAttribute(root, KEYROVE_ATTR_ORIENTATION)) ===
+      (orientation ??
+        readAttribute(root, KEYROVE_ATTR_ORIENTATION)?.trim().toLowerCase()) ===
       'horizontal',
     loop: loop ?? hasEnabledAttribute(root, KEYROVE_ATTR_LOOP),
   };

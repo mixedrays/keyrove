@@ -43,6 +43,20 @@ describe('keyRove', () => {
       expect(up.defaultPrevented).toBe(false);
     });
 
+    it('reads the attribute trimmed and in any case', () => {
+      renderList([createItem('a'), createItem('b')], {
+        containerAttrs: { [KEYROVE_ATTR_ORIENTATION]: ' Horizontal ' },
+      });
+      document.getElementById('a')!.focus();
+
+      pressKey('ArrowRight');
+      expect(activeId()).toBe('b');
+
+      const down = pressKey('ArrowDown');
+      expect(down.defaultPrevented).toBe(false);
+      expect(activeId()).toBe('b');
+    });
+
     it('keeps the vertical defaults for any other value', () => {
       renderList([createItem('a'), createItem('b')], {
         containerAttrs: { [KEYROVE_ATTR_ORIENTATION]: 'vertical' },

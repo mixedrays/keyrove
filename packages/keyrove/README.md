@@ -387,7 +387,7 @@ while its attribute applies per item. See
 | `data-keyrove-enter-key`       | `keys.enter`     | root | —           | Combo entering the root nested in the focused item.                                                                               |
 | `data-keyrove-focus-key`       | `focusKeys`      | any  | —           | Combo focusing this element, from anywhere under the listener, e.g. `ctrl+shift+KeyE`. As an option: combo → element or selector. |
 | `data-keyrove-loop`            | `loop`           | root | —           | Next/prev wrap past the ends of a list. Grids never wrap.                                                                         |
-| `data-keyrove-orientation`     | `orientation`    | root | —           | `horizontal` maps a list's default keys to `ArrowRight`/`ArrowLeft`, RTL-aware.                                                   |
+| `data-keyrove-orientation`     | `orientation`    | root | —           | `horizontal`, in any case, maps a list's default keys to `ArrowRight`/`ArrowLeft`, RTL-aware.                                     |
 | `data-keyrove-typeahead`       | `label`          | item | text        | Label for type-to-focus, when the item's own text is not it. As an option: `(item) => string`.                                    |
 
 `keyRove` takes every option but `label`. `rove` takes the same options and
