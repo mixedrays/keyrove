@@ -341,6 +341,13 @@ export type TypeaheadResult = ActionResult<'typeahead'>;
 export type TypeaheadMove = TypeaheadResult & { to: Element };
 
 /**
+ * Either handler's move: what an `onMove` receives when one config object is
+ * handed to both `keyRove` and `createTypeahead`. Typed {@link Move} alone,
+ * such an `onMove` fits `keyRove` but not the typeahead handler.
+ */
+export type AnyMove = Move | TypeaheadMove;
+
+/**
  * What `initRovingTabindex` takes: the group settings, and the item the stop
  * should go to.
  */

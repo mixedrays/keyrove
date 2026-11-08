@@ -2,6 +2,7 @@ import { describe, expect, expectTypeOf, it } from 'vitest';
 import * as attributes from '../../attributes';
 import * as entry from '../../index';
 import {
+  createTypeahead,
   itemAttributes,
   keyRove,
   matchesCombo,
@@ -9,13 +10,19 @@ import {
   rove,
 } from '../../index';
 import type {
+  AnyMove,
+  BoundaryAction,
   GroupOptions,
   KeyCombo,
   KeyRoveCode,
   KeyRoveEvent,
   KeyRoveOptions,
+  Move,
+  MoveAction,
   Options,
   RovingTabindexOptions,
+  StrideAction,
+  TypeaheadMove,
   TypeaheadOptions,
 } from '../../index';
 
@@ -68,6 +75,43 @@ describe('public type names', () => {
 
     expectTypeOf<KeyboardEvent>().toExtend<KeyRoveEvent>();
     expectTypeOf<SyntheticKeyboardEvent>().toExtend<KeyRoveEvent>();
+  });
+
+  it('types one onMove for keyRove, rove and createTypeahead with AnyMove', () => {
+    expectTypeOf<AnyMove>().toEqualTypeOf<Move | TypeaheadMove>();
+
+    const moves: AnyMove[] = [];
+    const config = {
+      items: '[role="menuitem"]',
+      loop: true,
+      onMove: (move: AnyMove) => moves.push(move),
+    };
+
+    // Both calls type-check with the one object; neither runs a move here.
+    const typeahead = createTypeahead(config);
+    keyRove(
+      { code: 'KeyA', target: null, currentTarget: null, preventDefault() {} },
+      config,
+    );
+    expectTypeOf<typeof config>().toExtend<KeyRoveOptions>();
+    expectTypeOf<typeof config>().toExtend<TypeaheadOptions>();
+    expect(typeof typeahead).toBe('function');
+    expect(moves).toEqual([]);
+  });
+
+  it('names the boundary moves BoundaryAction, for typing a keys map', () => {
+    expectTypeOf<BoundaryAction>().toEqualTypeOf<'exit' | 'enter'>();
+    expectTypeOf<MoveAction>().toEqualTypeOf<
+      StrideAction | BoundaryAction | 'focus'
+    >();
+    expectTypeOf<keyof NonNullable<GroupOptions['keys']>>().toEqualTypeOf<
+      StrideAction | BoundaryAction
+    >();
+
+    const keys: Partial<Record<BoundaryAction, KeyCombo>> = { exit: 'Escape' };
+    const options: KeyRoveOptions = { keys };
+
+    expect(options.keys?.exit).toBe('Escape');
   });
 
   it('builds the typeahead options on the roving tabindex options', () => {

@@ -377,18 +377,18 @@ keyRove(e, { loop: true }); // override looping only
 keyRove(e, { items: '[role="menuitem"]' }); // override item lookup only
 ```
 
-| Option           | Type                                                                     | Falls back to                  | Meaning                                                                                                                                                                        |
-| ---------------- | ------------------------------------------------------------------------ | ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `items`          | `string \| (root: Element) => Element[]`                                 | `data-keyrove-item`            | The group's items: a selector run inside the root, or a function returning them. Elements carrying `disabled` or matching `:disabled` are never navigable.                     |
-| `root`           | `string`                                                                 | `data-keyrove-root`            | Selector a [root](#roots) answers to, matched at or above the event's target.                                                                                                  |
-| `cols`           | `number \| 'auto'`                                                       | `data-keyrove-cols`            | Columns. Above 1 the group is a grid. `'auto'` counts the root's CSS grid tracks on every keypress that could move, or else the items on a wrapping layout's first line.       |
-| `loop`           | `boolean`                                                                | `data-keyrove-loop`            | Whether next/prev wrap at the ends. Lists only.                                                                                                                                |
-| `orientation`    | `'horizontal' \| 'vertical'`                                             | `data-keyrove-orientation`     | `'horizontal'` re-points a list's default arrows; see [RTL](#horizontal-groups-and-rtl).                                                                                       |
-| `pageLength`     | `number`                                                                 | `data-keyrove-page-length`     | Rows per page jump — items, in a list.                                                                                                                                         |
-| `keys`           | `Partial<Record<StrideAction \| 'exit' \| 'enter', KeyCombo \| 'none'>>` | the `*-key` attributes         | The [combo](#combos) or combos each move answers to: `{ next: 'ArrowDown, KeyJ' }`, or `'none'` for no key. Read move by move. Includes [`exit` and `enter`](#exit-and-enter). |
-| `focusKeys`      | `Record<string, string \| Element>`                                      | `data-keyrove-focus-key`       | Combo, or a list of them, → element or a selector resolved within the listener's reach: `{ 'F6, ctrl+KeyE': '#panel' }`. Replaces the attribute scan rather than adding to it. |
-| `skip`           | `string \| (element: Element) => boolean`                                | `data-keyrove-skip`            | Which items a move passes over: a selector, or a predicate.                                                                                                                    |
-| `rovingTabindex` | `boolean`                                                                | `data-keyrove-roving-tabindex` | Whether the group carries one tab stop. One boolean for the group, where the attribute is read per item.                                                                       |
+| Option           | Type                                                                  | Falls back to                  | Meaning                                                                                                                                                                        |
+| ---------------- | --------------------------------------------------------------------- | ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `items`          | `string \| (root: Element) => Element[]`                              | `data-keyrove-item`            | The group's items: a selector run inside the root, or a function returning them. Elements carrying `disabled` or matching `:disabled` are never navigable.                     |
+| `root`           | `string`                                                              | `data-keyrove-root`            | Selector a [root](#roots) answers to, matched at or above the event's target.                                                                                                  |
+| `cols`           | `number \| 'auto'`                                                    | `data-keyrove-cols`            | Columns. Above 1 the group is a grid. `'auto'` counts the root's CSS grid tracks on every keypress that could move, or else the items on a wrapping layout's first line.       |
+| `loop`           | `boolean`                                                             | `data-keyrove-loop`            | Whether next/prev wrap at the ends. Lists only.                                                                                                                                |
+| `orientation`    | `'horizontal' \| 'vertical'`                                          | `data-keyrove-orientation`     | `'horizontal'` re-points a list's default arrows; see [RTL](#horizontal-groups-and-rtl).                                                                                       |
+| `pageLength`     | `number`                                                              | `data-keyrove-page-length`     | Rows per page jump — items, in a list.                                                                                                                                         |
+| `keys`           | `Partial<Record<StrideAction \| BoundaryAction, KeyCombo \| 'none'>>` | the `*-key` attributes         | The [combo](#combos) or combos each move answers to: `{ next: 'ArrowDown, KeyJ' }`, or `'none'` for no key. Read move by move. Includes [`exit` and `enter`](#exit-and-enter). |
+| `focusKeys`      | `Record<string, string \| Element>`                                   | `data-keyrove-focus-key`       | Combo, or a list of them, → element or a selector resolved within the listener's reach: `{ 'F6, ctrl+KeyE': '#panel' }`. Replaces the attribute scan rather than adding to it. |
+| `skip`           | `string \| (element: Element) => boolean`                             | `data-keyrove-skip`            | Which items a move passes over: a selector, or a predicate.                                                                                                                    |
+| `rovingTabindex` | `boolean`                                                             | `data-keyrove-roving-tabindex` | Whether the group carries one tab stop. One boolean for the group, where the attribute is read per item.                                                                       |
 
 `keys` falls back per action. `{ keys: { next: 'KeyJ' } }` changes only next;
 other actions retain their attribute or default bindings. Empty, blank and
@@ -542,10 +542,18 @@ buffer lives in the handler, which keeps `keyRove` itself stateless. See
 | `onMove`         | `(move: TypeaheadMove) => void` | —          | Fired after focus has moved, and only then; see [`keyRove`'s option](#options-onmove).                                                   |
 
 It shares `items`, `root`, `skip` and `rovingTabindex` with `keyRove`, using
-the same fallback rules. Pass one configuration to both handlers:
+the same fallback rules. Pass one configuration to both handlers. An `onMove`
+in it receives either handler's move, so type its argument
+[`AnyMove`](#typeaheadoptions-typeaheadresult-typeaheadmove):
 
 ```ts
-const config = { items: '[role="menuitem"]', loop: true };
+import { keyRove, createTypeahead, type AnyMove } from '@mixedrays/keyrove';
+
+const config = {
+  items: '[role="menuitem"]',
+  loop: true,
+  onMove: ({ action, to }: AnyMove) => console.log(action, to),
+};
 const typeahead = createTypeahead(config);
 
 el.addEventListener('keydown', (e) => keyRove(e, config) || typeahead(e));
@@ -895,6 +903,8 @@ item.tabIndex = 0;
 
 ```ts
 import type {
+  AnyMove,
+  BoundaryAction,
   GroupOptions,
   KeyCombo,
   KeyRoveCode,
@@ -1046,7 +1056,8 @@ type Options = KeyRoveOptions;
 
 All group settings are optional; see [options](#options) for fallbacks.
 `StrideAction` covers movement through the item sequence. It excludes `exit`,
-`enter` and `focus`.
+`enter` and `focus`. `BoundaryAction` names `exit` and `enter`, the moves
+[across a nested root's boundary](#exit-and-enter), for typing a `keys` map.
 
 ```ts
 type GroupOptions = {
@@ -1056,19 +1067,23 @@ type GroupOptions = {
   loop?: boolean;
   orientation?: 'horizontal' | 'vertical';
   pageLength?: number;
-  keys?: Partial<Record<StrideAction | 'exit' | 'enter', KeyCombo | 'none'>>;
+  keys?: Partial<Record<StrideAction | BoundaryAction, KeyCombo | 'none'>>;
   focusKeys?: Record<string, string | Element>;
   skip?: string | ((element: Element) => boolean);
   rovingTabindex?: boolean;
 };
 
-type StrideAction = Exclude<MoveAction, 'exit' | 'enter' | 'focus'>;
+type StrideAction = Exclude<MoveAction, BoundaryAction | 'focus'>;
+
+type BoundaryAction = 'exit' | 'enter';
 ```
 
 ### TypeaheadOptions, TypeaheadResult, TypeaheadMove
 
 What [`createTypeahead`](#createtypeahead-options) takes and its handler
-returns. The result has `MoveResult`'s shape with its own action.
+returns. The result has `MoveResult`'s shape with its own action. `AnyMove`
+is either handler's move: type an `onMove` with it when one object is passed
+to both `keyRove` and `createTypeahead`.
 
 ```ts
 type TypeaheadOptions = Pick<
@@ -1090,6 +1105,9 @@ type TypeaheadResult = {
 
 // what onMove receives: a move that actually happened
 type TypeaheadMove = TypeaheadResult & { to: Element };
+
+// what an onMove shared by both handlers receives
+type AnyMove = Move | TypeaheadMove;
 ```
 
 ### RovingTabindexOptions, InitRovingTabindexOptions

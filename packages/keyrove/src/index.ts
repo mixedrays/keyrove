@@ -10,6 +10,8 @@ export * from './attributes.js';
 // Named rather than `export *`, so the internal types in `types.ts` stay
 // internal and the public surface is visible at a glance.
 export type {
+  AnyMove,
+  BoundaryAction,
   GroupOptions,
   InitRovingTabindexOptions,
   ItemAttributeOptions,

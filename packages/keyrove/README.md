@@ -322,10 +322,18 @@ match was already focused or could not receive focus. `onMove` runs only after
 a successful move.
 
 Share `items`, `root`, `skip` and `rovingTabindex` with `keyRove` so both
-handlers use the same group rules:
+handlers use the same group rules. An `onMove` in the shared object receives
+either handler's move, so type its argument `AnyMove`:
 
 ```ts
-const config = { items: '[role="menuitem"]', loop: true, rovingTabindex: true };
+import { keyRove, createTypeahead, type AnyMove } from '@mixedrays/keyrove';
+
+const config = {
+  items: '[role="menuitem"]',
+  loop: true,
+  rovingTabindex: true,
+  onMove: ({ action, to }: AnyMove) => console.log(action, to),
+};
 const typeahead = createTypeahead(config);
 
 menu.addEventListener('keydown', (e) => keyRove(e, config) || typeahead(e));
