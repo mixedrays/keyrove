@@ -1,6 +1,7 @@
 import { describe, it, expect, afterEach } from 'vitest';
 import { followFocus } from '../../followFocus';
-import { keyRove, KEYROVE_ATTR_ROVING_TABINDEX } from '../../keyRove';
+import { KEYROVE_ATTR_ROVING_TABINDEX } from '../../attributes';
+import { keyRove } from '../../keyRove';
 import type { Options } from '../../types';
 import {
   activeId,

@@ -1,6 +1,7 @@
 import { describe, it, expect, afterEach, vi } from 'vitest';
 import { createTypeahead } from '../../createTypeahead';
-import { keyRove, KEYROVE_ATTR_TYPEAHEAD } from '../../keyRove';
+import { KEYROVE_ATTR_TYPEAHEAD } from '../../attributes';
+import { keyRove } from '../../keyRove';
 import { activeId, pressKey, resetTestState } from './testUtils';
 import type { TypeaheadOptions } from '../../index';
 

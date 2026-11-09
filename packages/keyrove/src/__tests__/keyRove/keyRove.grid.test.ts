@@ -5,7 +5,7 @@ import {
   KEYROVE_ATTR_NEXT_ROW_KEY,
   KEYROVE_ATTR_PREV_KEY,
   KEYROVE_ATTR_PREV_ROW_KEY,
-} from '../../keyRove';
+} from '../../attributes';
 import {
   activeId,
   createItem,
@@ -380,6 +380,82 @@ describe('keyRove', () => {
       pressKey('ArrowDown');
 
       expect(activeId()).toBe('2');
+    });
+
+    it('reads no layout for a key no move is bound to', () => {
+      const style = resolveColumns('100px 100px 100px');
+      const rects = vi.spyOn(Element.prototype, 'getClientRects');
+      renderAuto();
+      document.getElementById('0')!.focus();
+
+      const press = pressKey('KeyQ');
+
+      expect(press.defaultPrevented).toBe(false);
+      expect(style).not.toHaveBeenCalled();
+      expect(rects).not.toHaveBeenCalled();
+    });
+
+    it('reads no layout for a focus key', () => {
+      const style = resolveColumns('100px 100px 100px');
+      const rects = vi.spyOn(Element.prototype, 'getClientRects');
+      const root = renderAuto();
+      root.children[5].setAttribute('data-keyrove-focus-key', 'alt+KeyF');
+      document.getElementById('0')!.focus();
+
+      pressKey('KeyF', undefined, { altKey: true });
+
+      expect(activeId()).toBe('5');
+      expect(style).not.toHaveBeenCalled();
+      expect(rects).not.toHaveBeenCalled();
+    });
+
+    it('reads the layout for a row move bound to another key', () => {
+      resolveColumns('100px 100px 100px');
+      renderAuto({ containerAttrs: { [KEYROVE_ATTR_NEXT_ROW_KEY]: 'KeyJ' } });
+      document.getElementById('0')!.focus();
+
+      pressKey('KeyJ');
+
+      expect(activeId()).toBe('3');
+    });
+
+    it('counts the first line with one getClientRects call per item', () => {
+      // No grid tracks, and three items a line: each item's first box sits
+      // on the row its index puts it in.
+      resolveColumns('none');
+      const rect = vi.spyOn(Element.prototype, 'getBoundingClientRect');
+      const rects = vi
+        .spyOn(Element.prototype, 'getClientRects')
+        .mockImplementation(function (this: Element) {
+          const top = Math.floor(Number(this.id) / 3) * 20;
+          return [
+            { top, bottom: top + 20, height: 20 },
+          ] as unknown as DOMRectList;
+        });
+      renderAuto();
+      document.getElementById('0')!.focus();
+
+      pressKey('ArrowDown');
+
+      expect(activeId()).toBe('3');
+      expect(rect).not.toHaveBeenCalled();
+      // The first line's three items, and the one starting the next line.
+      expect(rects).toHaveBeenCalledTimes(4);
+    });
+
+    it('reads no layout for a numeric count', () => {
+      const style = vi.spyOn(CSSStyleDeclaration.prototype, 'getPropertyValue');
+      const rect = vi.spyOn(Element.prototype, 'getBoundingClientRect');
+      const rects = vi.spyOn(Element.prototype, 'getClientRects');
+      renderGrid(9, 3);
+      document.getElementById('0')!.focus();
+
+      pressKey('ArrowDown');
+
+      expect(activeId()).toBe('3');
+      expect(style).not.toHaveBeenCalledWith('grid-template-columns');
+      expect(rect).not.toHaveBeenCalled();
+      expect(rects).not.toHaveBeenCalled();
     });
   });
 

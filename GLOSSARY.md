@@ -61,11 +61,11 @@ _Avoid_: Vertical group, one-dimensional group
 
 **Grid**:
 A group with a column count above one, whose item sequence fills consecutive rows of that many items.
-In keyrove, "grid" means a column count above one, which a CSS grid can supply; neither the ARIA `grid` role nor on-screen geometry makes a group a grid.
+In keyrove, "grid" means a column count above one, which a CSS grid or a wrapping layout can supply; neither the ARIA `grid` role nor on-screen geometry makes a group a grid on its own.
 _Avoid_: Matrix, table, spatial navigation
 
 **Column count**:
-The number of items per row of a group's item sequence, either fixed or counted from the root's CSS grid columns. A column count of one makes a list.
+The number of items per row of a group's item sequence, either fixed or counted on screen, from the root's CSS grid columns or from the items on its first line. A column count of one makes a list.
 _Avoid_: Row length, width
 
 **Orientation**:
@@ -148,7 +148,7 @@ A combo assigned to one destination element, item or not, rather than to a strid
 _Avoid_: Focus shortcut, access key, jump key
 
 **Editable target**:
-An event target inside a text field, select, editable content, or another input whose native behavior uses the keys keyrove binds. From an editable target, only focus keys pressed with Control, Alt, or Meta act.
+An event target inside a text field, select, editable content, or another input whose native behavior uses the keys keyrove binds. From an editable target, only focus keys pressed with Control, Alt, or Meta act, unless AltGr is held.
 In keyrove, buttons, checkboxes, and similar inputs are not editable targets, so navigation works from them.
 _Avoid_: Input, form field, text input
 
@@ -160,7 +160,7 @@ In keyrove, consuming a key never stops its propagation.
 _Avoid_: Handled key, captured key, swallowed key
 
 **Consumed no-op**:
-A consumed key that produces no move, such as an action at the end of a list or toward a destination that cannot receive focus.
+A consumed key that produces no move, such as an action at the end of a list or one where no destination can receive focus.
 _Avoid_: Failed move, ignored key
 
 **Untouched key**:

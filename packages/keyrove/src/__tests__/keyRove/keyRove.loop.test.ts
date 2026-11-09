@@ -1,5 +1,5 @@
 import { describe, it, expect, afterEach, vi } from 'vitest';
-import { KEYROVE_ATTR_LOOP } from '../../keyRove';
+import { KEYROVE_ATTR_LOOP } from '../../attributes';
 import {
   activeId,
   createItem,

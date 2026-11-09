@@ -67,6 +67,12 @@ export type KeyRoveEvent = {
   altKey?: boolean;
   shiftKey?: boolean;
   metaKey?: boolean;
+  // Whether AltGr is held (`KeyboardEvent.getModifierState`). Windows reports
+  // AltGr as Ctrl+Alt, so this is how a press that types "@" or "€" tells
+  // itself apart from a Ctrl+Alt command. Only `'AltGraph'` is asked, which
+  // lets React's narrower `ModifierKey` parameter fit too. Optional: absent,
+  // Ctrl+Alt reads as a command.
+  getModifierState?: (key: 'AltGraph') => boolean;
   // Whether an input method is mid-composition (`KeyboardEvent.isComposing`).
   // Optional like the flags: absent reads as "not composing".
   isComposing?: boolean;
@@ -79,6 +85,15 @@ export type KeyRoveEvent = {
   // deliberately stay on the physical `code`. Optional: an event without it
   // still navigates; it just never typeaheads.
   key?: string;
+  // The path the press travels (`Event.composedPath()`). Only the editable
+  // guard reads it, for the element the press began on: a listener outside a
+  // shadow root sees `target` retargeted to the host, never the field inside.
+  // Optional: absent, the guard reads `target` alone.
+  composedPath?: () => EventTarget[];
+  // The native event behind a framework's synthetic one, as React passes it:
+  // React's events carry no `composedPath` of their own, so the guard reads
+  // it here instead. Optional like `composedPath`.
+  nativeEvent?: { composedPath?: () => EventTarget[] };
 };
 
 /**
@@ -119,7 +134,7 @@ export type BoundaryAction = 'exit' | 'enter';
  * position. It is the one move whose `*-key` attribute sits on its
  * destination.
  */
-export type MoveAction = StrideAction | 'exit' | 'enter' | 'focus';
+export type MoveAction = StrideAction | BoundaryAction | 'focus';
 
 /**
  * The shape every handler returns for a consumed keypress, parameterised by
@@ -167,7 +182,8 @@ export type GroupOptions = {
   root?: string;
   /**
    * Columns. Above 1 the group is a grid. `'auto'` counts the tracks of the
-   * root's CSS grid on every keypress. Defaults to the cols attribute.
+   * root's CSS grid on every keypress, or, where it has none, the items on
+   * the first line of a wrapping layout. Defaults to the cols attribute.
    */
   cols?: number | 'auto';
   /**
@@ -185,7 +201,7 @@ export type GroupOptions = {
    * move to no key, freeing its default. `exit` and `enter` have no default,
    * and move across a nested root's boundary: `{ exit: 'Escape' }`.
    */
-  keys?: Partial<Record<StrideAction | 'exit' | 'enter', KeyCombo | 'none'>>;
+  keys?: Partial<Record<StrideAction | BoundaryAction, KeyCombo | 'none'>>;
   /**
    * Elements reachable by a combo of their own: a {@link KeyCombo} → the
    * element, or a selector resolved within the listener's reach. Replaces the
@@ -207,8 +223,25 @@ export type KeyRoveOptions = GroupOptions & {
   onMove?: (move: Move) => void;
 };
 
-/** {@link KeyRoveOptions} under its earlier name, kept for existing imports. */
+/**
+ * {@link KeyRoveOptions} under its earlier name, kept for existing imports.
+ *
+ * @deprecated Use {@link KeyRoveOptions}. `Options` will be removed in the
+ * next major version.
+ */
 export type Options = KeyRoveOptions;
+
+/**
+ * What `initRovingTabindex` and `followFocus` take: the group settings that
+ * decide which elements are a group's roving items. The same fields {@link GroupOptions}
+ * names, falling back the same way, so one object serves every export. The
+ * group layer reads its groups by these fields alone, and the typeahead
+ * options build on them.
+ */
+export type RovingTabindexOptions = Pick<
+  GroupOptions,
+  'items' | 'root' | 'skip' | 'rovingTabindex'
+>;
 
 /** Group settings that can be written as attributes on a root. */
 export type RootAttributeOptions = Pick<
@@ -258,7 +291,8 @@ export type ItemAttributes = {
  * group's own readings: see {@link GroupReader}.
  */
 export type GroupConfig = {
-  layout: Layout;
+  /** Read on first ask: with `auto`, it reads the page's layout. */
+  readonly layout: Layout;
   explicit: ExplicitBinding;
   rtl: () => boolean;
   pageLength: number;
@@ -273,10 +307,7 @@ export type GroupConfig = {
  * takes what it needs. The rest of a group's settings are about moves, which
  * typeahead does not make: it has one way to reach an item, its label.
  */
-export type TypeaheadOptions = Pick<
-  GroupOptions,
-  'items' | 'root' | 'skip' | 'rovingTabindex'
-> & {
+export type TypeaheadOptions = RovingTabindexOptions & {
   /**
    * The text an item is matched by. Falling back, where it returns nothing, to
    * the typeahead attribute and then the item's own text — the same chain an
@@ -315,14 +346,11 @@ export type TypeaheadResult = ActionResult<'typeahead'>;
 export type TypeaheadMove = TypeaheadResult & { to: Element };
 
 /**
- * What `initRovingTabindex` and `followFocus` take: the group settings that
- * decide which elements are a group's roving items. The same fields {@link GroupOptions}
- * names, falling back the same way, so one object serves every export.
+ * Either handler's move: what an `onMove` receives when one config object is
+ * handed to both `keyRove` and `createTypeahead`. Typed {@link Move} alone,
+ * such an `onMove` fits `keyRove` but not the typeahead handler.
  */
-export type RovingTabindexOptions = Pick<
-  GroupOptions,
-  'items' | 'root' | 'skip' | 'rovingTabindex'
->;
+export type AnyMove = Move | TypeaheadMove;
 
 /**
  * What `initRovingTabindex` takes: the group settings, and the item the stop
@@ -371,9 +399,10 @@ export type Binding =
   | { combo: string; intent: 'focus'; enters: true; target: Element };
 
 /**
- * Looks up the combo explicitly bound to a move, straight off the root's
- * `*-key` attribute — nullish where the attribute is unset and the move keeps
- * its default key, and `none` where the move is bound to no key.
+ * Looks up the combo explicitly bound to a move: the `keys` option where it
+ * names the move, else the root's `*-key` attribute. Nullish where neither
+ * sets it and the move keeps its default key, and `none` where the move is
+ * bound to no key.
  */
 export type ExplicitBinding = (
   intent: StrideAction | BoundaryAction,
@@ -419,6 +448,14 @@ export type BuildBindingsArgs = {
   rtl: () => boolean;
 };
 
+export type FindBindingArgs = Omit<BuildBindingsArgs, 'layout'> & {
+  /**
+   * The group's layout, asked for only when the press could be a move in some
+   * layout: with `auto`, reading it reads the page's layout.
+   */
+  layout: () => Layout;
+};
+
 export type ResolveTargetArgs = {
   intent: StrideAction;
   elements: Element[];
@@ -439,12 +476,6 @@ export type ToggleTabIndexArgs = {
   root: Element | null | undefined;
   isActive: boolean;
 };
-
-/** The group settings the group layer reads: the four readings' sources. */
-export type GroupReadingOptions = Pick<
-  GroupOptions,
-  'items' | 'root' | 'skip' | 'rovingTabindex'
->;
 
 /**
  * One group, resolved for one call: the items its root governs and every
@@ -549,9 +580,10 @@ export type GroupReader = {
 /**
  * What it takes to land a move: the event to claim, the action to report, the
  * item focus is leaving (`null` from outside the group), the one it lands on
- * (nullish when there is nowhere to go), and who to tell. Generic in the action
- * so each handler's result comes back exactly typed. Which item the roving
- * stop is carried from is the group's to decide: see {@link Group.move}.
+ * (nullish when there is nowhere to go), how to walk on where that one refuses
+ * focus, and who to tell. Generic in the action so each handler's result comes
+ * back exactly typed. Which item the roving stop is carried from is the
+ * group's to decide: see {@link Group.move}.
  */
 export type MoveArgs<Action extends string> = {
   /** The keypress to claim. A move made from code has none. */
@@ -559,5 +591,16 @@ export type MoveArgs<Action extends string> = {
   action: Action;
   from: Element | null;
   to: Element | null | undefined;
+  /**
+   * The next destination of the move's walk, by `isNavigable`: the group's
+   * navigable test, passing over every item that has refused focus so far.
+   * Asked each time a destination refuses, until one takes focus or none is
+   * left. The test only grows stricter, so the walk can go on from where it
+   * stopped rather than start again. Without it a refusal ends the move, as
+   * it does for a destination named outright.
+   */
+  retarget?: (
+    isNavigable: (item: Element) => boolean,
+  ) => Element | null | undefined;
   onMove?: (move: ActionResult<Action> & { to: Element }) => void;
 };

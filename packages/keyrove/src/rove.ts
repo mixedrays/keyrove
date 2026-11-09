@@ -9,8 +9,8 @@
  */
 
 import { readConfig } from './config.js';
-import { readGroups } from './group.js';
-import { resolveTarget } from './position.js';
+import { readGroups, walkOn } from './group.js';
+import { walkTargets } from './position.js';
 import type { KeyRoveOptions, MoveResult, StrideAction } from './types.js';
 
 // Where each move enters a group it has no position in: a forward move at the
@@ -66,7 +66,7 @@ export const rove = (
 
   if (!group) return null;
 
-  const config = readConfig(group.root, options);
+  const config = readConfig(group, options);
 
   if (config.layout.kind === 'list' && action.endsWith('Row')) return null;
 
@@ -76,18 +76,30 @@ export const rove = (
 
   if (!intent) return null;
 
-  const target = resolveTarget({
-    intent,
-    elements,
-    // An entry is `home` or `end`, which go by the group's ends, not by an
-    // index.
-    fromIndex: from ? elements.indexOf(from) : 0,
-    layout: config.layout,
-    pageLength: config.pageLength,
-    isNavigable: group.isNavigable,
-  });
+  // An entry is `home` or `end`, which go by the group's ends, not by an
+  // index.
+  const fromIndex = from ? elements.indexOf(from) : 0;
+  // The walk carries on past each item that refuses focus, as a key's does.
+  const { to: target, retarget } = walkOn(
+    (isNavigable) =>
+      walkTargets({
+        intent,
+        elements,
+        fromIndex,
+        layout: config.layout,
+        pageLength: config.pageLength,
+        isNavigable,
+      }),
+    group.isNavigable,
+  );
 
   if (!target && !from) return null;
 
-  return group.move({ action, from, to: target, onMove: options.onMove });
+  return group.move({
+    action,
+    from,
+    to: target,
+    retarget,
+    onMove: options.onMove,
+  });
 };

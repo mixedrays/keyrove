@@ -498,6 +498,42 @@ describe('readGroups', () => {
       expect(onMove).not.toHaveBeenCalled();
     });
 
+    it('walks on by retarget, passing over each item that refused', () => {
+      render(list);
+      byId('a').focus();
+      vi.spyOn(byId('b'), 'focus').mockImplementation(() => {});
+      const retarget = vi.fn((isNavigable: (item: Element) => boolean) =>
+        ['b', 'c'].map(byId).find(isNavigable),
+      );
+
+      const result = readGroups({})
+        .of(byId('root'))
+        .move({ action: 'next', from: byId('a'), to: byId('b'), retarget });
+
+      expect(result).toEqual({
+        action: 'next',
+        from: byId('a'),
+        to: byId('c'),
+      });
+      expect(retarget).toHaveBeenCalledTimes(1);
+      expect(document.activeElement).toBe(byId('c'));
+    });
+
+    it('ends the walk where retarget hands back an item that already refused', () => {
+      render(list);
+      byId('a').focus();
+      vi.spyOn(byId('c'), 'focus').mockImplementation(() => {});
+      const retarget = vi.fn(() => byId('c'));
+
+      const result = readGroups({})
+        .of(byId('root'))
+        .move({ action: 'end', from: byId('a'), to: byId('c'), retarget });
+
+      expect(result).toEqual({ action: 'end', from: byId('a'), to: null });
+      expect(retarget).toHaveBeenCalledTimes(1);
+      expect(document.activeElement).toBe(byId('a'));
+    });
+
     it('carries no stop from an item that does not carry one, or into the group from outside', () => {
       render(list);
       byId('a').focus();

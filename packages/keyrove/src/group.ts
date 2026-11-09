@@ -18,17 +18,17 @@ import {
   KEYROVE_ATTR_SKIP,
 } from './attributes.js';
 import { innerRoot, outerRoot, ownerRoot, rootAt } from './nesting.js';
-import { hasEnabledAttribute, toggleTabIndex } from './utils.js';
+import { hasEnabledAttribute } from './utils.js';
 import type {
   ActionResult,
   Group,
   GroupReader,
-  GroupReadingOptions,
   IsRoot,
   IsRoving,
   IsSkipped,
   MoveArgs,
   ReadItems,
+  RovingTabindexOptions,
 } from './types.js';
 
 // The attribute source's answers to the four questions this layer asks about
@@ -57,11 +57,11 @@ export const attributeSkip: IsSkipped = (element) =>
  * What marks a root: a `root` selector where one is named, else the attribute.
  * A shadow root handed to `rove` is asked too, and matches no selector.
  */
-const rootTest = ({ root }: GroupReadingOptions): IsRoot =>
+const rootTest = ({ root }: RovingTabindexOptions): IsRoot =>
   root ? (element) => !!element.matches?.(root) : attributeRoot;
 
 /** How the items are found: a selector run in the root, a reading of your own, or the attribute. */
-const itemsReader = ({ items }: GroupReadingOptions): ReadItems => {
+const itemsReader = ({ items }: RovingTabindexOptions): ReadItems => {
   if (!items) return attributeItems;
 
   if (typeof items === 'string') {
@@ -72,7 +72,7 @@ const itemsReader = ({ items }: GroupReadingOptions): ReadItems => {
 };
 
 /** Which items a move passes over: a selector or a test of your own, else the attribute. */
-const skipTest = ({ skip }: GroupReadingOptions): IsSkipped => {
+const skipTest = ({ skip }: RovingTabindexOptions): IsSkipped => {
   if (!skip) return attributeSkip;
 
   return typeof skip === 'string' ? (element) => element.matches(skip) : skip;
@@ -83,7 +83,7 @@ const skipTest = ({ skip }: GroupReadingOptions): IsSkipped => {
  * for the group where options name it, else the attribute's reading of that
  * item.
  */
-const rovingTest = ({ rovingTabindex }: GroupReadingOptions): IsRoving =>
+const rovingTest = ({ rovingTabindex }: RovingTabindexOptions): IsRoving =>
   rovingTabindex === undefined ? attributeRoving : () => rovingTabindex;
 
 /**
@@ -129,10 +129,10 @@ export const isDisabled = (element: Element) =>
  */
 const placeStop = (items: Element[], stop: Element | null) => {
   for (const item of items) {
-    const isActive = item === stop;
+    const tabindex = item === stop ? '0' : '-1';
 
-    if (item.getAttribute('tabindex') !== (isActive ? '0' : '-1')) {
-      toggleTabIndex({ root: item, isActive });
+    if (item.getAttribute('tabindex') !== tabindex) {
+      item.setAttribute('tabindex', tabindex);
     }
   }
 };
@@ -146,14 +146,45 @@ const carryStop = (from: Element, to: Element) => {
     (element) => [element, element.getAttribute('tabindex')] as const,
   );
 
-  toggleTabIndex({ root: from, isActive: false });
-  toggleTabIndex({ root: to, isActive: true });
+  from.setAttribute('tabindex', '-1');
+  to.setAttribute('tabindex', '0');
 
   return () => {
     for (const [element, value] of before) {
       if (value === null) element.removeAttribute('tabindex');
       else element.setAttribute('tabindex', value);
     }
+  };
+};
+
+/**
+ * A move's destination and the rest of its walk, as {@link MoveArgs} takes
+ * them: the first item `walk` hands out by `isNavigable`, the group's own
+ * test, and a `retarget` that carries the same walk on rather than starting
+ * it again.
+ *
+ * `land` asks `retarget` with a test that turns down every item refused so
+ * far: one that only grows stricter, and so turns down every item the walk
+ * has passed too. The walk goes on by it from where it stopped, and lands
+ * where starting again would, at one pass over the items rather than one per
+ * refusal.
+ */
+export const walkOn = (
+  walk: (
+    isNavigable: (item: Element) => boolean,
+  ) => Iterator<Element, null | undefined>,
+  isNavigable: (item: Element) => boolean,
+) => {
+  let test = isNavigable;
+  const targets = walk((item) => test(item));
+
+  return {
+    to: targets.next().value,
+    retarget: (stricter: (item: Element) => boolean) => {
+      test = stricter;
+
+      return targets.next().value;
+    },
   };
 };
 
@@ -167,43 +198,59 @@ const carryStop = (from: Element, to: Element) => {
  * one that is the focused item already, is a consumed no-op — focus and the
  * tab stop stay put, `onMove` stays quiet, and the result carries `to: null`.
  * Otherwise the roving tab stop follows when `isRoving` accepts the item it is
- * carried from, which `stopSource` names once the move is known to go
- * somewhere, `to` is focused, and `onMove` fires with the move that happened.
+ * carried from, which `stopSource` names for the destination, `to` is focused,
+ * and `onMove` fires with the move that happened.
  *
- * A `to` that does not take focus — not focusable, inert, hidden — is the same
- * consumed no-op, with the tab stop put back where it was.
+ * A `to` that does not take focus — not focusable, inert, hidden — has its tab
+ * stop put back where it was, and the move walks on: `retarget` hands out the
+ * next destination by `isNavigable` with every refusing item passed over, and
+ * it is tried the same way. Each pass passes over one more item, so the walk
+ * ends. Where nothing beyond takes focus, or there is no `retarget`, the move
+ * is the same consumed no-op. A move whose first destination takes focus pays
+ * for none of it.
  */
 const land = <Action extends string>(
-  { e, action, from, to, onMove }: MoveArgs<Action>,
+  { e, action, from, to, retarget, onMove }: MoveArgs<Action>,
   isRoving: IsRoving,
-  stopSource: () => Element | null,
+  isNavigable: (item: Element) => boolean,
+  stopSource: (to: Element) => Element | null,
 ): ActionResult<Action> => {
   e?.preventDefault();
 
-  if (!to || to === from) return { action, from, to: null };
+  let refused: Set<Element> | undefined;
 
-  // The stop moves before focus does: `tabindex="0"` is what makes a bare item
-  // focusable in the first place.
-  const stopFrom = stopSource();
-  const putBack =
-    stopFrom && stopFrom !== to && isRoving(stopFrom)
-      ? carryStop(stopFrom, to)
-      : undefined;
+  // A `retarget` that hands back an item already refused would go round for
+  // ever: it ends the walk instead.
+  while (to && to !== from && !refused?.has(to)) {
+    // The stop moves before focus does: `tabindex="0"` is what makes a bare
+    // item focusable in the first place.
+    const stopFrom = stopSource(to);
+    const putBack =
+      stopFrom && stopFrom !== to && isRoving(stopFrom)
+        ? carryStop(stopFrom, to)
+        : undefined;
 
-  (to as HTMLElement).focus();
+    (to as HTMLElement).focus();
 
-  // `focus()` fails silently, so whether focus landed on `to` or inside it is
-  // read off the tree.
-  if (!holdsFocus(to)) {
+    // `focus()` fails silently, so whether focus landed on `to` or inside it
+    // is read off the tree.
+    if (holdsFocus(to)) {
+      const move = { action, from, to };
+      onMove?.(move);
+
+      return move;
+    }
+
     putBack?.();
 
-    return { action, from, to: null };
+    if (!retarget) break;
+
+    const passed = (refused ??= new Set());
+    passed.add(to);
+    to = retarget((item) => !passed.has(item) && isNavigable(item));
   }
 
-  const move = { action, from, to };
-  onMove?.(move);
-
-  return move;
+  return { action, from, to: null };
 };
 
 /**
@@ -302,13 +349,17 @@ class ResolvedGroup implements Group {
   }
 
   move<Action extends string>(move: MoveArgs<Action>): ActionResult<Action> {
-    return land(move, this.readings.isRoving, () =>
-      this.stopSource(move.from, move.to),
+    const { isRoving, isNavigable } = this.readings;
+
+    return land(move, isRoving, isNavigable, (to) =>
+      this.stopSource(move.from, to),
     );
   }
 
   cross<Action extends string>(move: MoveArgs<Action>): ActionResult<Action> {
-    return land(move, this.readings.isRoving, () => this.stop);
+    const { isRoving, isNavigable } = this.readings;
+
+    return land(move, isRoving, isNavigable, () => this.stop);
   }
 
   /**
@@ -317,11 +368,8 @@ class ResolvedGroup implements Group {
    * where the move goes from one group to another. `null` from outside, or
    * where the group moved into has no stop to carry.
    */
-  private stopSource(
-    from: Element | null,
-    to: Element | null | undefined,
-  ): Element | null {
-    if (!from || !to) return from;
+  private stopSource(from: Element | null, to: Element): Element | null {
+    if (!from) return null;
 
     const { root } = this;
     const { isRoot } = this.readings;
@@ -377,7 +425,7 @@ const attributeReader = createReader(
  * resolved here once, options first and the attributes where options say
  * nothing, and every group read through the result answers by them.
  */
-export const readGroups = (options: GroupReadingOptions): GroupReader =>
+export const readGroups = (options: RovingTabindexOptions): GroupReader =>
   !options.root &&
   !options.items &&
   !options.skip &&

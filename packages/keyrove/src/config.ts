@@ -38,6 +38,16 @@ import type {
   Layout,
 } from './types.js';
 
+/**
+ * What the settings are read off: the group's root, and its item sequence —
+ * asked for only where `auto` counts the columns on the first line, so it is
+ * best handed over as a getter that reads the items on first ask.
+ */
+type ConfigGroup = {
+  readonly root: Element;
+  readonly items: readonly Element[];
+};
+
 // `Node.DOCUMENT_FRAGMENT_NODE`, spelled out so reading it needs no global
 // `Node`.
 const DOCUMENT_FRAGMENT_NODE = 11;
@@ -109,19 +119,70 @@ const countTracks = (root: Element): number => {
 };
 
 /**
- * The group's column count. `auto`, from either source and in any case in the
- * attribute, counts the tracks on screen on every keypress; a number is taken
- * as it stands, where it is usable.
+ * The columns a wrapping layout lays out, where it has no tracks to count —
+ * a `flex-wrap` row, inline-block items: the items on the first line. The walk
+ * goes from the first item and stops at the first one starting below the
+ * first item's box, so items of different heights centred on one line still
+ * count as that line, and only the first line is read, plus one item. Each
+ * item is read once, by its first box: one call per item, where the
+ * bounding rect would be a second.
+ *
+ * It counts the item sequence, which keeps a skipped item in its slot, as the
+ * fold does, and reads each item where it sits, in a shadow root as anywhere.
+ * An item with no box — `display: none`, or nothing laid out at all, as in
+ * jsdom — takes no slot on a line, so the count ends there: a first item with
+ * no box leaves the group a list.
  */
-const readColumns = (root: Element, cols: GroupOptions['cols']): number => {
-  if (cols === 'auto') return countTracks(root);
+const countFirstLine = (items: readonly Element[]): number => {
+  // Where an item starts on screen: its first box, or none without a box.
+  const firstBox = (item: Element): DOMRect | undefined =>
+    item.getClientRects()[0];
+  const first = items[0] && firstBox(items[0]);
+
+  if (!first || first.height === 0) return 1;
+
+  let columns = 1;
+
+  while (
+    columns < items.length &&
+    (firstBox(items[columns])?.top ?? Infinity) < first.bottom
+  ) {
+    columns++;
+  }
+
+  return columns;
+};
+
+/**
+ * The columns on screen, for `auto`: a CSS grid's tracks, where there is more
+ * than one, else the items on the first line. The items are asked for only
+ * here, so a numeric count never reads them, nor any layout.
+ */
+const countColumns = (group: ConfigGroup): number => {
+  const tracks = countTracks(group.root);
+
+  return tracks > 1 ? tracks : countFirstLine(group.items);
+};
+
+/**
+ * The group's column count. `auto`, from either source and in any case in the
+ * attribute, counts the columns on screen each time the layout is read; a
+ * number is taken as it stands, where it is usable.
+ */
+const readColumns = (
+  group: ConfigGroup,
+  cols: GroupOptions['cols'],
+): number => {
+  if (cols === 'auto') return countColumns(group);
 
   const option = count(cols);
 
   if (option) return option;
 
+  const { root } = group;
+
   if (readAttribute(root, KEYROVE_ATTR_COLS)?.trim().toLowerCase() === 'auto') {
-    return countTracks(root);
+    return countColumns(group);
   }
 
   return parseAttributeInt(root, KEYROVE_ATTR_COLS, 1);
@@ -133,10 +194,11 @@ const readColumns = (root: Element, cols: GroupOptions['cols']): number => {
  * sideways by nature — and never wraps, per the APG grid pattern.
  */
 const readLayout = (
-  root: Element,
+  group: ConfigGroup,
   { cols, orientation, loop }: GroupOptions,
 ): Layout => {
-  const columns = readColumns(root, cols);
+  const { root } = group;
+  const columns = readColumns(group, cols);
 
   if (columns > 1) {
     return { kind: 'grid', cols: columns, horizontal: true, loop: false };
@@ -146,10 +208,11 @@ const readLayout = (
     kind: 'list',
     cols: 1,
     // `horizontal` redirects only the *default* keys — an explicit binding
-    // still wins in the table. Nothing but the literal value "horizontal"
-    // switches anything, from either source.
+    // still wins in the table. Nothing but "horizontal" switches anything:
+    // the option as typed, the attribute trimmed and in any case.
     horizontal:
-      (orientation ?? readAttribute(root, KEYROVE_ATTR_ORIENTATION)) ===
+      (orientation ??
+        readAttribute(root, KEYROVE_ATTR_ORIENTATION)?.trim().toLowerCase()) ===
       'horizontal',
     loop: loop ?? hasEnabledAttribute(root, KEYROVE_ATTR_LOOP),
   };
@@ -168,10 +231,15 @@ const readLayout = (
  */
 const readExplicitBinding =
   (root: Element, { keys }: GroupOptions): ExplicitBinding =>
-  (intent) =>
-    [keys?.[intent], readAttribute(root, keyAttribute(intent))].find(
-      isComboSet,
-    );
+  (intent) => {
+    const option = keys?.[intent];
+
+    if (isComboSet(option)) return option;
+
+    const attribute = readAttribute(root, keyAttribute(intent));
+
+    return isComboSet(attribute) ? attribute : undefined;
+  };
 
 /**
  * The focus keys in reach of a keypress: the `focusKeys` map where one is
@@ -209,20 +277,28 @@ export const readFocusKeys = (
 };
 
 /**
- * Every setting one move needs, read once for the root it resolved in. The
+ * Every setting one move needs, read once for the group it resolved in. The
  * focus keys are read apart, by {@link readFocusKeys}: they span the
  * listener's reach rather than the root, and only a keypress looks them up.
  */
 export const readConfig = (
-  root: Element,
+  group: ConfigGroup,
   options: GroupOptions,
-): GroupConfig => ({
-  layout: readLayout(root, options),
-  explicit: readExplicitBinding(root, options),
-  // Resolved on demand: read only when an unbound `next`/`prev` default on a
-  // horizontal axis could flip, never otherwise.
-  rtl: () => isRtl(root),
-  pageLength:
-    count(options.pageLength) ??
-    parseAttributeInt(root, KEYROVE_ATTR_PAGE_LENGTH, 10),
-});
+): GroupConfig => {
+  let layout: Layout | undefined;
+
+  return {
+    // Read on first ask, and kept: `auto` reads the page's layout, which a
+    // press no move could claim never needs.
+    get layout() {
+      return (layout ??= readLayout(group, options));
+    },
+    explicit: readExplicitBinding(group.root, options),
+    // Resolved on demand: read only when an unbound `next`/`prev` default on a
+    // horizontal axis could flip, never otherwise.
+    rtl: () => isRtl(group.root),
+    pageLength:
+      count(options.pageLength) ??
+      parseAttributeInt(group.root, KEYROVE_ATTR_PAGE_LENGTH, 10),
+  };
+};

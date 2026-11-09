@@ -207,7 +207,7 @@ for the full list and focus-shortcut exception.
 
 Set `data-keyrove-focus-key` on an element to focus it from anywhere under
 the listener. Ctrl/Alt/Meta shortcuts also work inside editable fields, except
-during input-method composition.
+during input-method composition or while AltGr is held.
 
 ```html
 <div id="panels">
@@ -311,7 +311,8 @@ text. Empty values fall through; text content is trimmed and whitespace is
 collapsed. Matching uses the typed character (`e.key`), while navigation
 bindings use the physical code (`e.code`).
 
-Typing inside editable fields and Ctrl/Alt/Meta combinations are ignored.
+Typing inside editable fields and Ctrl/Alt/Meta combinations are ignored;
+a press with AltGr held counts as typing.
 Space joins the buffer only after another character. An unmatched character
 stays in the buffer but leaves its browser behavior unchanged.
 
@@ -321,10 +322,18 @@ match was already focused or could not receive focus. `onMove` runs only after
 a successful move.
 
 Share `items`, `root`, `skip` and `rovingTabindex` with `keyRove` so both
-handlers use the same group rules:
+handlers use the same group rules. An `onMove` in the shared object receives
+either handler's move, so type its argument `AnyMove`:
 
 ```ts
-const config = { items: '[role="menuitem"]', loop: true, rovingTabindex: true };
+import { keyRove, createTypeahead, type AnyMove } from '@mixedrays/keyrove';
+
+const config = {
+  items: '[role="menuitem"]',
+  loop: true,
+  rovingTabindex: true,
+  onMove: ({ action, to }: AnyMove) => console.log(action, to),
+};
 const typeahead = createTypeahead(config);
 
 menu.addEventListener('keydown', (e) => keyRove(e, config) || typeahead(e));
@@ -362,7 +371,7 @@ while its attribute applies per item. See
 | `data-keyrove-skip`            | `skip`           | item | —           | Passed over when moving; stays in the DOM order. As an option: a selector or `(element) => boolean`.                              |
 | `data-keyrove-roving-tabindex` | `rovingTabindex` | item | —           | Moves the `tabindex="0"` tab stop with focus. As an option: one boolean for the whole group.                                      |
 | `data-keyrove-root`            | `root`           | root | —           | Marks the navigation root explicitly, instead of using the listener's element. As an option: the selector a root answers to.      |
-| `data-keyrove-cols`            | `cols`           | root | `1`         | Column count; above 1 the group navigates as a grid. `auto` counts the root's CSS grid tracks on every keypress.                  |
+| `data-keyrove-cols`            | `cols`           | root | `1`         | Column count; above 1 the group navigates as a grid. `auto` counts CSS grid tracks, else the first line's items, per keypress.    |
 | `data-keyrove-page-length`     | `pageLength`     | root | `10`        | Items per page jump — whole rows in a grid.                                                                                       |
 | `data-keyrove-next-key`        | `keys.next`      | root | axis arrow  | Combo for the next item — the next cell, in a grid. E.g. `KeyJ` or `ctrl+ArrowRight`.                                             |
 | `data-keyrove-prev-key`        | `keys.prev`      | root | axis arrow  | Combo for the previous item.                                                                                                      |
@@ -378,7 +387,7 @@ while its attribute applies per item. See
 | `data-keyrove-enter-key`       | `keys.enter`     | root | —           | Combo entering the root nested in the focused item.                                                                               |
 | `data-keyrove-focus-key`       | `focusKeys`      | any  | —           | Combo focusing this element, from anywhere under the listener, e.g. `ctrl+shift+KeyE`. As an option: combo → element or selector. |
 | `data-keyrove-loop`            | `loop`           | root | —           | Next/prev wrap past the ends of a list. Grids never wrap.                                                                         |
-| `data-keyrove-orientation`     | `orientation`    | root | —           | `horizontal` maps a list's default keys to `ArrowRight`/`ArrowLeft`, RTL-aware.                                                   |
+| `data-keyrove-orientation`     | `orientation`    | root | —           | `horizontal`, in any case, maps a list's default keys to `ArrowRight`/`ArrowLeft`, RTL-aware.                                     |
 | `data-keyrove-typeahead`       | `label`          | item | text        | Label for type-to-focus, when the item's own text is not it. As an option: `(item) => string`.                                    |
 
 `keyRove` takes every option but `label`. `rove` takes the same options and
@@ -413,7 +422,9 @@ const result = keyRove(e, {
 ```
 
 `onMove` runs only after focus moves successfully. Consumed keys at an edge,
-or targets that cannot take focus, do not trigger it.
+or moves where no target can take focus, do not trigger it. A move passes over
+a target that cannot take focus, such as a hidden or inert item, and lands on
+the next one that can.
 
 `action` names the move: `'next'`, `'prev'`, `'home'`, `'end'`, `'pageUp'`,
 `'pageDown'`; the grid actions `'nextRow'`, `'prevRow'`, `'homeRow'`, `'endRow'`;
@@ -435,10 +446,11 @@ An event an earlier handler already consumed with `preventDefault()` returns
 focus once per press. keyrove never stops propagation. Check
 `e.defaultPrevented` in your own handler if it should skip consumed keys too.
 
-`toggleTabIndex({ root, isActive })` is exported for cases where you manage one
-element's tab stop yourself. For a whole roving group,
-`initRovingTabindex(root, options?)` keeps exactly one stop, and
-`followFocus(event, options?)` moves it with focus keyRove did not move.
+For a whole roving group, `initRovingTabindex(root, options?)` keeps exactly
+one stop, and `followFocus(event, options?)` moves it with focus keyRove did
+not move. For one element's tab stop you manage yourself, set
+`element.tabIndex`. `toggleTabIndex({ root, isActive })` is deprecated and
+will be removed in the next major version.
 
 ## Moves without a keypress
 

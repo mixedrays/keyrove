@@ -55,8 +55,10 @@ contains child items: when items nest, keyrove treats the first item in DOM
 order that contains focus as the current item.
 
 Hidden rows remain in the DOM. `setOpen` updates `data-keyrove-skip` after
-each toggle so navigation passes over rows inside hidden lists. See
-[skipped items](/docs/examples/skipped-items).
+each toggle so navigation passes over rows inside hidden lists. A hidden row
+that is not skipped does not block the arrows, since a move passes over a row
+that refuses focus, but skipping also keeps typeahead and the roving stop off
+hidden rows. See [skipped items](/docs/examples/skipped-items).
 
 `fold` handles <kbd class="kbd">←</kbd>/<kbd class="kbd">→</kbd> only when they change a folder's state. On a page,
 or when the folder is already in the requested state, it returns `null` and
@@ -86,12 +88,7 @@ hidden descendants directly from the DOM.
 <div data-demo="tree" data-demo-label="file tree"></div>
 
 ```ts
-import {
-  createTypeahead,
-  keyRove,
-  matchesCombo,
-  toggleTabIndex,
-} from '@mixedrays/keyrove';
+import { createTypeahead, keyRove, matchesCombo } from '@mixedrays/keyrove';
 
 const tree = document.querySelector('#files');
 
@@ -115,8 +112,8 @@ const toggle = (item, open) => {
 };
 
 const moveTo = (from, to) => {
-  toggleTabIndex({ root: from, isActive: false });
-  toggleTabIndex({ root: to, isActive: true });
+  from.tabIndex = -1;
+  to.tabIndex = 0;
   to.focus();
 };
 
