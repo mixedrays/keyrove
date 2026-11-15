@@ -1,5 +1,26 @@
 # Changelog
 
+## [2.7.0](https://github.com/mixedrays/keyrove/compare/v2.6.1...v2.7.0) (2026-11-15)
+
+### Features
+
+* count the first line's items for cols auto on wrapping layouts ([3186092](https://github.com/mixedrays/keyrove/commit/31860929d6b7d8c4b4816794e7fb5561398efb0f))
+* deprecate toggleTabIndex and the Options type alias ([8fd9056](https://github.com/mixedrays/keyrove/commit/8fd905696404df8b00e4f5e35ce9ba0d104bfff9))
+* export the AnyMove and BoundaryAction types ([aa88106](https://github.com/mixedrays/keyrove/commit/aa881068c2b36b987081c8adaf546e70227a7b0f))
+* walk a move on past an item that refuses focus ([42c40fd](https://github.com/mixedrays/keyrove/commit/42c40fd93f853fd33a8f566bb74450cd3dd029b4))
+
+### Bug Fixes
+
+* leave keys typed into a field inside a shadow root to the field ([588e47f](https://github.com/mixedrays/keyrove/commit/588e47f4e740a3f044fcca0e9268d5c7a5402f61))
+* let CommonJS code require the package on Node versions that load ES modules ([7343b39](https://github.com/mixedrays/keyrove/commit/7343b39eb85cff5dcd84333a4d3dd9ae2a4c3b4d))
+* read data-keyrove-orientation trimmed and in any case ([bf3d1e2](https://github.com/mixedrays/keyrove/commit/bf3d1e277200b9af1fe3644354c637c5becf967c))
+* treat AltGr presses as typing, not commands ([eb08394](https://github.com/mixedrays/keyrove/commit/eb083940e6cc458b5ad1d86d9893ca6aebfc4bde))
+
+### Performance Improvements
+
+* read the layout only for a press that could move ([bc99496](https://github.com/mixedrays/keyrove/commit/bc994964322ff70497a48d17f2a77eaf88c911cb))
+* walk on past refusing items in one pass ([c066bbc](https://github.com/mixedrays/keyrove/commit/c066bbc14f8c5a7cc650b84405c1f6cd825387e5))
+
 ## [2.6.1](https://github.com/mixedrays/keyrove/compare/v2.6.0...v2.6.1) (2026-11-06)
 
 ### Bug Fixes
