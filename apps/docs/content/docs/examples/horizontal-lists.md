@@ -24,7 +24,9 @@ document
 
 <kbd class="kbd">Home</kbd>/<kbd class="kbd">End</kbd> still jump to the ends, <kbd class="kbd">PageUp</kbd>/<kbd class="kbd">PageDown</kbd> still move a page, and <kbd class="kbd">Tab</kbd>
 keeps its default behavior. Moves follow DOM order. Lists are vertical unless
-the orientation is set to the literal value `horizontal`.
+the orientation is set to `horizontal`. The attribute is trimmed and read in
+any case, so `" Horizontal "` counts too; the `orientation` option must be
+exactly `'horizontal'`.
 
 ## Right to left
 

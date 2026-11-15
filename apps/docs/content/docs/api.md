@@ -502,9 +502,10 @@ ignores `keys` and `focusKeys`.
 
 It returns `{ action, from, to }`, as a keypress does (see
 [Return value](#return-value)). `from` is `null` when the move entered the
-group. `to` is `null` when there was nowhere to go or the target did not take
-focus. It returns `null` when there is no move to make: no group, no item to
-enter, or a row action in a list.
+group. A target that cannot take focus is passed over for the next one, as
+for a keypress. `to` is `null` when there was nowhere to go or no target could
+take focus. It returns `null` when there is no move to make: no group, no item
+to enter, or a row action in a list.
 
 ## createTypeahead(options?)
 

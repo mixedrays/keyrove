@@ -318,8 +318,9 @@ stays in the buffer but leaves its browser behavior unchanged.
 
 The result is `null` for an unhandled key or `{ action: 'typeahead', from, to }`
 for a consumed one. `to: null` means focus did not move, including when the
-match was already focused or could not receive focus. `onMove` runs only after
-a successful move.
+match was already focused or no match could receive focus. A match that cannot
+receive focus is passed over for the next one. `onMove` runs only after a
+successful move.
 
 Share `items`, `root`, `skip` and `rovingTabindex` with `keyRove` so both
 handlers use the same group rules. An `onMove` in the shared object receives
@@ -387,7 +388,7 @@ while its attribute applies per item. See
 | `data-keyrove-enter-key`       | `keys.enter`     | root | —           | Combo entering the root nested in the focused item.                                                                               |
 | `data-keyrove-focus-key`       | `focusKeys`      | any  | —           | Combo focusing this element, from anywhere under the listener, e.g. `ctrl+shift+KeyE`. As an option: combo → element or selector. |
 | `data-keyrove-loop`            | `loop`           | root | —           | Next/prev wrap past the ends of a list. Grids never wrap.                                                                         |
-| `data-keyrove-orientation`     | `orientation`    | root | —           | `horizontal`, in any case, maps a list's default keys to `ArrowRight`/`ArrowLeft`, RTL-aware.                                     |
+| `data-keyrove-orientation`     | `orientation`    | root | —           | `horizontal`, trimmed and in any case, maps a list's default keys to `ArrowRight`/`ArrowLeft`, RTL-aware.                         |
 | `data-keyrove-typeahead`       | `label`          | item | text        | Label for type-to-focus, when the item's own text is not it. As an option: `(item) => string`.                                    |
 
 `keyRove` takes every option but `label`. `rove` takes the same options and

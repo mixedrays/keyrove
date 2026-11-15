@@ -278,9 +278,9 @@ reading the items and other settings from their attributes.
 Give the group a column count and the same handler moves across cells and
 between rows. Your CSS still controls the layout.
 
-For a responsive CSS grid, set `data-keyrove-cols="auto"`. keyrove reads the
-current tracks on each keypress, so resizing needs no navigation instance
-to update.
+For a responsive CSS grid or a wrapping flex layout, set
+`data-keyrove-cols="auto"`. keyrove counts the current columns on each
+keypress, so resizing needs no navigation instance to update.
 
 [Grid navigation](/docs/examples/grid)
 
