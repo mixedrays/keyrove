@@ -1,5 +1,6 @@
 import { describe, it, expect, afterEach } from 'vitest';
-import { keyRove, KEYROVE_ATTR_ROOT } from '../../keyRove';
+import { KEYROVE_ATTR_ROOT } from '../../attributes';
+import { keyRove } from '../../keyRove';
 import {
   activeId,
   createItem,

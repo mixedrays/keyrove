@@ -21,6 +21,14 @@ Skipping does not remove an item's native <kbd class="kbd">Tab</kbd> stop; set i
 needed. An explicit `focusKeys` mapping can still reach a skipped target;
 see [configuration differences](/docs/attributes-and-options#configuration-differences).
 
+## Hidden items
+
+A hidden or inert item that is not skipped does not block the arrows: a move
+tries to focus it and, when it refuses, passes over it to the next item it
+would reach. Skipping hidden items is still recommended. A move then never
+tries to focus them, which saves time on a long run such as a collapsed branch
+of many rows, and typeahead and roving initialization pass over them too.
+
 ## Disabled elements
 
 Anything carrying the `disabled` attribute is excluded automatically, with no

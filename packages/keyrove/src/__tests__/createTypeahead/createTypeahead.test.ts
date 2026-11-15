@@ -5,7 +5,7 @@ import {
   KEYROVE_ATTR_ITEM,
   KEYROVE_ATTR_NEXT_KEY,
   KEYROVE_ATTR_ROOT,
-} from '../../keyRove';
+} from '../../attributes';
 import {
   activeId,
   createItem,
@@ -527,6 +527,44 @@ describe('createTypeahead', () => {
       pressKey('s', { from: shadow.activeElement! });
       expect(shadow.activeElement?.id).toBe('a');
     });
+
+    describe('in an item of a light-DOM list', () => {
+      // A web component's control in item `b`: a listener on the list sees
+      // the press retargeted to the host.
+      const renderShadowControl = (html: string) => {
+        const host = document.createElement('div');
+        const shadow = host.attachShadow({ mode: 'open' });
+        shadow.innerHTML = html;
+        const item = createItem('b', '', { tabindex: '-1' });
+        item.appendChild(host);
+        const rendered = renderList([
+          createItem('a', 'Apple'),
+          item,
+          createItem('c', 'Cherry'),
+        ]);
+
+        return { ...rendered, inner: shadow.getElementById('inner')! };
+      };
+
+      it('leaves typing in an input to the input', () => {
+        const { inner, results } = renderShadowControl('<input id="inner">');
+        inner.focus();
+
+        const event = pressKey('c', { from: inner, composed: true });
+
+        expect(results).toEqual([null]);
+        expect(event.defaultPrevented).toBe(false);
+      });
+
+      it('matches from a button', () => {
+        const { inner } = renderShadowControl('<button id="inner">B</button>');
+        inner.focus();
+
+        pressKey('c', { from: inner, composed: true });
+
+        expect(activeId()).toBe('c');
+      });
+    });
   });
 
   describe('labels', () => {
@@ -567,6 +605,34 @@ describe('createTypeahead', () => {
       }
 
       expect(activeId()).toBe('a');
+    });
+  });
+
+  describe('a character typed with AltGr', () => {
+    // Windows reports AltGr as Ctrl+Alt, with the AltGraph modifier state set
+    // too: on a Polish programmer layout, AltGr+L types "ł" and AltGr+O "ó".
+    const ALTGR = { ctrlKey: true, altKey: true, modifierAltGraph: true };
+
+    it('joins the buffer like any typed character', () => {
+      const { results } = renderList(
+        [
+          createItem('a', 'Kraków'),
+          createItem('b', 'Lublin'),
+          createItem('c', 'Łeba'),
+          createItem('d', 'Łódź'),
+        ],
+        { chainKeyRove: true },
+      );
+      document.getElementById('a')!.focus();
+
+      const first = pressKey('ł', { code: 'KeyL', ...ALTGR });
+      expect(activeId()).toBe('c');
+      expect(first.defaultPrevented).toBe(true);
+
+      // the buffer is "łó", which only Łódź starts with
+      pressKey('ó', { code: 'KeyO', ...ALTGR });
+      expect(activeId()).toBe('d');
+      expect(results.map((result) => result?.to?.id)).toEqual(['c', 'd']);
     });
   });
 
@@ -800,6 +866,61 @@ describe('createTypeahead', () => {
         '0',
         '-1',
       ]);
+    });
+  });
+
+  describe('a match that refuses focus, with another beyond it', () => {
+    it('lands on the next match and puts the passed-over stop back', () => {
+      const onMove = vi.fn();
+      const items = [
+        createItem('a', 'Drafts', { roving: true }),
+        createItem('b', 'Sent', { roving: true, tabindex: '-1' }),
+        createItem('c', 'Inbox', { roving: true, tabindex: '-1' }),
+        createItem('d', 'Spam', { roving: true, tabindex: '-1' }),
+      ];
+      const { results } = renderList(items, { options: { onMove } });
+      vi.spyOn(items[1], 'focus').mockImplementation(() => {});
+      items[0].focus();
+
+      pressKey('s');
+
+      expect(activeId()).toBe('d');
+      expect(results).toEqual([
+        { action: 'typeahead', from: items[0], to: items[3] },
+      ]);
+      expect(onMove).toHaveBeenCalledTimes(1);
+      expect(items.map((item) => item.getAttribute('tabindex'))).toEqual([
+        '-1',
+        '-1',
+        '-1',
+        '0',
+      ]);
+    });
+  });
+
+  describe('a run of matches that refuse focus', () => {
+    it('reads each label before them once, however many refuse', () => {
+      const label = vi.fn((item: Element) => item.textContent!);
+      const others = ['Archive', 'Drafts', 'Inbox'].map((name, i) =>
+        createItem(`o${i}`, name),
+      );
+      const refusing = [0, 1, 2, 3].map((i) => createItem(`r${i}`, 'Spam'));
+      const items = [...others, ...refusing, createItem('sent', 'Sent')];
+      renderList(items, { options: { label } });
+      for (const item of refusing) {
+        vi.spyOn(item, 'focus').mockImplementation(() => {});
+      }
+      others[0].focus();
+
+      pressKey('s');
+
+      expect(activeId()).toBe('sent');
+      for (const item of others) {
+        expect(
+          label.mock.calls.filter(([read]) => read === item),
+          item.id,
+        ).toHaveLength(1);
+      }
     });
   });
 

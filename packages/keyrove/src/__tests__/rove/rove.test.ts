@@ -1,4 +1,4 @@
-import { describe, expect, it, afterEach } from 'vitest';
+import { describe, expect, it, afterEach, vi } from 'vitest';
 import {
   keyRove,
   rove,
@@ -192,6 +192,32 @@ describe('rove', () => {
 
       for (const start of ids) {
         for (const [action, key] of GRID_KEYS) {
+          expect(byRove(start, action), `${action} from ${start}`).toEqual(
+            byKey(start, key),
+          );
+        }
+      }
+    });
+
+    it('walks every move past items that refuse focus exactly as the key does', () => {
+      const ids = ['a', 'b', 'c', 'd', 'e', 'f'];
+      const children = ids.map((id) => item(id));
+      // Inert or hidden in a browser, and not skipped: focusable by their
+      // attributes, and still refusing focus.
+      for (const refusing of [children[1], children[3], children[5]]) {
+        vi.spyOn(refusing, 'focus').mockImplementation(() => {});
+      }
+      const { byKey, byRove } = twin(children, {
+        [KEYROVE_ATTR_PAGE_LENGTH]: '2',
+      });
+
+      expect(byRove('a', 'next').result).toEqual({
+        action: 'next',
+        from: 'a',
+        to: 'c',
+      });
+      for (const start of ['a', 'c', 'e']) {
+        for (const [action, key] of LIST_KEYS) {
           expect(byRove(start, action), `${action} from ${start}`).toEqual(
             byKey(start, key),
           );

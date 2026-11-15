@@ -40,6 +40,10 @@ The test is on the event's target and its ancestors:
 - an `input` of any type other than `button`, `checkbox`, `color`, `file`,
   `image`, `reset` and `submit`.
 
+A field inside an open shadow root, such as a web component's input, counts
+too: the test also starts from the element the press began on, before the
+event was retargeted to the shadow host. A closed shadow root hides its field.
+
 The input list is drawn by what the bound keys do natively. Arrows move a
 caret in a text field, step a `number`, slide a `range` and move between
 `radio` buttons; on a checkbox or a button they do nothing, so navigating from
@@ -58,8 +62,9 @@ chained after it also receives the event.
 
 A [focus key](/docs/examples/focus-keys) with <kbd class="kbd">Ctrl</kbd>, <kbd class="kbd">Alt</kbd> or <kbd class="kbd">Meta</kbd> can move focus
 from an editable field. Bare keys and <kbd class="kbd">Shift</kbd>-only combinations remain available
-for typing. Choose shortcuts carefully: some modifiers also produce text,
-including <kbd class="kbd">AltGr</kbd> reported as <kbd class="kbd">Ctrl</kbd>+<kbd class="kbd">Alt</kbd>.
+for typing. A press with <kbd class="kbd">AltGr</kbd> held counts as typing too, even where Windows
+reports it as <kbd class="kbd">Ctrl</kbd>+<kbd class="kbd">Alt</kbd>. Choose shortcuts carefully: <kbd class="kbd">Alt</kbd>+letter can still type
+accented characters on macOS.
 
 [Typeahead](/docs/examples/typeahead) never captures typing inside a field.
 

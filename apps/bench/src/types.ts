@@ -21,9 +21,33 @@ export type Fixture = {
   focusKeys?: number;
   /** Set on the grid pages only: the `cols` value each group carries. */
   grid?: string;
+  /**
+   * Set where the groups do not hold 20 items each: the refused-focus pages,
+   * whose one group holds its run of refusing items and the two around it.
+   */
+  items?: number;
   buildMs: number;
   /** Every element in the document once the page was built. */
   elements: number;
+};
+
+/** How a column page lays out each group. */
+export type ColumnLayout = 'grid' | 'flex-wrap' | 'flex row' | 'flex column';
+
+/** A column page: each group laid out by `layout`, carrying `cols`. */
+export type ColumnSpec = { layout: ColumnLayout; cols: string };
+
+/**
+ * A refused-focus page: `count` items between the two the press moves
+ * between, each hidden by `hidden`. `roving` gives every item a roving tab
+ * stop, carried onto each refusing item and put back. `skip` marks the run
+ * skipped, so no move tries it.
+ */
+export type RefusalSpec = {
+  count: number;
+  hidden: 'display: none' | 'visibility: hidden';
+  roving?: boolean;
+  skip?: boolean;
 };
 
 /** What one call returned: proof that a case measures what its label says. */
@@ -60,6 +84,17 @@ export type Supports = {
   focusKeysMap: boolean;
   /** `cols="auto"`, columns read from the layout (2.5.0 on). */
   autoColumns: boolean;
+  /**
+   * A move walks on past an item that refuses focus (after 2.6.1). Absent
+   * from a run recorded before the field existed.
+   */
+  refusedFocus?: boolean;
+  /**
+   * `cols="auto"` counts the items on the first line of a layout with no
+   * grid tracks, such as `flex-wrap` (after 2.6.1). Absent from a run
+   * recorded before the field existed.
+   */
+  wrapColumns?: boolean;
 };
 
 export type BenchResults = {

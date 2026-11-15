@@ -5,7 +5,7 @@
  */
 
 import { icon } from './icons.ts';
-import { DEFAULT_OPTIONS, ITEMS_PER_GROUP } from './plan.ts';
+import { DEFAULT_OPTIONS } from './plan.ts';
 import {
   browserMajor,
   caseRows,
@@ -19,6 +19,7 @@ import {
   formatTimeShort,
   HEADLINES,
   indexCases,
+  itemCount,
   SECTION_NOTES,
   sectionsOf,
   skipReason,
@@ -233,7 +234,7 @@ const renderFixtures = (results: BenchResults) => {
     (fixture) => `<tr>
       <td class="fixture-cell">${escapeHtml(fixture.name)}</td>
       <td class="num">${formatCount(fixture.groups)}</td>
-      <td class="num">${formatCount(fixture.groups * ITEMS_PER_GROUP)}</td>
+      <td class="num">${formatCount(itemCount(fixture))}</td>
       <td class="num">${formatCount(fixture.focusKeys ?? 0)}</td>
       <td>${escapeHtml(fixture.grid ?? '–')}</td>
       <td class="num">${formatCount(fixture.elements)}</td>

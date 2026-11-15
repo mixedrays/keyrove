@@ -1,15 +1,11 @@
-import { buildBindings } from './bindings.js';
+import { findBinding } from './bindings.js';
 import { crossBoundary } from './boundary.js';
 import { readConfig, readFocusKeys } from './config.js';
-import { holdsFocus, readGroups } from './group.js';
+import { holdsFocus, readGroups, walkOn } from './group.js';
 import { listenerElement } from './nesting.js';
-import { resolveTarget } from './position.js';
-import { hasCommandModifier, isEditableTarget, matchesCombo } from './utils.js';
+import { walkTargets } from './position.js';
+import { hasCommandModifier, isEditablePress } from './utils.js';
 import type { KeyRoveEvent, KeyRoveOptions, MoveResult } from './types.js';
-
-// The attribute constants ship alongside the handler that reads them, so
-// consumers can spread them into markup; see `attributes.ts`.
-export * from './attributes.js';
 
 /**
  * Handles keyboard navigation within the provided event's current target.
@@ -41,8 +37,11 @@ export const keyRove = (
   // half-converted word.
   if (e.isComposing) return null;
 
+  // A press from a field inside a shadow root reaches a listener outside it
+  // retargeted to the host, so the guard reads where the press began; the
+  // group is still found from the host, in the listener's own tree.
   const eventTarget = e.target as Element | null;
-  const editable = isEditableTarget(eventTarget);
+  const editable = isEditablePress(e);
 
   // Typing. An editable target keeps every press that could be text or caret
   // movement, and nothing keyrove binds fires from one without a command
@@ -61,18 +60,19 @@ export const keyRove = (
   // groups and out of nested roots — so its lookup spans the listener's
   // element, not the root.
   const scope = listenerElement(e.currentTarget) ?? pressed.root;
-  const config = readConfig(pressed.root, options);
+  const config = readConfig(pressed, options);
   const { onMove } = options;
 
   // First match wins: one keypress resolves to at most one action, and the
   // table's order is the precedence — an element's own key over the explicit
-  // bindings over the defaults.
-  const binding = buildBindings({
+  // bindings over the defaults. The layout is read only for a press that
+  // could be a move, so a key nothing binds never reads the page's layout.
+  const binding = findBinding(e, {
     explicit: config.explicit,
     focus: readFocusKeys(scope, options),
-    layout: config.layout,
+    layout: () => config.layout,
     rtl: config.rtl,
-  }).find(({ combo }) => matchesCombo(e, combo));
+  });
 
   if (!binding) return null;
 
@@ -131,17 +131,34 @@ export const keyRove = (
   // entered from the keyboard — and so is a focus key, which is the point.
   if (!focused && !binding.enters) return null;
 
-  const target =
-    binding.intent === 'focus'
-      ? binding.target
-      : resolveTarget({
-          intent: binding.intent,
-          elements,
-          fromIndex: focused ? elements.indexOf(focused) : -1,
-          layout: config.layout,
-          pageLength: config.pageLength,
-          isNavigable: group.isNavigable,
-        });
+  // A focus key names its element outright: one destination, and no walk to
+  // carry on should it refuse focus.
+  if (binding.intent === 'focus') {
+    return group.move({
+      e,
+      action: 'focus',
+      from: focused,
+      to: binding.target,
+      onMove,
+    });
+  }
+
+  const { intent } = binding;
+  const fromIndex = focused ? elements.indexOf(focused) : -1;
+  // The move's walk: its destination by the group's navigable test, and the
+  // rest of it to carry on past each item that refuses focus.
+  const { to: target, retarget } = walkOn(
+    (isNavigable) =>
+      walkTargets({
+        intent,
+        elements,
+        fromIndex,
+        layout: config.layout,
+        pageLength: config.pageLength,
+        isNavigable,
+      }),
+    group.isNavigable,
+  );
 
   // With neither a target nor a focused item, keyrove has nothing to move
   // from or to and the key is left with its browser default rather than
@@ -152,9 +169,10 @@ export const keyRove = (
 
   return group.move({
     e,
-    action: binding.intent,
+    action: intent,
     from: focused,
     to: target,
+    retarget,
     onMove,
   });
 };

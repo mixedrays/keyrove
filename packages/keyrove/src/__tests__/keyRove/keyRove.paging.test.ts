@@ -1,5 +1,5 @@
 import { describe, it, expect, afterEach } from 'vitest';
-import { KEYROVE_ATTR_PAGE_LENGTH } from '../../keyRove';
+import { KEYROVE_ATTR_PAGE_LENGTH } from '../../attributes';
 import {
   activeId,
   createItem,

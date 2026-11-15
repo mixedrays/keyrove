@@ -1,12 +1,12 @@
 import { vi } from 'vitest';
 import { createTypeahead } from '../../createTypeahead';
 import {
-  keyRove,
   KEYROVE_ATTR_ITEM,
   KEYROVE_ATTR_SKIP,
   KEYROVE_ATTR_ROVING_TABINDEX,
   KEYROVE_ATTR_TYPEAHEAD,
-} from '../../keyRove';
+} from '../../attributes';
+import { keyRove } from '../../keyRove';
 
 export type ItemSpec = {
   skip?: boolean;
@@ -71,7 +71,15 @@ export const pressKey = (
     code = '',
     from = document.activeElement as Element,
     ...modifiers
-  }: Pick<KeyboardEventInit, 'ctrlKey' | 'altKey' | 'shiftKey' | 'metaKey'> & {
+  }: Pick<
+    KeyboardEventInit,
+    | 'ctrlKey'
+    | 'altKey'
+    | 'shiftKey'
+    | 'metaKey'
+    | 'modifierAltGraph'
+    | 'composed'
+  > & {
     code?: string;
     from?: Element;
   } = {},

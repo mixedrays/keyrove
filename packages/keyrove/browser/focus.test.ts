@@ -13,7 +13,7 @@ import {
   keyRove,
   rove,
 } from '../src/index';
-import type { KeyRoveOptions, MoveResult } from '../src/index';
+import type { KeyRoveOptions, MoveResult, TypeaheadResult } from '../src/index';
 import {
   activeId,
   byId,
@@ -364,6 +364,37 @@ describe('inside a shadow root', () => {
       { action: 'homeRow', from: 'e', to: 'd' },
     ]);
   });
+
+  it('leaves keys typed into a field in an item to the field', async () => {
+    // A web component's input in a light-DOM list: the listener on the list
+    // sees each press retargeted to the host.
+    mount(`
+      <div id="list">
+        <button id="a" data-keyrove-item>Apple</button>
+        <div id="b" data-keyrove-item tabindex="-1"><div id="field"></div></div>
+        <button id="c" data-keyrove-item>Cherry</button>
+      </div>
+    `);
+    const shadow = byId('field').attachShadow({ mode: 'open' });
+    shadow.innerHTML = '<input id="inner">';
+    const input = shadow.getElementById('inner') as HTMLInputElement;
+    const typeahead = createTypeahead();
+    const results: (MoveResult | TypeaheadResult | null)[] = [];
+    byId('list').addEventListener('keydown', (e) =>
+      results.push(keyRove(e) || typeahead(e)),
+    );
+    input.focus();
+
+    await press('c');
+    expect(input.value).toBe('c');
+
+    await press('{Home}');
+    expect(input.selectionStart).toBe(0);
+
+    await press('{ArrowDown}');
+    expect(activeId()).toBe('inner');
+    expect(results).toEqual([null, null, null]);
+  });
 });
 
 describe('a target that refuses focus', () => {
@@ -434,6 +465,151 @@ describe('a target that refuses focus', () => {
       { action: 'next', from: 'a', to: 'b' },
     ]);
     expect(tabindexes(byId('a'), byId('b'))).toEqual(['-1', '0']);
+  });
+});
+
+describe('a move past a target that refuses focus', () => {
+  /** A roving item, refusing focus by `attribute` where one is given. */
+  const item = (id: string, attribute = '') =>
+    `<button id="${id}" data-keyrove-item data-keyrove-roving-tabindex tabindex="-1" ${attribute}>${id}</button>`;
+
+  // Each is focusable by its attributes, and none is skipped: what refuses
+  // focus is the browser's own reading of the page.
+  const REFUSALS: Record<string, (id: string) => string> = {
+    hidden: (id) => item(id, 'hidden'),
+    inert: (id) => item(id, 'inert'),
+    'display: none': (id) => item(id, 'style="display: none"'),
+    'visibility: hidden': (id) => item(id, 'style="visibility: hidden"'),
+    'a closed <details>': (id) =>
+      `<details><summary tabindex="-1">more</summary>${item(id)}</details>`,
+  };
+
+  for (const [name, refusing] of Object.entries(REFUSALS)) {
+    it(`walks on to the item beyond it: ${name}`, async () => {
+      mount(`<div id="list">${item('a')}${refusing('b')}${item('c')}</div>`);
+      const onMove = vi.fn();
+      const results = wire(byId('list'), { onMove });
+      byId('a').focus();
+
+      await press('{ArrowDown}');
+      expect(activeId()).toBe('c');
+
+      await press('{ArrowUp}');
+      expect(activeId()).toBe('a');
+
+      expect(results.map(named)).toEqual([
+        { action: 'next', from: 'a', to: 'c' },
+        { action: 'prev', from: 'c', to: 'a' },
+      ]);
+      expect(onMove.mock.calls.map(([move]) => named(move))).toEqual([
+        { action: 'next', from: 'a', to: 'c' },
+        { action: 'prev', from: 'c', to: 'a' },
+      ]);
+      expect(tabindexes(byId('a'), byId('b'), byId('c'))).toEqual([
+        '0',
+        '-1',
+        '-1',
+      ]);
+    });
+  }
+
+  it('lands Home, End and the page jumps on the nearest item that takes focus from their end', async () => {
+    mount(`
+      <div id="list" data-keyrove-page-length="3">
+        ${item('a', 'hidden')}${item('b')}${item('c')}${item('d')}${item('e', 'inert')}
+      </div>
+    `);
+    const results = wire(byId('list'));
+    byId('c').focus();
+
+    await press('{End}');
+    await press('{Home}');
+    await press('{PageDown}');
+    await press('{PageUp}');
+
+    expect(results.map(named)).toEqual([
+      { action: 'end', from: 'c', to: 'd' },
+      { action: 'home', from: 'd', to: 'b' },
+      { action: 'pageDown', from: 'b', to: 'd' },
+      { action: 'pageUp', from: 'd', to: 'b' },
+    ]);
+  });
+
+  it('keeps a row move in its column, a row further on', async () => {
+    mount(`
+      <div id="grid" data-keyrove-cols="3">
+        ${['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i']
+          .map((id) => item(id, id === 'e' ? 'inert' : ''))
+          .join('')}
+      </div>
+    `);
+    const results = wire(byId('grid'));
+    byId('b').focus();
+
+    await press('{ArrowDown}');
+    await press('{ArrowUp}');
+
+    expect(results.map(named)).toEqual([
+      { action: 'nextRow', from: 'b', to: 'h' },
+      { action: 'prevRow', from: 'h', to: 'b' },
+    ]);
+  });
+
+  it('enters the group at the first item that takes focus', async () => {
+    mount(`
+      <div id="list" tabindex="0">
+        ${item('a', 'hidden')}${item('b')}${item('c')}
+      </div>
+    `);
+    const results = wire(byId('list'));
+    byId('list').focus();
+
+    await press('{ArrowDown}');
+
+    expect(activeId()).toBe('b');
+    expect(results.map(named)).toEqual([
+      { action: 'next', from: null, to: 'b' },
+    ]);
+  });
+
+  it('lands typeahead on the next match', async () => {
+    mount(`
+      <div id="list">
+        ${item('alpha')}${item('bravo', 'hidden')}${item('beta')}
+      </div>
+    `);
+    const typeahead = createTypeahead();
+    const results: unknown[] = [];
+    byId('list').addEventListener('keydown', (e) =>
+      results.push(named(typeahead(e))),
+    );
+    byId('alpha').focus();
+
+    await press('b');
+
+    expect(activeId()).toBe('beta');
+    expect(results).toEqual([
+      { action: 'typeahead', from: 'alpha', to: 'beta' },
+    ]);
+  });
+
+  it('walks rove past it as the keys do', () => {
+    mount(
+      `<div id="list">${item('a')}${item('b', 'hidden')}${item('c')}</div>`,
+    );
+    byId('a').focus();
+
+    expect(named(rove(byId('list'), 'next'))).toEqual({
+      action: 'next',
+      from: 'a',
+      to: 'c',
+    });
+    expect(activeId()).toBe('c');
+    expect(tabindexes(byId('a'), byId('b'), byId('c'))).toEqual([
+      '-1',
+      '-1',
+      '0',
+    ]);
   });
 });
 

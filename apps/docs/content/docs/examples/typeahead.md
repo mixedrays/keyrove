@@ -70,7 +70,9 @@ else:
 - a single character, with none of <kbd class="kbd">Ctrl</kbd>,
   <kbd class="kbd">Alt</kbd> or <kbd class="kbd">Meta</kbd> held.
   <kbd class="kbd">Shift</kbd> is allowed; it is how capitals are typed, and
-  matching ignores case anyway;
+  matching ignores case anyway. <kbd class="kbd">AltGr</kbd> is allowed too,
+  even where Windows reports it as <kbd class="kbd">Ctrl</kbd>+<kbd class="kbd">Alt</kbd>,
+  so "ł" on a Polish layout reaches _Łódź_;
 - not inside an [editable target](/docs/examples/editable-targets), so a field
   inside an item keeps its letters;
 - a space only once the buffer holds a character, so the spacebar keeps
@@ -116,8 +118,9 @@ const typeahead = createTypeahead({ foldDiacritics: false });
 
 The handler returns `null` when it left the key alone and
 `{ action: 'typeahead', from, to }` when it consumed it, with `to: null` when
-the match is already focused or cannot receive focus. `onMove` fires only
-after a successful focus move.
+the match is already focused or no match can receive focus. A match that cannot
+receive focus is passed over for the next one. `onMove` fires only after a
+successful focus move.
 
 Type "swez" quickly to see each result in the readout:
 

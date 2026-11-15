@@ -1,12 +1,12 @@
 import { vi } from 'vitest';
 import {
-  keyRove,
   KEYROVE_ATTR_ITEM,
   KEYROVE_ATTR_SKIP,
   KEYROVE_ATTR_COLS,
   KEYROVE_ATTR_FOCUS_KEY,
   KEYROVE_ATTR_ROVING_TABINDEX,
-} from '../../keyRove';
+} from '../../attributes';
+import { keyRove } from '../../keyRove';
 
 export type RoveResult = ReturnType<typeof keyRove>;
 
@@ -90,7 +90,13 @@ export const pressKey = (
   from: Element = document.activeElement as Element,
   modifiers: Pick<
     KeyboardEventInit,
-    'ctrlKey' | 'altKey' | 'shiftKey' | 'metaKey' | 'isComposing'
+    | 'ctrlKey'
+    | 'altKey'
+    | 'shiftKey'
+    | 'metaKey'
+    | 'modifierAltGraph'
+    | 'isComposing'
+    | 'composed'
   > = {},
 ) => {
   const event = new KeyboardEvent('keydown', {

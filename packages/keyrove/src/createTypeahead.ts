@@ -9,8 +9,8 @@
  */
 
 import { KEYROVE_ATTR_TYPEAHEAD } from './attributes.js';
-import { readGroups } from './group.js';
-import { hasCommandModifier, isEditableTarget } from './utils.js';
+import { readGroups, walkOn } from './group.js';
+import { hasCommandModifier, isEditablePress } from './utils.js';
 import type {
   KeyRoveEvent,
   TypeaheadOptions,
@@ -46,9 +46,9 @@ const foldMarks = (text: string) =>
  * `label` option, falling back to the `data-keyrove-typeahead` attribute and
  * then to trimmed `textContent` — starts with it, ignoring case and, by
  * default, accents and other combining marks. Typing inside editable elements
- * is never captured, modified presses (Ctrl/Alt/Meta) are left to their
- * shortcuts, and a press an earlier handler already claimed with
- * `preventDefault()` is left alone, buffer included. In `cycle` mode a single character moves to the next match after
+ * is never captured, modified presses (Ctrl/Alt/Meta, unless AltGr is held)
+ * are left to their shortcuts, and a press an earlier handler already claimed
+ * with `preventDefault()` is left alone, buffer included. In `cycle` mode a single character moves to the next match after
  * the focused item instead, wrapping, and repeating it cycles through those
  * matches rather than growing the buffer.
  *
@@ -94,14 +94,15 @@ export const createTypeahead = ({
     // printable keys. Navigation and function keys ("ArrowDown", "F6") are
     // longer names, and an event without `key` cannot typeahead at all. A
     // command modifier makes a press a shortcut, not typing (Shift stays: it
-    // is how capitals are typed).
+    // is how capitals are typed; so does AltGr, which Windows reports as
+    // Ctrl+Alt).
     if (e.key?.length !== 1 || hasCommandModifier(e)) return null;
 
-    const eventTarget = e.target as Element | null;
+    // Read where the press began, as `keyRove` does, so a field inside a
+    // shadow root keeps its typing; the group is found from the host.
+    if (isEditablePress(e)) return null;
 
-    if (isEditableTarget(eventTarget)) return null;
-
-    const group = groups.at(eventTarget, e.currentTarget);
+    const group = groups.at(e.target as Element | null, e.currentTarget);
 
     if (!group) return null;
 
@@ -143,11 +144,22 @@ export const createTypeahead = ({
       matchMode === 'cycle' && buffer.length === 1 && focused
         ? items.indexOf(focused) + 1
         : 0;
-    const target = [...items.slice(start), ...items.slice(0, start)].find(
-      (item) =>
-        group.isNavigable(item) &&
-        fold(getLabel(item, label)).startsWith(buffer),
-    );
+    const rotation = [...items.slice(start), ...items.slice(0, start)];
+    // The first match the navigable test accepts, and, where a match refuses
+    // focus, the next one in the rotation: one pass over it, so each label is
+    // read once however many matches refuse.
+    const { to: target, retarget } = walkOn(function* (
+      isNavigable,
+    ): Generator<Element, undefined> {
+      for (const item of rotation) {
+        if (
+          isNavigable(item) &&
+          fold(getLabel(item, label)).startsWith(buffer)
+        ) {
+          yield item;
+        }
+      }
+    }, group.isNavigable);
 
     // No match leaves the key untouched — the character still joined the
     // buffer, so a mistyped prefix goes quiet until the reset clears it.
@@ -161,6 +173,7 @@ export const createTypeahead = ({
       action: 'typeahead',
       from: focused,
       to: target,
+      retarget,
       onMove,
     });
   };

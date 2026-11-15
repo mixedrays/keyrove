@@ -97,9 +97,11 @@ export const isComboSet = (value: string | null | undefined): value is string =>
 /**
  * Whether Ctrl, Alt or Meta is held: a command rather than typing. Shift on
  * its own is typing — it is how capitals are entered — so it does not count.
+ * Nor does a press with AltGr held: Windows reports AltGr as Ctrl+Alt, yet
+ * the press types a character, such as "@" or "€" on a German layout.
  */
 export const hasCommandModifier = (e: KeyRoveEvent): boolean =>
-  !!(e.ctrlKey || e.altKey || e.metaKey);
+  !e.getModifierState?.('AltGraph') && !!(e.ctrlKey || e.altKey || e.metaKey);
 
 // An editable target owns the keys keyrove binds: arrows and Home/End move
 // the caret there, and printable keys type. `closest` rather than `matches`,
@@ -123,8 +125,8 @@ const INERT_INPUT_TYPES = new Set([
 ]);
 
 /** Whether keys arriving from this target belong to it rather than to keyrove. */
-export const isEditableTarget = (target: Element | null) => {
-  const editable = target?.closest?.(EDITABLE_SELECTOR);
+const isEditableTarget = (target: EventTarget | null) => {
+  const editable = (target as Element | null)?.closest?.(EDITABLE_SELECTOR);
 
   if (!editable) return false;
 
@@ -135,11 +137,43 @@ export const isEditableTarget = (target: Element | null) => {
   return editable.getAttribute('contenteditable')?.toLowerCase() !== 'false';
 };
 
+// The element the press began on. A listener outside a shadow root sees
+// `target` retargeted to the shadow host, but the composed path still starts
+// at the element inside. React's synthetic events have no path of their own,
+// so it is read off the native event. An empty path — one read after
+// dispatch — falls back to `target`.
+const originOf = (e: KeyRoveEvent): EventTarget | null =>
+  e.composedPath?.()[0] ?? e.nativeEvent?.composedPath?.()[0] ?? e.target;
+
+/**
+ * Whether the press began in an editable target, which keeps it rather than
+ * handing it to keyrove.
+ *
+ * Both ends of the press are checked: the element it began on, which may be
+ * a field in an open shadow root, and `target`, which a listener outside that
+ * root sees as the host. `closest` stops at a shadow root, so neither alone
+ * covers a shadow tree inside a light-DOM `contenteditable` region as well as
+ * a field inside a shadow tree. A closed shadow root hides its nodes from the
+ * composed path too, so a field inside one still reads as its host.
+ */
+export const isEditablePress = (e: KeyRoveEvent): boolean => {
+  if (isEditableTarget(e.target)) return true;
+
+  const origin = originOf(e);
+
+  return origin !== e.target && isEditableTarget(origin);
+};
+
 /**
  * Sets `tabindex` to `0` / `-1` on `root`.
  *
  * Descendant `tabindex` values are deliberately left alone — they belong to the
  * consumer. Roving tabindex only needs the item itself to carry the tab stop.
+ *
+ * @deprecated For a roving group, `initRovingTabindex` keeps its one tab stop
+ * and `followFocus` moves it with focus. For a stop you manage yourself, set
+ * `element.tabIndex`. `toggleTabIndex` will be removed in the next major
+ * version.
  */
 export const toggleTabIndex = ({ root, isActive }: ToggleTabIndexArgs) => {
   if (!root) return;

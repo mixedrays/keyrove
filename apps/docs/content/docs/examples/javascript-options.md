@@ -75,5 +75,6 @@ keyRove(e, { items: '.cell', skip: '.cell-empty', cols: 4 });
 
 Use options when you cannot edit the markup or need a computed setting:
 `keyRove(e, { items: '.cell', cols: columnsNow() })` reads the column count on
-each call. For CSS grids, `cols: 'auto'` or `data-keyrove-cols="auto"` reads it
-from the layout; see [responsive grid](/docs/examples/responsive-grid).
+each call. For CSS grids and wrapping layouts, `cols: 'auto'` or
+`data-keyrove-cols="auto"` reads it from the layout; see
+[responsive grid](/docs/examples/responsive-grid).

@@ -1,11 +1,18 @@
 import { describe, it, expect } from 'vitest';
-import { resolveTarget } from '../../position';
+import { walkTargets } from '../../position';
 import type { Layout, ResolveTargetArgs } from '../../types';
 import { buildElements, idOf, isNavigable } from './testUtils';
 
 const LIST: Layout = { kind: 'list', cols: 1, horizontal: false, loop: false };
 const LOOP: Layout = { ...LIST, loop: true };
 const GRID: Layout = { kind: 'grid', cols: 3, horizontal: true, loop: false };
+
+/**
+ * The element an intent lands on, or `null`/`undefined` when there is nowhere
+ * to go (a grid edge, an empty group): the first destination of its walk.
+ */
+const resolveTarget = (args: ResolveTargetArgs): Element | null | undefined =>
+  walkTargets(args).next().value;
 
 type ResolveArgs = Pick<ResolveTargetArgs, 'intent' | 'fromIndex'> &
   Partial<ResolveTargetArgs>;
@@ -319,5 +326,105 @@ describe('resolveTarget', () => {
         ),
       ).toBe('e3');
     });
+  });
+});
+
+describe('walkTargets', () => {
+  /**
+   * Walks to the end with every destination refusing focus, as `land` walks
+   * a run of items that refuse it: the test turns down each item the walk has
+   * handed out. Counts the navigable tests each item gets.
+   */
+  const walkRefusingAll = (args: ResolveArgs) => {
+    const elements = args.elements ?? buildElements(4);
+    const tests = new Map<Element, number>();
+    const refused = new Set<Element>();
+    const walk = walkTargets({
+      layout: LIST,
+      pageLength: 10,
+      ...args,
+      elements,
+      isNavigable: (item) => {
+        tests.set(item, (tests.get(item) ?? 0) + 1);
+        return !refused.has(item);
+      },
+    });
+
+    for (const item of walk) refused.add(item);
+
+    return { elements, tests, refused };
+  };
+
+  it.each<[string, ResolveArgs]>([
+    ['next, clamping', { intent: 'next', fromIndex: 10 }],
+    ['next, looping', { intent: 'next', fromIndex: 10, layout: LOOP }],
+    ['pageDown', { intent: 'pageDown', fromIndex: 10, pageLength: 5 }],
+    ['end', { intent: 'end', fromIndex: 10 }],
+  ])('tests each item at most twice over a run of refusals: %s', (_, args) => {
+    const { elements, tests, refused } = walkRefusingAll({
+      elements: buildElements(50),
+      ...args,
+    });
+
+    // The walk reached every item, and tested none more than twice.
+    expect(refused.size).toBe(50);
+    expect(
+      Math.max(...elements.map((item) => tests.get(item) ?? 0)),
+    ).toBeLessThanOrEqual(2);
+  });
+
+  it('hands out, one by one, what resolving again past each one would', () => {
+    const elements = buildElements(12, [2, 7]);
+    const layouts = { LIST, LOOP, GRID };
+    const intents = [
+      'next',
+      'prev',
+      'nextRow',
+      'prevRow',
+      'home',
+      'end',
+      'homeRow',
+      'endRow',
+      'pageUp',
+      'pageDown',
+    ] as const;
+
+    for (const [name, layout] of Object.entries(layouts)) {
+      for (const intent of intents) {
+        if (layout.kind === 'list' && intent.endsWith('Row')) continue;
+
+        for (let fromIndex = -1; fromIndex < elements.length; fromIndex++) {
+          const args = { intent, fromIndex, elements, layout, pageLength: 2 };
+          // One destination at a time, each resolved afresh past every one
+          // before it, until there is none, or it is the one moved from.
+          const resolved: (Element | null | undefined)[] = [];
+          for (;;) {
+            const to = resolveTarget({
+              ...args,
+              isNavigable: (item) =>
+                isNavigable(item) && !resolved.includes(item),
+            });
+            resolved.push(to);
+            if (!to || to === elements[fromIndex]) break;
+          }
+
+          const walked: (Element | null | undefined)[] = [];
+          const walk = walkTargets({
+            ...args,
+            isNavigable: (item) => isNavigable(item) && !walked.includes(item),
+          });
+          for (;;) {
+            const to = walk.next().value;
+            walked.push(to);
+            if (!to || to === elements[fromIndex]) break;
+          }
+
+          expect(
+            walked.map(idOf),
+            `${name} ${intent} from ${fromIndex}`,
+          ).toEqual(resolved.map(idOf));
+        }
+      }
+    }
   });
 });

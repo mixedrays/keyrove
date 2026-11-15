@@ -1,4 +1,4 @@
-import type { MoveResult } from '@mixedrays/keyrove';
+import type { AnyMove, MoveResult } from '@mixedrays/keyrove';
 
 /**
  * The readout: the line in a live demo's header saying what the last key did.
@@ -30,8 +30,8 @@ export const READOUT_HTML = `<output class="demo-readout" data-demo-readout data
  * whatever the chain answered it with.
  */
 export type Readout = {
-  /** A move that happened, in the shape `onMove` hands it over. */
-  move: (move: { action: string; to: Element }) => void;
+  /** A move that happened, as either handler's `onMove` hands it over. */
+  move: (move: AnyMove) => void;
   /**
    * The widget's own doing, which keyrove has no part in: the listbox's pick,
    * the tree opening a folder or stepping out of one. `key` is empty when the

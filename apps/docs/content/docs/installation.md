@@ -23,6 +23,7 @@ yarn add @mixedrays/keyrove
 ```
 
 The package is ESM-only, ships its own types, and has no runtime dependencies.
+On Node ≥ 20.19 or ≥ 22.12 it can also be loaded with `require()`.
 
 ## Vanilla
 

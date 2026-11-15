@@ -4,7 +4,7 @@ import {
   KEYROVE_ATTR_HOME_KEY,
   KEYROVE_ATTR_HOME_ROW_KEY,
   KEYROVE_ATTR_PAGE_LENGTH,
-} from '../../keyRove';
+} from '../../attributes';
 import {
   activeId,
   createItem,

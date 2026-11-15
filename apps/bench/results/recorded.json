@@ -1,15 +1,22 @@
 {
   "environment": {
-    "Browser": "Chrome/153.0.8010.53 (headless), V8 15.3.76.13",
+    "Library": "2.6.0 (working tree at 3186092, with uncommitted changes)",
+    "Browser": "Chrome/156.0.8078.80 (headless), V8 15.6.75.27",
     "OS": "darwin 25.2.0 arm64",
     "CPU": "Apple M1 Pro × 10",
     "Memory": "16 GB",
     "Node": "v25.2.1",
     "Cross-origin isolated": true,
     "Timing": "100 ms warmup, then 15 batches of ≥ 10 ms per case",
-    "Date": "2026-09-22"
+    "Date": "2026-11-07"
+  },
+  "library": {
+    "version": "2.6.0",
+    "commit": "3186092",
+    "dirty": true
   },
   "results": {
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/156.0.0.0 Safari/537.36",
     "hardwareConcurrency": 10,
     "crossOriginIsolated": true,
     "options": {
@@ -17,66 +24,156 @@
       "minBatchMs": 10,
       "warmupMs": 100
     },
+    "supports": {
+      "focusKeysMap": true,
+      "autoColumns": true,
+      "refusedFocus": true,
+      "wrapColumns": true
+    },
     "fixtures": [
       {
         "name": "S",
         "groups": 10,
-        "buildMs": 1.59,
-        "elements": 624
+        "buildMs": 1.6349999904632568,
+        "elements": 618
       },
       {
         "name": "M",
         "groups": 100,
-        "buildMs": 11.82,
-        "elements": 6114
+        "buildMs": 11.450000047683716,
+        "elements": 6108
       },
       {
         "name": "L",
         "groups": 1000,
-        "buildMs": 139.89,
-        "elements": 61014
+        "buildMs": 128.9000000357628,
+        "elements": 61008
       },
       {
         "name": "L, 0 focus keys",
         "groups": 1000,
         "focusKeys": 0,
-        "buildMs": 172.39,
-        "elements": 61014
+        "buildMs": 136.04499995708466,
+        "elements": 61008
       },
       {
         "name": "L, 10 focus keys",
         "groups": 1000,
         "focusKeys": 10,
-        "buildMs": 117.89,
-        "elements": 61014
+        "buildMs": 107.08500003814697,
+        "elements": 61008
       },
       {
         "name": "L, 100 focus keys",
         "groups": 1000,
         "focusKeys": 100,
-        "buildMs": 144.97,
-        "elements": 61014
+        "buildMs": 103.56499999761581,
+        "elements": 61008
       },
       {
         "name": "L, 1000 focus keys",
         "groups": 1000,
         "focusKeys": 1000,
-        "buildMs": 109.96,
-        "elements": 61014
+        "buildMs": 130.8149999976158,
+        "elements": 61008
       },
       {
         "name": "M, cols=\"4\"",
         "groups": 100,
         "grid": "4",
-        "buildMs": 15.01,
-        "elements": 6114
+        "buildMs": 13.634999990463257,
+        "elements": 6108
       },
       {
         "name": "M, cols=\"auto\"",
         "groups": 100,
         "grid": "auto",
-        "buildMs": 14.97,
-        "elements": 6114
+        "buildMs": 11.335000038146973,
+        "elements": 6108
+      },
+      {
+        "name": "M, flex-wrap, cols=\"4\"",
+        "groups": 100,
+        "grid": "4",
+        "buildMs": 12.800000011920929,
+        "elements": 6108
+      },
+      {
+        "name": "M, flex-wrap, cols=\"auto\"",
+        "groups": 100,
+        "grid": "auto",
+        "buildMs": 12.27999997138977,
+        "elements": 6108
+      },
+      {
+        "name": "M, flex row, cols=\"auto\"",
+        "groups": 100,
+        "grid": "auto",
+        "buildMs": 11.909999966621399,
+        "elements": 6108
+      },
+      {
+        "name": "M, flex column, cols=\"1\"",
+        "groups": 100,
+        "grid": "1",
+        "buildMs": 9.300000011920929,
+        "elements": 6108
+      },
+      {
+        "name": "M, flex column, cols=\"auto\"",
+        "groups": 100,
+        "grid": "auto",
+        "buildMs": 9.365000009536743,
+        "elements": 6108
+      },
+      {
+        "name": "1 × display: none",
+        "groups": 1,
+        "items": 3,
+        "buildMs": 0.3199999928474426,
+        "elements": 18
+      },
+      {
+        "name": "10 × display: none",
+        "groups": 1,
+        "items": 12,
+        "buildMs": 0.20999997854232788,
+        "elements": 45
+      },
+      {
+        "name": "100 × display: none",
+        "groups": 1,
+        "items": 102,
+        "buildMs": 0.36500000953674316,
+        "elements": 315
+      },
+      {
+        "name": "1000 × display: none",
+        "groups": 1,
+        "items": 1002,
+        "buildMs": 1.6949999928474426,
+        "elements": 3015
+      },
+      {
+        "name": "1000 × visibility: hidden",
+        "groups": 1,
+        "items": 1002,
+        "buildMs": 5.610000014305115,
+        "elements": 3015
+      },
+      {
+        "name": "1000 × display: none, roving",
+        "groups": 1,
+        "items": 1002,
+        "buildMs": 3.1399999856948853,
+        "elements": 3015
+      },
+      {
+        "name": "1000 × display: none, skipped",
+        "groups": 1,
+        "items": 1002,
+        "buildMs": 1.5049999952316284,
+        "elements": 3015
       }
     ],
     "cases": [
@@ -86,14 +183,14 @@
         "fixture": {
           "name": "S",
           "groups": 10,
-          "buildMs": 1.59,
-          "elements": 624
+          "buildMs": 1.6349999904632568,
+          "elements": 618
         },
         "result": "-",
-        "median": 0,
-        "p10": 0,
-        "p90": 0.01,
-        "batch": 2097152
+        "batch": 16777216,
+        "median": 0.0004595518099392848,
+        "p10": 0.0004532933246537141,
+        "p90": 0.0005415081965054469
       },
       {
         "section": "listener",
@@ -101,14 +198,14 @@
         "fixture": {
           "name": "S",
           "groups": 10,
-          "buildMs": 1.59,
-          "elements": 624
+          "buildMs": 1.6349999904632568,
+          "elements": 618
         },
         "result": "unhandled",
-        "median": 2.68,
-        "p10": 2.64,
-        "p90": 2.93,
-        "batch": 4096
+        "batch": 8192,
+        "median": 1.2829589832108468,
+        "p10": 1.1895751958945766,
+        "p90": 1.4984130903030746
       },
       {
         "section": "listener",
@@ -116,14 +213,14 @@
         "fixture": {
           "name": "S",
           "groups": 10,
-          "buildMs": 1.59,
-          "elements": 624
+          "buildMs": 1.6349999904632568,
+          "elements": 618
         },
         "result": "consumed no-op",
-        "median": 9.43,
-        "p10": 8.6,
-        "p90": 10.01,
-        "batch": 1024
+        "batch": 2048,
+        "median": 8.530273422366008,
+        "p10": 7.949218765133992,
+        "p90": 9.167480486212298
       },
       {
         "section": "listener",
@@ -131,14 +228,14 @@
         "fixture": {
           "name": "S",
           "groups": 10,
-          "buildMs": 1.59,
-          "elements": 624
+          "buildMs": 1.6349999904632568,
+          "elements": 618
         },
         "result": "moved",
-        "median": 24.7,
-        "p10": 23.3,
-        "p90": 27.14,
-        "batch": 512
+        "batch": 512,
+        "median": 22.50976557843387,
+        "p10": 21.826171781867743,
+        "p90": 24.92187498137355
       },
       {
         "section": "listener",
@@ -146,14 +243,14 @@
         "fixture": {
           "name": "S",
           "groups": 10,
-          "buildMs": 1.59,
-          "elements": 624
+          "buildMs": 1.6349999904632568,
+          "elements": 618
         },
         "result": "unhandled",
-        "median": 2.69,
-        "p10": 2.63,
-        "p90": 3,
-        "batch": 4096
+        "batch": 8192,
+        "median": 1.209106449095998,
+        "p10": 1.1694335989886895,
+        "p90": 1.4447021530941129
       },
       {
         "section": "listener",
@@ -161,14 +258,14 @@
         "fixture": {
           "name": "S",
           "groups": 10,
-          "buildMs": 1.59,
-          "elements": 624
+          "buildMs": 1.6349999904632568,
+          "elements": 618
         },
         "result": "consumed no-op",
-        "median": 9.85,
-        "p10": 9.45,
-        "p90": 10.28,
-        "batch": 2048
+        "batch": 2048,
+        "median": 8.625488262623549,
+        "p10": 8.098144520772621,
+        "p90": 9.199218737194315
       },
       {
         "section": "listener",
@@ -176,14 +273,14 @@
         "fixture": {
           "name": "S",
           "groups": 10,
-          "buildMs": 1.59,
-          "elements": 624
+          "buildMs": 1.6349999904632568,
+          "elements": 618
         },
         "result": "moved",
-        "median": 23.31,
-        "p10": 22.33,
-        "p90": 25.07,
-        "batch": 512
+        "batch": 512,
+        "median": 22.23632810637355,
+        "p10": 21.562499925494194,
+        "p90": 25.400390615686774
       },
       {
         "section": "listener",
@@ -191,14 +288,14 @@
         "fixture": {
           "name": "M",
           "groups": 100,
-          "buildMs": 11.82,
-          "elements": 6114
+          "buildMs": 11.450000047683716,
+          "elements": 6108
         },
         "result": "unhandled",
-        "median": 2.56,
-        "p10": 2.55,
-        "p90": 2.69,
-        "batch": 4096
+        "batch": 16384,
+        "median": 1.2527465805760585,
+        "p10": 1.130065917095635,
+        "p90": 1.2951660173712298
       },
       {
         "section": "listener",
@@ -206,14 +303,14 @@
         "fixture": {
           "name": "M",
           "groups": 100,
-          "buildMs": 11.82,
-          "elements": 6114
+          "buildMs": 11.450000047683716,
+          "elements": 6108
         },
         "result": "consumed no-op",
-        "median": 9.18,
-        "p10": 8.5,
-        "p90": 9.7,
-        "batch": 2048
+        "batch": 2048,
+        "median": 8.303222653921694,
+        "p10": 7.866210944484919,
+        "p90": 9.130859369179234
       },
       {
         "section": "listener",
@@ -221,14 +318,14 @@
         "fixture": {
           "name": "M",
           "groups": 100,
-          "buildMs": 11.82,
-          "elements": 6114
+          "buildMs": 11.450000047683716,
+          "elements": 6108
         },
         "result": "moved",
-        "median": 22.57,
-        "p10": 22.17,
-        "p90": 27.47,
-        "batch": 512
+        "batch": 512,
+        "median": 21.62109373603016,
+        "p10": 20.06835932843387,
+        "p90": 24.267578148283064
       },
       {
         "section": "listener",
@@ -236,14 +333,14 @@
         "fixture": {
           "name": "M",
           "groups": 100,
-          "buildMs": 11.82,
-          "elements": 6114
+          "buildMs": 11.450000047683716,
+          "elements": 6108
         },
         "result": "unhandled",
-        "median": 2.57,
-        "p10": 2.55,
-        "p90": 2.63,
-        "batch": 4096
+        "batch": 8192,
+        "median": 1.1492919875308871,
+        "p10": 1.1431884777266532,
+        "p90": 1.453247074095998
       },
       {
         "section": "listener",
@@ -251,14 +348,14 @@
         "fixture": {
           "name": "M",
           "groups": 100,
-          "buildMs": 11.82,
-          "elements": 6114
+          "buildMs": 11.450000047683716,
+          "elements": 6108
         },
         "result": "consumed no-op",
-        "median": 8.73,
-        "p10": 8.37,
-        "p90": 10.59,
-        "batch": 1024
+        "batch": 2048,
+        "median": 8.244628901593387,
+        "p10": 7.7929687686264515,
+        "p90": 9.865722648100927
       },
       {
         "section": "listener",
@@ -266,14 +363,14 @@
         "fixture": {
           "name": "M",
           "groups": 100,
-          "buildMs": 11.82,
-          "elements": 6114
+          "buildMs": 11.450000047683716,
+          "elements": 6108
         },
         "result": "moved",
-        "median": 22.49,
-        "p10": 22.22,
-        "p90": 26.24,
-        "batch": 512
+        "batch": 512,
+        "median": 21.79687505122274,
+        "p10": 21.28906245343387,
+        "p90": 23.466796847060323
       },
       {
         "section": "listener",
@@ -281,14 +378,14 @@
         "fixture": {
           "name": "L",
           "groups": 1000,
-          "buildMs": 139.89,
-          "elements": 61014
+          "buildMs": 128.9000000357628,
+          "elements": 61008
         },
         "result": "unhandled",
-        "median": 2.59,
-        "p10": 2.57,
-        "p90": 2.62,
-        "batch": 4096
+        "batch": 8192,
+        "median": 1.1541748026502319,
+        "p10": 1.1315918018226512,
+        "p90": 1.379394525429234
       },
       {
         "section": "listener",
@@ -296,14 +393,14 @@
         "fixture": {
           "name": "L",
           "groups": 1000,
-          "buildMs": 139.89,
-          "elements": 61014
+          "buildMs": 128.9000000357628,
+          "elements": 61008
         },
         "result": "consumed no-op",
-        "median": 9.09,
-        "p10": 9.01,
-        "p90": 9.83,
-        "batch": 2048
+        "batch": 2048,
+        "median": 8.271484373835847,
+        "p10": 8.081054693320766,
+        "p90": 9.523925778921694
       },
       {
         "section": "listener",
@@ -311,14 +408,14 @@
         "fixture": {
           "name": "L",
           "groups": 1000,
-          "buildMs": 139.89,
-          "elements": 61014
+          "buildMs": 128.9000000357628,
+          "elements": 61008
         },
         "result": "moved",
-        "median": 22.16,
-        "p10": 21.82,
-        "p90": 22.9,
-        "batch": 512
+        "batch": 512,
+        "median": 22.402343805879354,
+        "p10": 21.914062439464033,
+        "p90": 22.81250001396984
       },
       {
         "section": "listener",
@@ -326,14 +423,14 @@
         "fixture": {
           "name": "L",
           "groups": 1000,
-          "buildMs": 139.89,
-          "elements": 61014
+          "buildMs": 128.9000000357628,
+          "elements": 61008
         },
         "result": "unhandled",
-        "median": 2.57,
-        "p10": 2.55,
-        "p90": 2.65,
-        "batch": 4096
+        "batch": 8192,
+        "median": 1.1395263645681553,
+        "p10": 1.1151123107993044,
+        "p90": 1.3745117175858468
       },
       {
         "section": "listener",
@@ -341,14 +438,14 @@
         "fixture": {
           "name": "L",
           "groups": 1000,
-          "buildMs": 139.89,
-          "elements": 61014
+          "buildMs": 128.9000000357628,
+          "elements": 61008
         },
         "result": "consumed no-op",
-        "median": 8.77,
-        "p10": 8.5,
-        "p90": 10,
-        "batch": 2048
+        "batch": 2048,
+        "median": 8.474121103063226,
+        "p10": 7.841796876164153,
+        "p90": 9.519042971078306
       },
       {
         "section": "listener",
@@ -356,14 +453,14 @@
         "fixture": {
           "name": "L",
           "groups": 1000,
-          "buildMs": 139.89,
-          "elements": 61014
+          "buildMs": 128.9000000357628,
+          "elements": 61008
         },
         "result": "moved",
-        "median": 24.5,
-        "p10": 23.91,
-        "p90": 25.21,
-        "batch": 512
+        "batch": 512,
+        "median": 21.757812472060323,
+        "p10": 21.44531242083758,
+        "p90": 23.320312495343387
       },
       {
         "section": "focus keys",
@@ -372,14 +469,14 @@
           "name": "L, 0 focus keys",
           "groups": 1000,
           "focusKeys": 0,
-          "buildMs": 172.39,
-          "elements": 61014
+          "buildMs": 136.04499995708466,
+          "elements": 61008
         },
         "result": "unhandled",
-        "median": 2.65,
-        "p10": 2.6,
-        "p90": 2.76,
-        "batch": 4096
+        "batch": 8192,
+        "median": 1.1462402399047278,
+        "p10": 1.0998535144608468,
+        "p90": 1.3452148414216936
       },
       {
         "section": "focus keys",
@@ -388,14 +485,14 @@
           "name": "L, 0 focus keys",
           "groups": 1000,
           "focusKeys": 0,
-          "buildMs": 172.39,
-          "elements": 61014
+          "buildMs": 136.04499995708466,
+          "elements": 61008
         },
         "result": "unhandled",
-        "median": 2.42,
-        "p10": 2.35,
-        "p90": 2.5,
-        "batch": 8192
+        "batch": 16384,
+        "median": 0.9490966804150958,
+        "p10": 0.9197998042509425,
+        "p90": 1.0040283195849042
       },
       {
         "section": "focus keys",
@@ -404,174 +501,14 @@
           "name": "L, 0 focus keys",
           "groups": 1000,
           "focusKeys": 0,
-          "buildMs": 172.39,
-          "elements": 61014
+          "buildMs": 136.04499995708466,
+          "elements": 61008
         },
         "result": "unhandled",
-        "median": 2.36,
-        "p10": 2.33,
-        "p90": 2.4,
-        "batch": 8192
-      },
-      {
-        "section": "focus keys",
-        "label": "10 × attribute scan",
-        "fixture": {
-          "name": "L, 10 focus keys",
-          "groups": 1000,
-          "focusKeys": 10,
-          "buildMs": 117.89,
-          "elements": 61014
-        },
-        "result": "unhandled",
-        "median": 18.32,
-        "p10": 17.74,
-        "p90": 18.87,
-        "batch": 1024
-      },
-      {
-        "section": "focus keys",
-        "label": "10 × focusKeys map, elements",
-        "fixture": {
-          "name": "L, 10 focus keys",
-          "groups": 1000,
-          "focusKeys": 10,
-          "buildMs": 117.89,
-          "elements": 61014
-        },
-        "result": "unhandled",
-        "median": 4.41,
-        "p10": 4.34,
-        "p90": 4.47,
-        "batch": 4096
-      },
-      {
-        "section": "focus keys",
-        "label": "10 × focusKeys map, selectors",
-        "fixture": {
-          "name": "L, 10 focus keys",
-          "groups": 1000,
-          "focusKeys": 10,
-          "buildMs": 117.89,
-          "elements": 61014
-        },
-        "result": "unhandled",
-        "median": 4.97,
-        "p10": 4.92,
-        "p90": 5.06,
-        "batch": 2048
-      },
-      {
-        "section": "focus keys",
-        "label": "100 × attribute scan",
-        "fixture": {
-          "name": "L, 100 focus keys",
-          "groups": 1000,
-          "focusKeys": 100,
-          "buildMs": 144.97,
-          "elements": 61014
-        },
-        "result": "unhandled",
-        "median": 68.46,
-        "p10": 67.71,
-        "p90": 68.81,
-        "batch": 256
-      },
-      {
-        "section": "focus keys",
-        "label": "100 × focusKeys map, elements",
-        "fixture": {
-          "name": "L, 100 focus keys",
-          "groups": 1000,
-          "focusKeys": 100,
-          "buildMs": 144.97,
-          "elements": 61014
-        },
-        "result": "unhandled",
-        "median": 41.27,
-        "p10": 40.41,
-        "p90": 42.68,
-        "batch": 256
-      },
-      {
-        "section": "focus keys",
-        "label": "100 × focusKeys map, selectors",
-        "fixture": {
-          "name": "L, 100 focus keys",
-          "groups": 1000,
-          "focusKeys": 100,
-          "buildMs": 144.97,
-          "elements": 61014
-        },
-        "result": "unhandled",
-        "median": 49.73,
-        "p10": 49.41,
-        "p90": 50.1,
-        "batch": 256
-      },
-      {
-        "section": "focus keys",
-        "label": "1000 × attribute scan",
-        "fixture": {
-          "name": "L, 1000 focus keys",
-          "groups": 1000,
-          "focusKeys": 1000,
-          "buildMs": 109.96,
-          "elements": 61014
-        },
-        "result": "unhandled",
-        "median": 575.78,
-        "p10": 560,
-        "p90": 599.22,
-        "batch": 32
-      },
-      {
-        "section": "focus keys",
-        "label": "1000 × focusKeys map, elements",
-        "fixture": {
-          "name": "L, 1000 focus keys",
-          "groups": 1000,
-          "focusKeys": 1000,
-          "buildMs": 109.96,
-          "elements": 61014
-        },
-        "result": "unhandled",
-        "median": 420.31,
-        "p10": 412.5,
-        "p90": 429.37,
-        "batch": 32
-      },
-      {
-        "section": "focus keys",
-        "label": "1000 × focusKeys map, selectors",
-        "fixture": {
-          "name": "L, 1000 focus keys",
-          "groups": 1000,
-          "focusKeys": 1000,
-          "buildMs": 109.96,
-          "elements": 61014
-        },
-        "result": "unhandled",
-        "median": 855,
-        "p10": 795.31,
-        "p90": 905.94,
-        "batch": 16
-      },
-      {
-        "section": "focus keys",
-        "label": "1000 on page, local listener",
-        "fixture": {
-          "name": "L, 1000 focus keys",
-          "groups": 1000,
-          "focusKeys": 1000,
-          "buildMs": 109.96,
-          "elements": 61014
-        },
-        "result": "unhandled",
-        "median": 3.43,
-        "p10": 3.24,
-        "p90": 4.42,
-        "batch": 4096
+        "batch": 16384,
+        "median": 0.950622561504133,
+        "p10": 0.9094238303077873,
+        "p90": 1.027221678668866
       },
       {
         "section": "diagnostics",
@@ -580,14 +517,14 @@
           "name": "L, 0 focus keys",
           "groups": 1000,
           "focusKeys": 0,
-          "buildMs": 172.39,
-          "elements": 61014
+          "buildMs": 136.04499995708466,
+          "elements": 61008
         },
         "result": "-",
-        "median": 0.09,
-        "p10": 0.08,
-        "p90": 0.13,
-        "batch": 131072
+        "batch": 131072,
+        "median": 0.0831222532724496,
+        "p10": 0.08110046428555506,
+        "p90": 0.11058807376684854
       },
       {
         "section": "diagnostics",
@@ -596,14 +533,62 @@
           "name": "L, 0 focus keys",
           "groups": 1000,
           "focusKeys": 0,
-          "buildMs": 172.39,
-          "elements": 61014
+          "buildMs": 136.04499995708466,
+          "elements": 61008
         },
         "result": "-",
-        "median": 0.01,
-        "p10": 0.01,
-        "p90": 0.01,
-        "batch": 2097152
+        "batch": 2097152,
+        "median": 0.005125999450683594,
+        "p10": 0.005056858071839088,
+        "p90": 0.00521421432608804
+      },
+      {
+        "section": "focus keys",
+        "label": "10 × attribute scan",
+        "fixture": {
+          "name": "L, 10 focus keys",
+          "groups": 1000,
+          "focusKeys": 10,
+          "buildMs": 107.08500003814697,
+          "elements": 61008
+        },
+        "result": "unhandled",
+        "batch": 1024,
+        "median": 16.416015627328306,
+        "p10": 15.874023432843387,
+        "p90": 17.006835900247097
+      },
+      {
+        "section": "focus keys",
+        "label": "10 × focusKeys map, elements",
+        "fixture": {
+          "name": "L, 10 focus keys",
+          "groups": 1000,
+          "focusKeys": 10,
+          "buildMs": 107.08500003814697,
+          "elements": 61008
+        },
+        "result": "unhandled",
+        "batch": 4096,
+        "median": 3.2739257731009275,
+        "p10": 3.167724615195766,
+        "p90": 3.3520507713546976
+      },
+      {
+        "section": "focus keys",
+        "label": "10 × focusKeys map, selectors",
+        "fixture": {
+          "name": "L, 10 focus keys",
+          "groups": 1000,
+          "focusKeys": 10,
+          "buildMs": 107.08500003814697,
+          "elements": 61008
+        },
+        "result": "unhandled",
+        "batch": 4096,
+        "median": 3.8598632818320766,
+        "p10": 3.7683105474570766,
+        "p90": 3.9709472621325403
       },
       {
         "section": "diagnostics",
@@ -612,14 +597,14 @@
           "name": "L, 10 focus keys",
           "groups": 1000,
           "focusKeys": 10,
-          "buildMs": 117.89,
-          "elements": 61014
+          "buildMs": 107.08500003814697,
+          "elements": 61008
         },
         "result": "-",
-        "median": 9.74,
-        "p10": 9.44,
-        "p90": 10.12,
-        "batch": 1024
+        "batch": 2048,
+        "median": 9.14794922573492,
+        "p10": 8.959960920037702,
+        "p90": 9.343261714093387
       },
       {
         "section": "diagnostics",
@@ -628,14 +613,62 @@
           "name": "L, 10 focus keys",
           "groups": 1000,
           "focusKeys": 10,
-          "buildMs": 117.89,
-          "elements": 61014
+          "buildMs": 107.08500003814697,
+          "elements": 61008
         },
         "result": "-",
-        "median": 1.09,
-        "p10": 1.08,
-        "p90": 1.11,
-        "batch": 16384
+        "batch": 16384,
+        "median": 1.0464477527420968,
+        "p10": 1.0360717787989415,
+        "p90": 1.0559082038525958
+      },
+      {
+        "section": "focus keys",
+        "label": "100 × attribute scan",
+        "fixture": {
+          "name": "L, 100 focus keys",
+          "groups": 1000,
+          "focusKeys": 100,
+          "buildMs": 103.56499999761581,
+          "elements": 61008
+        },
+        "result": "unhandled",
+        "batch": 256,
+        "median": 69.06250002793968,
+        "p10": 68.26171884313226,
+        "p90": 70.62499993480742
+      },
+      {
+        "section": "focus keys",
+        "label": "100 × focusKeys map, elements",
+        "fixture": {
+          "name": "L, 100 focus keys",
+          "groups": 1000,
+          "focusKeys": 100,
+          "buildMs": 103.56499999761581,
+          "elements": 61008
+        },
+        "result": "unhandled",
+        "batch": 256,
+        "median": 42.109375121071935,
+        "p10": 41.36718739755452,
+        "p90": 43.55468740686774
+      },
+      {
+        "section": "focus keys",
+        "label": "100 × focusKeys map, selectors",
+        "fixture": {
+          "name": "L, 100 focus keys",
+          "groups": 1000,
+          "focusKeys": 100,
+          "buildMs": 103.56499999761581,
+          "elements": 61008
+        },
+        "result": "unhandled",
+        "batch": 256,
+        "median": 50.15624989755452,
+        "p10": 49.62890618480742,
+        "p90": 50.91796861961484
       },
       {
         "section": "diagnostics",
@@ -644,14 +677,14 @@
           "name": "L, 100 focus keys",
           "groups": 1000,
           "focusKeys": 100,
-          "buildMs": 144.97,
-          "elements": 61014
+          "buildMs": 103.56499999761581,
+          "elements": 61008
         },
         "result": "-",
-        "median": 24.15,
-        "p10": 23.53,
-        "p90": 25.67,
-        "batch": 512
+        "batch": 512,
+        "median": 24.03320313896984,
+        "p10": 22.998046944849193,
+        "p90": 24.90234375
       },
       {
         "section": "diagnostics",
@@ -660,14 +693,78 @@
           "name": "L, 100 focus keys",
           "groups": 1000,
           "focusKeys": 100,
-          "buildMs": 144.97,
-          "elements": 61014
+          "buildMs": 103.56499999761581,
+          "elements": 61008
         },
         "result": "-",
-        "median": 24.44,
-        "p10": 24.03,
-        "p90": 25.01,
-        "batch": 512
+        "batch": 512,
+        "median": 23.710937472060323,
+        "p10": 22.988281212747097,
+        "p90": 24.01367190759629
+      },
+      {
+        "section": "focus keys",
+        "label": "1000 × attribute scan",
+        "fixture": {
+          "name": "L, 1000 focus keys",
+          "groups": 1000,
+          "focusKeys": 1000,
+          "buildMs": 130.8149999976158,
+          "elements": 61008
+        },
+        "result": "unhandled",
+        "batch": 16,
+        "median": 657.8125022351742,
+        "p10": 605.9374995529652,
+        "p90": 737.5000007450581
+      },
+      {
+        "section": "focus keys",
+        "label": "1000 × focusKeys map, elements",
+        "fixture": {
+          "name": "L, 1000 focus keys",
+          "groups": 1000,
+          "focusKeys": 1000,
+          "buildMs": 130.8149999976158,
+          "elements": 61008
+        },
+        "result": "unhandled",
+        "batch": 32,
+        "median": 460.46875044703484,
+        "p10": 436.87500059604645,
+        "p90": 470.15625052154064
+      },
+      {
+        "section": "focus keys",
+        "label": "1000 × focusKeys map, selectors",
+        "fixture": {
+          "name": "L, 1000 focus keys",
+          "groups": 1000,
+          "focusKeys": 1000,
+          "buildMs": 130.8149999976158,
+          "elements": 61008
+        },
+        "result": "unhandled",
+        "batch": 16,
+        "median": 742.4999997019768,
+        "p10": 725.3125011920929,
+        "p90": 795.0000017881393
+      },
+      {
+        "section": "focus keys",
+        "label": "1000 on page, local listener",
+        "fixture": {
+          "name": "L, 1000 focus keys",
+          "groups": 1000,
+          "focusKeys": 1000,
+          "buildMs": 130.8149999976158,
+          "elements": 61008
+        },
+        "result": "unhandled",
+        "batch": 2048,
+        "median": 2.5292968784924597,
+        "p10": 2.463378885295242,
+        "p90": 3.630371094914153
       },
       {
         "section": "diagnostics",
@@ -676,14 +773,14 @@
           "name": "L, 1000 focus keys",
           "groups": 1000,
           "focusKeys": 1000,
-          "buildMs": 109.96,
-          "elements": 61014
+          "buildMs": 130.8149999976158,
+          "elements": 61008
         },
         "result": "-",
-        "median": 141.6,
-        "p10": 122.81,
-        "p90": 309.26,
-        "batch": 128
+        "batch": 128,
+        "median": 110.15625018626451,
+        "p10": 107.57812531664968,
+        "p90": 114.96093729510903
       },
       {
         "section": "diagnostics",
@@ -692,14 +789,14 @@
           "name": "L, 1000 focus keys",
           "groups": 1000,
           "focusKeys": 1000,
-          "buildMs": 109.96,
-          "elements": 61014
+          "buildMs": 130.8149999976158,
+          "elements": 61008
         },
         "result": "-",
-        "median": 287.81,
-        "p10": 278.12,
-        "p90": 305.08,
-        "batch": 64
+        "batch": 64,
+        "median": 229.29687425494194,
+        "p10": 226.7187498509884,
+        "p90": 236.56249977648258
       },
       {
         "section": "columns",
@@ -708,14 +805,30 @@
           "name": "M, cols=\"4\"",
           "groups": 100,
           "grid": "4",
-          "buildMs": 15.01,
-          "elements": 6114
+          "buildMs": 13.634999990463257,
+          "elements": 6108
         },
         "result": "unhandled",
-        "median": 5.03,
-        "p10": 4.95,
-        "p90": 5.24,
-        "batch": 2048
+        "batch": 8192,
+        "median": 1.1938476527575403,
+        "p10": 1.1737060558516532,
+        "p90": 1.4306640659924597
+      },
+      {
+        "section": "columns",
+        "label": "cols=\"4\", unbound, layout dirtied",
+        "fixture": {
+          "name": "M, cols=\"4\"",
+          "groups": 100,
+          "grid": "4",
+          "buildMs": 13.634999990463257,
+          "elements": 6108
+        },
+        "result": "unhandled",
+        "batch": 8192,
+        "median": 1.3684082077816129,
+        "p10": 1.3537597624235786,
+        "p90": 1.6113281235448085
       },
       {
         "section": "columns",
@@ -724,14 +837,46 @@
           "name": "M, cols=\"4\"",
           "groups": 100,
           "grid": "4",
-          "buildMs": 15.01,
-          "elements": 6114
+          "buildMs": 13.634999990463257,
+          "elements": 6108
         },
         "result": "moved",
-        "median": 26.89,
-        "p10": 26.68,
-        "p90": 27.72,
-        "batch": 512
+        "batch": 512,
+        "median": 26.50390623603016,
+        "p10": 25.488281273283064,
+        "p90": 27.509765699505806
+      },
+      {
+        "section": "columns",
+        "label": "cols=\"4\", bound, moves focus, layout dirtied",
+        "fixture": {
+          "name": "M, cols=\"4\"",
+          "groups": 100,
+          "grid": "4",
+          "buildMs": 13.634999990463257,
+          "elements": 6108
+        },
+        "result": "moved",
+        "batch": 16,
+        "median": 1084.6874974668026,
+        "p10": 1040.312498807907,
+        "p90": 1342.8125008940697
+      },
+      {
+        "section": "columns",
+        "label": "layout dirtied, then read, no handler",
+        "fixture": {
+          "name": "M, cols=\"4\"",
+          "groups": 100,
+          "grid": "4",
+          "buildMs": 13.634999990463257,
+          "elements": 6108
+        },
+        "result": "-",
+        "batch": 16,
+        "median": 973.1249995529652,
+        "p10": 947.187501937151,
+        "p90": 1236.5624979138374
       },
       {
         "section": "columns",
@@ -740,14 +885,30 @@
           "name": "M, cols=\"auto\"",
           "groups": 100,
           "grid": "auto",
-          "buildMs": 14.97,
-          "elements": 6114
+          "buildMs": 11.335000038146973,
+          "elements": 6108
         },
         "result": "unhandled",
-        "median": 6.75,
-        "p10": 6.56,
-        "p90": 7.25,
-        "batch": 2048
+        "batch": 16384,
+        "median": 1.2576293956954032,
+        "p10": 1.1480712892080192,
+        "p90": 1.3220214859757107
+      },
+      {
+        "section": "columns",
+        "label": "cols=\"auto\", unbound, layout dirtied",
+        "fixture": {
+          "name": "M, cols=\"auto\"",
+          "groups": 100,
+          "grid": "auto",
+          "buildMs": 11.335000038146973,
+          "elements": 6108
+        },
+        "result": "unhandled",
+        "batch": 8192,
+        "median": 1.3250732445158064,
+        "p10": 1.308593746216502,
+        "p90": 1.5441894574905746
       },
       {
         "section": "columns",
@@ -756,15 +917,560 @@
           "name": "M, cols=\"auto\"",
           "groups": 100,
           "grid": "auto",
-          "buildMs": 14.97,
-          "elements": 6114
+          "buildMs": 11.335000038146973,
+          "elements": 6108
         },
         "result": "moved",
-        "median": 29.86,
-        "p10": 28.81,
-        "p90": 32.46,
-        "batch": 512
+        "batch": 512,
+        "median": 28.54492177721113,
+        "p10": 28.134765685535967,
+        "p90": 29.218749958090484
+      },
+      {
+        "section": "columns",
+        "label": "cols=\"auto\", bound, moves focus, layout dirtied",
+        "fixture": {
+          "name": "M, cols=\"auto\"",
+          "groups": 100,
+          "grid": "auto",
+          "buildMs": 11.335000038146973,
+          "elements": 6108
+        },
+        "result": "moved",
+        "batch": 16,
+        "median": 1033.1249982118607,
+        "p10": 1003.1250007450581,
+        "p90": 1302.1874986588955
+      },
+      {
+        "section": "columns",
+        "label": "layout dirtied, then read, no handler",
+        "fixture": {
+          "name": "M, cols=\"auto\"",
+          "groups": 100,
+          "grid": "auto",
+          "buildMs": 11.335000038146973,
+          "elements": 6108
+        },
+        "result": "-",
+        "batch": 16,
+        "median": 994.6875013411045,
+        "p10": 939.0625022351742,
+        "p90": 1248.4374977648258
+      },
+      {
+        "section": "columns",
+        "label": "cols=\"4\", unbound",
+        "fixture": {
+          "name": "M, flex-wrap, cols=\"4\"",
+          "groups": 100,
+          "grid": "4",
+          "buildMs": 12.800000011920929,
+          "elements": 6108
+        },
+        "result": "unhandled",
+        "batch": 8192,
+        "median": 1.1663818295346573,
+        "p10": 1.1425781267462298,
+        "p90": 1.3934326198068447
+      },
+      {
+        "section": "columns",
+        "label": "cols=\"4\", unbound, layout dirtied",
+        "fixture": {
+          "name": "M, flex-wrap, cols=\"4\"",
+          "groups": 100,
+          "grid": "4",
+          "buildMs": 12.800000011920929,
+          "elements": 6108
+        },
+        "result": "unhandled",
+        "batch": 8192,
+        "median": 1.3562011736212298,
+        "p10": 1.3262939464766532,
+        "p90": 1.5661621146136895
+      },
+      {
+        "section": "columns",
+        "label": "cols=\"4\", bound, moves focus",
+        "fixture": {
+          "name": "M, flex-wrap, cols=\"4\"",
+          "groups": 100,
+          "grid": "4",
+          "buildMs": 12.800000011920929,
+          "elements": 6108
+        },
+        "result": "moved",
+        "batch": 512,
+        "median": 26.40625007916242,
+        "p10": 25.517578120343387,
+        "p90": 27.509765583090484
+      },
+      {
+        "section": "columns",
+        "label": "cols=\"4\", bound, moves focus, layout dirtied",
+        "fixture": {
+          "name": "M, flex-wrap, cols=\"4\"",
+          "groups": 100,
+          "grid": "4",
+          "buildMs": 12.800000011920929,
+          "elements": 6108
+        },
+        "result": "moved",
+        "batch": 256,
+        "median": 50.37109390832484,
+        "p10": 49.746093805879354,
+        "p90": 52.08984389901161
+      },
+      {
+        "section": "columns",
+        "label": "layout dirtied, then read, no handler",
+        "fixture": {
+          "name": "M, flex-wrap, cols=\"4\"",
+          "groups": 100,
+          "grid": "4",
+          "buildMs": 12.800000011920929,
+          "elements": 6108
+        },
+        "result": "-",
+        "batch": 512,
+        "median": 20.048828097060323,
+        "p10": 19.61914054118097,
+        "p90": 20.46874992083758
+      },
+      {
+        "section": "columns",
+        "label": "cols=\"auto\", unbound",
+        "fixture": {
+          "name": "M, flex-wrap, cols=\"auto\"",
+          "groups": 100,
+          "grid": "auto",
+          "buildMs": 12.27999997138977,
+          "elements": 6108
+        },
+        "result": "unhandled",
+        "batch": 8192,
+        "median": 1.1804199239122681,
+        "p10": 1.152954100689385,
+        "p90": 1.4013671825523488
+      },
+      {
+        "section": "columns",
+        "label": "cols=\"auto\", unbound, layout dirtied",
+        "fixture": {
+          "name": "M, flex-wrap, cols=\"auto\"",
+          "groups": 100,
+          "grid": "auto",
+          "buildMs": 12.27999997138977,
+          "elements": 6108
+        },
+        "result": "unhandled",
+        "batch": 8192,
+        "median": 1.3500976565410383,
+        "p10": 1.3165283235139214,
+        "p90": 1.5960693344823085
+      },
+      {
+        "section": "columns",
+        "label": "cols=\"auto\", bound, moves focus",
+        "fixture": {
+          "name": "M, flex-wrap, cols=\"auto\"",
+          "groups": 100,
+          "grid": "auto",
+          "buildMs": 12.27999997138977,
+          "elements": 6108
+        },
+        "result": "moved",
+        "batch": 512,
+        "median": 30.175781343132257,
+        "p10": 29.580078087747097,
+        "p90": 35.41992185637355
+      },
+      {
+        "section": "columns",
+        "label": "cols=\"auto\", bound, moves focus, layout dirtied",
+        "fixture": {
+          "name": "M, flex-wrap, cols=\"auto\"",
+          "groups": 100,
+          "grid": "auto",
+          "buildMs": 12.27999997138977,
+          "elements": 6108
+        },
+        "result": "moved",
+        "batch": 256,
+        "median": 55.48828118480742,
+        "p10": 54.96093747206032,
+        "p90": 56.269531371071935
+      },
+      {
+        "section": "columns",
+        "label": "layout dirtied, then read, no handler",
+        "fixture": {
+          "name": "M, flex-wrap, cols=\"auto\"",
+          "groups": 100,
+          "grid": "auto",
+          "buildMs": 12.27999997138977,
+          "elements": 6108
+        },
+        "result": "-",
+        "batch": 512,
+        "median": 19.589843810535967,
+        "p10": 19.560546847060323,
+        "p90": 19.804687472060323
+      },
+      {
+        "section": "columns",
+        "label": "cols=\"auto\", unbound",
+        "fixture": {
+          "name": "M, flex row, cols=\"auto\"",
+          "groups": 100,
+          "grid": "auto",
+          "buildMs": 11.909999966621399,
+          "elements": 6108
+        },
+        "result": "unhandled",
+        "batch": 8192,
+        "median": 1.1633300746325403,
+        "p10": 1.1346435567247681,
+        "p90": 1.3775634797639214
+      },
+      {
+        "section": "columns",
+        "label": "cols=\"auto\", unbound, layout dirtied",
+        "fixture": {
+          "name": "M, flex row, cols=\"auto\"",
+          "groups": 100,
+          "grid": "auto",
+          "buildMs": 11.909999966621399,
+          "elements": 6108
+        },
+        "result": "unhandled",
+        "batch": 8192,
+        "median": 1.3336181655176915,
+        "p10": 1.303100580116734,
+        "p90": 1.5582275373162702
+      },
+      {
+        "section": "columns",
+        "label": "cols=\"auto\", bound, moves focus",
+        "fixture": {
+          "name": "M, flex row, cols=\"auto\"",
+          "groups": 100,
+          "grid": "auto",
+          "buildMs": 11.909999966621399,
+          "elements": 6108
+        },
+        "result": "moved",
+        "batch": 512,
+        "median": 36.43554693553597,
+        "p10": 35.966796800494194,
+        "p90": 42.333984398283064
+      },
+      {
+        "section": "columns",
+        "label": "cols=\"auto\", bound, moves focus, layout dirtied",
+        "fixture": {
+          "name": "M, flex row, cols=\"auto\"",
+          "groups": 100,
+          "grid": "auto",
+          "buildMs": 11.909999966621399,
+          "elements": 6108
+        },
+        "result": "moved",
+        "batch": 16,
+        "median": 823.7500004470348,
+        "p10": 796.2500005960464,
+        "p90": 954.3749988079071
+      },
+      {
+        "section": "columns",
+        "label": "layout dirtied, then read, no handler",
+        "fixture": {
+          "name": "M, flex row, cols=\"auto\"",
+          "groups": 100,
+          "grid": "auto",
+          "buildMs": 11.909999966621399,
+          "elements": 6108
+        },
+        "result": "-",
+        "batch": 16,
+        "median": 755.937498062849,
+        "p10": 736.5625016391277,
+        "p90": 899.3749991059303
+      },
+      {
+        "section": "columns",
+        "label": "cols=\"1\", unbound",
+        "fixture": {
+          "name": "M, flex column, cols=\"1\"",
+          "groups": 100,
+          "grid": "1",
+          "buildMs": 9.300000011920929,
+          "elements": 6108
+        },
+        "result": "unhandled",
+        "batch": 8192,
+        "median": 1.1541748026502319,
+        "p10": 1.1395263718441129,
+        "p90": 1.3751220758422278
+      },
+      {
+        "section": "columns",
+        "label": "cols=\"1\", unbound, layout dirtied",
+        "fixture": {
+          "name": "M, flex column, cols=\"1\"",
+          "groups": 100,
+          "grid": "1",
+          "buildMs": 9.300000011920929,
+          "elements": 6108
+        },
+        "result": "unhandled",
+        "batch": 8192,
+        "median": 1.3165283162379637,
+        "p10": 1.2951660100952722,
+        "p90": 1.5496826235903427
+      },
+      {
+        "section": "columns",
+        "label": "cols=\"1\", bound, moves focus",
+        "fixture": {
+          "name": "M, flex column, cols=\"1\"",
+          "groups": 100,
+          "grid": "1",
+          "buildMs": 9.300000011920929,
+          "elements": 6108
+        },
+        "result": "moved",
+        "batch": 512,
+        "median": 24.4140625,
+        "p10": 24.01367190759629,
+        "p90": 25.751953129656613
+      },
+      {
+        "section": "columns",
+        "label": "cols=\"1\", bound, moves focus, layout dirtied",
+        "fixture": {
+          "name": "M, flex column, cols=\"1\"",
+          "groups": 100,
+          "grid": "1",
+          "buildMs": 9.300000011920929,
+          "elements": 6108
+        },
+        "result": "moved",
+        "batch": 4,
+        "median": 3570.000007748604,
+        "p10": 3202.5000005960464,
+        "p90": 4273.749992251396
+      },
+      {
+        "section": "columns",
+        "label": "layout dirtied, then read, no handler",
+        "fixture": {
+          "name": "M, flex column, cols=\"1\"",
+          "groups": 100,
+          "grid": "1",
+          "buildMs": 9.300000011920929,
+          "elements": 6108
+        },
+        "result": "-",
+        "batch": 4,
+        "median": 3489.999994635582,
+        "p10": 3087.5000059604645,
+        "p90": 4224.9999940395355
+      },
+      {
+        "section": "columns",
+        "label": "cols=\"auto\", unbound",
+        "fixture": {
+          "name": "M, flex column, cols=\"auto\"",
+          "groups": 100,
+          "grid": "auto",
+          "buildMs": 9.365000009536743,
+          "elements": 6108
+        },
+        "result": "unhandled",
+        "batch": 8192,
+        "median": 1.1676025387714617,
+        "p10": 1.1370849606464617,
+        "p90": 1.4031982427695766
+      },
+      {
+        "section": "columns",
+        "label": "cols=\"auto\", unbound, layout dirtied",
+        "fixture": {
+          "name": "M, flex column, cols=\"auto\"",
+          "groups": 100,
+          "grid": "auto",
+          "buildMs": 9.365000009536743,
+          "elements": 6108
+        },
+        "result": "unhandled",
+        "batch": 8192,
+        "median": 1.3128662103554234,
+        "p10": 1.3079834025120363,
+        "p90": 1.5386962841148488
+      },
+      {
+        "section": "columns",
+        "label": "cols=\"auto\", bound, moves focus",
+        "fixture": {
+          "name": "M, flex column, cols=\"auto\"",
+          "groups": 100,
+          "grid": "auto",
+          "buildMs": 9.365000009536743,
+          "elements": 6108
+        },
+        "result": "moved",
+        "batch": 512,
+        "median": 27.27539069019258,
+        "p10": 26.92382805980742,
+        "p90": 28.046875027939677
+      },
+      {
+        "section": "columns",
+        "label": "cols=\"auto\", bound, moves focus, layout dirtied",
+        "fixture": {
+          "name": "M, flex column, cols=\"auto\"",
+          "groups": 100,
+          "grid": "auto",
+          "buildMs": 9.365000009536743,
+          "elements": 6108
+        },
+        "result": "moved",
+        "batch": 4,
+        "median": 3449.999988079071,
+        "p10": 3200.0000029802322,
+        "p90": 4547.499999403954
+      },
+      {
+        "section": "columns",
+        "label": "layout dirtied, then read, no handler",
+        "fixture": {
+          "name": "M, flex column, cols=\"auto\"",
+          "groups": 100,
+          "grid": "auto",
+          "buildMs": 9.365000009536743,
+          "elements": 6108
+        },
+        "result": "-",
+        "batch": 4,
+        "median": 3343.75,
+        "p10": 3108.7500005960464,
+        "p90": 4696.24999165535
+      },
+      {
+        "section": "refused focus",
+        "label": "local, moves past the run",
+        "fixture": {
+          "name": "1 × display: none",
+          "groups": 1,
+          "items": 3,
+          "buildMs": 0.3199999928474426,
+          "elements": 18
+        },
+        "result": "moved",
+        "batch": 512,
+        "median": 21.845703129656613,
+        "p10": 21.34765626396984,
+        "p90": 23.193359375
+      },
+      {
+        "section": "refused focus",
+        "label": "local, moves past the run",
+        "fixture": {
+          "name": "10 × display: none",
+          "groups": 1,
+          "items": 12,
+          "buildMs": 0.20999997854232788,
+          "elements": 45
+        },
+        "result": "moved",
+        "batch": 512,
+        "median": 27.470703120343387,
+        "p10": 27.226562495343387,
+        "p90": 30.32226557843387
+      },
+      {
+        "section": "refused focus",
+        "label": "local, moves past the run",
+        "fixture": {
+          "name": "100 × display: none",
+          "groups": 1,
+          "items": 102,
+          "buildMs": 0.36500000953674316,
+          "elements": 315
+        },
+        "result": "moved",
+        "batch": 128,
+        "median": 85.58593736961484,
+        "p10": 82.57812494412065,
+        "p90": 98.47656264901161
+      },
+      {
+        "section": "refused focus",
+        "label": "local, moves past the run",
+        "fixture": {
+          "name": "1000 × display: none",
+          "groups": 1,
+          "items": 1002,
+          "buildMs": 1.6949999928474426,
+          "elements": 3015
+        },
+        "result": "moved",
+        "batch": 32,
+        "median": 629.8437509685755,
+        "p10": 612.8125004470348,
+        "p90": 688.1249994039536
+      },
+      {
+        "section": "refused focus",
+        "label": "local, moves past the run",
+        "fixture": {
+          "name": "1000 × visibility: hidden",
+          "groups": 1,
+          "items": 1002,
+          "buildMs": 5.610000014305115,
+          "elements": 3015
+        },
+        "result": "moved",
+        "batch": 32,
+        "median": 620.1562490314245,
+        "p10": 608.4374990314245,
+        "p90": 697.9687511920929
+      },
+      {
+        "section": "refused focus",
+        "label": "local, moves past the run",
+        "fixture": {
+          "name": "1000 × display: none, roving",
+          "groups": 1,
+          "items": 1002,
+          "buildMs": 3.1399999856948853,
+          "elements": 3015
+        },
+        "result": "moved",
+        "batch": 8,
+        "median": 1408.1249982118607,
+        "p10": 1350.6250008940697,
+        "p90": 1643.7499970197678
+      },
+      {
+        "section": "refused focus",
+        "label": "local, moves past the run",
+        "fixture": {
+          "name": "1000 × display: none, skipped",
+          "groups": 1,
+          "items": 1002,
+          "buildMs": 1.5049999952316284,
+          "elements": 3015
+        },
+        "result": "moved",
+        "batch": 32,
+        "median": 331.7187484353781,
+        "p10": 323.75000044703484,
+        "p90": 368.1250009685755
       }
-    ]
+    ],
+    "skipped": []
   }
 }
