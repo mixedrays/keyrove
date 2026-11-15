@@ -1,16 +1,18 @@
 ---
 # Live page: https://keyrove.pages.dev/docs/examples/responsive-grid
 title: Responsive grid
-description: Keyboard navigation for a responsive CSS grid, with the column count read from the layout on every keypress so breakpoints stay in CSS.
-keywords: [responsive grid, css grid, breakpoints, column count]
+description: Keyboard navigation for a responsive CSS grid or wrapping flex layout, with the column count read from the layout on each keypress so breakpoints stay in CSS.
+keywords: [responsive grid, css grid, flex-wrap, breakpoints, column count]
 titleTag: Keyboard navigation for a responsive grid — keyrove
 group: Examples
 order: 15
 ---
 
 Set `data-keyrove-cols="auto"` on the grid container to read its column count
-from CSS on every keypress. Navigation then follows layout changes without
-copying breakpoints into JavaScript.
+from CSS on each keypress that could move. Navigation then follows layout
+changes without copying breakpoints into JavaScript. A wrapping layout without
+grid tracks, such as a `flex-wrap` row, works too; see
+[wrapping layouts](#wrapping-layouts).
 
 This demo uses a
 [container query](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_containment/Container_queries).

@@ -28,7 +28,7 @@ with it.
 
 - [Grid](/docs/examples/grid) — move by cell, row, row ends, grid ends or pages.
 - [Responsive grid](/docs/examples/responsive-grid) — read the column count
-  from CSS on every keypress.
+  from a CSS grid or a wrapping layout on each keypress.
 
 ## Tab stops and focus
 
