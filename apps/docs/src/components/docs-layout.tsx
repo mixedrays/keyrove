@@ -1,6 +1,7 @@
 import { useRouter } from '@tanstack/react-router';
 import { useCallback, useEffect, useState, type ReactNode } from 'react';
 
+import { RAIL_ATTR } from '@/components/keyboard-rail.tsx';
 import { useSearchOpen } from '@/components/search.tsx';
 import {
   Sidebar,
@@ -28,14 +29,19 @@ export function DocsLayout({ children }: { children: ReactNode }) {
   }, [searching]);
 
   // A page loaded from its URL starts with focus on nothing, which is what
-  // lets its first demo take it. A client-side navigation would otherwise keep
-  // it on the sidebar link that was followed, so it is handed back as the
-  // navigation starts — before the new page renders and its demo mounts.
+  // lets its first demo take it, so a client-side navigation hands focus back
+  // as it starts — before the new page renders and its demo mounts. Except
+  // from a rail: a reader who followed a sidebar link keeps its arrows.
   useEffect(
     () =>
       router.subscribe('onBeforeNavigate', ({ pathChanged }) => {
-        if (pathChanged && document.activeElement instanceof HTMLElement) {
-          document.activeElement.blur();
+        const active = document.activeElement;
+        if (
+          pathChanged &&
+          active instanceof HTMLElement &&
+          !active.closest(`[${RAIL_ATTR}]`)
+        ) {
+          active.blur();
         }
       }),
     [router],
