@@ -23,9 +23,9 @@ move focus the way keyboard users expect, in any framework.
 </div>
 
 <ul class="hero-facts">
-<li><span data-icon="check" class="size-4"></span>~5 kB gzipped</li>
-<li><span data-icon="check" class="size-4"></span>zero deps</li>
-<li><span data-icon="check" class="size-4"></span>any framework</li>
+<li><span data-icon="check" class="size-4"></span><a href="https://bundlejs.com/?q=%40mixedrays%2Fkeyrove">~5 kB gzipped</a></li>
+<li><span data-icon="check" class="size-4"></span><a href="/docs/installation">zero deps</a></li>
+<li><span data-icon="check" class="size-4"></span><a href="/docs/installation">any framework</a></li>
 </ul>
 
 </div>
@@ -42,6 +42,7 @@ move focus the way keyboard users expect, in any framework.
 <li data-keyrove-item tabindex="0" data-count="9999+"><span data-icon="spam" class="hero-folder-icon"></span>Spam</li>
 <li data-keyrove-item tabindex="0"><span data-icon="trash" class="hero-folder-icon"></span>Trash</li>
 </ul>
+<div class="demo-keypad"></div>
 
 ```html copy
 <ul id="menu">
@@ -61,7 +62,7 @@ menu.addEventListener('keydown', (e) => keyRove(e));
 ```
 
 </div>
-<p class="demo-hint"><kbd class="kbd">↑</kbd> <kbd class="kbd">↓</kbd> move, <kbd class="kbd">Home</kbd> and <kbd class="kbd">End</kbd> jump. <kbd class="kbd">Tab</kbd> still visits each folder.</p>
+<p class="demo-hint"><kbd class="kbd">↑</kbd> <kbd class="kbd">↓</kbd> move, <kbd class="kbd">Home</kbd> and <kbd class="kbd">End</kbd> jump.</p>
 </div>
 </div>
 
@@ -153,7 +154,8 @@ Keep the handler. Change a setting in the markup.
 the default arrows. **One tab stop** lets Tab enter and leave the group while
 the arrows move within it.
 
-Each example adds just one behavior to the list you already know.
+Each example adds just one behavior to the list you already know, and
+shows only the markup: the handler is the one above.
 
 </div>
 <div class="landing-section-demo">
@@ -168,13 +170,6 @@ Each example adds just one behavior to the list you already know.
 
 <div data-demo="landing-loop" data-demo-label="looping folders"></div>
 
-```ts
-import { keyRove } from '@mixedrays/keyrove';
-
-const folders = document.querySelector('#folders-loop');
-folders.addEventListener('keydown', (e) => keyRove(e));
-```
-
 Press <kbd class="kbd">↓</kbd> on Sent to return to Inbox.
 
 [Looping lists](/docs/examples/looping-lists)
@@ -184,13 +179,6 @@ Press <kbd class="kbd">↓</kbd> on Sent to return to Inbox.
 
 <div data-demo="landing-horizontal" data-demo-label="horizontal folders"></div>
 
-```ts
-import { keyRove } from '@mixedrays/keyrove';
-
-const folders = document.querySelector('#folders-horizontal');
-folders.addEventListener('keydown', (e) => keyRove(e));
-```
-
 Use <kbd class="kbd">←</kbd> and <kbd class="kbd">→</kbd> to move between folders.
 
 [Horizontal lists](/docs/examples/horizontal-lists)
@@ -199,13 +187,6 @@ Use <kbd class="kbd">←</kbd> and <kbd class="kbd">→</kbd> to move between fo
 <div class="pattern-panel" role="tabpanel">
 
 <div data-demo="landing-roving" data-demo-label="one tab stop"></div>
-
-```ts
-import { keyRove } from '@mixedrays/keyrove';
-
-const folders = document.querySelector('#folders-roving');
-folders.addEventListener('keydown', (e) => keyRove(e));
-```
 
 Move with the arrows, then press <kbd class="kbd">Tab</kbd> to leave the group.
 
@@ -296,26 +277,12 @@ keypress, so resizing needs no navigation instance to update.
 
 <div data-demo="landing-grid" data-demo-label="time slots"></div>
 
-```ts
-import { keyRove } from '@mixedrays/keyrove';
-
-const slots = document.querySelector('#slots');
-slots.addEventListener('keydown', (e) => keyRove(e));
-```
-
 Use all four arrows. <kbd class="kbd">Home</kbd> and <kbd class="kbd">End</kbd> jump to the ends of a row.
 
 </div>
 <div class="pattern-panel" role="tabpanel">
 
 <div data-demo="responsive" data-demo-label="responsive months"></div>
-
-```ts selected
-import { keyRove } from '@mixedrays/keyrove';
-
-const months = document.querySelector('#months');
-months.addEventListener('keydown', (e) => keyRove(e));
-```
 
 Drag the preview’s lower-right corner to resize it, then try the arrows.
 
@@ -329,22 +296,29 @@ Drag the preview’s lower-right corner to resize it, then try the arrows.
 
 <section class="landing-section" aria-labelledby="combine-behaviors">
 <div class="landing-section-copy">
-<p class="landing-step">05 / Your interaction</p>
+<p class="landing-step">05 / Your application</p>
 
 ## Combine behaviors
 
-Now put the pieces together: a menu configured with an item selector,
-looping, and one tab stop.
+Settings and handlers compose. A menu can take its items from a selector,
+loop, and keep one tab stop; `createTypeahead` adds finding an item by its
+label, and `||` passes a key on only when navigation leaves it unhandled.
 
-Add `createTypeahead` when people should also be able to find an item by
-its label. Both handlers share the same group settings; `||` passes a key
-to typeahead only when navigation leaves it unhandled.
-
-[JavaScript options](/docs/examples/javascript-options) ·
-[Typeahead](/docs/examples/typeahead)
+Give an item a shortcut, nest groups with their own keys, or pair keyrove
+with your application's own behavior, as the tree does with opening folders.
+Start with the part you need; the same handler stays underneath.
 
 </div>
 <div class="landing-section-demo">
+
+<div class="pattern-tabs" data-code-tabs>
+<div class="pattern-tabs-bar" role="tablist" aria-label="Combined examples">
+<button role="tab" class="pattern-tab" aria-selected="true">Typeahead</button>
+<button role="tab" class="pattern-tab" aria-selected="false">Shortcuts</button>
+<button role="tab" class="pattern-tab" aria-selected="false">Nested groups</button>
+<button role="tab" class="pattern-tab" aria-selected="false">Tree</button>
+</div>
+<div class="pattern-panel" role="tabpanel">
 
 <div data-demo="menu" data-demo-label="share menu"></div>
 
@@ -357,50 +331,20 @@ const config = {
   rovingTabindex: true,
 };
 const typeahead = createTypeahead(config);
-const menu = document.querySelector('#share');
+const onKeydown = (e) => keyRove(e, config) || typeahead(e);
 
-menu.addEventListener('keydown', (e) => keyRove(e, config) || typeahead(e));
+const menu = document.querySelector('#share');
+menu.addEventListener('keydown', onKeydown);
 ```
 
-<p class="demo-hint">Type <kbd class="kbd">E</kbd> to focus Email a copy. Arrows skip the disabled item and wrap at the ends.</p>
+Type <kbd class="kbd">E</kbd> to focus Email a copy. Arrows skip the disabled item and wrap at the ends.
 
-</div>
-</section>
+[JavaScript options](/docs/examples/javascript-options) · [Typeahead](/docs/examples/typeahead)
 
-<section class="landing-section" aria-labelledby="build-more-involved-interfaces">
-<div class="landing-section-copy">
-<p class="landing-step">06 / Your application</p>
-
-## Build more involved interfaces
-
-Give an item a shortcut. Nest groups with their own keys. Or combine focus
-navigation with your application's behavior.
-
-The tree is the fullest example: keyrove navigates visible rows and typeahead
-finds them by name. Your code opens and closes folders, sets ARIA states,
-and decides what activating a file does.
-
-Start with the part you need; the same handler stays underneath.
-
-</div>
-<div class="landing-section-demo">
-
-<div class="pattern-tabs" data-code-tabs>
-<div class="pattern-tabs-bar" role="tablist" aria-label="Advanced examples">
-<button role="tab" class="pattern-tab" aria-selected="true">Shortcuts</button>
-<button role="tab" class="pattern-tab" aria-selected="false">Nested groups</button>
-<button role="tab" class="pattern-tab" aria-selected="false">Tree</button>
 </div>
 <div class="pattern-panel" role="tabpanel">
 
 <div data-demo="landing-tools" data-demo-label="drawing tools"></div>
-
-```ts
-import { keyRove } from '@mixedrays/keyrove';
-
-const tools = document.querySelector('#tools');
-tools.addEventListener('keydown', (e) => keyRove(e));
-```
 
 Press <kbd class="kbd">P</kbd> for Pen, then <kbd class="kbd">↓</kbd> to continue.
 
@@ -447,7 +391,7 @@ tree.addEventListener(
 );
 ```
 
-Use <kbd class="kbd">→</kbd> to open a folder and <kbd class="kbd">←</kbd> to close it. Type a file name to jump.
+Use <kbd class="kbd">→</kbd> to open a folder and <kbd class="kbd">←</kbd> to close it. Type a file name to jump. Your code opens and closes folders and sets their ARIA states.
 
 [Full tree implementation](/docs/examples/tree-view#a-full-tree-view)
 
@@ -456,6 +400,9 @@ Use <kbd class="kbd">→</kbd> to open a folder and <kbd class="kbd">←</kbd> t
 
 </div>
 </section>
+
+<section class="landing-wide" aria-labelledby="what-it-leaves-to-you">
+<p class="landing-step">06 / Your part</p>
 
 ## What it leaves to you
 
@@ -483,7 +430,30 @@ building.
 </div>
 </div>
 
-The [listbox example](/docs/examples/listbox) puts all three together.
+The listbox example shows both halves working together: keyrove moves focus,
+and the page handles selection and ARIA states.
+
+[Listbox example](/docs/examples/listbox)
+
+</section>
+
+<section class="landing-wide" aria-labelledby="why-not-write-the-handler-yourself">
+<p class="landing-step">07 / Your choice</p>
+
+## Why not write the handler yourself?
+
+A `switch` on `e.key` covers the first list. keyrove covers what comes after
+it:
+
+- Skipped and disabled items, and lists that loop
+- Grids whose column count changes with the layout
+- Right-to-left text, nested groups and roving tabindex
+- Typeahead with case and accent handling, and focus shortcuts
+
+Unlike a component library, it ships no components. It works on the markup
+you already render, so your design system and framework stay as they are.
+
+[Introduction](/docs/introduction)
 
 <div class="closing">
 

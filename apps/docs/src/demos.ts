@@ -11,6 +11,7 @@ import {
 } from '@mixedrays/keyrove';
 
 import { demoDefinition, type DemoExtra } from '../build/demo-definitions.ts';
+import { wireKeypad } from './keypad.ts';
 import { createReadout, keyLabel, type Readout } from './readout.ts';
 
 /**
@@ -294,25 +295,68 @@ const firstItem = (surface: HTMLElement, { items: named }: GroupOptions) => {
 /** Every live demo on a page, in order: the panels, and the landing page's hero. */
 const LIVE_DEMO = '[data-demo], .hero-demo';
 
+/** The keys that bring the opening demo into play from the page. */
+const ARRIVAL_KEYS = new Set([
+  'ArrowUp',
+  'ArrowDown',
+  'ArrowLeft',
+  'ArrowRight',
+  'Home',
+  'End',
+]);
+
+/** Whether all of `element` is on screen. */
+const inView = (element: HTMLElement) => {
+  const { top, bottom } = element.getBoundingClientRect();
+
+  return top >= 0 && bottom <= window.innerHeight;
+};
+
 /**
- * Focuses `item` if `demo` is the one the page opens with, so the keys it
- * documents work on arrival rather than after a Tab or a click. Only the
- * first live demo: focus is single, and a page's opening demo is the one it
- * is about — on the landing page the hero, whichever of them mounts first.
- * `preventScroll` keeps arrival at the top of the page, so the list is
- * waiting when the reader gets to it rather than dragging them down to it;
- * the first arrow press will scroll it into view, which is the cost of having
- * it ready.
+ * Hands the page's first navigation key to `item` if `demo` is the one the
+ * page opens with, so the keys it documents work on arrival without a Tab or a
+ * click. Only the first live demo: a page's opening demo is the one it is
+ * about — on the landing page the hero, whichever of them mounts first.
  *
- * Only while nothing else holds focus. A client-side navigation hands focus
- * back to the page first (see src/components/docs-layout.tsx), so a page
- * reached from the sidebar opens the way a page loaded from its URL does.
+ * Focus itself stays where the browser puts it. Taking it on load sent the
+ * first Tab through every item of the demo before the header, and started a
+ * screen reader mid-page. So the key is taken only while nothing holds focus
+ * and the item is wholly on screen: off screen, an arrow still scrolls the
+ * page, as a reader pressing it expects. The key that hands focus over moves
+ * nothing else.
+ *
+ * A client-side navigation hands focus back to the page first (see
+ * src/components/docs-layout.tsx), so a page reached from the sidebar opens
+ * the way a page loaded from its URL does.
  */
-export const focusOnArrival = (demo: HTMLElement, item: HTMLElement | null) => {
-  const isFirst = document.querySelector(LIVE_DEMO) === demo;
-  const unclaimed =
-    !document.activeElement || document.activeElement === document.body;
-  if (isFirst && unclaimed) item?.focus({ preventScroll: true });
+export const focusOnArrival = (
+  demo: HTMLElement,
+  item: HTMLElement | null,
+  signal: AbortSignal,
+) => {
+  if (!item || document.querySelector(LIVE_DEMO) !== demo) return;
+
+  document.addEventListener(
+    'keydown',
+    (e) => {
+      const unclaimed =
+        !document.activeElement || document.activeElement === document.body;
+      const bare = !(e.altKey || e.ctrlKey || e.metaKey || e.shiftKey);
+      if (
+        e.defaultPrevented ||
+        !unclaimed ||
+        !bare ||
+        !ARRIVAL_KEYS.has(e.key) ||
+        !inView(item)
+      ) {
+        return;
+      }
+
+      e.preventDefault();
+      item.focus();
+    },
+    { signal },
+  );
 };
 
 /**
@@ -330,10 +374,10 @@ export const mountDemo = (demo: HTMLElement, signal: AbortSignal) => {
     throw new Error(`[docs] the "${demo.dataset.demo}" demo has no surface.`);
   }
 
-  // Before the readout starts, which reads back where focus is.
-  focusOnArrival(demo, firstItem(surface, group));
+  focusOnArrival(demo, firstItem(surface, group), signal);
 
   const readout = createReadout(demo, surface, signal);
+  wireKeypad(demo, surface, () => firstItem(surface, group), signal);
   const handlers: Handler[] = [
     (e) => keyRove(e, { ...group, onMove: readout.move }),
     ...extras.map((extra) => EXTRAS[extra](surface, readout, group, signal)),

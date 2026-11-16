@@ -1,6 +1,7 @@
 import { keyRove } from '@mixedrays/keyrove';
 
 import { focusOnArrival } from './demos.ts';
+import { wireKeypad } from './keypad.ts';
 import { createReadout } from './readout.ts';
 
 /**
@@ -13,16 +14,18 @@ import { createReadout } from './readout.ts';
  * the easter eggs only the hero has. The code strip under the list is the
  * page's ordinary code tabs, and needs nothing from here.
  *
- * The list opens focused, as a page's opening demo does, so the first arrow
- * the reader presses moves something in view.
+ * The list takes the page's first arrow, as a page's opening demo does, so
+ * the first key the reader presses lands on something in view.
  */
 export const mountHero = (root: HTMLElement, signal: AbortSignal) => {
   const list = root.querySelector<HTMLElement>('[data-hero-list]');
   if (!list) throw new Error('[docs] the hero has no [data-hero-list].');
 
-  focusOnArrival(root, list.querySelector<HTMLElement>('[data-keyrove-item]'));
+  const first = () => list.querySelector<HTMLElement>('[data-keyrove-item]');
+  focusOnArrival(root, first(), signal);
 
   const readout = createReadout(root, list, signal, { easterEggs: true });
+  wireKeypad(root, list, first, signal);
 
   list.addEventListener(
     'keydown',
