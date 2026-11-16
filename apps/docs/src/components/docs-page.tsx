@@ -13,7 +13,7 @@ function DocsPageContent({ route }: { route: string }) {
 
   return (
     <>
-      <main className="docs-main">
+      <main id="content" tabIndex={-1} className="docs-main outline-none">
         {/* The page itself, title to last line; the pager after it is
             navigation between pages, not part of this one. */}
         <article className="markdown">

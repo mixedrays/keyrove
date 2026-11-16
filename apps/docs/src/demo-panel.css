@@ -15,7 +15,9 @@
     --demo-bg: light-dark(var(--color-white), var(--color-zinc-900));
     --demo-edge: light-dark(var(--color-zinc-200), var(--color-zinc-900));
     --demo-text: light-dark(var(--color-zinc-700), var(--color-zinc-300));
-    --demo-muted: var(--color-zinc-500);
+    /* 400 on the dark ground: 500 there is under AA at the panel's small
+       mono sizes. */
+    --demo-muted: light-dark(var(--color-zinc-500), var(--color-zinc-400));
     --demo-hover: light-dark(var(--color-zinc-100), var(--color-zinc-800));
     --demo-accent: light-dark(var(--color-indigo-600), var(--color-indigo-400));
     --demo-on-accent: light-dark(var(--color-white), var(--color-zinc-950));
@@ -166,6 +168,22 @@
     /* Choose rows from the available width, not the current readout text:
        blurring the preview must not move a code tab during its click. */
     @apply grid grid-cols-[repeat(auto-fit,minmax(min(100%,12rem),1fr))] gap-x-3 gap-y-2;
+  }
+
+  /* On-screen keys (see src/keypad.ts): only where no fine pointer is, so
+     only where there is most likely no keyboard either. Sized to a fingertip. */
+  .demo-keypad {
+    @apply hidden flex-wrap justify-center gap-1.5 px-4 pb-4;
+  }
+
+  @media not (any-pointer: fine) {
+    .demo-keypad {
+      @apply flex;
+    }
+  }
+
+  .demo-keypad button {
+    @apply h-11 min-w-11 rounded-lg border border-b-2 border-(--demo-chip-edge) bg-(--demo-chip) px-2 font-mono text-sm text-(--demo-chip-text) active:translate-y-px;
   }
 
   .demo-panel-preview {

@@ -14,6 +14,7 @@ import {
   useRef,
   type FocusEvent,
   type KeyboardEvent,
+  type MouseEvent,
 } from 'react';
 
 import { useSearchOpen } from '@/components/search.tsx';
@@ -80,6 +81,12 @@ function KeysHint({ label }: { label: string }) {
     </span>
   );
 }
+
+/**
+ * Marks a rail's root, so a client-side navigation leaves focus on a rail
+ * link it followed (see src/components/docs-layout.tsx).
+ */
+export const RAIL_ATTR = 'data-keyboard-rail';
 
 const findStop = (root: Element | null) =>
   root?.querySelector<HTMLElement>('[tabindex="0"]') ?? null;
@@ -169,9 +176,28 @@ export function useKeyboardRail({
   return {
     props: {
       ref,
+      [RAIL_ATTR]: '',
       'aria-keyshortcuts': shortcut.label,
       onKeyDown: (event: KeyboardEvent<HTMLElement>) => keyRove(event, group),
       onFocus: (event: FocusEvent<HTMLElement>) => followFocus(event, group),
+      // A clicked link takes focus, so the arrows work from it. Chrome
+      // focuses a clicked link itself; Safari and Firefox on macOS do not.
+      // `onFocus` above then moves the tab stop to it.
+      //
+      // Again after the click's default action: following a `#fragment`
+      // link drops focus to the page when its heading is not focusable.
+      onClick: (event: MouseEvent<HTMLElement>) => {
+        const link = (event.target as Element).closest(items);
+        if (!(link instanceof HTMLElement)) return;
+
+        const take = () => link.focus({ preventScroll: true });
+        if (link !== document.activeElement) take();
+        setTimeout(() => {
+          if (link.isConnected && document.activeElement === document.body) {
+            take();
+          }
+        });
+      },
     },
     hint: <KeysHint label={shortcut.label} />,
     findStop: () => findStop(root.current),
