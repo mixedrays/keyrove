@@ -16,6 +16,8 @@ import type { AnyMove, MoveResult } from '@mixedrays/keyrove';
  */
 
 const BLURRED = 'click to focus';
+/** The same, where the only pointer is a finger and the keypad shows. */
+const BLURRED_TOUCH = 'tap a key below';
 const LISTENING = 'listening…';
 
 /**
@@ -165,6 +167,13 @@ export const createReadout = (
     line.classList.add('demo-readout-fresh');
   };
 
+  const blurred = () =>
+    show(
+      'blurred',
+      '',
+      matchMedia('(any-pointer: fine)').matches ? BLURRED : BLURRED_TOUCH,
+    );
+
   // Every move inside the demo is a focusout and a focusin too; only focus
   // arriving from outside, or leaving for outside, changes the line.
   surface.addEventListener(
@@ -179,9 +188,7 @@ export const createReadout = (
   surface.addEventListener(
     'focusout',
     (e) => {
-      if (!surface.contains(e.relatedTarget as Node | null)) {
-        show('blurred', '', BLURRED);
-      }
+      if (!surface.contains(e.relatedTarget as Node | null)) blurred();
     },
     { signal },
   );
@@ -191,6 +198,8 @@ export const createReadout = (
   // focus event late, or not at all.
   if (surface.contains(document.activeElement)) {
     show('listening', '', LISTENING);
+  } else if (!matchMedia('(any-pointer: fine)').matches) {
+    blurred();
   }
 
   return {

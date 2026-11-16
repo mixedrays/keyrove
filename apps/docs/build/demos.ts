@@ -2,6 +2,7 @@ import { readFile, readdir } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+import { KEYPAD_HTML } from '../src/keypad.ts';
 import { READOUT_HTML } from '../src/readout.ts';
 import { demoDefinition } from './demo-definitions.ts';
 import { decorateDemo } from './demo-icons.ts';
@@ -72,6 +73,9 @@ const PLACEHOLDER = new RegExp(
  * every panel opens with, so it is stamped from the same place.
  */
 const READOUT_PLACEHOLDER = /^<output data-demo-readout><\/output>$/gm;
+
+/** The hero's keypad placeholder, stamped as every panel's keypad is. */
+const KEYPAD_PLACEHOLDER = /^<div class="demo-keypad"><\/div>$/gm;
 
 /**
  * What a placeholder says, read off its attributes in whatever order.
@@ -144,8 +148,8 @@ const escapeHtml = (text: string) =>
   text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
 /**
- * One demo's panel: a header naming it over the readout, the live markup, then
- * the same markup as source.
+ * One demo's panel: a header naming it over the readout, the live markup and
+ * its keypad, then the same markup as source.
  *
  * The demo's name rides on the panel as `data-demo`, so src/demos.ts can look
  * up the behaviour its definition adds to navigation.
@@ -173,6 +177,7 @@ const renderPanel = (
 ${READOUT_HTML}
 </div>
 <div class="demo-panel-preview">${decorateDemo(live, demoDefinition(name).icons)}</div>
+${KEYPAD_HTML}
 
 ${FENCE}html copy
 ${toExcerpt(markup)}
@@ -228,4 +233,5 @@ export const expandDemos = (
         ? renderPanel(placeholder, markup, files)
         : `${FENCE}html\n${toExcerpt(markup)}\n${FENCE}${files}`;
     })
-    .replace(READOUT_PLACEHOLDER, READOUT_HTML);
+    .replace(READOUT_PLACEHOLDER, READOUT_HTML)
+    .replace(KEYPAD_PLACEHOLDER, target === 'html' ? KEYPAD_HTML : '');

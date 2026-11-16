@@ -137,6 +137,11 @@
 
   /* ---------- chrome ---------- */
 
+  /* Off screen until focused: the first Tab stop on every page. */
+  .skip-link {
+    @apply absolute top-2 left-2 z-40 -translate-y-16 rounded-lg bg-indigo-600 px-3 py-2 text-sm font-medium text-white focus:translate-y-0 dark:bg-indigo-500 dark:text-zinc-950;
+  }
+
   .site-header {
     @apply sticky top-0 z-30 border-b border-zinc-200 bg-white/80 backdrop-blur dark:border-zinc-800 dark:bg-zinc-950/80;
   }
@@ -618,6 +623,11 @@
     @apply inline-flex items-center gap-1.5;
   }
 
+  /* Each fact links to its source; it reads as a fact, not as a link. */
+  .markdown .hero-facts a {
+    @apply text-inherit no-underline hover:underline;
+  }
+
   .hero-facts svg {
     @apply text-emerald-600 dark:text-emerald-400;
   }
@@ -629,8 +639,10 @@
    * utility on the pseudo-element: that utility ends in a `:where()` clause,
    * which cannot follow `::before`.
    */
+  /* Capped while stacked: at tablet width a five-row list across the whole
+     page reads as a table, not a sidebar. */
   .hero-demo {
-    @apply relative isolate min-w-0;
+    @apply relative isolate max-w-xl min-w-0;
     --wash: var(--color-indigo-500);
 
     @variant dark {
@@ -693,7 +705,7 @@
   }
 
   .pattern-tabs-bar {
-    @apply -mt-16 inline-flex max-w-full gap-1 rounded-xl border border-zinc-200 bg-zinc-50 p-1 dark:border-zinc-800 dark:bg-zinc-900;
+    @apply inline-flex max-w-full gap-1 rounded-xl border border-zinc-200 bg-zinc-50 p-1 dark:border-zinc-800 dark:bg-zinc-900;
   }
 
   .pattern-tab {
@@ -719,16 +731,48 @@
     @apply mt-24 grid items-start gap-8 lg:grid-cols-2 lg:gap-6;
   }
 
-  .landing-section-copy h2 {
+  /* Side by side, the demo usually outruns its copy; the copy stays in view
+     beside it rather than leaving a blank column. */
+  .landing-section-copy {
+    @apply lg:sticky lg:top-24;
+  }
+
+  .landing-section-copy h2,
+  .landing-wide h2 {
     @apply mt-3;
+  }
+
+  /* A step without a demo beside it: the copy takes the whole measure. */
+  .landing-wide {
+    @apply mt-24;
+  }
+
+  /* A step's "read more" links: the closing paragraph when it opens on a
+     link. Drawn as the demo panels' own links are, so the page has one style
+     for leaving to the docs. */
+  .markdown
+    :where(.landing-section-copy, .landing-wide)
+    > p:last-child:has(> a:first-child)
+    a {
+    @apply font-medium no-underline hover:underline;
+  }
+
+  :where(.landing-section-copy, .landing-wide)
+    > p:last-child:has(> a:first-child)
+    a::after {
+    content: ' →';
+    content: ' →' / '';
   }
 
   .landing-step {
     @apply font-mono text-xs font-medium tracking-widest text-indigo-600 uppercase dark:text-indigo-400;
   }
 
+  /* Beside the copy the demo starts level with the heading; stacked, it
+     follows the copy at the grid's gap. Capped while stacked for the hero's
+     reason. */
   .landing-section-demo {
-    @apply min-w-0 w-full mt-22;
+    @apply w-full max-w-2xl min-w-0 lg:mt-22 lg:max-w-none;
   }
 
   .landing-section-demo > .pattern-tabs {
@@ -736,7 +780,7 @@
   }
 
   .landing-section-demo .pattern-tabs-bar {
-    @apply flex w-fit gap-0.5;
+    @apply flex w-fit gap-0.5 lg:-mt-16;
   }
 
   .landing-section-demo .pattern-tab {
