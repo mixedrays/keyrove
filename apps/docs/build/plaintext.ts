@@ -1,9 +1,4 @@
-import {
-  GENERATED_FILES,
-  pagePath,
-  twinPath,
-  type Addresses,
-} from './addresses.ts';
+import { GENERATED_FILES, type Addresses } from './addresses.ts';
 import type { NavGroup, Page } from './content.ts';
 import type { RenderedPage } from './page-render.ts';
 
@@ -46,7 +41,7 @@ export const toLlmsTxt = (
     `> ${intro}`,
     '',
     'Every page on this site is also available as markdown by appending `.md` to its URL —',
-    `for example ${addresses.href(pagePath('docs/api'))} renders the API reference, and ${addresses.href(twinPath('docs/api'))} returns its source.`,
+    `for example ${addresses.pageUrl('docs/api')} renders the API reference, and ${addresses.twinUrl('docs/api')} returns its source.`,
     `All of the pages below, in full and in this order, are one file at ${addresses.url(GENERATED_FILES.llmsFullTxt.path)}.`,
   ].join('\n');
 
