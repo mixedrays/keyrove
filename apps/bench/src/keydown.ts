@@ -1,19 +1,6 @@
-/**
- * What one keydown costs keyRove, measured in a real browser.
- *
- * Every case builds its fixture first and then times the handler alone: the
- * handler is called directly with an event object, so neither fixture
- * construction nor event dispatch is in the numbers. Each case warms up,
- * picks a batch size that takes at least `minBatchMs`, and reports the
- * per-call time of `samples` such batches.
- *
- * Runs in `harness.html`, a page holding nothing but the fixture, so the
- * document it measures is the same wherever it runs: `scripts/run.ts` loads
- * that page in headless Chrome, and the UI loads it in a frame.
- *
- * keyrove comes from its built `dist`, through the package's own `exports`:
- * the code that is timed is the code that ships.
- */
+// The handler is called directly with a hand-built event, so neither fixture
+// construction nor dispatch is timed. keyrove comes from its built `dist`, so
+// the timed code is the code that ships.
 
 import { keyRove, matchesCombo } from '@mixedrays/keyrove';
 import type {
@@ -53,7 +40,6 @@ const noop = () => {};
 // Written by the baseline, so the engine cannot drop the work it times.
 let sink: unknown;
 
-/** The event keyRove reads, built by hand so no dispatch is timed. */
 const event = (
   code: string,
   target: EventTarget | null,
@@ -73,18 +59,13 @@ type PageSpec = {
   layout?: ColumnLayout;
 };
 
-/** What a fixture is built from: everything it reports but its measurements. */
 type FixtureSpec = Omit<Fixture, 'name' | 'buildMs' | 'elements'>;
 
-/** Item `n`: a button holding two spans, three elements in all. */
+/** Three elements per item. */
 const itemMarkup = (id: string, n: number, attributes = '') =>
   `<button data-keyrove-item id="${id}"${attributes}><span>Item ${n}</span><span>meta</span></button>`;
 
-/**
- * Each column layout's styles: the root's, and each item's where it needs
- * one. `flex-wrap` holds four items a line, `flex row` all 20 on one line,
- * and `flex column` one a line.
- */
+// `flex-wrap` holds four items a line, `flex row` all 20, `flex column` one.
 const LAYOUT_STYLES: Record<ColumnLayout, { root: string; item?: string }> = {
   grid: { root: 'display:grid;grid-template-columns:repeat(4,4rem)' },
   'flex-wrap': {
@@ -95,13 +76,8 @@ const LAYOUT_STYLES: Record<ColumnLayout, { root: string; item?: string }> = {
   'flex column': { root: 'display:flex;flex-direction:column' },
 };
 
-/**
- * A page of `groups` roots with 20 button items each, every item holding two
- * spans: three elements per item. `focusKeys` items spread evenly over the
- * page carry a focus key of their own, each a distinct combo that no case
- * presses. `grid` sets each group's `cols`, and `layout` lays it out, as a
- * four-column CSS grid unless it names a flex layout.
- */
+// Focus keys spread evenly over the page, each a distinct combo no case
+// presses.
 const pageMarkup = ({
   groups,
   focusKeys = 0,
@@ -134,11 +110,7 @@ const pageMarkup = ({
   return parts.join('');
 };
 
-/**
- * One group: a visible item, `count` items hidden by `hidden`, and a visible
- * item. With `roving` every item carries a roving tab stop, held by the
- * first; with `skip` the hidden run is marked skipped.
- */
+// A visible item, `count` hidden ones, and a visible item.
 const refusalMarkup = ({ count, hidden, roving, skip }: RefusalSpec) => {
   const stop = (holds: boolean) =>
     roving ? ` data-keyrove-roving-tabindex tabindex="${holds ? 0 : -1}"` : '';
@@ -162,27 +134,22 @@ const refusalMarkup = ({ count, hidden, roving, skip }: RefusalSpec) => {
   return parts.join('');
 };
 
-/** The name a refused-focus page goes by. */
 const refusalName = ({ count, hidden, roving, skip }: RefusalSpec) =>
   `${count} × ${hidden}${roving ? ', roving' : ''}${skip ? ', skipped' : ''}`;
 
-/** The name a column page goes by. The grids keep their earlier names. */
+// The grids keep their earlier names, so saved results still compare.
 const columnName = ({ layout, cols }: ColumnSpec) =>
   layout === 'grid' ? `M, cols="${cols}"` : `M, ${layout}, cols="${cols}"`;
 
 let dirtied = false;
 
-/**
- * Changes the fixture's padding, so the next read of the layout lays the page
- * out again: what a page pays when something wrote to the DOM earlier in the
- * same task, another keydown listener say.
- */
+// Forces the next layout read to relayout, as when another listener wrote to
+// the DOM earlier in the same task.
 const dirtyLayout = () => {
   dirtied = !dirtied;
   host().style.paddingLeft = dirtied ? '1px' : '';
 };
 
-/** Builds `markup` into the fixture host and lays it out, timing both. */
 const build = (markup: () => string) => {
   const start = performance.now();
   host().innerHTML = markup();
@@ -245,17 +212,11 @@ const measure = (
   };
 };
 
-/** What one call returned, so a case can be checked for what it claims. */
 const outcome = (result: MoveResult | null): Outcome =>
   result === null ? 'unhandled' : result.to ? 'moved' : 'consumed no-op';
 
 type Press = [key: string, start: HTMLElement, code: () => string];
 
-/**
- * The three keys each fixture is pressed with, from group 0: an unbound key,
- * a bound key with nowhere to go (End on the last item), and a bound key
- * that moves focus back and forth between the first two items.
- */
 const keys = (
   group: HTMLElement,
   { prev = 'ArrowUp', next = 'ArrowDown' } = {},
@@ -277,13 +238,8 @@ const keys = (
 const yieldToBrowser = () =>
   new Promise<void>((resolve) => setTimeout(resolve));
 
-/**
- * Which of the features some cases time the library has, found by trying
- * each rather than by reading a version: the runner benchmarks any git ref,
- * and a commit between two releases has no version of its own. A version
- * without a feature would still run its case, but the case would time
- * something other than its label, so it is skipped instead.
- */
+// Features are probed, not read off a version: the runner benchmarks any git
+// ref. A case whose feature is missing would time the wrong thing, so it skips.
 const probe = (): Supports => {
   const tryIt = (check: () => boolean) => {
     try {
@@ -385,10 +341,7 @@ export const runBench: RunBench = async ({
     });
   };
 
-  /**
-   * Times one press from `start`, with the listener on `currentTarget`.
-   * `before` runs ahead of every press, inside the timing.
-   */
+  /** `before` runs ahead of every press, inside the timing. */
   const run = async (
     section: string,
     label: string,

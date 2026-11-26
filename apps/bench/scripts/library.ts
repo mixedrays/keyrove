@@ -1,17 +1,6 @@
-/**
- * The library under test: which one it is, and building it.
- *
- * The runner can measure keyrove at any git ref, not only the working tree.
- * Checking a ref out would not do: the benchmark itself is younger than most
- * releases, so it would vanish with the checkout. Instead the library's
- * source is read out of git into a scratch directory, and the working tree
- * is left alone.
- *
- * Every source, the working tree's included, is built the same way, with this
- * checkout's Vite and the settings keyrove's own config uses: one ES module,
- * unminified. Two versions then differ only in their source, not in the
- * toolchain that happened to build their release.
- */
+// A ref's source is read out of git rather than checked out: the benchmark is
+// younger than most releases. Every source builds with this checkout's Vite,
+// so versions differ only in source, not toolchain.
 
 import { execFileSync, spawn, type ChildProcess } from 'node:child_process';
 import { readFileSync } from 'node:fs';

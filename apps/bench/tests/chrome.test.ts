@@ -9,9 +9,8 @@ import { setTimeout as delay } from 'node:timers/promises';
 import { withChrome, type Chrome } from '../scripts/chrome.ts';
 
 /**
- * An executable that starts like Chrome, announcing DevTools on stderr unless
- * told not to, then runs `behavior` with `profile` set to its
- * `--user-data-dir`. It notes that path in a `profile` file next to itself.
+ * Starts like Chrome, then runs `behavior` with `profile` set to its
+ * `--user-data-dir`, also written to a `profile` file next to itself.
  */
 const fakeChrome = async (
   t: TestContext,

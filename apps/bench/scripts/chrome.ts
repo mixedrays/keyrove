@@ -1,12 +1,6 @@
-/**
- * Headless Chrome for the runner: finding it, running it in a fresh profile,
- * and cleaning up after it.
- *
- * Chrome answers `Browser.close` before it exits, and keeps writing its
- * profile until it does, so the profile is removed only once the process is
- * gone. Cleanup never throws: a run that finished keeps its report, and an
- * error from the run is never replaced by one from cleaning up.
- */
+// Chrome answers `Browser.close` before exiting and keeps writing its profile,
+// so the profile goes only once the process does. Cleanup never throws, so it
+// can't replace a run's report or error.
 
 import { spawn, spawnSync, type ChildProcess } from 'node:child_process';
 import { existsSync } from 'node:fs';
@@ -34,7 +28,6 @@ export const findChrome = () => {
   throw new Error('Chrome not found. Set CHROME_PATH to its executable.');
 };
 
-/** A running Chrome, as `withChrome` hands it to its body. */
 export type Chrome = {
   child: ChildProcess;
   /** Its DevTools WebSocket URL. */
