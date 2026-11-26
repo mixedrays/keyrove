@@ -1,13 +1,5 @@
-/**
- * The key → intent layer: which combo means which move for a given group.
- *
- * This is the only place layout and reading direction are allowed to matter.
- * Direction affects nothing but which *default* physical key fills an unset
- * inline-axis binding; explicit bindings are literal — never flipped, never
- * remapped. Everything downstream (the position model) is direction-blind.
- * Focus keys — an element's own combo — join the table here too, so the whole
- * precedence of a keypress is one ordered list.
- */
+// The only layer where reading direction matters: it picks the default key of
+// an unset inline-axis move. Explicit bindings are never flipped.
 
 import { isComboSet, matchesCombo } from './utils.js';
 import type {
@@ -23,29 +15,21 @@ import type {
   StrideAction,
 } from './types.js';
 
-// A row of the default table: a move, and the key it answers to when left
-// unbound. A tuple rather than an object, so the table minifies to its values;
-// the combo is still typed, so a misspelt key is a compile error.
+// A tuple rather than an object, so the table minifies to its values.
 type DefaultRow = [
   intent: StrideAction,
   combo: KnownCode | `ctrl+${KnownCode}`,
 ];
 
-// The strides that enter a group from outside: the four directional moves,
-// `next`/`prev` and their row forms. Every other stride moves only within one.
+// The strides that enter a group from outside; the rest move only within one.
 const ENTERING = /^(next|prev)/;
 
-// The moves across a nested root's boundary. They have no default key, so
-// they are in the table only where a root binds them.
+// No default key: in the table only where a root binds them.
 const BOUNDARY: BoundaryAction[] = ['exit', 'enter'];
 
-// The value that binds a move to no key. It is no `KeyboardEvent.code`, so it
-// can never stand for a real key, and it reads as a boolean attribute's value
-// does: trimmed, in any case.
+// No `KeyboardEvent.code` is "none", so it never shadows a real key.
 const isNone = (combo: string) => combo.trim().toLowerCase() === 'none';
 
-// The rows between the item and page moves: a grid adds its row moves and
-// takes bare Home/End for the row ends, leaving ctrl+ for the whole grid's.
 const GRID_ROWS: DefaultRow[] = [
   ['prevRow', 'ArrowUp'],
   ['nextRow', 'ArrowDown'],
@@ -59,12 +43,8 @@ const LIST_ROWS: DefaultRow[] = [
   ['end', 'End'],
 ];
 
-/**
- * The default table for a layout — the documented keys table: every move the
- * layout has, in table order, with the key it answers to when left unbound.
- * `flip` is the RTL swap of the `next`/`prev` arrows on a horizontal axis; the
- * row axis never flips.
- */
+// Mirrors the documented keys table. `flip` swaps the horizontal `next`/`prev`
+// arrows for RTL; the row axis never flips.
 const defaultTable = (
   { kind, horizontal }: Layout,
   flip: boolean,
@@ -76,8 +56,7 @@ const defaultTable = (
   ['pageDown', 'PageDown'],
 ];
 
-// Every row a default table holds, in every layout and direction: a grid both
-// ways round, which binds every arrow, and a list, which binds bare Home/End.
+// A grid both ways round binds every arrow; a list adds bare Home/End.
 const EVERY_ROW = (
   [
     { kind: 'grid', cols: 2, horizontal: true, loop: false },
@@ -87,22 +66,13 @@ const EVERY_ROW = (
   [false, true].flatMap((flip) => defaultTable(layout, flip)),
 );
 
-// What a press must match before any layout could make it a move: a key some
-// default table binds, with or without its modifiers, or the combo a root
-// binds any move to.
 const DEFAULT_CODES = new Set<string>(
   EVERY_ROW.map(([, combo]) => combo.split('+').pop()!),
 );
 const MOVES = [...new Set(EVERY_ROW.map(([intent]) => intent)), ...BOUNDARY];
 
-/**
- * Whether a press could be a move in some layout. Every table's moves are
- * among the defaults and bindings tried here, so a press matching none of
- * them can be claimed by nothing but a focus key, whatever the layout. The
- * test may say yes where the table then matches nothing, never the other way
- * round: a default key counts by its code alone, and a bound combo is parsed
- * only where its text holds the press's code.
- */
+// May say yes where no table then matches, never the reverse: a "no" lets
+// the caller skip reading the layout.
 const couldMove = (e: KeyRoveEvent, explicit: ExplicitBinding) =>
   DEFAULT_CODES.has(e.code) ||
   MOVES.some((intent) => {
@@ -111,11 +81,7 @@ const couldMove = (e: KeyRoveEvent, explicit: ExplicitBinding) =>
     return !!combo && combo.includes(e.code) && matchesCombo(e, combo);
   });
 
-/**
- * The focus keys as bindings, in DOM order. A combo naming nothing is unset,
- * as it is for the root keys, and so is `none`: an element has no default key
- * to take away.
- */
+// `none` is unset here: an element has no default key to take away.
 const focusBindings = (focus: readonly FocusKey[]): Binding[] =>
   focus
     .filter(({ combo }) => isComboSet(combo) && !isNone(combo))
@@ -127,15 +93,9 @@ const focusBindings = (focus: readonly FocusKey[]): Binding[] =>
     }));
 
 /**
- * Builds the ordered binding table for a group. The first entry that matches
- * a keypress claims it, so order *is* precedence: the focus keys first, then
- * every explicit root binding, then the defaults of the moves left unbound.
- *
- * A replaced default is not re-added — the freed key goes back to its browser
- * behaviour — and an explicit combo colliding with another move's default wins
- * by sitting earlier in the table. `none` replaces a default with nothing: the
- * move leaves the table and its key is freed. A move the layout lacks (a row
- * move on a list) is not in its table, so binding it does nothing.
+ * The first entry matching a press claims it, so order is precedence: focus
+ * keys, then explicit root bindings, then defaults of unbound moves. A
+ * replaced default is not re-added, so its key keeps its browser behaviour.
  */
 export const buildBindings = ({
   explicit,
@@ -143,9 +103,7 @@ export const buildBindings = ({
   layout,
   rtl,
 }: BuildBindingsArgs): Binding[] => {
-  // Direction is read only when a default that could flip is in play: a side
-  // of a horizontal `next`/`prev` axis with no explicit value. A side set to
-  // `none` has no key to flip.
+  // Direction is read only when a default could flip.
   const flip =
     layout.horizontal && !(explicit('next') && explicit('prev')) && rtl();
   const rebound: Binding[] = [];
@@ -167,20 +125,13 @@ export const buildBindings = ({
     }
   }
 
-  // An element's own key names one element, where a root's names a group and
-  // a default names nothing in particular: the most specific declaration in
-  // the table, so it sits first — it wins any collision, and two elements
-  // naming one combo resolve to the first in DOM order.
+  // An element's own key is the most specific declaration, so it wins any
+  // collision; two elements naming one combo resolve in DOM order.
   return [...focusBindings(focus), ...rebound, ...defaults];
 };
 
-/**
- * The binding a press resolves to: the first entry of the group's table that
- * matches it. The layout, which `auto` reads off the page, is asked for only
- * when the press could be a move in some layout. Any other press can match
- * nothing but a focus key, and those head every table, so it is resolved
- * among them without the rest of the table.
- */
+// The layout, which `auto` reads off the page, is asked for only when the
+// press could be a move; any other press can match only a focus key.
 export const findBinding = (
   e: KeyRoveEvent,
   { explicit, focus = [], layout, rtl }: FindBindingArgs,

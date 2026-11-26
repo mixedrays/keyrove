@@ -1,19 +1,5 @@
-/**
- * The configuration layer: one group's settings, resolved for one keypress.
- *
- * A setting has two possible sources — an options object at the call site and
- * the root's `data-keyrove-*` attributes — and they are read field by field,
- * options first. Neither source answers for the other's fields, so a group
- * described in markup can take a single option, a group described entirely in
- * JavaScript takes none of the attributes, and the handler that passes no
- * options reads exactly the markup it always did.
- *
- * Nothing here decides anything. The readings land in one object, and the
- * layers below never learn which source answered. What a group's items are,
- * which of them a move passes over, what marks a root and whether the stop
- * roves are read the same way, by the group layer (`readGroups`), since every
- * handler asks them, and not only of the root a keypress resolved in.
- */
+// Each setting is read field by field, options first, then the root's
+// attribute, so markup and options mix freely.
 
 import {
   KEYROVE_ATTR_COLS,
@@ -38,11 +24,7 @@ import type {
   Layout,
 } from './types.js';
 
-/**
- * What the settings are read off: the group's root, and its item sequence —
- * asked for only where `auto` counts the columns on the first line, so it is
- * best handed over as a getter that reads the items on first ask.
- */
+// `items` is read only by `auto` columns, so pass it as a lazy getter.
 type ConfigGroup = {
   readonly root: Element;
   readonly items: readonly Element[];
@@ -52,22 +34,14 @@ type ConfigGroup = {
 // `Node`.
 const DOCUMENT_FRAGMENT_NODE = 11;
 
-/**
- * The element whose box a root's items are laid out in: the root itself, or
- * its host where the root is a shadow root. A fragment has no box and no
- * style of its own; its children are laid out as the host's, and inherit its
- * direction.
- */
+// A shadow root has no box or style; its children lay out as the host's.
 const boxOf = (root: Element): Element =>
   root.nodeType === DOCUMENT_FRAGMENT_NODE
     ? (root as unknown as ShadowRoot).host
     : root;
 
-// Reading direction for an inline axis. The nearest `dir` attribute
-// decides, mirroring how the DOM resolves direction (and working in jsdom,
-// which has no layout); `dir="auto"` — content-dependent, so only the
-// browser can resolve it — and a missing attribute fall through to the
-// computed style, guarded for environments without `getComputedStyle`.
+// `dir` first, as the DOM resolves it and jsdom can read it; `dir="auto"`
+// needs the browser, so it falls through to the computed style.
 const isRtl = (root: Element): boolean => {
   const box = boxOf(root);
   const dir = box.closest('[dir]')?.getAttribute('dir')?.toLowerCase();
@@ -80,32 +54,18 @@ const isRtl = (root: Element): boolean => {
   );
 };
 
-/**
- * A count an option names, where it names a usable one: whole, and at least 1.
- * Anything else falls through to the attribute, as an unusable attribute falls
- * through to the default — a group is never zero columns wide, and a fractional
- * stride would step between items.
- */
+// Unusable counts fall through to the attribute: a group is never zero
+// columns wide, and a fractional stride would step between items.
 const count = (value: number | undefined): number | undefined => {
   const whole = Math.floor(value ?? NaN);
 
   return whole >= 1 ? whole : undefined;
 };
 
-// A track in a resolved `grid-template-columns`: a size in pixels.
 const TRACK = /^\d*\.?\d+px$/;
 
-/**
- * The columns a grid container lays out: the tracks of its resolved
- * `grid-template-columns`, which lists every track as a pixel size however the
- * rule was written, `repeat(auto-fill, …)` included. Named lines
- * (`[full-start]`) are not tracks.
- *
- * A value that is not a list of pixel sizes counts nothing — `none` on a root
- * that is no grid, or the declared value where nothing is laid out — and
- * neither does an environment without `getComputedStyle`: the group is then a
- * list.
- */
+// The resolved value lists every track in px, `repeat(auto-fill, …)`
+// included. Anything else (`none`, or unresolved with no layout) counts 1.
 const countTracks = (root: Element): number => {
   if (typeof getComputedStyle === 'undefined') return 1;
 
@@ -118,23 +78,10 @@ const countTracks = (root: Element): number => {
   return tracks.every((track) => TRACK.test(track)) ? tracks.length : 1;
 };
 
-/**
- * The columns a wrapping layout lays out, where it has no tracks to count —
- * a `flex-wrap` row, inline-block items: the items on the first line. The walk
- * goes from the first item and stops at the first one starting below the
- * first item's box, so items of different heights centred on one line still
- * count as that line, and only the first line is read, plus one item. Each
- * item is read once, by its first box: one call per item, where the
- * bounding rect would be a second.
- *
- * It counts the item sequence, which keeps a skipped item in its slot, as the
- * fold does, and reads each item where it sits, in a shadow root as anywhere.
- * An item with no box — `display: none`, or nothing laid out at all, as in
- * jsdom — takes no slot on a line, so the count ends there: a first item with
- * no box leaves the group a list.
- */
+// Stops at the first item starting below the first item's bottom, so items of
+// different heights centred on one line count as that line. An item with no
+// box (`display: none`, jsdom) ends the count.
 const countFirstLine = (items: readonly Element[]): number => {
-  // Where an item starts on screen: its first box, or none without a box.
   const firstBox = (item: Element): DOMRect | undefined =>
     item.getClientRects()[0];
   const first = items[0] && firstBox(items[0]);
@@ -153,22 +100,12 @@ const countFirstLine = (items: readonly Element[]): number => {
   return columns;
 };
 
-/**
- * The columns on screen, for `auto`: a CSS grid's tracks, where there is more
- * than one, else the items on the first line. The items are asked for only
- * here, so a numeric count never reads them, nor any layout.
- */
 const countColumns = (group: ConfigGroup): number => {
   const tracks = countTracks(group.root);
 
   return tracks > 1 ? tracks : countFirstLine(group.items);
 };
 
-/**
- * The group's column count. `auto`, from either source and in any case in the
- * attribute, counts the columns on screen each time the layout is read; a
- * number is taken as it stands, where it is usable.
- */
 const readColumns = (
   group: ConfigGroup,
   cols: GroupOptions['cols'],
@@ -188,11 +125,7 @@ const readColumns = (
   return parseAttributeInt(root, KEYROVE_ATTR_COLS, 1);
 };
 
-/**
- * How the group folds its sequence. A list is one column; more than one makes
- * a grid, which has no orientation of its own — its `next`/`prev` axis is
- * sideways by nature — and never wraps, per the APG grid pattern.
- */
+// A grid's `next`/`prev` axis is sideways, and it never wraps (APG grid).
 const readLayout = (
   group: ConfigGroup,
   { cols, orientation, loop }: GroupOptions,
@@ -207,9 +140,6 @@ const readLayout = (
   return {
     kind: 'list',
     cols: 1,
-    // `horizontal` redirects only the *default* keys — an explicit binding
-    // still wins in the table. Nothing but "horizontal" switches anything:
-    // the option as typed, the attribute trimmed and in any case.
     horizontal:
       (orientation ??
         readAttribute(root, KEYROVE_ATTR_ORIENTATION)?.trim().toLowerCase()) ===
@@ -218,17 +148,8 @@ const readLayout = (
   };
 };
 
-/**
- * The combo bound to a move, or nullish where the move keeps its default key.
- * Asked move by move, so each one falls back on its own: a `keys` object
- * naming `next` leaves every other move to its attribute. Every move's
- * attribute is named after it, so the name is derived rather than listed —
- * `nextRow` reads `data-keyrove-next-row-key`.
- *
- * A value naming no combo is unset in either source: an empty, blank or
- * comma-only option falls through to the attribute, and such an attribute to
- * the default.
- */
+// Move by move, so a `keys` object naming `next` leaves every other move to
+// its attribute.
 const readExplicitBinding =
   (root: Element, { keys }: GroupOptions): ExplicitBinding =>
   (intent) => {
@@ -242,17 +163,9 @@ const readExplicitBinding =
   };
 
 /**
- * The focus keys in reach of a keypress: the `focusKeys` map where one is
- * given, else every element under `scope` naming a key of its own, in DOM
- * order. A map replaces the scan rather than adding to it, so one declaration
- * answers for the whole group.
- *
- * A destination need not be an item — a panel reached by its key alone stays
- * out of every arrow order — but it must be reachable: a disabled element is
- * no destination, and neither is a selector matching nothing, so those keys
- * fall through as though undeclared. The scan reads the skip attribute too,
- * declared as it is on the element beside the key; an element a map names is
- * named outright, and the group's `skip` has no say over it.
+ * A `focusKeys` map replaces the attribute scan. Disabled targets and
+ * selectors matching nothing drop out. The scan honours the skip attribute;
+ * an element a map names ignores the group's `skip`.
  */
 export const readFocusKeys = (
   scope: Element,
@@ -276,11 +189,8 @@ export const readFocusKeys = (
   );
 };
 
-/**
- * Every setting one move needs, read once for the group it resolved in. The
- * focus keys are read apart, by {@link readFocusKeys}: they span the
- * listener's reach rather than the root, and only a keypress looks them up.
- */
+// Focus keys are read apart (`readFocusKeys`): they span the listener's
+// reach, not the root.
 export const readConfig = (
   group: ConfigGroup,
   options: GroupOptions,
@@ -288,14 +198,11 @@ export const readConfig = (
   let layout: Layout | undefined;
 
   return {
-    // Read on first ask, and kept: `auto` reads the page's layout, which a
-    // press no move could claim never needs.
+    // Lazy: `auto` reads the page's layout, which most presses never need.
     get layout() {
       return (layout ??= readLayout(group, options));
     },
     explicit: readExplicitBinding(group.root, options),
-    // Resolved on demand: read only when an unbound `next`/`prev` default on a
-    // horizontal axis could flip, never otherwise.
     rtl: () => isRtl(group.root),
     pageLength:
       count(options.pageLength) ??

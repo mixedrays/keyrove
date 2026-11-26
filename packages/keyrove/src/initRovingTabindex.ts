@@ -1,12 +1,5 @@
-/**
- * The roving tab stop, set up and kept whole across renders.
- *
- * keyrove moves an existing stop and never creates one, so a group rendered
- * from data needs its `0` placed once — and placed again whenever a render
- * replaces the item holding it. This is that one call, safe to make after
- * every render: it repairs the group rather than resetting it, so a stop the
- * user left somewhere valid stays there.
- */
+// keyrove moves a stop but never creates one; call this after every render.
+// It repairs rather than resets, so a valid stop stays put.
 
 import { readGroups } from './group.js';
 import type { InitRovingTabindexOptions } from './types.js';
