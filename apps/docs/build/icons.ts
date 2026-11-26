@@ -42,21 +42,13 @@ import {
 import { MARK } from '../src/brand.ts';
 import { CHROME_ICONS, fromLucide, type IconDef } from '../src/icons.ts';
 
-/**
- * Icons, rendered into the page HTML at build time.
- *
- * They used to be `<span data-icon>` placeholders that the bundle swapped for
- * glyphs on load, which meant every navigation showed a row of empty boxes
- * until it ran. Serialising them here costs nothing at runtime — the icon data
- * is plain arrays — and keeps all but the chrome's own icons (src/icons.ts)
- * out of the shipped bundle.
- */
+// Rendered at build time, so navigation never shows empty boxes and only the
+// chrome's icons (src/icons.ts) ship in the bundle.
 
 const ICONS = {
   ...CHROME_ICONS,
 
-  // The landing page's illustrations and next steps, placed from the markdown
-  // with the placeholder `expandIcons` reads.
+  // Placed from the landing page's markdown.
   layers: fromLucide(Layers),
   skip: fromLucide(SkipForward),
   sparkles: fromLucide(Sparkles),
@@ -103,24 +95,13 @@ const ICONS = {
 
 export type IconName = keyof typeof ICONS;
 
-/**
- * The logo's square mark (src/brand.ts), as the body of `favicon.svg`.
- *
- * The header colours the wordmark from the page: its letters are
- * `currentColor` and its ring follows `dark:`. A favicon has no page to
- * inherit from, so it writes the colours out, and switches them with an
- * inline media query.
- *
- * A file rather than a `data:` URI, which browsers accept but Google Search
- * does not: it shows a favicon beside a result only when it can fetch one from
- * a URL, and falls back to a generic globe otherwise.
- */
+// A favicon has no page to inherit colours from, so it writes them out. A
+// file, not a `data:` URI: Google Search shows only fetchable favicons.
 export const faviconSvg = (() => {
   const svg = [
     `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${MARK.viewBox}">`,
-    // indigo-600 and zinc-900, then indigo-400 and zinc-100 — the header's
-    // colours. The mark sits on browser chrome rather than on the page, so it
-    // follows the system theme whatever the header toggle has been set to.
+    // The header's colours. It sits on browser chrome, so it follows the
+    // system theme, not the toggle.
     '<style>rect { stroke: #4f46e5 } path { fill: #18181b }',
     '@media (prefers-color-scheme: dark) { rect { stroke: #818cf8 } path { fill: #f4f4f5 } }</style>',
     MARK.ring,
@@ -131,17 +112,10 @@ export const faviconSvg = (() => {
   return `${svg}\n`;
 })();
 
-/**
- * One inline `<svg>`.
- *
- * `className` carries the size, so a caller sizes an icon the same way it sizes
- * anything else on the page.
- */
 export const icon = (name: IconName, className: string) => {
   const { viewBox, strokeWidth, body } = ICONS[name];
 
-  // A filled mark carries `fill` on its own path; a stroked one is drawn by
-  // the wrapper, so the two need different attribute sets.
+  // A filled mark carries `fill` on its path; a stroked one on the wrapper.
   const stroke =
     strokeWidth === null
       ? []
@@ -162,20 +136,14 @@ export const icon = (name: IconName, className: string) => {
   ].join(' ');
 };
 
-/**
- * The placeholder a content file writes where it wants an icon, with the
- * classes to draw it at: `<span data-icon="layers" class="size-5"></span>`.
- *
- * Markdown has no way to reach `icon()`, and pasting the SVG into a content
- * file would put a second copy of the geometry where nobody would update it.
- */
+// `<span data-icon="layers" class="size-5"></span>`: markdown can't reach
+// `icon()`, and pasted SVG would be a copy nobody updates.
 const ICON_PLACEHOLDER =
   /<span data-icon="([\w-]+)"(?: class="([^"]*)")?><\/span>/g;
 
 const isIconName = (name: string): name is IconName =>
   Object.prototype.hasOwnProperty.call(ICONS, name);
 
-/** Swaps every icon placeholder in rendered HTML for the icon it names. */
 export const expandIcons = (html: string): string =>
   html.replace(ICON_PLACEHOLDER, (_match, name: string, className = '') => {
     if (!isIconName(name)) {
@@ -185,10 +153,5 @@ export const expandIcons = (html: string): string =>
     return icon(name, className);
   });
 
-/**
- * Drops the placeholders from a page's `.md` twin, where an icon has nothing
- * to draw and an empty `<span>` would only be noise beside the text it
- * decorates.
- */
 export const stripIcons = (markdown: string): string =>
   markdown.replace(ICON_PLACEHOLDER, '');

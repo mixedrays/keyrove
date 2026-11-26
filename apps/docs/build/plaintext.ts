@@ -7,21 +7,7 @@ import {
 import type { NavGroup, Page } from './content.ts';
 import type { RenderedPage } from './page-render.ts';
 
-/**
- * The machine-readable half of the site: llms.txt and llms-full.txt, and the
- * two files crawlers look for.
- *
- * Every page is served twice: as HTML at `/docs/api`, and as markdown at
- * `/docs/api.md`. The markdown twin is one of a page's projections, made in
- * build/page-render.ts; the files here index and collect the twins.
- */
-
-/**
- * llms.txt — an index pointing at each page's markdown.
- *
- * See https://llmstxt.org. Groups become sections in sidebar order, so the file
- * reads in the same sequence a person would work through the docs.
- */
+/** https://llmstxt.org. Sections follow sidebar order. */
 export const toLlmsTxt = (
   landing: Page | undefined,
   nav: NavGroup[],
@@ -53,14 +39,7 @@ export const toLlmsTxt = (
   return `${[preamble, ...sections].join('\n\n')}\n`;
 };
 
-/**
- * llms-full.txt — every page llms.txt lists, in full, as one file.
- *
- * An agent that wants all of the docs gets them in one fetch rather than one
- * per twin. The pages are the twins as served, in llms.txt's order, each
- * preceded by the URL it lives at: links between pages are root-relative, and
- * a section quoted out of this file should still be traceable to its page.
- */
+/** Each page is led by its URL, so a quoted section traces back to it. */
 export const toLlmsFullTxt = (
   landing: Page | undefined,
   readingOrder: RenderedPage[],
@@ -79,28 +58,18 @@ export const toLlmsFullTxt = (
       `Source: ${addresses.pageUrl(page.route)}\n\n${markdown.trimEnd()}`,
   );
 
-  // Blank lines on both sides of each rule: straight under a line of text,
-  // `---` would make that line a heading instead.
+  // Under a line of text, `---` would make it a heading.
   return `${[preamble, ...pages].join('\n\n---\n\n')}\n`;
 };
 
 /**
- * sitemap.xml — every indexable page, as an absolute URL.
- *
- * The `.md` twins are left out on purpose: they are the same document at a
- * sibling path, and it is the HTML that should rank. `_headers` serves them
- * `noindex` to settle it — a sitemap only offers URLs, it does not withdraw
- * the ones it omits.
- *
- * `lastmod` comes from the commit that last touched the page's source, and is
- * dropped for a page git cannot date: the field is worth having only while
- * every date in it is true.
+ * `.md` twins are left out so the HTML ranks. `lastmod` is dropped where git
+ * can't date a page: the field is worth having only while every date is true.
  */
 export const toSitemap = (pages: Page[], addresses: Addresses) => {
   const urls = pages
     .filter((page) => !page.noindex)
-    // The landing page carries no `order`, so it sorts last among the pages;
-    // in a sitemap the site root belongs at the top.
+    // The landing page has no `order`; the site root belongs at the top.
     .sort((a, b) => Number(a.route !== '') - Number(b.route !== ''))
     .map((page) => {
       const lastmod =
@@ -119,23 +88,9 @@ ${urls}
 `;
 };
 
-/**
- * robots.txt — everything is crawlable, and here is the sitemap.
- *
- * The `.md` twins are not disallowed: they are worth reading as text, and a
- * `Disallow` would stop the fetch rather than the indexing. `_headers` sends
- * them `X-Robots-Tag: noindex` instead, which keeps them readable and keeps
- * them out of the index — a `text/plain` response cannot carry the canonical
- * tag that would otherwise pair each twin with its page.
- *
- * The AI crawlers are admitted by `*` already. They are named anyway, and
- * `Content-Signal` (https://contentsignals.org) says what the content may be
- * used for, so that the permission reads as a decision rather than as a
- * default nobody got round to changing. The docs are MIT licensed and the site
- * serves llms.txt for agents to read, so every use is allowed, training
- * included. A crawler obeys only the most specific group naming it, so the
- * signal is repeated in theirs.
- */
+// Named though `*` admits them, so the permission reads as a decision. A
+// crawler obeys only its most specific group, so the signal repeats there.
+// Twins aren't disallowed: `_headers` sends them `noindex` instead.
 const AI_CRAWLERS = [
   'GPTBot',
   'ClaudeBot',

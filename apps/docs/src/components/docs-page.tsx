@@ -14,8 +14,6 @@ function DocsPageContent({ route }: { route: string }) {
   return (
     <>
       <main className="docs-main">
-        {/* The page itself, title to last line; the pager after it is
-            navigation between pages, not part of this one. */}
         <article className="markdown">
           <h1>{page.title}</h1>
           <PageActions page={page} />
@@ -29,17 +27,8 @@ function DocsPageContent({ route }: { route: string }) {
   );
 }
 
-/**
- * One docs page, between the sidebar and the edge of the layout.
- *
- * Suspended on its own, so that on the first paint the chrome around it
- * hydrates while the page's chunk is still on its way — see src/content.ts.
- *
- * Keyed by its route, so moving to another page draws it afresh. Two pages
- * have demos at the same places in their trees, and React would otherwise
- * keep one page's demo components for the next — swapping in the new demo's
- * markup without ever mounting its behaviour.
- */
+// Keyed by route: React would otherwise reuse one page's demo components for
+// another's at the same tree position, never mounting the new behaviour.
 export function DocsPage({ route }: { route: string }) {
   return (
     <Suspense>

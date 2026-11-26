@@ -1,14 +1,6 @@
-/*
- * Reusable demo panels: a compact readout and tabbed code, in the page's theme.
- * Layout belongs to the embedding page; no hero or landing wrapper is needed.
- */
 @layer components {
-  /*
-   * Each token is its light value, then its dark one. `light-dark()` picks by
-   * the panel's color-scheme, which it inherits from the page (see style.css),
-   * so the header toggle moves the panels with everything else — and a page
-   * that wants its panels against its theme flips that one property.
-   */
+  /* `light-dark()` follows the inherited color-scheme, so a page wanting
+     panels against its theme flips that one property. */
   .demo-panel {
     @apply overflow-hidden rounded-[1.125rem] border border-(--demo-edge) bg-(--demo-bg) text-(--demo-text);
 
@@ -58,7 +50,6 @@
     @apply inline-flex items-center gap-2 font-mono text-[0.6875rem] leading-none font-medium tracking-[0.14em] whitespace-nowrap text-(--demo-muted) uppercase;
   }
 
-  /* A live indicator: the demo is running, not a picture of one. */
   .demo-live-indicator {
     @apply size-[7px] shrink-0 rounded-full bg-emerald-500;
   }
@@ -69,10 +60,8 @@
     }
   }
 
-  /* The accent for a move, amber for a key claimed with nowhere to go, and
-     muted for a key left to the browser. Before the first key: "click to
-     focus" takes the accent, being the one thing to do, and "listening…" is
-     muted. src/readout.ts writes the line and its state. */
+  /* Accent for a move, amber for a claimed no-op, muted for a key left to the
+     browser. "Click to focus" takes the accent: it's the one thing to do. */
   .demo-readout {
     @apply inline-flex min-h-5 min-w-0 items-center gap-1.5 overflow-hidden font-mono text-xs leading-none whitespace-nowrap text-(--demo-readout) justify-end;
   }
@@ -99,18 +88,13 @@
     }
   }
 
-  /*
-   * The code strip: the page's own tabbed code panel (see build/markdown.ts),
-   * joined to the panel's foot. It gives up the frame it carries in prose —
-   * the panel is its frame — and takes the panel's palette, Shiki's token
-   * colours included: the panel's color-scheme, which is not always the page's.
-   */
+  /* Takes the panel's palette, Shiki's included: the panel's color-scheme
+     isn't always the page's. */
   .demo-panel .code-tabs {
     @apply mt-0 rounded-none border-0 border-t border-(--demo-rule) bg-(--demo-strip);
   }
 
-  /* A demo whose page shows no script has one file and so no tabs: the lone
-     block joins the foot on the same terms, without a strip of one tab. */
+  /* A lone block joins the foot without a strip of one tab. */
   .demo-panel > .code-copyable:not(.code-tabs) {
     @apply mt-0 border-t border-(--demo-rule) bg-(--demo-strip);
   }
@@ -147,9 +131,7 @@
     color: light-dark(var(--shiki-light), var(--shiki-dark));
   }
 
-  /* The keys the demo answers to, under the panel. Set on the page rather
-     than in the panel, so it takes the page's theme, and with a line tall
-     enough that the key caps sit in it without spreading the lines apart. */
+  /* Line tall enough that key caps don't spread the lines apart. */
   .demo-hint {
     @apply mx-1 mt-3 text-[0.8125rem] leading-7 text-zinc-500 dark:text-zinc-400;
   }
@@ -190,9 +172,7 @@
     @apply cursor-not-allowed text-(--demo-muted) hover:bg-transparent;
   }
 
-  /* A skipped item, drawn as the group heading it stands for. The first one
-     opens the list, so it gives up the space that sets the later ones off
-     from the rows above them. */
+  /* A skipped item drawn as a group heading. */
   .demo-panel-preview :where([data-keyrove-skip]) {
     @apply cursor-default pt-3.5 text-[0.6875rem] font-semibold tracking-widest text-(--demo-muted) uppercase hover:bg-transparent;
   }
@@ -201,16 +181,12 @@
     @apply pt-1;
   }
 
-  /* A field inside the preview, such as the focus-keys demo's text area, so a
-     chord can be tried from where it matters. */
   .demo-panel-preview :where(textarea) {
     @apply mt-2 block w-full resize-none rounded-md border border-(--demo-chip-edge) bg-(--demo-bg) px-2 py-1 text-sm font-normal tracking-normal text-(--demo-text) normal-case outline-transparent outline-offset-2 placeholder:text-(--demo-muted) focus:outline-2 focus:outline-(--demo-accent);
   }
 
-  /* A focus-key target that is not an item, such as the focus-keys demo's
-     panes: a bordered region headed by its name, reached by its key alone.
-     A pane takes the ring rather than the accent fill, which would flood the
-     field inside it; a field that drops to its own line comes last. */
+  /* A non-item focus-key target takes the ring, not the accent fill, which
+     would flood the field inside it. */
   .demo-panel-preview
     :where([data-keyrove-focus-key]:not([data-keyrove-item])) {
     @apply flex min-h-20 min-w-0 flex-wrap content-start items-center gap-x-2 rounded-lg border border-(--demo-chip-edge) px-3 py-2 text-[0.6875rem] font-semibold tracking-widest text-(--demo-muted) uppercase outline-transparent outline-offset-2 transition-colors duration-120;
@@ -227,9 +203,6 @@
     order: 1;
   }
 
-  /* A control inside an item, such as the editable-targets demo's rows. The
-     label lays the row out: a checkbox ahead of its text, a field pushed to
-     the far end, and a text area dropping to a line of its own. */
   .demo-panel-preview :where([data-keyrove-item] > label) {
     @apply flex flex-wrap items-center gap-x-3 gap-y-2;
   }
@@ -250,17 +223,14 @@
     @apply size-4 accent-(--demo-accent);
   }
 
-  /* A focused row is filled with the accent, which would swallow a control
-     drawn in it: the row's own text colour takes over. */
+  /* The accent fill would swallow a control drawn in a focused row. */
   .demo-panel-preview
     :where([data-keyrove-item]:focus)
     :where(input[type='checkbox'], input[type='range']) {
     @apply accent-(--demo-on-accent);
   }
 
-  /* An option ends in the tick that says which one is chosen. The tick is the
-     widget's state rather than keyrove's, drawn off the ARIA attribute the
-     page's snippet writes; on a focused row it takes the row's text colour. */
+  /* The tick is the widget's state, drawn off the ARIA attribute. */
   .demo-panel-preview :where([role='option']) {
     @apply flex items-center gap-2.5;
   }
@@ -330,10 +300,7 @@
     content: attr(aria-keyshortcuts) / '';
   }
 
-  /* The panes laid out as an editor lays them out: a sidebar down the left,
-     the file above the terminal. There is no "down" from a sidebar that spans
-     both rows, which is the case for a key that names each pane — and the
-     reason each pane shows its chord beside its name. */
+  /* No "down" from a sidebar spanning both rows: the case for focus keys. */
   .demo-panel[data-demo='panes'] .demo-surface {
     @apply grid-cols-[minmax(0,1fr)_minmax(0,2fr)] gap-1.5;
   }
@@ -365,18 +332,12 @@
     content: 'Ctrl+Shift+3' / '';
   }
 
-  /* A nested root, drawn as a row of its own so the boundary keyrove scopes
-     to is visible. A nested grid brings its own layout and is left alone. */
+  /* A row of its own, so the boundary keyrove scopes to is visible. */
   .demo-panel-preview [data-keyrove-root]:not([data-keyrove-cols]) {
     @apply flex gap-1 rounded-lg border border-dashed border-(--demo-rule) p-1;
   }
 
-  /* Trees: the file tree's rows and the sidebar's, whose folders are buttons
-     that would otherwise size to their label. A folder leads with the caret
-     that says whether it is open; a row without one keeps its room, so names
-     at one depth line up — in the sidebar only at the top, as a section holds
-     pages alone. A folder's rows step in under it, on the same rhythm as the
-     rows above. */
+  /* A row without a caret keeps its room, so names at one depth line up. */
   .demo-panel[data-demo='sidebar'] .demo-surface [data-keyrove-item] {
     @apply flex w-full items-center gap-2.5;
   }
@@ -405,7 +366,6 @@
   }
 }
 
-/* The live indicator: a ring that swells off the dot and fades. */
 @keyframes demo-pulse {
   0% {
     box-shadow: 0 0 0 0 --alpha(var(--color-emerald-500) / 50%);
@@ -417,7 +377,6 @@
   }
 }
 
-/* A new line in the readout, rising into place. */
 @keyframes demo-fresh {
   from {
     opacity: 0.35;

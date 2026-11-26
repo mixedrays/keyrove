@@ -12,25 +12,12 @@ import {
   type IconNode,
 } from 'lucide';
 
-/**
- * The icons the site's chrome draws — header, sidebar, search, copy buttons —
- * apart from the rest of the set in build/icons.ts.
- *
- * Content icons are serialised into the page HTML at build time and never
- * reach the browser as data. The chrome is React components, so its icons do;
- * keeping them in a module of their own keeps the other fifty out of the
- * bundle. build/icons.ts spreads these into the full set, so a placeholder in
- * markdown can still name any of them.
- */
+// The chrome's icons ship as data; keeping them apart keeps the other fifty
+// out of the bundle. build/icons.ts spreads these into the full set.
 
 /**
- * An icon's geometry, independent of the size it is drawn at.
- *
- * `strokeWidth` is in the icon's own viewBox units rather than pixels, so an
- * icon drawn on a larger grid can still be given the same visual weight as the
- * rest — which is the only reason this is per-icon and not a constant. A mark
- * drawn as a fill rather than a stroke sets it to `null` and carries its own
- * `fill` on the path.
+ * `strokeWidth` is in viewBox units, so icons on larger grids keep the same
+ * weight. `null` for a filled mark, which carries `fill` on its path.
  */
 export type IconDef = {
   viewBox: string;
@@ -49,7 +36,6 @@ const renderChild = ([tag, attrs]: IconNode[number]) => {
 /** Lucide's default 2px stroke reads heavy next to 14px nav text. */
 export const LUCIDE_STROKE_WIDTH = 1.75;
 
-/** Lucide ships every icon on a 24-unit grid at a nominal 2px stroke. */
 export const fromLucide = (node: IconNode): IconDef => ({
   viewBox: '0 0 24 24',
   strokeWidth: LUCIDE_STROKE_WIDTH,
@@ -68,39 +54,23 @@ export const CHROME_ICONS = {
   sun: fromLucide(Sun),
   moon: fromLucide(Moon),
 
-  /*
-   * The markdown mark — a filled glyph on a 16-unit grid, so it opts out of the
-   * stroke attributes the rest of the set is drawn with.
-   */
+  // Filled, on a 16-unit grid.
   markdown: {
     viewBox: '0 0 16 16',
     strokeWidth: null,
     body: '<path fill="currentColor" d="M14.846 12.9233H1.154a1.153 1.153 0 0 1-.44136-.0878 1.152 1.152 0 0 1-.37416-.25 1.153 1.153 0 0 1-.25002-.3741 1.154 1.154 0 0 1-.08779-.4414V4.22999A1.15335 1.15335 0 0 1 1.154 3.07666h13.692c.1515 0 .3014.02983.4414.08779a1.1535 1.1535 0 0 1 .7119 1.06554v7.53871c.0001.1515-.0296.3015-.0876.4415-.0579.14-.1428.2673-.2499.3744a1.153 1.153 0 0 1-.3743.2502c-.14.058-.29.0885-.4415.0885m-11-2.308V7.61533l1.53867 1.92333 1.538-1.92333v2.99997h1.53867V5.38533H6.92267l-1.538 1.92333L3.846 5.38533H2.30734v5.23137zm10.308-2.61531h-1.5387V5.38466h-1.538v2.61533H9.53867L11.846 10.6927z" />',
   },
 
-  /*
-   * The npm mark, from simple-icons. A brand mark, so — like the GitHub one
-   * below — it is not from lucide, which dropped them in v1.
-   *
-   * Drawn as a fill rather than a stroke: the glyph is a solid square with the
-   * wordmark knocked out of it, which is what makes it read as npm at 16px.
-   */
+  // From simple-icons: lucide dropped brand marks in v1. Filled, so it reads
+  // as npm at 16px.
   npm: {
     viewBox: '0 0 24 24',
     strokeWidth: null,
     body: '<path fill="currentColor" d="M1.763 0C.786 0 0 .786 0 1.763v20.474C0 23.214.786 24 1.763 24h20.474c.977 0 1.763-.786 1.763-1.763V1.763C24 .786 23.214 0 22.237 0zM5.13 5.323l13.837.019-.009 13.836h-3.464l.01-10.382h-3.456L12.04 19.17H5.113z" />',
   },
 
-  /*
-   * The GitHub mark, from svgrepo.com/show/504388. Lucide dropped brand marks
-   * in v1, so this is the one icon on the site that is not from the set.
-   *
-   * Drawn on a 192-unit grid rather than 24, so its stroke is scaled to match:
-   * 14/192 is the same ratio as the 1.75/24 the lucide icons use, which is what
-   * keeps it from reading lighter than its neighbours in the header. The
-   * source's own `stroke="#000000"` is dropped — the wrapper below sets
-   * `currentColor`, without which the mark would stay black in dark mode.
-   */
+  // From svgrepo.com/show/504388. 14/192 matches lucide's 1.75/24. The
+  // source's black stroke is dropped so `currentColor` works in dark mode.
   github: {
     viewBox: '0 0 192 192',
     strokeWidth: 14,

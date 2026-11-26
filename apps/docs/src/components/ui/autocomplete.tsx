@@ -1,13 +1,6 @@
 import { Autocomplete as AutocompletePrimitive } from '@base-ui/react/autocomplete';
 
-/**
- * A text input with a list of suggestions, on Base UI's autocomplete — shadcn
- * has no component for it, so this follows the shape of the ones it does.
- *
- * Base UI owns the keys: focus stays in the input while the arrows move a
- * highlight through the list, and Enter activates the highlighted item.
- * Unstyled here; the search passes the classes style.css draws it with.
- */
+// shadcn has none, so this follows the shape of the ones it has.
 
 /** Context only — it renders no element, so there is nothing to mark. */
 const Autocomplete = AutocompletePrimitive.Root;

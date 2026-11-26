@@ -1,7 +1,4 @@
-/**
- * The modules vite-plugin-content.ts serves. Their shapes are written out here
- * rather than inferred, because the plugin emits them as source text.
- */
+// Written out, not inferred: the plugin emits these as source text.
 
 declare module 'virtual:docs/site' {
   import type { Layout, NavLink } from '../build/content.ts';

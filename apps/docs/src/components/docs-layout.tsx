@@ -10,10 +10,6 @@ import {
 import { SiteFooter, SiteHeader } from '@/components/site-chrome.tsx';
 import { Sheet } from '@/components/ui/sheet.tsx';
 
-/**
- * Sidebar, content, rail — and the header and footer around them. Every docs
- * page and the 404 render in here.
- */
 export function DocsLayout({ children }: { children: ReactNode }) {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const openDrawer = useCallback(() => setDrawerOpen(true), []);
@@ -21,16 +17,13 @@ export function DocsLayout({ children }: { children: ReactNode }) {
   const searching = useSearchOpen();
   const router = useRouter();
 
-  // Search opens over everything; two modal layers would each try to keep
-  // focus, so the drawer steps aside for it.
+  // Two modal layers would fight over focus, so the drawer yields to search.
   useEffect(() => {
     if (searching) setDrawerOpen(false);
   }, [searching]);
 
-  // A page loaded from its URL starts with focus on nothing, which is what
-  // lets its first demo take it. A client-side navigation would otherwise keep
-  // it on the sidebar link that was followed, so it is handed back as the
-  // navigation starts — before the new page renders and its demo mounts.
+  // Release focus as navigation starts, so the new page's first demo can take
+  // it as on a fresh load.
   useEffect(
     () =>
       router.subscribe('onBeforeNavigate', ({ pathChanged }) => {
@@ -44,9 +37,7 @@ export function DocsLayout({ children }: { children: ReactNode }) {
   return (
     <Sheet open={drawerOpen} onOpenChange={setDrawerOpen}>
       <SiteHeader layout="docs" menu={<SidebarToggle open={drawerOpen} />} />
-      {/* The centre column is `minmax(0, 1fr)` rather than `1fr` so a wide
-          code block or table scrolls inside itself instead of stretching the
-          grid past the viewport. */}
+      {/* `minmax(0, 1fr)`, so wide blocks scroll rather than stretch the grid. */}
       <div className="docs-shell">
         <Sidebar />
         <SidebarDrawer onOpen={openDrawer} onClose={closeDrawer} />

@@ -12,16 +12,8 @@ const Glyphs = () => (
   </>
 );
 
-/**
- * "Copy code" — the button on a demo's source and on any block whose fence
- * asks for one (see build/markdown.ts).
- *
- * It copies the block's own text, rather than a second copy of it held in a
- * prop, so what lands on the clipboard is what is on screen. The button sits
- * beside the code in one container; where that container is a tabbed panel,
- * the block is whichever tab is showing, so it is looked up on the click
- * rather than once.
- */
+// Copies the block's own text, looked up on click since a tabbed panel's
+// visible block changes.
 export function CopyCodeButton({ label }: { label: string }) {
   const [copied, flash] = useFlash(false);
 
@@ -34,8 +26,7 @@ export function CopyCodeButton({ label }: { label: string }) {
     try {
       await navigator.clipboard.writeText(code.textContent ?? '');
     } catch {
-      // Clipboard access can be refused outright; the code is on the page
-      // either way, so there is nothing to fall back to.
+      // Refused clipboard: the code is on the page anyway.
       return;
     }
 
@@ -54,15 +45,6 @@ export function CopyCodeButton({ label }: { label: string }) {
   );
 }
 
-/**
- * A button that puts a command on the clipboard — the install line on the
- * landing page.
- *
- * The command is written out beside the button, so this only saves the
- * selecting: with scripting off, or the clipboard refused, it can still be
- * copied by hand. It is drawn as the code blocks' copy button is, a copy
- * glyph that turns into a tick, so the page has one way of saying "copied".
- */
 export function CopyCommandButton({
   command,
   label,
@@ -78,8 +60,7 @@ export function CopyCommandButton({
     try {
       await navigator.clipboard.writeText(command);
     } catch {
-      // Clipboard access can be refused outright; the command is on the
-      // page either way, so there is nothing to fall back to.
+      // Refused clipboard: the command is on the page anyway.
       return;
     }
 

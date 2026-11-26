@@ -31,16 +31,8 @@ import {
 import { mountDemo } from '@/demos.ts';
 import { mountHero } from '@/hero.ts';
 
-/**
- * A page's rendered markdown, as React.
- *
- * build/markdown.ts renders the HTML and build/html-tree.ts turns it into a
- * tree of elements at build time; this draws the tree, swapping in a component
- * wherever the markup stands for one: a link to another page becomes a router
- * link, and every placeholder build/placeholders.ts lists that is not opaque
- * becomes the component `DRAW` names for it — a group of code blocks becomes
- * Base UI tabs, a copy button gets its click, and a demo gets its behaviour.
- */
+// Draws the build-time tree, swapping internal links for router links and
+// placeholders for the components `DRAW` names.
 
 const elements = (children: HtmlNode[]) =>
   children.filter((child): child is HtmlElement => typeof child !== 'string');
@@ -55,12 +47,6 @@ const str = (value: unknown) => (typeof value === 'string' ? value : '');
 const placeholder = ([tag, props]: HtmlElement) =>
   placeholderOf(tag, str(props.className), (attribute) => attribute in props);
 
-/**
- * Code blocks written back to back, as build/markdown.ts stamps them — or the
- * landing page's pattern tabs, written in the same markup by hand. The markup
- * says which tab starts selected and what each is called; Base UI's tabs take
- * it from there.
- */
 function CodeTabs({
   props,
   children,
@@ -94,8 +80,7 @@ function CodeTabs({
         ))}
       </TabsList>
       {panels.map(([, panel, content], index) => (
-        // Not a tab stop of its own: the code block inside already is, and a
-        // demo's items are.
+        // Not a tab stop: the code block or demo items inside already are.
         <TabsContent
           key={index}
           value={index}
@@ -109,10 +94,7 @@ function CodeTabs({
   );
 }
 
-/**
- * Runs `mount` on the element once React has drawn it, and undoes it when the
- * element goes — on navigation, or React's second mount in development.
- */
+// Undone on navigation, or React's second mount in development.
 const useMount = (
   mount: (element: HTMLElement, signal: AbortSignal) => void,
 ) => {
@@ -128,7 +110,6 @@ const useMount = (
   return ref;
 };
 
-/** A demo build/demos.ts stamped: the panel, its live preview, its source. */
 function Demo({ props, children }: { props: HtmlProps; children: HtmlNode[] }) {
   const ref = useMount(mountDemo);
 
@@ -139,7 +120,6 @@ function Demo({ props, children }: { props: HtmlProps; children: HtmlNode[] }) {
   );
 }
 
-/** The landing page's hero demo, written into the page rather than stamped. */
 function Hero({ props, children }: { props: HtmlProps; children: HtmlNode[] }) {
   const ref = useMount(mountHero);
 
@@ -150,13 +130,10 @@ function Hero({ props, children }: { props: HtmlProps; children: HtmlNode[] }) {
   );
 }
 
-/** Draws a placeholder; `key` is its place among its siblings. */
+/** `key` is the placeholder's place among its siblings. */
 type Draw = (props: HtmlProps, children: HtmlNode[], key: number) => ReactNode;
 
-/**
- * What draws each placeholder React swaps. Keyed by build/placeholders.ts, so
- * a placeholder added there without a component here does not compile.
- */
+// A placeholder without a component here doesn't compile.
 const DRAW: Record<SwappedPlaceholder, Draw> = {
   codeTabs: (props, children, key) => (
     <CodeTabs key={key} props={props} children={children} />
@@ -179,11 +156,8 @@ const DRAW: Record<SwappedPlaceholder, Draw> = {
       {render(children)}
     </CopyCommandButton>
   ),
-  // On the arrows like everything else. The list is written in markdown,
-  // which cannot mark its links as items, so `items` names them instead.
-  // Nothing takes focus on arrival: the heading saying the page is missing is
-  // what a screen reader should reach first, so the hint under the list says
-  // how to get in.
+  // Markdown can't mark links as items, so `items` names them. No focus on
+  // arrival: a screen reader should reach the "missing" heading first.
   notFoundLinks: (props, children, key) => (
     <div
       key={key}
@@ -195,15 +169,10 @@ const DRAW: Record<SwappedPlaceholder, Draw> = {
   ),
 };
 
-/**
- * The component an element stands for, or undefined for a plain element.
- * `key` is the element's place among its siblings.
- */
 const replace = (element: HtmlElement, key: number): ReactNode => {
   const [tag, props, children] = element;
   const href = str(props.href);
 
-  // Any markdown link to another page, rather than a placeholder.
   if (tag === 'a' && href.startsWith('/')) {
     return (
       <SiteLink key={key} {...props} href={href}>

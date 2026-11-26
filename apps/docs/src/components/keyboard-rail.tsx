@@ -19,34 +19,18 @@ import {
 import { useSearchOpen } from '@/components/search.tsx';
 import { isApple, isShown } from '@/lib/utils.ts';
 
-/**
- * Keyboard navigation for the docs sidebar and the "On this page" rail, which
- * have no Base UI component to give them any: keyrove's arrows within each,
- * one tab stop that rests where the reader is, and an Alt+Shift chord to it
- * from anywhere on the page.
- *
- * The chords are Alt+Shift because browsers claim most Ctrl+Shift letters —
- * Ctrl+Shift+I is DevTools — and Firefox gives Alt+Shift to the page's own
- * access keys.
- */
+// Alt+Shift chords: browsers claim most Ctrl+Shift letters (DevTools), and
+// Firefox gives Alt+Shift to the page's access keys.
 
 export type RailShortcut = { combo: KeyCombo; label: string };
 
 export type KeyboardRail = {
-  /** Its links, which the arrows move through and loop around. */
   items: string;
   /** The chord that jumps to its tab stop, and the keys its hint prints. */
   shortcut: RailShortcut;
-  /**
-   * The link its tab stop rests on — the current page, the section in view —
-   * so Tab and the chord land where the reader is.
-   */
+  /** The current page or section in view, so Tab lands where the reader is. */
   stop: string;
-  /**
-   * For a rail that is off-screen until something opens it: runs before the
-   * chord moves focus, and returns `true` once it has opened the rail, which
-   * then focuses its own stop.
-   */
+  /** For an off-screen rail: returns `true` once opened; it focuses itself. */
   reveal?: () => boolean;
 };
 
@@ -55,15 +39,8 @@ const APPLE_KEYS = new Map([
   ['Shift', '⇧'],
 ]);
 
-/**
- * The hint beside a rail's first heading: its chord, and the arrows that move
- * within it. Printed as the keycaps are — `⌥ ⇧ E` on Apple keyboards,
- * `Alt Shift E` elsewhere — the way the search chip is. The stylesheet decides
- * when it shows; screen readers get `aria-keyshortcuts` instead.
- *
- * Drawn only once the bundle has run, so nothing advertises a chord without a
- * handler behind it.
- */
+// Drawn only once the bundle runs, so no chord is advertised without a
+// handler. Screen readers get `aria-keyshortcuts` instead.
 function KeysHint({ label }: { label: string }) {
   const hydrated = useHydrated();
   if (!hydrated) return null;
@@ -84,11 +61,7 @@ function KeysHint({ label }: { label: string }) {
 const findStop = (root: Element | null) =>
   root?.querySelector<HTMLElement>('[tabindex="0"]') ?? null;
 
-/**
- * Everything a rail needs to move on the keyboard, from what it declares.
- * Spread `props` on its root, put `hint` beside its first heading, and ask
- * `findStop` for its tab stop — where a drawer that opens on it puts focus.
- */
+/** Spread `props` on the root, put `hint` by the first heading. */
 export function useKeyboardRail({
   items,
   shortcut,
@@ -99,8 +72,7 @@ export function useKeyboardRail({
   // The link the stop was last sent to; `undefined` until the links arrive.
   const rested = useRef<Element | null | undefined>(undefined);
   const searching = useSearchOpen();
-  // Read only so that a navigation renders the rail, which moves its stop to
-  // the new page's link.
+  // Subscribed so navigation re-renders the rail and moves its stop.
   useLocation({ select: (location) => location.pathname });
 
   const group = useMemo<KeyRoveOptions>(
@@ -108,8 +80,7 @@ export function useKeyboardRail({
     [items],
   );
 
-  // Sends the stop to the `stop` link whenever that changes. Left alone while
-  // focus is inside, where the stop is the reader's.
+  // Left alone while focus is inside, where the stop is the reader's.
   const rest = useCallback(
     (element: HTMLElement) => {
       const initial = element.querySelector(stop);
@@ -121,8 +92,7 @@ export function useKeyboardRail({
     [group, stop],
   );
 
-  // A drawer's links exist only while it is open, so the stop is set as they
-  // arrive, as well as after every render.
+  // A drawer's links exist only while open, so the stop is set as they arrive.
   const ref = useCallback(
     (element: HTMLElement | null) => {
       root.current = element;
@@ -136,8 +106,7 @@ export function useKeyboardRail({
     if (root.current) rest(root.current);
   });
 
-  // The chord, from anywhere on the page — but not over search, which keeps
-  // every key while it is open.
+  // Not over search, which keeps every key while open.
   useEffect(() => {
     if (searching) return;
 

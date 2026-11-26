@@ -4,29 +4,15 @@ import { promisify } from 'node:util';
 
 const run = promisify(execFile);
 
-/**
- * When each file under `content/` last changed, according to git.
- *
- * The sitemap wants a `lastmod`, and the filesystem cannot give one: a CI
- * checkout stamps every file with the time it cloned, so mtimes would say the
- * whole site changed on every deploy. The commit history is the only record of
- * when a page's text actually moved.
- *
- * Google ignores the field outright once a site is caught reporting it
- * carelessly, so anything uncertain here answers with nothing rather than with
- * a guess — a missing `lastmod` costs nothing, a wrong one costs the field.
- */
+// A CI checkout stamps mtimes at clone time, so only git knows. Uncertain
+// answers give nothing: Google ignores `lastmod` once it catches a wrong one.
 
 /** Separates a commit's date from the paths it touched; a path cannot hold one. */
 const RECORD = '\x1e';
 
 /**
- * Maps absolute file path → ISO 8601 commit date, for everything under `dir`.
- *
- * One `git log` for the whole directory rather than one per page: the log is
- * newest-first, so the first time a path appears is the last time it changed.
- * Merge commits list no paths of their own, so a page dates from the commit
- * that wrote it rather than from the merge that landed it.
+ * One newest-first `git log`, so a path's first appearance is its last change.
+ * Merges list no paths, so a page dates from the commit that wrote it.
  */
 export const loadLastModified = async (
   dir: string,
@@ -44,8 +30,7 @@ export const loadLastModified = async (
     const result = await run(
       'git',
       [
-        // Paths are compared against real filenames, so they have to come back
-        // verbatim rather than octal-escaped.
+        // Verbatim, not octal-escaped, to compare against real filenames.
         '-c',
         'core.quotePath=false',
         'log',
@@ -58,8 +43,7 @@ export const loadLastModified = async (
     );
     log = result.stdout;
   } catch {
-    // No git, no repository, or a history too shallow to answer — every page
-    // goes without a `lastmod` rather than with a date the build made up.
+    // No git, or history too shallow: no `lastmod` rather than a made-up one.
     return dates;
   }
 

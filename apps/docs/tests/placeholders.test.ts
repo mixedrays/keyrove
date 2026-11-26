@@ -47,11 +47,7 @@ test('every placeholder in the registry is written on some page', () => {
   assert.deepEqual([...written].sort(), Object.keys(PLACEHOLDERS).sort());
 });
 
-/**
- * The `data-*` hooks pages carry that are not placeholders, and what reads
- * each: nothing swaps them, and nothing needs to. `data-keyrove-*` is
- * keyrove's own, and left out.
- */
+// Hooks nothing swaps, with what reads each. `data-keyrove-*` is left out.
 const NOT_PLACEHOLDERS: Record<string, string> = {
   'data-lang': "a highlighted block's language, from build/markdown.ts",
   'data-state': "the readout's state, for demo-panel.css",

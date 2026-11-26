@@ -14,11 +14,7 @@ import { Icon } from '@/components/icon.tsx';
 import { Button } from '@/components/ui/button.tsx';
 import { isApple } from '@/lib/utils.ts';
 
-/**
- * The documentation search: a dialog over the page, opened from the header or
- * with ⌘K / Ctrl+K anywhere. The dialog, its engine and its index all load on
- * first use rather than with the page — see src/components/search-dialog.tsx.
- */
+// The dialog, engine and index load on first use, not with the page.
 
 const loadDialog = () => import('@/components/search-dialog.tsx');
 const SearchDialog = lazy(loadDialog);
@@ -28,13 +24,10 @@ const SearchContext = createContext<{ open: boolean; show: () => void }>({
   show: () => {},
 });
 
-/** Holds whether search is open, and opens it on ⌘K / Ctrl+K. */
 export function SearchProvider({ children }: { children: ReactNode }) {
   const [open, setOpen] = useState(false);
-  // Mounted from the first open on, so that closing it keeps the query and
-  // reopening it is instant.
+  // Stays mounted after first open, so the query survives and reopening is instant.
   const [mounted, setMounted] = useState(false);
-  // Where focus goes back to on close: wherever it was when search opened.
   const opener = useRef<HTMLElement | null>(null);
 
   const show = () => {
@@ -76,13 +69,9 @@ export function SearchProvider({ children }: { children: ReactNode }) {
   );
 }
 
-/** Whether search is open, for whatever has to step aside for it. */
 export const useSearchOpen = () => useContext(SearchContext).open;
 
-/**
- * The header's search button. Hidden until the bundle has run, since there is
- * no search without it; the chip prints the shortcut as the keycaps do.
- */
+/** Hidden until the bundle runs: there is no search without it. */
 export function SearchTrigger() {
   const { open, show } = useContext(SearchContext);
   const hydrated = useHydrated();

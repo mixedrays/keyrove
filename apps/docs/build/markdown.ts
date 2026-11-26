@@ -1,43 +1,24 @@
 import Shiki from '@shikijs/markdown-it';
 import MarkdownIt, { type Token } from 'markdown-it';
 
-/**
- * Markdown → HTML, with the structure the site needs beside it: stable heading
- * ids to link at, the heading list the "On this page" rail is built from, and
- * the sections the search index is built from.
- *
- * All of it comes out of a single parse. `md.render` would hide the token
- * stream, so this parses and renders in two steps and walks the tokens in
- * between — cheaper and less fragile than re-deriving headings from the
- * rendered HTML, and the ids a search result links to are the ids the page
- * renders, because they are the same tokens.
- */
+// Parse and render in two steps, walking the tokens between, so the ids the
+// rail and search link to are the ids the page renders.
 
-/**
- * Shiki writes both themes' colours as CSS variables on every token and
- * style.css picks one under the `dark` variant — the same mechanism the rest of
- * the site's dark mode rides on, so there is no theme state to sync.
- */
+// Both themes as CSS variables; style.css picks one under `dark`, so there is
+// no theme state to sync.
 const THEMES = { light: 'github-light', dark: 'github-dark' } as const;
 
 export type Heading = {
   id: string;
   text: string;
-  /** 2 or 3 — deeper headings are not worth a rail entry. */
+  /** 2 or 3. */
   level: number;
 };
 
-/**
- * Headings that become their own link — the same ones the rail lists, so every
- * rail entry has a heading a reader can copy a URL from.
- */
+// The same ones the rail lists, so every rail entry has a copyable URL.
 const ANCHORED_TAGS = new Set(['h2', 'h3']);
 
-/**
- * A stretch of a page a search result can land on: the text under one h2 or
- * h3, up to the next. The first section is what comes before any heading, and
- * has no id of its own.
- */
+/** The text under one h2 or h3. The first, before any heading, has no id. */
 export type Section = {
   id: string;
   heading: string;
@@ -51,7 +32,6 @@ type ParsedMarkdown = {
   render: () => Promise<string>;
 };
 
-/** What a tab calls a block when its fence gives no `title="…"`. */
 const LANGUAGE_NAMES: Record<string, string> = {
   html: 'HTML',
   css: 'CSS',
@@ -64,11 +44,6 @@ const LANGUAGE_NAMES: Record<string, string> = {
   sh: 'Shell',
 };
 
-/**
- * A block's tab label: the fence's `title="…"` when it has one — the way to
- * tell apart two blocks in the same language, like the install commands — and
- * the name of its language otherwise.
- */
 const tabLabel = (info: string) => {
   const title = /\btitle="([^"]*)"/.exec(info)?.[1];
   if (title) return title;
@@ -77,11 +52,7 @@ const tabLabel = (info: string) => {
   return LANGUAGE_NAMES[lang] ?? lang;
 };
 
-/**
- * Whether a fence carries a bare flag word after the language, as in
- * ```` ```text copy ```` or ```` ```ts title="React" selected ````. Quoted
- * values are dropped first, so a title that says "copy" does not count.
- */
+// Quoted values are dropped first, so a title that says "copy" doesn't count.
 const hasFlag = (info: string, flag: string) =>
   info
     .replace(/"[^"]*"/g, '')
@@ -90,20 +61,12 @@ const hasFlag = (info: string, flag: string) =>
     .slice(1)
     .includes(flag);
 
-/** Whether a fence asks for a copy button. */
 const wantsCopy = (info: string) => hasFlag(info, 'copy');
 
-/**
- * The copy button a code panel carries, the demos' source blocks among them.
- * It copies the visible block beside it in the same container. The markup is
- * a placeholder (see build/placeholders.ts) saying only where the button goes
- * and what it is called: src/components/markdown.tsx swaps in the component,
- * which draws its own glyphs.
- */
+// A placeholder; src/components/markdown.tsx swaps in the component.
 const COPY_BUTTON =
   '<button class="code-copy" aria-label="Copy to clipboard"></button>';
 
-/** The visible text of a heading, with the markdown syntax dropped. */
 const plainText = (token: Token): string =>
   (token.children ?? [])
     .map((child) =>
@@ -121,12 +84,8 @@ const slugify = (text: string) =>
     .replace(/[^\p{Letter}\p{Number}]+/gu, '-')
     .replace(/^-|-$/g, '');
 
-/**
- * Gives every heading an id and returns the ones worth a table of contents.
- *
- * Ids are deduped with a numeric suffix, so two sections that happen to share a
- * name still get one anchor each rather than one anchor and one dead link.
- */
+// Ids are deduped with a numeric suffix, so two same-named sections both
+// get an anchor.
 const collectHeadings = (tokens: Token[]): Heading[] => {
   const headings: Heading[] = [];
   const used = new Map<string, number>();
@@ -143,18 +102,13 @@ const collectHeadings = (tokens: Token[]): Heading[] => {
     token.attrSet('id', id);
 
     const level = Number(token.tag.slice(1));
-    // h1 is the page title and h4+ are too fine-grained to navigate by.
     if (level === 2 || level === 3) headings.push({ id, text, level });
   });
 
   return headings;
 };
 
-/**
- * Splits the page at its anchored headings, keeping the text a reader would
- * search for: prose, inline code and code blocks. Runs after
- * `collectHeadings`, whose ids it reads.
- */
+// Runs after `collectHeadings`, whose ids it reads.
 const collectSections = (tokens: Token[]): Section[] => {
   const sections: Section[] = [{ id: '', heading: '', text: '' }];
   for (let index = 0; index < tokens.length; index++) {
@@ -178,13 +132,8 @@ const collectSections = (tokens: Token[]): Section[] => {
   }));
 };
 
-/**
- * Opens off-site links in a new tab, with the usual `rel`.
- *
- * Links between pages are written site-absolute, as `/docs/api`, and stay that
- * way: the router prefixes the deploy base when it renders them, and a second
- * prefix here would double it.
- */
+// Site-absolute links stay as written: the router prefixes the deploy base,
+// and a second prefix here would double it.
 const openExternalLinks = (tokens: Token[]) => {
   for (const token of tokens) {
     if (token.type === 'inline') {
@@ -194,8 +143,7 @@ const openExternalLinks = (tokens: Token[]) => {
 
     if (token.type !== 'link_open') continue;
 
-    // markdown-it types attribute values as `string | number`; an href is
-    // always the former, but the narrowing has to be written out.
+    // markdown-it types attribute values as `string | number`.
     const href = String(token.attrGet('href') ?? '');
 
     if (/^https?:\/\//.test(href)) {
@@ -205,26 +153,18 @@ const openExternalLinks = (tokens: Token[]) => {
   }
 };
 
-/**
- * Building the highlighter loads Shiki's grammars, which takes seconds, so it
- * is loaded once, on the first render, and shared. Parsing does not wait for
- * it: Shiki only sets the `highlight` option the fence rule calls, so the
- * tokens are the same with it or without it.
- */
+// Loading Shiki takes seconds, so it loads once, on first render. Parsing
+// doesn't wait: Shiki only sets the `highlight` option.
 let highlighter: Promise<void> | undefined;
 
 const loadHighlighter = () =>
   (highlighter ??= Shiki({
     themes: THEMES,
-    // Emit the CSS variables only — with no default colour baked in, the
-    // `dark` variant in style.css is what decides which theme applies.
     defaultColor: false,
     transformers: [
       {
         pre(node) {
-          // Carry the site's panel styling over and drop Shiki's inline
-          // background, so blocks keep their border and spacing; only the
-          // tokens inside get themed.
+          // Drop Shiki's background, so blocks keep the site's panel style.
           node.properties.class = `code-block ${node.properties.class ?? ''}`;
           node.properties['data-lang'] = this.options.lang;
           delete node.properties.style;
@@ -238,24 +178,9 @@ const loadHighlighter = () =>
 const createRenderer = () => {
   const md = MarkdownIt({ html: true, linkify: true, typographer: false });
 
-  /*
-   * Blocks written back to back are one panel with a tab per block: the
-   * markup and the script that drives it, or the same command for three
-   * package managers. Nothing marks a group but the adjacency itself — any
-   * prose between two blocks keeps them apart.
-   *
-   * The tabs are stamped here as a placeholder (see build/placeholders.ts)
-   * carrying what each tab is called and which one is selected, and
-   * src/components/markdown.tsx hands that to Base UI's tabs, which draw the
-   * rest of the ARIA wiring, switch the tabs and own their arrow keys. The
-   * first tab is the one selected unless a later fence is flagged `selected`
-   * — the landing page's point is the script, and the markup is only what it
-   * runs on.
-   *
-   * A fence flagged `copy` gets a copy button in the top corner, over the block
-   * or at the end of the tab strip. One flagged block is enough to give its
-   * panel the button, which then copies whichever tab is showing.
-   */
+  // Back-to-back blocks become one tabbed panel; any prose between keeps them
+  // apart. One `copy` flag gives the whole panel a button, which copies the
+  // showing tab.
   const renderFence = md.renderer.rules.fence!;
   const isFence = (token: Token | undefined) => token?.type === 'fence';
 
@@ -271,7 +196,6 @@ const createRenderer = () => {
 
     let open = '';
     if (isFirst) {
-      // The first block opens the group, so it stamps every tab.
       const fences: Token[] = [];
       for (let i = index; isFence(tokens[i]); i++) fences.push(tokens[i]);
       const chosen = Math.max(
@@ -297,26 +221,13 @@ const createRenderer = () => {
     return `${open}${panel}${isLast ? '</div>\n' : ''}`;
   };
 
-  // A wide table should scroll in its own box rather than widening the page,
-  // and markdown has nowhere to hang the wrapper that needs.
+  // A wide table scrolls in its own box rather than widening the page.
   md.renderer.rules.table_open = () => '<div class="table-wrap"><table>';
   md.renderer.rules.table_close = () => '</table></div>';
 
-  /*
-   * Headings link to themselves.
-   *
-   * The anchor wraps the heading's content rather than sitting beside it, so
-   * the whole title is the click target and the link's accessible name is the
-   * title itself. The trailing `#` is a separate, aria-hidden element — as a
-   * CSS pseudo-element its text can end up announced, and as part of the anchor
-   * text it would end up in the link's name.
-   */
-  //
-  // A heading whose text is a link already — a card's title on the landing
-  // page — keeps it and goes without: an anchor cannot hold another anchor,
-  // and the browser would split the two apart. markdown-it emits
-  // heading_open, inline, heading_close in sequence, so the heading's text is
-  // always the token after its opening tag.
+  // The anchor wraps the title so its name is the title; the `#` is aria-hidden
+  // outside it. A heading already holding a link goes without: anchors can't
+  // nest.
   const isAnchored = (tokens: Token[], index: number) => {
     const token = tokens[index];
     return (
@@ -336,14 +247,12 @@ const createRenderer = () => {
 
   md.renderer.rules.heading_close = (tokens, index, options, _env, self) => {
     const close = self.renderToken(tokens, index, options);
-    // The opening tag this one closes is always two tokens back.
     if (!isAnchored(tokens, index - 2)) return close;
 
     return `<span class="heading-anchor-mark" aria-hidden="true">#</span></a>${close}`;
   };
 
-  // Inline code is styled by class rather than by element, so that the `<code>`
-  // Shiki nests inside a highlighted block is not caught by the same rule.
+  // By class, so the `<code>` Shiki nests in a block isn't caught.
   md.renderer.rules.code_inline = (tokens, index, _options, _env, self) => {
     const token = tokens[index];
     token.attrSet('class', 'code-inline');
@@ -355,11 +264,6 @@ const createRenderer = () => {
 
 const md = createRenderer();
 
-/**
- * Parses a page once. The headings and sections are read off the tokens
- * straight away; `render` turns the same tokens into HTML, so every id either
- * of them names is an id the HTML carries.
- */
 export const parseMarkdown = (source: string): ParsedMarkdown => {
   const tokens = md.parse(source, {});
   const headings = collectHeadings(tokens);
