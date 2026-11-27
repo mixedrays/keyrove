@@ -15,7 +15,8 @@ function Landing() {
   return (
     <>
       <SiteHeader layout="landing" />
-      <main>
+      <main id="content" tabIndex={-1} className="outline-none">
+        {/* Classes on the article, not main, so child-combinator rules match. */}
         <article className="landing markdown">
           <Suspense>
             <LandingContent />

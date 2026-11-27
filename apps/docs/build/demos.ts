@@ -2,6 +2,7 @@ import { readFile, readdir } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+import { KEYPAD_HTML } from '../src/keypad.ts';
 import { READOUT_HTML } from '../src/readout.ts';
 import { demoDefinition } from './demo-definitions.ts';
 import { decorateDemo } from './demo-icons.ts';
@@ -33,6 +34,8 @@ const PLACEHOLDER = new RegExp(
 );
 
 const READOUT_PLACEHOLDER = /^<output data-demo-readout><\/output>$/gm;
+
+const KEYPAD_PLACEHOLDER = /^<div class="demo-keypad"><\/div>$/gm;
 
 // `data-demo-class` is layout the library doesn't teach; it goes on the
 // surface, not the fragment, so it stays out of the source block.
@@ -103,6 +106,7 @@ const renderPanel = (
 ${READOUT_HTML}
 </div>
 <div class="demo-panel-preview">${decorateDemo(live, demoDefinition(name).icons)}</div>
+${KEYPAD_HTML}
 
 ${FENCE}html copy
 ${toExcerpt(markup)}
@@ -150,4 +154,5 @@ export const expandDemos = (
         ? renderPanel(placeholder, markup, files)
         : `${FENCE}html\n${toExcerpt(markup)}\n${FENCE}${files}`;
     })
-    .replace(READOUT_PLACEHOLDER, READOUT_HTML);
+    .replace(READOUT_PLACEHOLDER, READOUT_HTML)
+    .replace(KEYPAD_PLACEHOLDER, target === 'html' ? KEYPAD_HTML : '');

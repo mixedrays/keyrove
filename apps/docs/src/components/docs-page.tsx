@@ -13,7 +13,7 @@ function DocsPageContent({ route }: { route: string }) {
 
   return (
     <>
-      <main className="docs-main">
+      <main id="content" tabIndex={-1} className="docs-main outline-none">
         <article className="markdown">
           <h1>{page.title}</h1>
           <PageActions page={page} />

@@ -1,6 +1,7 @@
 import { useRouter } from '@tanstack/react-router';
 import { useCallback, useEffect, useState, type ReactNode } from 'react';
 
+import { RAIL_ATTR } from '@/components/keyboard-rail.tsx';
 import { useSearchOpen } from '@/components/search.tsx';
 import {
   Sidebar,
@@ -23,12 +24,17 @@ export function DocsLayout({ children }: { children: ReactNode }) {
   }, [searching]);
 
   // Release focus as navigation starts, so the new page's first demo can take
-  // it as on a fresh load.
+  // it as on a fresh load. A rail link keeps focus, so its arrows still work.
   useEffect(
     () =>
       router.subscribe('onBeforeNavigate', ({ pathChanged }) => {
-        if (pathChanged && document.activeElement instanceof HTMLElement) {
-          document.activeElement.blur();
+        const active = document.activeElement;
+        if (
+          pathChanged &&
+          active instanceof HTMLElement &&
+          !active.closest(`[${RAIL_ATTR}]`)
+        ) {
+          active.blur();
         }
       }),
     [router],

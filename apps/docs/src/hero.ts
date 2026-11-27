@@ -1,6 +1,7 @@
 import { keyRove } from '@mixedrays/keyrove';
 
 import { focusOnArrival } from './demos.ts';
+import { wireKeypad } from './keypad.ts';
 import { createReadout } from './readout.ts';
 
 // Not stamped from content/_demos: the live list has icons and counts its
@@ -9,9 +10,11 @@ export const mountHero = (root: HTMLElement, signal: AbortSignal) => {
   const list = root.querySelector<HTMLElement>('[data-hero-list]');
   if (!list) throw new Error('[docs] the hero has no [data-hero-list].');
 
-  focusOnArrival(root, list.querySelector<HTMLElement>('[data-keyrove-item]'));
+  const first = () => list.querySelector<HTMLElement>('[data-keyrove-item]');
+  focusOnArrival(root, first(), signal);
 
   const readout = createReadout(root, list, signal, { easterEggs: true });
+  wireKeypad(root, list, first, signal);
 
   list.addEventListener(
     'keydown',

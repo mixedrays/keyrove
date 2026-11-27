@@ -4,6 +4,8 @@ import type { AnyMove, MoveResult } from '@mixedrays/keyrove';
 // browser half. Resets when focus leaves, so no stale line sits over the demo.
 
 const BLURRED = 'click to focus';
+/** The same, where the only pointer is a finger and the keypad shows. */
+const BLURRED_TOUCH = 'tap a key below';
 const LISTENING = 'listening…';
 
 export const READOUT_HTML = `<output class="demo-readout" data-demo-readout data-state="blurred"><span aria-hidden="true">${BLURRED}</span></output>`;
@@ -107,6 +109,13 @@ export const createReadout = (
     line.classList.add('demo-readout-fresh');
   };
 
+  const blurred = () =>
+    show(
+      'blurred',
+      '',
+      matchMedia('(any-pointer: fine)').matches ? BLURRED : BLURRED_TOUCH,
+    );
+
   // Only focus crossing the demo's edge changes the line.
   surface.addEventListener(
     'focusin',
@@ -120,9 +129,7 @@ export const createReadout = (
   surface.addEventListener(
     'focusout',
     (e) => {
-      if (!surface.contains(e.relatedTarget as Node | null)) {
-        show('blurred', '', BLURRED);
-      }
+      if (!surface.contains(e.relatedTarget as Node | null)) blurred();
     },
     { signal },
   );
@@ -131,6 +138,8 @@ export const createReadout = (
   // focus event late or never.
   if (surface.contains(document.activeElement)) {
     show('listening', '', LISTENING);
+  } else if (!matchMedia('(any-pointer: fine)').matches) {
+    blurred();
   }
 
   return {

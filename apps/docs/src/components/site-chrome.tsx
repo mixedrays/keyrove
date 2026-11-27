@@ -20,6 +20,10 @@ export function SiteHeader({
 }) {
   return (
     <header className="site-header">
+      {/* Past the header, and on a docs page past the sidebar too. */}
+      <a href="#content" className="skip-link">
+        Skip to content
+      </a>
       <div
         className={
           layout === 'landing' ? 'header-row header-row-narrow' : 'header-row'
@@ -56,6 +60,15 @@ export function SiteHeader({
               npm
             </a>
           </nav>
+          {/* No drawer on the landing page, so narrow screens keep a Docs link. */}
+          {layout === 'landing' ? (
+            <SiteLink
+              href="/docs/introduction"
+              className="header-link px-1.5 text-sm md:hidden"
+            >
+              Docs
+            </SiteLink>
+          ) : null}
           {/* Icon-only on narrow screens, where the nav is hidden. */}
           <a
             href={meta.repoUrl}
