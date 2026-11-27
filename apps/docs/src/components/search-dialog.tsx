@@ -26,17 +26,6 @@ import {
 } from '@/components/ui/dialog.tsx';
 import type { SearchDocument } from '@/search-model.ts';
 
-/**
- * The search dialog itself, in a chunk of its own: src/components/search.tsx
- * loads it the first time search is opened, or a pointer settles on the
- * button that opens it.
- *
- * The engine and `search-index.json` load the first time it opens, too. Base
- * UI's autocomplete owns the keys inside: focus stays in the input, the arrows
- * move a highlight through the results, and Enter follows the highlighted one
- * — the first, until the reader moves it.
- */
-
 type Find = (query: string) => SearchDocument[];
 
 let engine: Promise<Find> | undefined;
@@ -58,7 +47,6 @@ const loadEngine = () => {
   return engine;
 };
 
-/** Show the words around a match. */
 const excerpt = (text: string, query: string) => {
   const terms = query.toLowerCase().split(/\s+/).filter(Boolean);
   const positions = terms
@@ -99,7 +87,6 @@ export default function SearchDialog({
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  /** Where focus goes back to when the dialog closes. */
   opener: RefObject<HTMLElement | null>;
 }) {
   const [query, setQuery] = useState('');
@@ -134,7 +121,7 @@ export default function SearchDialog({
 
   const found = results.status === 'ready' ? results.found : [];
 
-  // Leave modified clicks to the browser (for example, opening a new tab).
+  // Modified clicks open a new tab etc.; leave them to the browser.
   const follow = (event: MouseEvent) => {
     if (
       event.button !== 0 ||

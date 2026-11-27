@@ -13,10 +13,7 @@ const outline = (nodes: HtmlNode[]): HtmlNode[] =>
     return tag === 'pre' ? ['pre'] : [[tag, props, outline(children)]];
   });
 
-// src/components/markdown.tsx reads a group's tabs for their labels and which
-// one is selected, and a copy button for its label; Base UI and the button
-// component draw the rest. Anything more is markup the reader downloads for
-// React to throw away.
+// Anything more is markup the reader downloads for React to throw away.
 test('a code group and a copy button carry only what their components read', async () => {
   const tree = await renderPage(
     page(

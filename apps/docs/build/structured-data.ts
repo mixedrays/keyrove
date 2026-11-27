@@ -1,28 +1,15 @@
 import type { NavGroup, Page } from './content.ts';
 import { META } from './meta.ts';
 
-/**
- * JSON-LD saying what each page is.
- *
- * The meta tags in the head say how a page should be *shown*; this says what
- * it *is* — a software library on the landing page, a technical article in the
- * docs — and where it sits in the site. The breadcrumb is the part with a
- * visible payoff: a docs result renders as `keyrove › Examples › Grid` instead
- * of as a bare URL.
- *
- * Everything asserted here is already stated on the page or in a manifest.
- * Structured data that claims more than the page shows is what earns a manual
- * action, so there is nothing in these nodes a reader could not verify.
- */
+// Asserts only what the page or a manifest states: structured data claiming
+// more than the page shows earns a manual action.
 
-/** The author of everything on the site, as one reusable node. */
 const AUTHOR = {
   '@type': 'Person',
   name: META.author,
   url: META.authorUrl,
 } as const;
 
-/** The page's frontmatter keywords, or nothing when it has none. */
 const keywords = (page: Page) =>
   page.keywords.length === 0 ? {} : { keywords: page.keywords };
 
@@ -35,12 +22,7 @@ type Context = {
   imageUrl: string;
 };
 
-/**
- * The site as a whole, which is where Google takes a result's site name from —
- * "keyrove" above the link rather than "keyrove.pages.dev". It looks for the
- * node on the landing page; every article repeats it as the site it is part of,
- * under the same `@id`.
- */
+// Where Google takes a result's site name from: "keyrove", not the domain.
 const webSite = ({ toUrl }: Context) => ({
   '@type': 'WebSite',
   '@id': `${toUrl('')}#website`,
@@ -49,13 +31,7 @@ const webSite = ({ toUrl }: Context) => ({
   inLanguage: 'en',
 });
 
-/**
- * The landing page: the library itself.
- *
- * `SoftwareSourceCode` rather than `SoftwareApplication` — this is a package
- * to build with, not an app to run, and the application type's rich results
- * want a rating or a price that a library has neither of.
- */
+// Not `SoftwareApplication`: its rich results want a rating or price.
 const softwareSourceCode = ({ page, toUrl, imageUrl }: Context) => ({
   '@type': 'SoftwareSourceCode',
   name: 'keyrove',
@@ -73,12 +49,7 @@ const softwareSourceCode = ({ page, toUrl, imageUrl }: Context) => ({
   ...keywords(page),
 });
 
-/**
- * A docs page: one article, part of the site.
- *
- * `dateModified` is the sitemap's `lastmod` — the last commit to the page's
- * source — and is left out on the same terms, when git cannot date the page.
- */
+// `dateModified` follows the sitemap's `lastmod`, omitted on the same terms.
 const techArticle = (context: Context) => {
   const { page, toUrl, imageUrl } = context;
 
@@ -96,14 +67,7 @@ const techArticle = (context: Context) => {
   };
 };
 
-/**
- * The trail from the site root down to the page.
- *
- * A group's crumb points at its first page: the examples overview for
- * Examples, and for Guide, which has no page of its own, the introduction —
- * the same places the header's links go. On that first page the group crumb
- * is dropped instead of pointing at the page it sits beside.
- */
+// A group's crumb points at its first page, and is dropped on that page.
 const breadcrumbList = ({ page, nav, toUrl }: Context) => {
   const group = nav.find((entry) =>
     entry.pages.some((item) => item.route === page.route),
@@ -130,15 +94,8 @@ const breadcrumbList = ({ page, nav, toUrl }: Context) => {
   };
 };
 
-/**
- * The page's nodes as one graph, which the page's `head()` hands to TanStack
- * Router as `script:ld+json` — it escapes the JSON for the `<script>` it
- * writes.
- *
- * A single `@graph` rather than a script per node: it is the same payload, and
- * a crawler reading one block cannot pair an article with a breadcrumb it did
- * not find.
- */
+// One `@graph`, so a crawler reading one block sees every node. TanStack
+// Router escapes the JSON for its `<script>`.
 export const toStructuredData = (
   context: Context,
 ): Record<string, unknown> => ({

@@ -1,21 +1,13 @@
-/**
- * A move made from code rather than from a key.
- *
- * On-screen buttons, gamepads, remotes and voice ask for a move by name —
- * "next", "end" — and a faked keydown would tie that to whichever key the
- * group has bound. `rove` names the move outright and skips the binding table;
- * from there on it runs the layers a keypress runs, so the group's items,
- * skips, layout and roving stop apply exactly as they do for keys.
- */
+// A faked keydown would tie a button's move to whichever key the group
+// binds, so `rove` skips the binding table.
 
 import { readConfig } from './config.js';
 import { readGroups, walkOn } from './group.js';
 import { walkTargets } from './position.js';
 import type { KeyRoveOptions, MoveResult, StrideAction } from './types.js';
 
-// Where each move enters a group it has no position in: a forward move at the
-// first item, as if from before it, and a backward one at the last, as if
-// from past it. A row end has no row to go by.
+// Entry with no position: forward moves from the start, backward from the
+// end. A row end has no row to go by.
 const ENTRY: Record<StrideAction, 'home' | 'end' | null> = {
   home: 'home',
   next: 'home',
@@ -76,10 +68,8 @@ export const rove = (
 
   if (!intent) return null;
 
-  // An entry is `home` or `end`, which go by the group's ends, not by an
-  // index.
+  // An entry is `home` or `end`, which ignore the index.
   const fromIndex = from ? elements.indexOf(from) : 0;
-  // The walk carries on past each item that refuses focus, as a key's does.
   const { to: target, retarget } = walkOn(
     (isNavigable) =>
       walkTargets({

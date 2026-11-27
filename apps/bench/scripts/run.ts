@@ -10,13 +10,7 @@
  *   pnpm headless -- --record              saved as results/recorded.json
  *   pnpm headless -- --json out.json       also written to any path
  *
- * Each run builds its library (see library.ts) and a harness page against
- * it into a scratch directory, and serves that with Vite's preview server,
- * whose config sends the cross-origin isolation headers that give
- * `performance.now()` its finer resolution. Chrome drives the page over the
- * DevTools protocol with focus emulation on, so a headless window behaves as
- * a focused one. Chrome is found at CHROME_PATH, else at its usual install
- * locations (see chrome.ts).
+ * Focus emulation is on, so a headless window behaves as a focused one.
  */
 
 import { mkdtemp, writeFile } from 'node:fs/promises';
@@ -140,7 +134,6 @@ const warn = (message: string) => {
   console.error(`Warning: ${message}`);
 };
 
-/** Builds the harness page against `library`, into `outDir`. */
 const buildHarness = (library: string, outDir: string) =>
   build({
     configFile: false,
@@ -246,7 +239,6 @@ const runHarness = async (chrome: string, harness: string, label: string) => {
   }
 };
 
-/** Builds, runs and reports one library: the working tree's, or `ref`'s. */
 const benchmark = async (chrome: string, ref: string | undefined) => {
   const label = ref ?? 'working tree';
   const scratch = await mkdtemp(join(tmpdir(), 'keyrove-bench-'));

@@ -25,16 +25,10 @@ import {
   type View,
 } from './view.ts';
 
-/**
- * The benchmark's page: run it in this browser, and read the reports in
- * `results/` and the run made here, one at a time or side by side.
- *
- * A run happens in harness.html, loaded into a frame of its own each time:
- * a fresh page holding only the fixture, as in the headless run, so nothing
- * on this page is part of what the cases count or scan.
- */
+// Runs happen in a fresh harness.html frame, so nothing on this page is part
+// of what the cases count or scan.
 
-/** The library this page's harness was built against; see vite.config.ts. */
+/** Defined in vite.config.ts. */
 declare const __BENCH_LIBRARY__: LibraryInfo;
 
 type SavedRun = {
@@ -58,11 +52,7 @@ const RUN_ID = 'browser';
 /** Shown at once by default: past that a comparison runs off the page. */
 const DEFAULT_SHOWN = 5;
 
-/*
- * Every report in results/, read when the page is built: `pnpm bench`
- * builds on start, so a report saved by the headless runner shows up the
- * next time it starts, and the dev server reloads as soon as one is added.
- */
+// Read at build time; `pnpm bench` builds on start, so new reports show up.
 const files = import.meta.glob<BenchReport>('../results/*.json', {
   eager: true,
   import: 'default',
@@ -121,8 +111,6 @@ const unitInputs = Array.from(
   document.querySelectorAll<HTMLInputElement>('input[name="unit"]'),
 );
 
-/* ---------- stored state ---------- */
-
 /** Storage throws rather than no-ops where a browser has it switched off. */
 const load = <T>(key: string): T | null => {
   try {
@@ -137,11 +125,10 @@ const store = (key: string, value: unknown) => {
   try {
     localStorage.setItem(key, JSON.stringify(value));
   } catch {
-    // It still holds until the page is left; it just will not outlive it.
+    // Kept in memory until the page is left.
   }
 };
 
-/** The last run in this browser, kept so a reload does not lose it. */
 let run = load<SavedRun>(RUN_KEY);
 
 const entries = (): Entry[] =>
@@ -159,7 +146,6 @@ const entries = (): Entry[] =>
       : []),
   ]);
 
-/** The stored selection, less any report that has gone since. */
 const loadSelection = (): Selection => {
   const ids = new Set(entries().map((entry) => entry.id));
   const stored = load<Selection>(SELECTION_KEY);
@@ -185,7 +171,6 @@ const loadSelection = (): Selection => {
 
 let selection = loadSelection();
 
-/** The unit times are shown in: a per-viewer preference, µs unless changed. */
 let unit: TimeUnit = ((stored) =>
   TIME_UNITS.includes(stored as TimeUnit) ? (stored as TimeUnit) : 'µs')(
   load<string>(UNIT_KEY),
@@ -197,7 +182,6 @@ const setSelection = (next: Selection) => {
   render();
 };
 
-/** The reports shown, in list order, and which of them is the baseline. */
 const shown = () => {
   const chosen = entries().filter((entry) => selection.ids.includes(entry.id));
   const baselineIndex = Math.max(
@@ -207,9 +191,7 @@ const shown = () => {
   return { chosen, baselineIndex };
 };
 
-/* ---------- this browser ---------- */
-
-/** The smallest step `performance.now()` takes here, in microseconds. */
+/** In microseconds. */
 const timerResolution = () => {
   let smallest = Infinity;
   for (let i = 0; i < 50; i++) {
@@ -260,9 +242,6 @@ const renderChecks = () => {
   ].join('');
 };
 
-/* ---------- reports ---------- */
-
-/** What tells two reports apart at a glance: library, date, browser. */
 const describeEntry = ({ report }: Entry) => {
   const library = report.library;
   const browser = String(report.environment.Browser ?? '');
@@ -279,7 +258,7 @@ const describeEntry = ({ report }: Entry) => {
     .join(' · ');
 };
 
-/** The list of reports; drawn when the set changes, not on every tick. */
+/** Drawn when the set changes, not on every render. */
 const renderReportList = () => {
   ui.reportList.innerHTML = entries()
     .map(
@@ -346,8 +325,6 @@ const render = () => {
   ui.download.hidden = chosen.length !== 1;
 };
 
-/* ---------- export ---------- */
-
 let copiedTimer: number | undefined;
 
 const copyMarkdown = async () => {
@@ -372,10 +349,7 @@ const copyMarkdown = async () => {
   }, 2000);
 };
 
-/**
- * The shape `pnpm bench:headless -- --json` writes, so a run made here can
- * go into results/ beside the others.
- */
+// Same shape as `pnpm bench:headless -- --json`, so it can go in results/.
 const downloadJson = () => {
   const [entry] = shown().chosen;
   if (!entry) return;
@@ -396,8 +370,6 @@ const downloadJson = () => {
   URL.revokeObjectURL(url);
 };
 
-/* ---------- settings ---------- */
-
 const fillSettings = (options: BenchOptions) => {
   for (const input of settingInputs) {
     input.value = String(options[input.name as keyof BenchOptions]);
@@ -414,8 +386,6 @@ const setSettingsOpen = (open: boolean) => {
   ui.settingsToggle.setAttribute('aria-expanded', String(open));
 };
 
-/* ---------- running ---------- */
-
 let controller: AbortController | null = null;
 let wasHidden = false;
 
@@ -424,7 +394,6 @@ const announce = (message: string, tone: 'info' | 'error' = 'info') => {
   ui.status.dataset.tone = tone;
 };
 
-/** A fresh harness page in the stage, loaded and ready to run. */
 const openStage = async () => {
   const frame = document.createElement('iframe');
   frame.title = 'Benchmark fixture';
@@ -438,10 +407,8 @@ const openStage = async () => {
   ui.stage.append(frame);
   await loaded;
 
-  // A frame the server could not answer holds the browser's error page,
-  // whose origin is not this page's: `contentDocument` is null for it, where
-  // reading off `contentWindow` would throw a cross-origin error that names
-  // nothing the reader can act on.
+  // A failed load holds a cross-origin error page: `contentDocument` is null,
+  // where `contentWindow` would throw an unhelpful cross-origin error.
   const view = frame.contentDocument?.defaultView;
   if (!view?.runBench) {
     throw new Error(
@@ -449,9 +416,8 @@ const openStage = async () => {
     );
   }
 
-  // The harness has no stylesheet, so its buttons follow whatever scheme
-  // it is told; this keeps a dark page from showing a white frame. With no
-  // explicit choice it follows the system, as this page does.
+  // The harness has no stylesheet; this keeps a dark page from showing a
+  // white frame.
   view.document.documentElement.style.colorScheme =
     document.documentElement.dataset.theme ?? 'light dark';
   view.addEventListener('keydown', stopOnEscape);
@@ -567,12 +533,10 @@ const startRun = async () => {
     closeStage();
     controller = null;
     setRunning(false);
-    // The run took focus into the frame, which has gone with it.
+    // Focus went into the frame, which is gone.
     ui.run.focus();
   }
 };
-
-/* ---------- wiring ---------- */
 
 renderChecks();
 fillSettings(DEFAULT_OPTIONS);

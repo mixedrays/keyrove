@@ -21,12 +21,8 @@ test('every indexed page links from its source to its live page', async () => {
   }
 });
 
-// The hero's list is written into the landing page twice: live, dressed with
-// icons and counts, and as the HTML tab of its code strip, which is what a
-// reader copies. The demos are stamped from one file so the two cannot drift;
-// the hero is not, so this holds the two to the same folders instead. The tab
-// may fold rows away with `<!-- … -->`, as the demos' source blocks do: each
-// fold stands for one or more folders, and the rest must match in order.
+// The hero isn't stamped from one file like the demos, so this keeps its live
+// list and HTML tab in step. Each `<!-- … -->` fold stands for 1+ folders.
 test('the hero shows the markup its list runs', async () => {
   const source = await readFile(path.join(CONTENT_DIR, 'index.md'), 'utf8');
   const live = /<ul id="menu"[^>]*data-hero-list>([\s\S]*?)<\/ul>/.exec(
@@ -60,9 +56,7 @@ test('the hero shows the markup its list runs', async () => {
   assert.match(`|${folders(live).join('|')}|`, new RegExp(`^\\|${pattern}$`));
 });
 
-// The examples overview is written by hand, grouped by what each example is
-// for, so nothing else would notice an example that reached the sidebar
-// without reaching it.
+// The overview is hand-written, so nothing else would catch a missing link.
 test('the examples overview links to every example', async () => {
   const pages = await loadPages();
   const overview = pages.find((page) => page.route === 'docs/examples');

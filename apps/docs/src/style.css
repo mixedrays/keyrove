@@ -1,15 +1,8 @@
 @import 'tailwindcss';
 @import './demo-panel.css';
 
-/*
- * Dark mode has three states and `data-theme` on <html> encodes them: absent
- * means "follow the system", which is the default, while 'light' and 'dark' are
- * the explicit choices the header toggle writes.
- *
- * Redefining `dark:` here rather than handling the toggle separately means
- * every existing `dark:` utility — and the .shiki rule below — keeps working
- * off one definition, with nothing to update when a new one is added.
- */
+/* No `data-theme` follows the system. Redefining `dark:` keeps every `dark:`
+   utility, and .shiki below, working off one definition. */
 @custom-variant dark {
   &:where([data-theme='dark'], [data-theme='dark'] *) {
     @slot;
@@ -50,8 +43,6 @@
 }
 
 @layer components {
-  /* ---------- documentation search ---------- */
-
   .search-trigger {
     @apply inline-flex h-8 shrink-0 cursor-pointer items-center gap-2 rounded-lg border border-zinc-200 bg-white px-2 text-sm text-zinc-500 hover:text-zinc-900 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100;
   }
@@ -135,8 +126,6 @@
     @apply flex shrink-0 flex-wrap items-center gap-x-4 gap-y-1 border-t border-zinc-200 px-5 py-2.5 text-xs text-zinc-500 dark:border-zinc-700 dark:text-zinc-400;
   }
 
-  /* ---------- chrome ---------- */
-
   /* Off screen until focused: the first Tab stop on every page. */
   .skip-link {
     @apply absolute top-2 left-2 z-40 -translate-y-16 rounded-lg bg-indigo-600 px-3 py-2 text-sm font-medium text-white focus:translate-y-0 dark:bg-indigo-500 dark:text-zinc-950;
@@ -199,13 +188,7 @@
     @apply max-w-6xl;
   }
 
-  /* ---------- docs shell ---------- */
-
-  /*
-   * Sidebar, content, rail. The centre column is `minmax(0, 1fr)` rather than
-   * `1fr` so a wide code block or table scrolls inside itself instead of
-   * stretching the grid past the viewport.
-   */
+  /* `minmax(0, 1fr)`, so wide blocks scroll rather than stretch the grid. */
   .docs-shell {
     @apply mx-auto grid max-w-[90rem] gap-x-10 px-6;
     @apply lg:grid-cols-[15rem_minmax(0,1fr)];
@@ -217,13 +200,7 @@
     @apply hidden overflow-y-auto py-8 lg:sticky lg:top-14 lg:block lg:h-[calc(100vh-3.5rem)] lg:pr-4;
   }
 
-  /*
-   * The drawer: Base UI's sheet, portalled to the end of <body> and slid in by
-   * the header's menu button. It exists only while open, so its links are out
-   * of the Tab order and the accessibility tree the rest of the time. Base UI
-   * sets the starting and ending style attributes for a frame either side of
-   * the slide, and keeps the panel mounted until the slide out has finished.
-   */
+  /* Base UI keeps it mounted until the slide out finishes. */
   .sidebar-drawer {
     @apply fixed inset-y-0 left-0 z-50 w-72 overflow-y-auto border-r border-zinc-200 bg-white px-6 py-8 lg:hidden dark:border-zinc-800 dark:bg-zinc-950;
     transition: translate 200ms var(--default-transition-timing-function);
@@ -264,12 +241,7 @@
     @apply min-w-0 py-10;
   }
 
-  /*
-   * The page's own source links, between the title and the lead. A row rather
-   * than a column: they used to be stacked at the foot of the "On this page"
-   * rail, which is hidden below `xl`, so this is the width where they have to
-   * wrap instead.
-   */
+  /* A row that wraps: the rail is hidden below `xl`. */
   .page-actions {
     @apply my-4 flex flex-wrap items-center gap-x-4 gap-y-1.5;
   }
@@ -291,8 +263,6 @@
   .page-action:hover span {
     @apply decoration-zinc-500 dark:decoration-zinc-400;
   }
-
-  /* ---------- on this page ---------- */
 
   .toc {
     @apply hidden xl:block;
@@ -329,12 +299,8 @@
     @apply -outline-offset-2;
   }
 
-  /*
-   * The sidebars' key hints, added by src/components/keyboard-rail.tsx. Faded in rather than displayed,
-   * so showing one never reflows the heading beside it. A pointer sees the
-   * shortcut on hover; keyboard focus inside sees the arrows too, since Tab
-   * leaves a roving list rather than walking it.
-   */
+  /* Faded, not displayed, so showing one never reflows the heading. Focus
+     inside shows the arrows too: Tab leaves a roving list. */
   .sidebar-keys {
     @apply float-right flex gap-1 opacity-0 transition-opacity;
   }
@@ -361,12 +327,7 @@
     @apply inline;
   }
 
-  /*
-   * Icons are inlined at build time, so anything that changes with state ships
-   * both glyphs and hides one in CSS. That keeps every icon painted with the
-   * first frame — swapping them in script is what used to leave empty boxes in
-   * the header on every navigation.
-   */
+  /* Both glyphs ship and CSS hides one, so every icon paints on first frame. */
   .icon-light {
     @apply block dark:hidden;
   }
@@ -387,8 +348,6 @@
     @apply block;
   }
 
-  /* ---------- pager ---------- */
-
   .pager {
     @apply mt-16 flex justify-between gap-4 border-t border-zinc-200 pt-6 dark:border-zinc-800;
   }
@@ -405,21 +364,8 @@
     @apply text-sm font-medium text-indigo-600 dark:text-indigo-400;
   }
 
-  /* ---------- prose ---------- */
-
-  /*
-   * Element styling for the markdown-generated body. Preflight strips the
-   * browser defaults, so everything a content file can produce is set here.
-   *
-   * Selectors are wrapped in `:where()` to keep their specificity at the
-   * `.markdown` class alone, so the landing page's own classes below — and the
-   * demo markup, which is a list inside this prose — override without
-   * escalating. The demo exclusions are explicit for the same reason: a
-   * `.demo-surface` is a `<ul>` whose items are `<li>` — the tree's with more
-   * `<ul>`s nested in them — and none of them should pick up list styling.
-   * The landing page's `.hero-facts` and `.hero-folders` are `<ul>`s on the
-   * same terms.
-   */
+  /* `:where()` keeps specificity at `.markdown`, so landing and demo classes
+     override without escalating. Demo `<ul>`s are excluded from list styling. */
   .markdown {
     @apply text-zinc-700 dark:text-zinc-300;
   }
@@ -522,12 +468,7 @@
     @apply border-b-0;
   }
 
-  /* ---------- landing ---------- */
-
-  /* Wider than a docs column: the hero sets its copy beside a live demo, and
-     the sections below take the same measure so their left edges line up with
-     it. Paragraphs are held to a reading width inside it; demos, code and the
-     card grids are not prose and keep the whole of it. */
+  /* Wider than a docs column, so the hero fits copy beside a demo. */
   .landing {
     @apply mx-auto max-w-6xl px-6 pb-24;
   }
@@ -536,17 +477,8 @@
     @apply max-w-3xl;
   }
 
-  /*
-   * The pitch on the left and the library working on the right. From `lg` the
-   * two sit side by side, which puts a demo in the first screen a reader sees:
-   * the page opens with its list already focused (see src/hero.ts), so the
-   * first arrow they press moves something in view instead of scrolling them
-   * down to it. Below `lg` the demo follows the copy.
-   *
-   * Top-aligned rather than centred: the demo's code strip is a line or three
-   * taller on its HTML tab, and centring would move the headline each time
-   * the reader switched.
-   */
+  /* Side by side from `lg`, so the focused demo is in the first screen.
+     Top-aligned: centring would move the headline as code tabs switch. */
   .hero {
     @apply grid gap-12 pt-12 sm:pt-16 lg:grid-cols-[minmax(0,1fr)_30rem] lg:items-start lg:pt-24;
   }
@@ -562,10 +494,8 @@
     @apply mt-24 border-b-0 text-2xl sm:text-3xl;
   }
 
-  /* The hero lead is the paragraph after the headline. Matching on
-     `p:first-of-type` would land on the wrong paragraph once another one is
-     added above it, and win, since `:first-of-type` carries specificity that
-     `:where()` does not. */
+  /* Not `p:first-of-type`, which outranks `:where()` and would pick the wrong
+     paragraph once one is added above. */
   .landing :where(h1 + p) {
     @apply mt-6 text-lg leading-7 text-zinc-600 dark:text-zinc-400;
   }
@@ -586,10 +516,7 @@
     @apply border-transparent bg-indigo-600 text-white hover:bg-indigo-700 dark:bg-indigo-500 dark:text-zinc-950 dark:hover:bg-indigo-400;
   }
 
-  /*
-   * The install command, sized to the buttons beside it. On a narrow screen
-   * the command scrolls inside the box rather than widening the page.
-   */
+  /* Scrolls inside its box on a narrow screen. */
   .hero-install {
     @apply inline-flex max-w-full items-center gap-3 rounded-lg border border-zinc-200 bg-zinc-100 py-2.5 pr-3 pl-4 font-mono text-sm text-zinc-900 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-100;
   }
@@ -632,15 +559,9 @@
     @apply text-emerald-600 dark:text-emerald-400;
   }
 
-  /*
-   * The demo column. A wash of the accent sits behind the frame to lift it off
-   * the page, and the frame takes a solid ground so the wash shows only
-   * around it. The wash's colour is a variable set here rather than a `dark:`
-   * utility on the pseudo-element: that utility ends in a `:where()` clause,
-   * which cannot follow `::before`.
-   */
-  /* Capped while stacked: at tablet width a five-row list across the whole
-     page reads as a table, not a sidebar. */
+  /* The wash colour is a variable: a `dark:` utility ends in `:where()`, which
+     can't follow `::before`. Capped while stacked: at tablet width a full-width
+     list reads as a table. */
   .hero-demo {
     @apply relative isolate max-w-xl min-w-0;
     --wash: var(--color-indigo-500);
@@ -694,12 +615,7 @@
     @apply text-(--demo-on-accent);
   }
 
-  /*
-   * The layouts other than a list, one live demo per tab. The tabs are the
-   * code panels' own (see src/components/markdown.tsx): Base UI tabs whose
-   * arrows select the tab they land on. Drawn as a segmented control rather
-   * than as a code panel's strip, since what they switch is a whole demo.
-   */
+  /* A segmented control, not a code strip: each tab switches a whole demo. */
   .pattern-tabs {
     @apply mt-6;
   }
@@ -795,13 +711,8 @@
     @apply mx-1 text-[0.8125rem] leading-7 text-zinc-500 dark:text-zinc-400;
   }
 
-  /*
-   * The card grid of next steps.
-   * Each card is one link. The title carries it, so the link's name is the
-   * title, and its `::after` is stretched over the card so the whole card
-   * takes the click; the ring a focused link would draw round its text is
-   * drawn round the card instead.
-   */
+  /* The title link's `::after` covers the card, so the link's name is the
+     title and the whole card takes the click and the ring. */
   .next-steps {
     @apply mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4;
   }
@@ -839,12 +750,7 @@
     @apply mt-2 text-sm leading-6 text-zinc-600 dark:text-zinc-400;
   }
 
-  /*
-   * What keyrove does beside what it leaves to you: two short lists, each
-   * item marked with what it means for the reader — a tick for handled, an
-   * arrow for theirs to do. The mark's colour is a variable on the column for
-   * the same pseudo-element reason as the hero's wash.
-   */
+  /* The mark colour is a variable, for the same reason as the hero's wash. */
   .split {
     @apply mt-6 grid gap-4 sm:grid-cols-2;
   }
@@ -909,8 +815,6 @@
     @apply mt-6;
   }
 
-  /* ---------- code ---------- */
-
   /* Inline and block code. Preflight strips the browser defaults, so size and
      background are set here rather than inherited. */
   .code-inline {
@@ -922,13 +826,7 @@
     max-height: min(20rem, 60dvh);
   }
 
-  /*
-   * Blocks written back to back share one panel, a tab per block (see
-   * build/markdown.ts). The panel takes over the frame each block carries on
-   * its own, and the tabs sit in a strip across its top, ruled off from the
-   * code; the selected one is lifted onto a chip of the kind the copy buttons
-   * use.
-   */
+  /* The panel takes over each block's own frame. */
   .code-tabs {
     @apply mt-4 overflow-hidden rounded-xl border border-zinc-200 bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900;
   }
@@ -955,14 +853,8 @@
     @apply -outline-offset-2;
   }
 
-  /*
-   * The copy button sits in the top corner of the container it copies from:
-   * over a lone block, or at the end of a tab strip (see build/markdown.ts).
-   * A demo's source panel carries the same button. The container takes the
-   * margin a lone block would have had, so the button lines up with the
-   * block's top edge rather than the gap above it, and the code and tabs keep
-   * clear of it on the right.
-   */
+  /* The container takes the block's margin, so the button aligns with the
+     block's top edge, not the gap above. */
   .code-copyable {
     @apply relative mt-4;
   }
@@ -980,14 +872,7 @@
     @apply hover:text-zinc-900 dark:hover:text-zinc-100;
   }
 
-  /*
-   * Token colours for the blocks the markdown pipeline highlights. Shiki builds
-   * both themes at once and writes each token's two colours as CSS variables,
-   * so the swap below is all that picks between them — no second stylesheet,
-   * and going through `dark` rather than a bare media query means the header
-   * toggle moves the code samples with everything else. The <pre> keeps
-   * .code-block's own border and background; only the text inside is themed.
-   */
+  /* Through `dark`, not a media query, so the toggle moves code samples too. */
   .shiki span {
     color: var(--shiki-light);
 

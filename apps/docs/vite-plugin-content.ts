@@ -32,23 +32,11 @@ import {
 import { toSearchIndex } from './build/search.ts';
 
 /**
- * Hands `content/**\/*.md` to the TanStack Start app as modules.
+ * Virtual modules; nothing is generated into the source tree:
  *
- * Three virtual modules carry the site, and nothing is generated into the
- * source tree:
- *
- * - `virtual:docs/site` — the sidebar, the reading order, what each page says
- *   about itself, and a lazy import per page. Small, and in every bundle.
- * - `virtual:docs/page/<route>` — one page's rendered markdown, as the tree
- *   build/html-tree.ts makes of it, its headings and its `<head>`. A chunk of its own, so the browser fetches a page's body
- *   when it navigates there and never the other twenty-five.
- * - `virtual:docs/files` — every file the site serves that is not a page: the
- *   `.md` twins, llms.txt, the sitemap. Only the server routes import it, and
- *   the prerender writes what they answer into the build.
- *
- * Markdown runs through the same renderer in dev and in the build. In dev an
- * edit to a content file drops the cache and reloads the page; nothing else
- * needs to know a file changed.
+ * - `virtual:docs/site`: sidebar, reading order and a lazy import per page.
+ * - `virtual:docs/page/<route>`: one page, its own chunk, fetched on navigation.
+ * - `virtual:docs/files`: `.md` twins, llms.txt, sitemap. Server routes only.
  */
 
 const SITE_ID = 'virtual:docs/site';
@@ -58,26 +46,18 @@ const FILES_ID = 'virtual:docs/files';
 /** Rollup's convention for a module that is not on disk. */
 const RESOLVED = '\0';
 
-/**
- * Cloudflare Pages looks for `404.html` on an unmatched route, which is what
- * the page at this route is prerendered to. Without it every dead URL answers
- * 200 with the landing page — a soft 404, and the same content indexed under
- * every wrong address.
- */
+// Cloudflare Pages serves `404.html` on an unmatched route; without it every
+// dead URL is a soft 404 with the landing page.
 const NOT_FOUND_ROUTE = '404';
 
 type Site = {
   pages: Page[];
   nav: NavGroup[];
   readingOrder: Page[];
-  /**
-   * Every page, parsed once when the site loads. Its HTML tree is rendered the
-   * first time a page module asks for it, and kept.
-   */
+  /** Parsed on load; each HTML tree is rendered on first ask and kept. */
   byRoute: Map<string, RenderedPage>;
 };
 
-/** A generated file, keyed by the site path it is served at. */
 type Generated = { type: string; body: string };
 
 const loadSite = async (): Promise<Site> => {
@@ -100,7 +80,6 @@ const loadSite = async (): Promise<Site> => {
   };
 };
 
-/** Every path the build prerenders: each page, its `.md` twin, and the generated files. */
 export const listPrerenderPaths = async (): Promise<string[]> => {
   const pages = await loadPages();
 
@@ -117,8 +96,7 @@ const toGenerated = (
   const landing = site.pages.find((page) => page.layout === 'landing');
   const rendered = (page: Page) => site.byRoute.get(page.route)!;
 
-  // Keyed by the registry, so a file declared there without a body here does
-  // not typecheck.
+  // A file declared in the registry without a body here doesn't typecheck.
   const bodies: Record<GeneratedFile, string> = {
     searchIndex: toSearchIndex(site.pages.map(rendered)),
     llmsTxt: toLlmsTxt(landing, site.nav, addresses),
@@ -148,21 +126,15 @@ const toGenerated = (
   return files;
 };
 
-/** Where the source markdown lives, for the "View source" link. */
 const SOURCE_BASE = `${META.repoUrl}/blob/main/apps/docs/content`;
 
-/**
- * What the chrome needs from a page without its body: enough to list it in the
- * sidebar, title the pager, and link to its source.
- */
 const toPageInfo = (page: Page) => ({
   route: page.route,
   title: page.title,
   description: page.description,
   layout: page.layout,
   noindex: page.noindex,
-  // From the file rather than the route: `docs/examples/index.md` is served
-  // at `docs/examples`, and the route alone would name a file that is not there.
+  // Not the route: `docs/examples/index.md` is served at `docs/examples`.
   sourceUrl: `${SOURCE_BASE}/${path.relative(CONTENT_DIR, page.file)}`,
 });
 
@@ -183,8 +155,7 @@ const toSiteModule = (site: Site, addresses: Addresses) => {
       site.pages.map((page) => [page.route, toPageInfo(page)]),
     ),
     readingOrder: site.readingOrder.map((page) => page.route),
-    // The not-found page's head, for the root route to show at any URL the
-    // router has no page for — it has no loader of its own to fetch it with.
+    // The root route shows it at unknown URLs, with no loader to fetch it.
     notFound: {
       route: NOT_FOUND_ROUTE,
       head: toHead(
@@ -221,8 +192,7 @@ export const docsContent = (): Plugin => {
     const rendered = byRoute.get(route);
     if (!rendered) throw new Error(`[docs] no page at the route "/${route}".`);
 
-    // The tree is rendered once and kept, so the second environment to load
-    // this module does not run Shiki over the page again.
+    // Kept, so the second environment doesn't run Shiki again.
     return `export default ${JSON.stringify({
       tree: await rendered.tree(),
       headings: rendered.headings,
@@ -260,8 +230,7 @@ export const docsContent = (): Plugin => {
     },
 
     configureServer(server) {
-      // Markdown is not a module in the graph, so an edit produces no HMR
-      // update of its own — drop the caches and reload the page instead.
+      // Markdown isn't in the module graph, so an edit gets no HMR update.
       server.watcher.add(CONTENT_DIR);
       server.watcher.on('all', (_event, file) => {
         if (!file.startsWith(CONTENT_DIR)) return;

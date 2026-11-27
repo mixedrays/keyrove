@@ -1,13 +1,5 @@
 import { Dialog as DialogPrimitive } from '@base-ui/react/dialog';
 
-/**
- * A modal on Base UI's dialog, which handles what the native `<dialog>` used
- * to: focus moves in and is trapped, Escape and the backdrop close it, focus
- * goes back to whatever opened it, and the page behind stops scrolling.
- *
- * Unstyled here; the search passes the classes style.css draws it with.
- */
-
 function Dialog(props: DialogPrimitive.Root.Props) {
   return <DialogPrimitive.Root data-slot="dialog" {...props} />;
 }

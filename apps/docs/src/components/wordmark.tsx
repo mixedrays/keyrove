@@ -1,9 +1,6 @@
 import { WORDMARK } from '@/brand.ts';
 
-/**
- * The keyrove wordmark. `className` carries the height; the width follows from
- * the viewBox. It names the link it sits in, so it is an image, not decoration.
- */
+/** An image, not decoration: it names the link it sits in. */
 export function Wordmark({ className }: { className?: string }) {
   return (
     <svg

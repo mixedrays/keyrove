@@ -1,9 +1,3 @@
-/**
- * The shape of a benchmark run, from `runBench()` through the runner's JSON to
- * `results/recorded.json`. The UI reads it, and so can anything else that
- * wants the numbers — a docs page, say — without running anything.
- */
-
 export type BenchOptions = {
   /** Timed batches per case. */
   samples: number;
@@ -13,7 +7,6 @@ export type BenchOptions = {
   warmupMs: number;
 };
 
-/** One generated page, as built for the cases that ran on it. */
 export type Fixture = {
   name: string;
   groups: number;
@@ -31,17 +24,13 @@ export type Fixture = {
   elements: number;
 };
 
-/** How a column page lays out each group. */
 export type ColumnLayout = 'grid' | 'flex-wrap' | 'flex row' | 'flex column';
 
-/** A column page: each group laid out by `layout`, carrying `cols`. */
 export type ColumnSpec = { layout: ColumnLayout; cols: string };
 
 /**
- * A refused-focus page: `count` items between the two the press moves
- * between, each hidden by `hidden`. `roving` gives every item a roving tab
- * stop, carried onto each refusing item and put back. `skip` marks the run
- * skipped, so no move tries it.
+ * `count` hidden items between the two the press moves between. `roving`
+ * carries a stop onto each refusing item and back; `skip` means none is tried.
  */
 export type RefusalSpec = {
   count: number;
@@ -50,7 +39,7 @@ export type RefusalSpec = {
   skip?: boolean;
 };
 
-/** What one call returned: proof that a case measures what its label says. */
+/** Proof that a case measures what its label says. */
 export type Outcome = 'unhandled' | 'consumed no-op' | 'moved' | '-';
 
 export type BenchCase = {
@@ -66,11 +55,7 @@ export type BenchCase = {
   batch: number;
 };
 
-/**
- * A case the library under test could not run as labelled, because it lacks
- * the feature the case times. Kept apart from `cases`, so every entry there
- * is a real measurement.
- */
+/** Kept apart from `cases`, so every entry there is a real measurement. */
 export type SkippedCase = {
   section: string;
   label: string;
@@ -78,7 +63,7 @@ export type SkippedCase = {
   reason: string;
 };
 
-/** The features some cases need, as found by trying them on the library. */
+/** Found by trying each feature on the library. */
 export type Supports = {
   /** The `focusKeys` option (2.4.0 on). */
   focusKeysMap: boolean;
@@ -110,7 +95,6 @@ export type BenchResults = {
   skipped?: SkippedCase[];
 };
 
-/** Which keyrove a run measured. */
 export type LibraryInfo = {
   /** `version` from the library's package.json in the measured source. */
   version: string;

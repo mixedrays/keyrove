@@ -3,20 +3,10 @@ import type { ComponentProps } from 'react';
 
 import { addresses } from '@/addresses.ts';
 
-/**
- * A file the site serves rather than a page — `/llms.txt`, `/docs/api.md` —
- * which the router has nothing to render for.
- */
+// The router has nothing to render for `/llms.txt` or `/docs/api.md`.
 const isFile = (path: string) => /\.\w+$/.test(path);
 
-/**
- * A site-absolute link, the way content and chrome both write them:
- * `/docs/api#followfocus`.
- *
- * A page goes through the router, so following it swaps the page in place and
- * hovering it loads the page ahead of the click. A file stays a plain link the
- * browser fetches. Either way the deploy base is prefixed here, once.
- */
+/** Prefixes the deploy base, once. Files stay plain links. */
 export function SiteLink({
   href,
   ...props
@@ -33,12 +23,9 @@ export function SiteLink({
     <Link
       to={path}
       hash={hash}
-      // The router marks an active link with `aria-current="page"`. Only one
-      // that leads to exactly where the reader is should say so: the page
-      // itself, or — for a link to a section — that section of it.
+      // `aria-current` only on a link to exactly where the reader is.
       activeOptions={{ exact: true, includeHash: hash !== undefined }}
-      // Nothing styles the router's default `active` class; `aria-current` is
-      // what the sidebar's current page is drawn from.
+      // Styled off `aria-current`, not the `active` class.
       activeProps={{}}
       {...props}
     />

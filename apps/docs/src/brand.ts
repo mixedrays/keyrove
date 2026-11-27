@@ -1,19 +1,6 @@
-/**
- * The keyrove logo: the name with a focus ring round its first letter, the
- * ring keyboard focus draws, sitting where focus starts.
- *
- * The letters are JetBrains Mono (SIL Open Font License 1.1), Bold in the
- * wordmark and ExtraBold in the mark, outlined rather than set as text, so the
- * logo looks the same on every system and the site loads no font for it. The
- * ring takes the accent colour and the letters the text colour around them;
- * the favicon, which has no page around it, writes both out.
- */
+// JetBrains Mono (SIL OFL 1.1), outlined, so the logo needs no font load.
 
-/**
- * The wordmark, for the header and footer. Its ring carries the
- * `wordmark-ring` class, which colours it; everything else is
- * `currentColor`.
- */
+/** The ring's `wordmark-ring` class colours it; the rest is `currentColor`. */
 export const WORDMARK = {
   viewBox: '0 0 4349 1120',
   body: [
@@ -22,11 +9,7 @@ export const WORDMARK = {
   ].join(''),
 };
 
-/**
- * The square mark: the k in its ring on a 24-unit grid, for the favicon.
- * Larger and heavier in its ring than the wordmark's k, and the ring heavier
- * too, because a favicon is drawn at 16px.
- */
+/** Heavier than the wordmark's k: a favicon is drawn at 16px. */
 export const MARK = {
   viewBox: '0 0 24 24',
   ring: '<rect x="2" y="2" width="20" height="20" rx="5.5" fill="none" stroke-width="2.4" />',

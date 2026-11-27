@@ -1,8 +1,4 @@
-/**
- * The results, as HTML strings: one report on its own, or several side by
- * side against a baseline. Nothing here reads or writes the page, so the
- * same markup can be built wherever the stylesheet is.
- */
+// HTML strings only; nothing here touches the page.
 
 import { icon } from './icons.ts';
 import { DEFAULT_OPTIONS } from './plan.ts';
@@ -65,7 +61,6 @@ const plural = (count: number, one: string, many: string) =>
 const displayValue = (value: string | number | boolean) =>
   typeof value === 'boolean' ? (value ? 'Yes' : 'No') : String(value);
 
-/** A report's library, short: the version, and its commit or the tree. */
 const libraryShort = ({ report }: Entry) => {
   const library = report.library;
   if (!library) return '–';
@@ -78,14 +73,11 @@ const browserShort = ({ report }: Entry) => {
   return `${browserMajor(browser)}${/headless/i.test(browser) ? ' headless' : ''}`;
 };
 
-/** Groups rows of one page under a single name, as the tables here do. */
 const fixtureCell = (rows: { fixture: string }[], index: number) => {
   const { fixture } = rows[index];
   const first = index === 0 || rows[index - 1].fixture !== fixture;
 
-  // A repeated page name stays in the cell for a screen reader, which reads
-  // a row on its own, and is hidden from sight, where the fainter rules
-  // inside a page's rows do the grouping.
+  // A repeated name stays for screen readers, which read a row on its own.
   return `<td class="fixture-cell">${first ? escapeHtml(fixture) : `<span class="sr-only">${escapeHtml(fixture)}</span>`}</td>`;
 };
 
@@ -111,30 +103,21 @@ const environmentList = (report: BenchReport) =>
     )
     .join('')}</dl>`;
 
-/* ---------- one report ---------- */
-
-/**
- * Below a microsecond the spread is the timer's own noise; a floor on the
- * scale keeps the baseline's 0.00–0.01 from filling its bar.
- */
+// Below 1 µs the spread is timer noise; the floor keeps the baseline's
+// 0.00–0.01 from filling its bar.
 const MIN_SCALE_US = 1;
 
-/** Where `value` falls on a 0–`max` scale, as a CSS percentage. */
 const at = (value: number, max: number) =>
   `${max > 0 ? Math.min(100, (value / max) * 100) : 0}%`;
 
-/**
- * An axis end, which is a round number more often than a measured one: the
- * trailing zeros a value keeps to show its precision say nothing here.
- */
+// An axis end is usually round, so trailing zeros say nothing.
 const scaleLabel = (max: number, unit: TimeUnit) =>
   `${formatTimeShort(max, unit)
     .replace(/(\.\d*?)0+$/, '$1')
     .replace(/\.$/, '')} ${unit}`;
 
 const renderBar = (each: BenchCase, max: number) => {
-  // A nonzero bar keeps a sliver, so the smallest cases still register
-  // beside the largest; a true zero draws nothing.
+  // A nonzero bar keeps a sliver, so the smallest cases still register.
   const width = each.median > 0 ? `max(2px, ${at(each.median, max)})` : '0px';
 
   return `<div class="bar">
@@ -148,8 +131,6 @@ const renderSection = (section: string, cases: BenchCase[], unit: TimeUnit) => {
   const rows = cases.map((each) => ({ fixture: each.fixture.name }));
   const heading = sectionHeading(section, SECTION_NOTES[section] ?? '');
 
-  // The median leads, with its spread beside it; the result check and the
-  // batch size are there to be looked up.
   const body = cases.map(
     (each, index) => `<tr${rowClass(rows, index)}>
       ${fixtureCell(rows, index)}
@@ -260,10 +241,6 @@ const renderFixtures = (results: BenchResults) => {
   </div>`;
 };
 
-/**
- * What every time on the page is, said once above the tables: the unit, how
- * big it is, and what the range beside the median means.
- */
 const unitsNote = (text: string, unit: TimeUnit) =>
   `<p class="units-note">Every time is what one <code class="code-inline">keyRove</code> call took, in ${
     unit === 'µs'
@@ -339,11 +316,8 @@ export const renderSingle = (entry: Entry, unit: TimeUnit = 'µs'): View => {
   };
 };
 
-/* ---------- several reports ---------- */
-
 const ARROWS = { slower: '▲', faster: '▼' } as const;
 
-/** One median beside the baseline's: the value, and its change. */
 const comparisonCell = (
   entry: Entry,
   row: CaseRow,

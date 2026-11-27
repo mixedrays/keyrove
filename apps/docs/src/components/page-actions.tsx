@@ -7,12 +7,8 @@ import { SiteLink } from '@/components/site-link.tsx';
 import { Button } from '@/components/ui/button.tsx';
 import { useFlash } from '@/lib/utils.ts';
 
-/**
- * "Copy page" — fetches the page's own `.md` twin and puts it on the clipboard.
- *
- * Fetching rather than serialising the DOM means what lands on the clipboard is
- * the same document an agent would get from the URL, not a reconstruction of it.
- */
+// Fetches the twin rather than serialising the DOM: the same document an
+// agent gets from the URL.
 function CopyPageButton({ href }: { href: string }) {
   const [label, flash] = useFlash('Copy page');
 
@@ -24,13 +20,11 @@ function CopyPageButton({ href }: { href: string }) {
       await navigator.clipboard.writeText(await response.text());
       flash('Copied');
     } catch {
-      // Clipboard access can be refused outright; the link beside this button
-      // still gets the reader to the same file.
+      // Refused clipboard: the link beside still reaches the file.
       flash('Copy failed');
     }
   };
 
-  // Both glyphs are in the button; `data-copied` is what picks between them.
   return (
     <Button
       className="page-action"
@@ -44,17 +38,8 @@ function CopyPageButton({ href }: { href: string }) {
   );
 }
 
-/**
- * The page's own source, in three forms: the markdown twin, the same file on
- * the clipboard, and the file in the repo.
- *
- * These sit between the title and the lead rather than at the foot of the "On
- * this page" rail, which is hidden below `xl` — where they used to live, a
- * narrow screen lost them along with the rail.
- *
- * Every label is wrapped, icons are not: the underline is drawn on the span so
- * it stops at the text instead of running under the glyph beside it.
- */
+// Not in the rail, which is hidden below `xl`. Labels are wrapped so the
+// underline stops at the text, not under the glyph.
 export function PageActions({ page }: { page: PageInfo }) {
   const twin = twinPath(page.route);
 

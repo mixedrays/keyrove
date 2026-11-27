@@ -1,14 +1,5 @@
-/**
- * The keypad: on-screen keys under a live demo, for a reader with no keyboard.
- *
- * The demos answer to keys, and a phone has none. The keypad is shown only
- * where no fine pointer is present (see demo-panel.css), and each of its
- * buttons sends the demo the keydown a real key would, so the demo's own
- * listener, readout included, runs as it does for a keyboard.
- *
- * The build stamps the markup (see build/demos.ts), as it does the readout;
- * nothing here is imported from keyrove, so the build can read it too.
- */
+// On-screen keys for readers with no keyboard; each sends a real keydown.
+// Imports nothing from keyrove, so the build can stamp the markup.
 
 const KEYS = [
   ['ArrowLeft', '←', 'Left arrow'],
@@ -19,10 +10,7 @@ const KEYS = [
   ['End', 'End', 'End'],
 ] as const;
 
-/**
- * The keypad's markup. Out of the Tab order: a keyboard has the real keys,
- * and the buttons must not take focus from the item they act on.
- */
+/** Out of the Tab order, so buttons never take focus from the item. */
 export const KEYPAD_HTML =
   `<div class="demo-keypad" role="group" aria-label="On-screen keys">` +
   KEYS.map(
@@ -32,9 +20,7 @@ export const KEYPAD_HTML =
   `</div>`;
 
 /**
- * Wires the keypad inside `root` to the demo `surface`. A tap while focus is
- * outside the demo brings it to `first` and moves nothing, as the first key
- * of a keyboard does; after that each tap is a keydown on the focused item.
+ * A tap with focus outside the demo only focuses `first`, as a first key does.
  * Listeners come off when `signal` aborts.
  */
 export const wireKeypad = (

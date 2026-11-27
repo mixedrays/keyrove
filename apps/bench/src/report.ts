@@ -14,12 +14,7 @@ import {
 } from './results.ts';
 import type { BenchReport } from './types.ts';
 
-/**
- * A run as Markdown: environment, fixtures, then one table per section. The
- * headless runner prints it and the UI copies it, so a run from either pastes
- * into the README's results the same way. Times are in `unit`; build times
- * are always milliseconds.
- */
+/** Build times are always milliseconds, whatever `unit`. */
 export const toMarkdown = (
   { environment, results }: BenchReport,
   unit: TimeUnit = 'µs',
@@ -73,11 +68,7 @@ export const toMarkdown = (
   return lines.join('\n');
 };
 
-/**
- * Several runs side by side, against one of them: a summary of each, then
- * one table per section with every run's median and its change. A change in
- * bold is outside both runs' p10–p90 range; the rest is within noise.
- */
+/** A change in bold is outside both runs' p10–p90 range. */
 export const toComparisonMarkdown = (
   entries: { name: string; report: BenchReport }[],
   baselineIndex = 0,

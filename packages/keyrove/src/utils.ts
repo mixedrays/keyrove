@@ -1,12 +1,3 @@
-/**
- * Standalone helpers behind keyRove's navigation.
- *
- * Everything here is pure with respect to keyrove's own concepts: helpers take
- * an event, an element or an attribute *name*, never keyrove's own constants,
- * so they can be reasoned about and tested without a DOM tree wired to a nav
- * root.
- */
-
 import type { KeyCombo, KeyRoveEvent, ToggleTabIndexArgs } from './types.js';
 
 const isMacLike = () =>
@@ -17,14 +8,11 @@ const MODIFIERS = ['ctrl', 'alt', 'shift', 'meta'] as const;
 
 type Modifier = (typeof MODIFIERS)[number];
 
-// A plain `includes` (not `in` on the flags object) so inherited property
-// names like "constructor" cannot pass as modifiers.
+// Not `in`, so inherited names like "constructor" can't pass as modifiers.
 const isModifier = (name: string): name is Modifier =>
   (MODIFIERS as readonly string[]).includes(name);
 
-// The longer spellings of the same flags — what the keys are called on their
-// caps and in most shortcut notations. A `Map` rather than an object so a
-// lookup can never land on an inherited property name.
+// A `Map` so a lookup can never land on an inherited property name.
 const MODIFIER_ALIASES = new Map<string, Modifier>([
   ['control', 'ctrl'],
   ['option', 'alt'],
@@ -32,9 +20,8 @@ const MODIFIER_ALIASES = new Map<string, Modifier>([
   ['command', 'meta'],
 ]);
 
-// One entry of a combo list, matched exactly. An entry with no code — empty,
-// blank, or ending in a dangling `+` — matches nothing, not even an event whose
-// own code is empty, as Android's virtual keyboards send.
+// An entry with no code matches nothing, not even an event with an empty
+// code, as Android's virtual keyboards send.
 const matchesEntry = (e: KeyRoveEvent, entry: string): boolean => {
   const parts = entry.split('+');
   const code = parts.pop()?.trim();
@@ -87,33 +74,22 @@ const matchesEntry = (e: KeyRoveEvent, entry: string): boolean => {
 export const matchesCombo = (e: KeyRoveEvent, combo: KeyCombo): boolean =>
   combo.split(',').some((entry) => matchesEntry(e, entry));
 
-/**
- * Whether a binding value names anything: an entry that is not blank. An
- * empty, blank or comma-only value is unset, wherever a binding is read.
- */
+/** An empty, blank or comma-only value is unset. */
 export const isComboSet = (value: string | null | undefined): value is string =>
   !!value && /[^\s,]/.test(value);
 
 /**
- * Whether Ctrl, Alt or Meta is held: a command rather than typing. Shift on
- * its own is typing — it is how capitals are entered — so it does not count.
- * Nor does a press with AltGr held: Windows reports AltGr as Ctrl+Alt, yet
- * the press types a character, such as "@" or "€" on a German layout.
+ * Shift is typing, so it doesn't count. Nor does AltGr, which Windows reports
+ * as Ctrl+Alt yet types "@" or "€" on a German layout.
  */
 export const hasCommandModifier = (e: KeyRoveEvent): boolean =>
   !e.getModifierState?.('AltGraph') && !!(e.ctrlKey || e.altKey || e.metaKey);
 
-// An editable target owns the keys keyrove binds: arrows and Home/End move
-// the caret there, and printable keys type. `closest` rather than `matches`,
-// so descendants of a `contenteditable` region count as inside it — and the
-// nearest `contenteditable` attribute decides, mirroring `isContentEditable`,
-// so a `contenteditable="false"` island opts back out even inside an editable
-// region.
+// `closest` so a `contenteditable` region's descendants count, and the nearest
+// attribute decides, so a `contenteditable="false"` island opts back out.
 const EDITABLE_SELECTOR = 'input, textarea, select, [contenteditable]';
 
-// Input types on which every key keyrove binds is natively inert — no caret,
-// no value stepping, no radio-group movement — so navigating from them takes
-// nothing away. Unknown and future types stay guarded.
+// Types where every key keyrove binds is inert. Unknown types stay guarded.
 const INERT_INPUT_TYPES = new Set([
   'button',
   'checkbox',
@@ -124,7 +100,6 @@ const INERT_INPUT_TYPES = new Set([
   'submit',
 ]);
 
-/** Whether keys arriving from this target belong to it rather than to keyrove. */
 const isEditableTarget = (target: EventTarget | null) => {
   const editable = (target as Element | null)?.closest?.(EDITABLE_SELECTOR);
 
@@ -137,24 +112,15 @@ const isEditableTarget = (target: EventTarget | null) => {
   return editable.getAttribute('contenteditable')?.toLowerCase() !== 'false';
 };
 
-// The element the press began on. A listener outside a shadow root sees
-// `target` retargeted to the shadow host, but the composed path still starts
-// at the element inside. React's synthetic events have no path of their own,
-// so it is read off the native event. An empty path — one read after
-// dispatch — falls back to `target`.
+// Outside a shadow root `target` is the host; the path starts inside. React's
+// synthetic events lack a path. A path read after dispatch is empty.
 const originOf = (e: KeyRoveEvent): EventTarget | null =>
   e.composedPath?.()[0] ?? e.nativeEvent?.composedPath?.()[0] ?? e.target;
 
 /**
- * Whether the press began in an editable target, which keeps it rather than
- * handing it to keyrove.
- *
- * Both ends of the press are checked: the element it began on, which may be
- * a field in an open shadow root, and `target`, which a listener outside that
- * root sees as the host. `closest` stops at a shadow root, so neither alone
- * covers a shadow tree inside a light-DOM `contenteditable` region as well as
- * a field inside a shadow tree. A closed shadow root hides its nodes from the
- * composed path too, so a field inside one still reads as its host.
+ * Checks both the origin and `target`: `closest` stops at a shadow root, so
+ * neither alone covers a field in a shadow tree and a shadow tree inside a
+ * light-DOM `contenteditable`.
  */
 export const isEditablePress = (e: KeyRoveEvent): boolean => {
   if (isEditableTarget(e.target)) return true;
@@ -181,21 +147,13 @@ export const toggleTabIndex = ({ root, isActive }: ToggleTabIndexArgs) => {
   root.setAttribute('tabindex', isActive ? '0' : '-1');
 };
 
-/**
- * An attribute's value, or `null` where it is absent. A shadow root, the root
- * of a listener attached to one, is a fragment with no attributes at all, so
- * every read of it is absent too.
- */
+/** A shadow root has no `getAttribute`, so every read of it is `null`. */
 export const readAttribute = (
   element: Element,
   attribute: string,
 ): string | null => element.getAttribute?.(attribute) ?? null;
 
-/**
- * Reads a positive integer attribute off an element, falling back when absent,
- * unparseable, or below 1 — a count of columns or items is never zero or
- * negative, and a negative page length would flip the direction of a jump.
- */
+/** Falls back below 1: a negative page length would flip a jump. */
 export const parseAttributeInt = (
   element: Element,
   attribute: string,
@@ -206,7 +164,7 @@ export const parseAttributeInt = (
   return value >= 1 ? value : fallback;
 };
 
-/** Whether a presence-style attribute is enabled, including its bare form. */
+/** A bare attribute is enabled; only "false" disables it. */
 export const hasEnabledAttribute = (element: Element, attribute: string) => {
   const value = readAttribute(element, attribute);
 

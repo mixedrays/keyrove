@@ -23,10 +23,7 @@ import { THEME_SCRIPT } from '@/theme.ts';
 const isNotFound = (matches: AnyRouteMatch[]) =>
   matches.some((match) => match._notFound || match.status === 'notFound');
 
-/**
- * Every URL the content model has no page for, on the client and in dev. The
- * build prerenders the same page at `/404` for Cloudflare Pages to serve.
- */
+/** The build prerenders the same page at `/404` for Cloudflare Pages. */
 function NotFound() {
   return (
     <DocsLayout>
@@ -36,8 +33,7 @@ function NotFound() {
 }
 
 function RootDocument({ children }: { children: ReactNode }) {
-  // Where a not-found page was rendered, for src/router.tsx to hydrate it at:
-  // `/404` when the build prerendered it, and wherever the miss was in dev.
+  // For src/router.tsx to hydrate the not-found page where it was rendered.
   const renderedAt = useRouterState({
     select: ({ matches, location }) =>
       isNotFound(matches) || matches.some((match) => match.routeId === '/404')
@@ -46,14 +42,11 @@ function RootDocument({ children }: { children: ReactNode }) {
   });
 
   return (
-    // The inline script below sets `data-theme` before React hydrates, which
-    // it has no way to know about.
+    // The inline script sets `data-theme` before hydration.
     <html lang="en" data-rendered-at={renderedAt} suppressHydrationWarning>
       <head>
-        {/* React hoists the stylesheet above this, so the script waits for it
-            to download before it runs. The page paints after both either
-            way — the stylesheet is render-blocking — so the stored theme is
-            still the first one shown. */}
+        {/* Waits for the hoisted stylesheet, but the page paints after both
+            anyway, so the stored theme is still the first shown. */}
         <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
         <HeadContent />
       </head>
@@ -78,12 +71,8 @@ export const Route = createRootRoute({
         type: 'image/svg+xml',
         href: addresses.href(GENERATED_FILES.favicon.path),
       },
-      // The stylesheet twice: a preload, then the link that applies it. The
-      // preload is for Cloudflare Pages rather than for the browser, which
-      // finds the link on its own: Pages turns a page's preload tags into a
-      // 103 Early Hint, so the stylesheet is already downloading while the
-      // HTML is still on its way. Neither carries `crossorigin` — Pages skips
-      // any preload with an attribute beyond `rel`, `href` and `as`.
+      // The preload becomes a Cloudflare Pages 103 Early Hint. No
+      // `crossorigin`: Pages skips preloads with attributes beyond rel/href/as.
       { rel: 'preload', as: 'style', href: appCss },
       { rel: 'stylesheet', href: appCss },
     ],

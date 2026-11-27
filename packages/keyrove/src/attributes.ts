@@ -1,13 +1,5 @@
-/**
- * Attribute names keyrove reads from the DOM, one constant per attribute.
- *
- * Flat constants rather than a map keyed by role, for the bundle: a bundler
- * drops the constants a build never reads, and a minifier renames a constant
- * but never an object key, so a map would ship every name and every key to
- * every consumer. These are public surface — `index.ts` exports them — and
- * have a module of their own so the group layer and the typeahead handler can
- * read them without importing the handler.
- */
+// Flat constants rather than a map: a bundler drops unused constants, and a
+// minifier renames constants but never object keys.
 export const KEYROVE_ATTR_ITEM = 'data-keyrove-item';
 export const KEYROVE_ATTR_SKIP = 'data-keyrove-skip';
 export const KEYROVE_ATTR_ROOT = 'data-keyrove-root';

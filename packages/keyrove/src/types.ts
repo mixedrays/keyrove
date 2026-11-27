@@ -1,18 +1,8 @@
-/**
- * Every named type in keyrove.
- *
- * Kept in one place so the package's shape can be read without following the
- * implementation. Only the types re-exported from `index.ts` are public
- * surface; the rest live here because the modules that use them need them, not
- * because consumers do.
- */
+// Only the types re-exported from `index.ts` are public.
 
 /**
- * The `KeyboardEvent.code` values keyrove dispatches on.
- *
- * Strict on purpose: it types the literals *we* author, so a typo is a compile
- * error rather than a key that silently never fires. Consumers get the wider
- * {@link KeyRoveCode}.
+ * The codes keyrove's own defaults use. Strict, so a typo is a compile error;
+ * consumers get the wider {@link KeyRoveCode}.
  */
 export type KnownCode =
   | 'ArrowUp'
@@ -25,87 +15,50 @@ export type KnownCode =
   | 'PageDown';
 
 /**
- * A `KeyboardEvent.code`: the physical key an event carries. A binding, which
- * can add modifiers and list several keys, is a {@link KeyCombo}.
- *
- * The `(string & {})` arm keeps this assignable from a plain `string` — which
- * is how both the DOM and React type `code` — while editors still complete
- * the codes keyrove acts on. It documents intent and aids autocomplete; it
- * does not validate.
+ * A `KeyboardEvent.code`. `(string & {})` keeps it assignable from the DOM's
+ * and React's plain `string` while editors still complete keyrove's codes.
  */
 export type KeyRoveCode = KnownCode | (string & {});
 
 /**
- * A key binding: one combo, `"KeyJ"` or `"ctrl+ArrowDown"`, or a
- * comma-separated list of them, `"ArrowDown, KeyJ"`. Each combo is optional
- * modifiers followed by a {@link KeyRoveCode}; see `matchesCombo` for the
- * grammar.
- *
- * Open like {@link KeyRoveCode}, and for the same reasons: bindings also
- * arrive as attribute values and from outside data, as plain strings. It
- * documents intent and aids autocomplete; it does not validate.
+ * One combo, `"ctrl+ArrowDown"`, or a comma-separated list, `"ArrowDown, KeyJ"`.
+ * See `matchesCombo` for the grammar. Open like {@link KeyRoveCode}; not validated.
  */
 export type KeyCombo = KnownCode | (string & {});
 
 /**
- * The shape keyrove needs from a keydown event.
- *
- * Structural rather than a union of `KeyboardEvent | React.KeyboardEvent`, so
- * the package stays dependency-free while accepting both. `currentTarget` is
- * widened to `EventTarget` because React types it more narrowly than the DOM.
- * `code` stays assignable from a plain `string` for the same reason — see
- * {@link KeyRoveCode}.
+ * Structural, so both DOM and React keyboard events fit without a React
+ * dependency. Optional fields read as absent: not held, not composing, etc.
  */
 export type KeyRoveEvent = {
   code: KeyRoveCode;
   target: EventTarget | null;
   currentTarget: EventTarget | null;
   preventDefault: () => void;
-  // Optional so any object with the four fields above still qualifies; a
-  // missing flag is treated as "not held" by `matchesCombo`.
   ctrlKey?: boolean;
   altKey?: boolean;
   shiftKey?: boolean;
   metaKey?: boolean;
-  // Whether AltGr is held (`KeyboardEvent.getModifierState`). Windows reports
-  // AltGr as Ctrl+Alt, so this is how a press that types "@" or "€" tells
-  // itself apart from a Ctrl+Alt command. Only `'AltGraph'` is asked, which
-  // lets React's narrower `ModifierKey` parameter fit too. Optional: absent,
-  // Ctrl+Alt reads as a command.
+  /**
+   * Tells AltGr, which Windows reports as Ctrl+Alt, from a Ctrl+Alt command.
+   * Narrowed to `'AltGraph'` so React's `ModifierKey` parameter fits.
+   */
   getModifierState?: (key: 'AltGraph') => boolean;
-  // Whether an input method is mid-composition (`KeyboardEvent.isComposing`).
-  // Optional like the flags: absent reads as "not composing".
+  /** `KeyboardEvent.isComposing`: an IME owns every press mid-composition. */
   isComposing?: boolean;
-  // Whether a handler has already claimed the press (`Event.defaultPrevented`)
-  // — another keyrove handler, or one of your own. Optional like the flags:
-  // absent reads as "not claimed".
+  /** A press another handler already claimed is left alone. */
   defaultPrevented?: boolean;
-  // The produced character (`KeyboardEvent.key`). Only typeahead reads it —
-  // matching typed text needs the layout-dependent character, where bindings
-  // deliberately stay on the physical `code`. Optional: an event without it
-  // still navigates; it just never typeaheads.
+  /** The produced character. Only typeahead reads it; bindings use `code`. */
   key?: string;
-  // The path the press travels (`Event.composedPath()`). Only the editable
-  // guard reads it, for the element the press began on: a listener outside a
-  // shadow root sees `target` retargeted to the host, never the field inside.
-  // Optional: absent, the guard reads `target` alone.
+  /** Finds a field inside a shadow root, where `target` is the host. */
   composedPath?: () => EventTarget[];
-  // The native event behind a framework's synthetic one, as React passes it:
-  // React's events carry no `composedPath` of their own, so the guard reads
-  // it here instead. Optional like `composedPath`.
+  /** React's synthetic events have no `composedPath`; it is read here. */
   nativeEvent?: { composedPath?: () => EventTarget[] };
 };
 
 /**
- * The moves defined by a position in the group — a stride from where focus is.
- *
- * `next`/`prev` are ±1 in DOM order in every layout — a list item, or a grid
- * cell flowing across row ends. The `Row` actions exist only in grids:
- * `nextRow`/`prevRow` move a whole row keeping the column; `homeRow`/`endRow`
- * are the focused row's ends (bare Home/End there, by default), while
- * `home`/`end` are the whole sequence's (bare Home/End in a list,
- * `ctrl+Home`/`ctrl+End` in a grid, by default). Every stride has a default
- * key and a root `*-key` attribute that rebinds it.
+ * A move from the focused position. `next`/`prev` are ±1 in DOM order, across
+ * row ends in a grid. The `Row` actions exist only in grids.
  */
 export type StrideAction =
   | 'home'
@@ -120,27 +73,20 @@ export type StrideAction =
   | 'pageDown';
 
 /**
- * The moves across a nested root's boundary: `exit`, from inside a nested
- * group to the group around it, and `enter`, from an item into the group
- * nested inside it. Bound on a root like the strides, but with no default key:
- * the keys they suit, Escape and Enter, already mean something to the page.
+ * `exit` to the group around a nested root, `enter` into the group inside an
+ * item. No default key: Escape and Enter already mean something to the page.
  */
 export type BoundaryAction = 'exit' | 'enter';
 
 /**
- * Everything a keypress can resolve to: the strides, the boundary moves, plus
- * `focus` — an element named outright by its own `data-keyrove-focus-key`,
- * item or not, reached from anywhere under the listener rather than from a
- * position. It is the one move whose `*-key` attribute sits on its
- * destination.
+ * Everything a keypress can resolve to. `focus` reaches an element by its own
+ * `data-keyrove-focus-key`, from anywhere under the listener.
  */
 export type MoveAction = StrideAction | BoundaryAction | 'focus';
 
 /**
- * The shape every handler returns for a consumed keypress, parameterised by
- * the action it reports. `from` is null when the group was entered from
- * outside; `to` is null for a consumed no-op — the key is the handler's, but
- * there is nowhere to go, or the target is the focused item already.
+ * `from` is null when the group was entered from outside; `to` is null for a
+ * consumed no-op: nowhere to go, or the target is already focused.
  */
 export type ActionResult<Action extends string> = {
   action: Action;
@@ -148,30 +94,20 @@ export type ActionResult<Action extends string> = {
   to: Element | null;
 };
 
-/**
- * What `keyRove` returns for a consumed keypress. Its no-op is a bound key
- * pressed at an edge, where the group owns the key but there is nowhere to go.
- */
+/** What `keyRove` returns for a consumed keypress. */
 export type MoveResult = ActionResult<MoveAction>;
 
 /** The argument `onMove` receives: a move that actually happened. */
 export type Move = MoveResult & { to: Element };
 
 /**
- * A group's configuration, named in JavaScript rather than in markup.
- *
- * Every field is optional and falls back on its own to the `data-keyrove-*`
- * attribute it stands for, so a group can be described here, in its markup, or
- * in any mixture of the two: `{ loop: true }` over marked-up items loops a
- * group whose items, keys and columns still come from its attributes, and a
- * handler passing no options reads exactly the markup it always did.
+ * A group's settings in JavaScript. Each field falls back on its own to its
+ * `data-keyrove-*` attribute, so options and markup mix freely.
  */
 export type GroupOptions = {
   /**
-   * The group's items: a selector run inside the root, or a reading of your
-   * own. Defaults to the item attribute. Disabled items, carrying `disabled`
-   * or matching `:disabled` as a control in a `<fieldset disabled>` does, are
-   * never navigable, whichever reading found them.
+   * A selector run inside the root, or a function. Defaults to the item
+   * attribute. Disabled items are never navigable.
    */
   items?: string | ReadItems;
   /**
@@ -181,45 +117,35 @@ export type GroupOptions = {
    */
   root?: string;
   /**
-   * Columns. Above 1 the group is a grid. `'auto'` counts the tracks of the
-   * root's CSS grid on every keypress, or, where it has none, the items on
-   * the first line of a wrapping layout. Defaults to the cols attribute.
+   * Above 1 the group is a grid. `'auto'` counts the root's CSS grid tracks on
+   * each keypress, else the items on a wrapping layout's first line.
    */
   cols?: number | 'auto';
-  /**
-   * Whether `next`/`prev` wrap at the ends. Lists only, as for the attribute.
-   */
+  /** Whether `next`/`prev` wrap at the ends. Lists only. */
   loop?: boolean;
   /** Which axis `next`/`prev` take their default arrows from. */
   orientation?: 'horizontal' | 'vertical';
   /** Rows per page jump — items, in a list. Defaults to 10. */
   pageLength?: number;
   /**
-   * The combo each move answers to, or a comma-separated list of them:
-   * `{ next: 'ArrowDown, KeyJ', prev: 'KeyK' }`. Read move by move, so a move
-   * left out keeps its attribute and then its default key. `'none'` binds a
-   * move to no key, freeing its default. `exit` and `enter` have no default,
-   * and move across a nested root's boundary: `{ exit: 'Escape' }`.
+   * `{ next: 'ArrowDown, KeyJ', exit: 'Escape' }`. A move left out keeps its
+   * attribute, then its default. `'none'` frees the default key.
    */
   keys?: Partial<Record<StrideAction | BoundaryAction, KeyCombo | 'none'>>;
   /**
-   * Elements reachable by a combo of their own: a {@link KeyCombo} → the
-   * element, or a selector resolved within the listener's reach. Replaces the
-   * focus-key scan rather than adding to it.
+   * {@link KeyCombo} → element, or a selector resolved within the listener's
+   * reach. Replaces the focus-key attribute scan.
    */
   focusKeys?: Record<string, string | Element>;
   /** Which items a move passes over. Defaults to the skip attribute. */
   skip?: string | IsSkipped;
-  /**
-   * Whether the group carries one tab stop that follows focus. One boolean for
-   * the whole group, where the attribute is read per item.
-   */
+  /** One tab stop that follows focus, for the whole group. The attribute is per item. */
   rovingTabindex?: boolean;
 };
 
 /** What `keyRove` and `rove` take: the group's settings, and `onMove`. */
 export type KeyRoveOptions = GroupOptions & {
-  /** Fired after focus has moved — and only when it actually moved. */
+  /** Fired only when focus actually moved. */
   onMove?: (move: Move) => void;
 };
 
@@ -232,11 +158,8 @@ export type KeyRoveOptions = GroupOptions & {
 export type Options = KeyRoveOptions;
 
 /**
- * What `initRovingTabindex` and `followFocus` take: the group settings that
- * decide which elements are a group's roving items. The same fields {@link GroupOptions}
- * names, falling back the same way, so one object serves every export. The
- * group layer reads its groups by these fields alone, and the typeahead
- * options build on them.
+ * What `initRovingTabindex` and `followFocus` take: the {@link GroupOptions}
+ * fields that decide a group's roving items.
  */
 export type RovingTabindexOptions = Pick<
   GroupOptions,
@@ -283,13 +206,6 @@ export type ItemAttributes = {
   'data-keyrove-typeahead'?: string;
 };
 
-/**
- * Every setting one move needs, resolved for the root it is navigating:
- * options where they name a field, the root's attributes where they do not.
- * The layers below take these as given and never read a source of their own.
- * What the group's items are, and which of them a move lands on, are the
- * group's own readings: see {@link GroupReader}.
- */
 export type GroupConfig = {
   /** Read on first ask: with `auto`, it reads the page's layout. */
   readonly layout: Layout;
@@ -299,20 +215,11 @@ export type GroupConfig = {
 };
 
 /**
- * The typeahead handler's options: the group settings that bear on matching a
- * label, and the handler's own.
- *
- * The group settings are the same fields {@link GroupOptions} names, and fall
- * back the same way, so one object can be handed to both handlers and each
- * takes what it needs. The rest of a group's settings are about moves, which
- * typeahead does not make: it has one way to reach an item, its label.
+ * The typeahead handler's options. The group fields match {@link GroupOptions},
+ * so one object can serve both handlers.
  */
 export type TypeaheadOptions = RovingTabindexOptions & {
-  /**
-   * The text an item is matched by. Falling back, where it returns nothing, to
-   * the typeahead attribute and then the item's own text — the same chain an
-   * absent attribute walks.
-   */
+  /** Falls back, when empty, to the typeahead attribute, then `textContent`. */
   label?: (item: Element) => string;
   /** Milliseconds of typing silence after which the buffer resets. Defaults to 500. */
   resetMs?: number;
@@ -328,17 +235,13 @@ export type TypeaheadOptions = RovingTabindexOptions & {
    * where an accent tells two items apart. Defaults to `true`.
    */
   foldDiacritics?: boolean;
-  /** Fired after focus has moved — and only when it actually moved. */
+  /** Fired only when focus actually moved. */
   onMove?: (move: TypeaheadMove) => void;
 };
 
 /**
- * What a typeahead handler returns for a consumed keypress.
- *
- * The shared {@link ActionResult} with its own action — derived rather than
- * re-spelled, so a field added there reaches both branches of the chain
- * `keyRove(e) || typeahead(e)`. `to` is null for a consumed no-op — the
- * match is the focused item already.
+ * What a typeahead handler returns for a consumed keypress. `to` is null when
+ * the match is already focused.
  */
 export type TypeaheadResult = ActionResult<'typeahead'>;
 
@@ -346,36 +249,20 @@ export type TypeaheadResult = ActionResult<'typeahead'>;
 export type TypeaheadMove = TypeaheadResult & { to: Element };
 
 /**
- * Either handler's move: what an `onMove` receives when one config object is
- * handed to both `keyRove` and `createTypeahead`. Typed {@link Move} alone,
- * such an `onMove` fits `keyRove` but not the typeahead handler.
+ * The `onMove` argument when one config object serves both `keyRove` and
+ * `createTypeahead`; {@link Move} alone fits only `keyRove`.
  */
 export type AnyMove = Move | TypeaheadMove;
 
-/**
- * What `initRovingTabindex` takes: the group settings, and the item the stop
- * should go to.
- */
 export type InitRovingTabindexOptions = RovingTabindexOptions & {
   /**
-   * The item to hold the stop, such as a listbox's selected option. It wins
-   * over a stop the group already has. Nullish, or anything that is not one of
-   * the group's navigable roving items, is passed over for the usual rule, so
-   * a query that found nothing needs no guard.
+   * The item to hold the stop, such as a listbox's selected option; wins over
+   * an existing stop. Ignored unless a navigable roving item, so nullish is fine.
    */
   initial?: Element | null;
 };
 
-/**
- * How a group folds its DOM-ordered sequence — read once off the root and
- * handed to both pure layers, so neither re-derives it.
- *
- * A list is a single column (`cols` is 1); `cols` above 1 makes a grid.
- * `horizontal` says whether `next`/`prev` run sideways — every grid, and a
- * list with `orientation="horizontal"` — and decides nothing but which default
- * arrows they get. `loop` wraps `next`/`prev` past the ends; lists only, a
- * grid keeps its edges per the APG grid pattern.
- */
+// `horizontal` picks only the default arrows for `next`/`prev`.
 export type Layout = {
   kind: 'list' | 'grid';
   cols: number;
@@ -383,76 +270,39 @@ export type Layout = {
   loop: boolean;
 };
 
-/**
- * One row of the binding table: a key combo, the move it resolves to, and
- * whether the combo enters a group when pressed with nothing focused inside —
- * true for the four directional moves, false for every other stride, which
- * move only within a group. A property of the move, not of the key it is bound
- * to. A focus row carries its target outright — the element that declared the
- * key — and always enters: it names a destination, not a step from a position.
- * A boundary row never enters: it goes from the group focus is in to the one
- * next to it, and decides for itself what it needs to be in.
- */
+// `enters`: whether the move acts with nothing focused in the group. A
+// property of the move, not of the key.
 export type Binding =
   | { combo: string; intent: StrideAction; enters: boolean }
   | { combo: string; intent: BoundaryAction; enters: false }
   | { combo: string; intent: 'focus'; enters: true; target: Element };
 
-/**
- * Looks up the combo explicitly bound to a move: the `keys` option where it
- * names the move, else the root's `*-key` attribute. Nullish where neither
- * sets it and the move keeps its default key, and `none` where the move is
- * bound to no key.
- */
+// Nullish where the move keeps its default key; `none` where it has no key.
 export type ExplicitBinding = (
   intent: StrideAction | BoundaryAction,
 ) => string | null | undefined;
 
-/** A focus key as read off an element: its combo, and the element it focuses. */
 export type FocusKey = {
   combo: string;
   target: Element;
 };
 
-/**
- * The four readings a group is read by: which elements a root governs, which
- * of them a move passes over, which element scopes a group, and whether the
- * item focus is leaving carries the roving tab stop.
- *
- * The group layer resolves them once from options, each falling back to the
- * `data-keyrove-*` reading it stands for, so the attribute API passes none of
- * them. Every layer past it asks the {@link Group} instead, and never learns
- * where the answers came from.
- */
 export type ReadItems = (root: Element) => Element[];
 export type IsSkipped = (element: Element) => boolean;
 export type IsRoot = (element: Element) => boolean;
 export type IsRoving = (from: Element) => boolean;
 
 export type BuildBindingsArgs = {
-  /**
-   * Asked only about the moves in the layout's default table and the boundary
-   * moves, so a move the layout lacks is never looked up.
-   */
   explicit: ExplicitBinding;
-  /**
-   * The focus keys in the listener's reach, in DOM order. Head of the table:
-   * an element's own key is the most specific declaration there is.
-   */
+  /** In DOM order. */
   focus?: readonly FocusKey[];
   layout: Layout;
-  /**
-   * Reading direction, resolved on demand: called only when an unbound
-   * `next`/`prev` default on a horizontal axis could flip, never otherwise.
-   */
+  /** Called only when an unbound horizontal `next`/`prev` default could flip. */
   rtl: () => boolean;
 };
 
 export type FindBindingArgs = Omit<BuildBindingsArgs, 'layout'> & {
-  /**
-   * The group's layout, asked for only when the press could be a move in some
-   * layout: with `auto`, reading it reads the page's layout.
-   */
+  /** Lazy: with `auto`, reading it reads the page's layout. */
   layout: () => Layout;
 };
 
@@ -462,13 +312,8 @@ export type ResolveTargetArgs = {
   /** Index of the focused item, or -1 when the group is entered from outside. */
   fromIndex: number;
   layout: Layout;
-  /** Rows per page jump — items, in a list. */
   pageLength: number;
-  /**
-   * Whether a move can land on an element: the group's navigable test. The
-   * elements it turns down keep their place in the sequence, and their cell
-   * in a grid.
-   */
+  /** Elements it rejects keep their place in the sequence and their grid cell. */
   isNavigable: (element: Element) => boolean;
 };
 
@@ -478,127 +323,59 @@ export type ToggleTabIndexArgs = {
 };
 
 /**
- * One group, resolved for one call: the items its root governs and every
- * question the handlers ask about them, with the way a move lands in it.
- *
- * Read lazily: each answer is read off the DOM the first time it is asked
- * for, and kept for the life of the call, so a press that is turned away
- * early reads nothing it does not need, and nothing is read twice. Its two
- * tests take no `this`, and can be handed on as callbacks.
+ * One group, resolved for one call. Each answer is read lazily and kept. The
+ * two tests take no `this`, so they can be passed as callbacks.
  */
 export type Group = {
-  /**
-   * The element the group's items are read in: a root, the listener's
-   * element, or a shadow root, which has no attributes.
-   */
+  /** A root, the listener's element, or a shadow root (no attributes). */
   readonly root: Element;
-  /**
-   * The sequence a move strides through: the root's items in DOM order,
-   * disabled ones aside — `disabled` is the DOM's own word for an element that
-   * takes no part, whichever source named the items, and a control inside a
-   * `<fieldset disabled>` matches `:disabled` without carrying it. A nested
-   * root's items keep their place in it, and so do skipped ones.
-   */
+  /** In DOM order, disabled excluded. Nested and skipped items keep their place. */
   readonly items: Element[];
-  /**
-   * The item holding focus, where focus is anywhere inside it
-   * (`:focus-within`) — the outermost, where items nest. `null` with focus in
-   * none of them.
-   */
+  /** The outermost item matching `:focus-within`. */
   readonly focused: Element | null;
-  /**
-   * The items the group governs itself: its items less those of a root nested
-   * inside it, which belong to that root — an item that is itself a root
-   * belongs to the group around it. Disabled ones included.
-   */
+  /** All items less a nested root's, disabled included. */
   readonly own: Element[];
-  /** The own items that carry the roving stop: the set one stop is shared across. */
+  /** The own items one stop is shared across. */
   readonly roving: Element[];
-  /**
-   * The own item holding the roving stop, disabled ones aside: the first that
-   * {@link Group.holdsStop}. `null` where the group has none.
-   */
+  /** The first enabled own item that {@link Group.holdsStop}. */
   readonly stop: Element | null;
-  /** Whether a move can land on an item: one neither skipped nor disabled. */
+  /** Neither skipped nor disabled. */
   isNavigable: (item: Element) => boolean;
-  /** Whether an item holds the roving stop: it carries it, and has `tabindex="0"`. */
+  /** Roving and `tabindex="0"`. */
   holdsStop: (item: Element) => boolean;
-  /**
-   * Gives `stop` the group's one `tabindex="0"` and every other roving item
-   * `-1` — or all of them `-1` where `stop` is `null`. A nested group's stop
-   * is left alone. Only attributes that change are written, so a group already
-   * in order takes no mutations.
-   */
+  /** Writes only changed attributes; a nested group's stop is left alone. */
   placeStop(stop: Element | null): void;
   /**
-   * Lands a move through the group's order. The order runs on through a
-   * nested root's items, but each group keeps a stop of its own: a move within
-   * one group carries the stop from `from`, and a move into another carries
-   * that group's own stop, leaving the stop of the group focus left where it
-   * is. A move with no `from` enters from outside, and carries nothing.
+   * Within one group the stop comes from `from`; into a nested group, from
+   * that group's own stop. With no `from` nothing is carried.
    */
   move<Action extends string>(move: MoveArgs<Action>): ActionResult<Action>;
-  /**
-   * Lands a move into this group from the one next to it, across a nested
-   * root's boundary: the stop carried is this group's own, wherever focus
-   * came from, and the group focus left keeps its stop for the way back.
-   */
+  /** Across a boundary: carries this group's own stop; the left group keeps its. */
   cross<Action extends string>(move: MoveArgs<Action>): ActionResult<Action>;
 };
 
-/**
- * How a handler reads its groups: the four readings, resolved once from its
- * options, and the ways to a group — from where an event happened, from a
- * root, and from one group to the next. Every walk between roots is the
- * nesting module's; a handler asks for the group it lands on.
- */
 export type GroupReader = {
   /**
-   * The group an event at `target` is in: the nearest root at or above it,
-   * else the listener's element. `null` with neither. Resolving from the
-   * target rather than the listener is what lets one delegated listener serve
-   * several groups, and lets a nested root win while focus is in it. The walk
-   * is not bounded by the listener: a root above the listener's element wins
-   * where none sits between.
+   * The nearest root at or above `target`, else the listener's element.
+   * Resolving from the target lets one listener serve several groups.
    */
   at: (
     target: Element | null | undefined,
     listener: EventTarget | null | undefined,
   ) => Group | null;
-  /** The group `root` governs: an element, or a shadow root a listener is attached to. */
   of: (root: Element | ShadowRoot) => Group;
-  /**
-   * The group around `element` — a nested root, or an item — within `reach`,
-   * the listener's element: the nearest root above it, else `reach`. `null`
-   * for `reach` itself, or anything outside it.
-   */
+  /** `null` for `reach` (the listener's element) itself, or anything outside it. */
   around: (element: Element, reach: Element) => Group | null;
-  /** The group nested in `item`: its first root inside, outermost first. `null` with none. */
   inside: (item: Element) => Group | null;
 };
 
-/**
- * What it takes to land a move: the event to claim, the action to report, the
- * item focus is leaving (`null` from outside the group), the one it lands on
- * (nullish when there is nowhere to go), how to walk on where that one refuses
- * focus, and who to tell. Generic in the action so each handler's result comes
- * back exactly typed. Which item the roving stop is carried from is the
- * group's to decide: see {@link Group.move}.
- */
 export type MoveArgs<Action extends string> = {
-  /** The keypress to claim. A move made from code has none. */
+  /** Absent for a move made from code. */
   e?: Pick<KeyRoveEvent, 'preventDefault'>;
   action: Action;
   from: Element | null;
   to: Element | null | undefined;
-  /**
-   * The next destination of the move's walk, by `isNavigable`: the group's
-   * navigable test, passing over every item that has refused focus so far.
-   * Asked each time a destination refuses, until one takes focus or none is
-   * left. The test only grows stricter, so the walk can go on from where it
-   * stopped rather than start again. Without it a refusal ends the move, as
-   * it does for a destination named outright.
-   */
+  /** Resumes the walk after `to` refuses focus. Without it a refusal ends the move. */
   retarget?: (
     isNavigable: (item: Element) => boolean,
   ) => Element | null | undefined;

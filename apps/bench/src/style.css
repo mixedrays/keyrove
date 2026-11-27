@@ -1,10 +1,5 @@
-/*
- * The docs site's stylesheet, whole: the header, footer, links, code, kbd,
- * tables, focus rings and both themes come from it, so the bench looks like
- * the site without a copy to keep in step. Below is only what the site has
- * no class for, drawn from the same recipes — zinc surfaces, the indigo
- * accent, the landing page's buttons and cards.
- */
+/* The docs sheet, whole, so there is no copy to keep in step. Below is only
+   what the site has no class for. */
 @import '../../docs/src/style.css';
 
 /* The site's sheet lives in another package; point Tailwind at this one. */
@@ -12,11 +7,7 @@
 @source './';
 
 @layer components {
-  /* ---------- page ---------- */
-
-  /* The docs shell's measure, which the header and footer rows share:
-     a comparison table runs to nine columns. Prose inside is held to a
-     reading width of its own. */
+  /* Wide: a comparison table runs to nine columns. */
   .bench {
     @apply mx-auto max-w-[90rem] px-6 pb-24;
   }
@@ -34,7 +25,6 @@
     @apply pt-12 sm:pt-16;
   }
 
-  /* The landing page's step label. */
   .bench-eyebrow {
     @apply font-mono text-xs font-medium tracking-widest text-indigo-600 uppercase dark:text-indigo-400;
   }
@@ -47,10 +37,6 @@
     @apply mt-5 max-w-3xl text-lg leading-7 text-zinc-600 dark:text-zinc-400;
   }
 
-  /* ---------- buttons ---------- */
-
-  /* The landing page's hero actions, as buttons: the primary call in the
-     accent, the rest on the page's surface. */
   .button {
     @apply inline-flex h-9 shrink-0 cursor-pointer items-center gap-2 rounded-lg border border-zinc-200 bg-white px-3.5 text-sm font-medium whitespace-nowrap text-zinc-900 hover:bg-zinc-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-100 dark:hover:bg-zinc-800;
   }
@@ -78,10 +64,6 @@
     }
   }
 
-  /* ---------- run panel ---------- */
-
-  /* The landing page's closing panel: a tinted ground that sets the one
-     thing to do apart from the reading around it. */
   .run-panel {
     @apply mt-10 grid gap-8 rounded-2xl border border-zinc-200 bg-zinc-50 p-6 sm:p-8 lg:grid-cols-[minmax(0,1fr)_17rem] dark:border-zinc-800 dark:bg-zinc-900/60;
   }
@@ -146,8 +128,6 @@
     @apply flex justify-between text-sm font-medium text-zinc-900 tabular-nums dark:text-zinc-100;
   }
 
-  /* One step of the accent ramp for the track and the accent for the fill,
-     so the bar reads as one control at any value. */
   .run-progress progress {
     @apply mt-2 block h-2 w-full appearance-none overflow-hidden rounded-full border-0 bg-indigo-100 dark:bg-indigo-950;
   }
@@ -204,8 +184,6 @@
     @apply mt-0.5 text-xs text-zinc-500 dark:text-zinc-400;
   }
 
-  /* ---------- results ---------- */
-
   .results {
     @apply mt-16;
   }
@@ -226,8 +204,7 @@
     @apply flex flex-wrap items-center gap-2;
   }
 
-  /* The landing page's pattern tabs, over native radios: arrows move
-     between them and the browser says which is chosen. */
+  /* Native radios underneath, so arrows and announcements come free. */
   .segmented {
     @apply inline-flex gap-1 rounded-xl border border-zinc-200 bg-zinc-50 p-1 dark:border-zinc-800 dark:bg-zinc-900;
   }
@@ -244,8 +221,6 @@
     @apply outline-2 outline-offset-2 outline-indigo-600 dark:outline-indigo-400;
   }
 
-  /* ---------- report picker ---------- */
-
   .report-picker {
     @apply mt-6 min-w-0;
   }
@@ -258,8 +233,6 @@
     @apply mt-1 max-w-3xl text-sm leading-6 text-zinc-600 dark:text-zinc-400;
   }
 
-  /* The landing page's cards, as checkboxes: a ticked one takes the accent's
-     border and wash, as a hovered card takes its border. */
   .report-list {
     @apply mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4;
   }
@@ -308,8 +281,7 @@
     @apply mt-8 text-sm text-zinc-500 dark:text-zinc-400;
   }
 
-  /* Warnings about the run itself. Amber is kept for these alone, and each
-     carries its icon, so the colour is never the only sign. */
+  /* Amber is kept for run warnings alone; each carries an icon too. */
   .notice {
     @apply mt-4 flex gap-3 rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm leading-6 text-amber-900 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-200;
   }
@@ -318,8 +290,7 @@
     @apply mt-8 text-sm text-zinc-500 dark:text-zinc-400;
   }
 
-  /* Stat tiles, on the landing page's feature cards. The value keeps
-     proportional figures: it stands alone rather than in a column. */
+  /* Proportional figures: the value stands alone, not in a column. */
   .stat-row {
     @apply mt-3 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4;
   }
@@ -352,9 +323,6 @@
     @apply mt-4;
   }
 
-  /* ---------- legend and tables ---------- */
-
-  /* What every number is, said once above the tables it applies to. */
   .units-note {
     @apply mt-10 max-w-3xl text-sm leading-6 text-zinc-600 dark:text-zinc-400;
   }
@@ -371,10 +339,7 @@
     @apply text-zinc-500 sm:ml-auto dark:text-zinc-400;
   }
 
-  /*
-   * The marks. One series, so one hue: the median in the accent, and its
-   * spread a darker step of the same ramp.
-   */
+  /* One series, so one hue: the spread is a darker step of the accent. */
   .legend-bar,
   .bar-fill {
     @apply rounded-r bg-indigo-500 dark:bg-indigo-400;
@@ -405,8 +370,7 @@
     @apply mt-1 max-w-3xl text-sm leading-6 text-zinc-600 dark:text-zinc-400;
   }
 
-  /* The site's prose tables, which only style inside `.markdown`, as a
-     class of their own. */
+  /* The site's prose tables only style inside `.markdown`. */
   .data-table {
     @apply w-full min-w-[46rem] border-collapse text-sm;
   }
@@ -428,8 +392,7 @@
     @apply bg-zinc-50/70 dark:bg-zinc-900/50;
   }
 
-  /* Rows of one page run together under fainter rules, so the full-strength
-     rule between pages does the grouping. */
+  /* Fainter rules within a page, so the rule between pages groups them. */
   .data-table tr.group-continues td {
     @apply border-b-zinc-100 dark:border-b-zinc-800/50;
   }
@@ -489,8 +452,6 @@
     @apply inline-flex items-center gap-1 rounded-md bg-zinc-100 px-1.5 py-0.5 font-mono text-xs whitespace-nowrap text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300;
   }
 
-  /* ---------- comparison ---------- */
-
   .summary-note {
     @apply mt-3 max-w-3xl text-xs leading-5 text-zinc-500 dark:text-zinc-400;
   }
@@ -499,13 +460,11 @@
     @apply mt-8;
   }
 
-  /* A report column's second header line: its unit, and what it holds. */
   .data-table .th-sub {
     @apply block text-xs font-normal text-zinc-500 dark:text-zinc-400;
   }
 
-  /* A median and its change in two fixed tracks, so each column's medians
-     line up whatever the change beside them says. */
+  /* Fixed tracks, so medians line up whatever the change beside them. */
   .cmp {
     @apply inline-grid grid-cols-[auto_auto_4.25rem] items-center justify-end gap-x-1.5;
   }
@@ -518,11 +477,7 @@
     @apply col-start-1 text-amber-600 dark:text-amber-400;
   }
 
-  /*
-   * A change is grey unless it is beyond noise, when it takes the status
-   * colours, green for faster and red for slower. Each carries its arrow and
-   * a spoken word as well, so the colour is never the only sign.
-   */
+  /* Grey unless beyond noise. An arrow and a spoken word go with the colour. */
   .cmp-change {
     @apply inline-flex items-center justify-end gap-0.5 text-xs text-zinc-500 tabular-nums dark:text-zinc-400;
   }
@@ -543,14 +498,12 @@
     @apply text-zinc-400 dark:text-zinc-500;
   }
 
-  /* Dates, commits and browser names read as one token each: the table
-     scrolls in its box rather than break them. */
+  /* The table scrolls rather than break a date, commit or browser name. */
   .summary-table td {
     @apply whitespace-nowrap;
   }
 
-  /* Long values wrap at their spaces, and a column never gets narrow enough
-     to break a date at its hyphens. */
+  /* Never narrow enough to break a date at its hyphens. */
   .env-table td {
     @apply min-w-44;
   }
@@ -558,8 +511,6 @@
   .env-table th[scope='row'] {
     @apply bg-transparent font-medium whitespace-nowrap text-zinc-500 dark:bg-transparent dark:text-zinc-400;
   }
-
-  /* ---------- disclosures ---------- */
 
   .disclosure {
     @apply mt-10 border-t border-zinc-200 pt-6 dark:border-zinc-800;
@@ -604,8 +555,6 @@
     @apply mt-0.5 font-medium break-words text-zinc-900 dark:text-zinc-100;
   }
 
-  /* ---------- method ---------- */
-
   .method {
     @apply mt-16 rounded-2xl border border-zinc-200 p-6 sm:p-8 dark:border-zinc-800;
   }
@@ -622,14 +571,8 @@
     @apply mt-4 text-sm;
   }
 
-  /* ---------- stage ---------- */
-
-  /*
-   * The frame a run happens in. Fixed to the viewport, so focus moving
-   * inside it never scrolls the page, and in view, so the browser renders
-   * it as it would the headless page. From `sm` its frame is the harness's
-   * height: a 12rem fixture inside a 1rem margin.
-   */
+  /* Fixed, so focus inside never scrolls the page, and in view, so it renders
+     as the headless page does. `sm` height: a 12rem fixture in a 1rem margin. */
   .stage {
     @apply fixed right-4 bottom-4 left-4 z-40 overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-2xl sm:left-auto sm:w-96 dark:border-zinc-700 dark:bg-zinc-900;
   }

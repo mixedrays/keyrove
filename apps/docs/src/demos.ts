@@ -14,31 +14,13 @@ import { demoDefinition, type DemoExtra } from '../build/demo-definitions.ts';
 import { wireKeypad } from './keypad.ts';
 import { createReadout, keyLabel, type Readout } from './readout.ts';
 
-/**
- * The live half of the demos embedded in the docs.
- *
- * Nothing here builds DOM. Every demo's markup is stamped into the page at
- * build time from the file under `content/_demos` that the source block below
- * it shows (see build/demos.ts), so this only wires the behaviour markup cannot
- * carry: the keydown listener and the readout. What a demo needs beyond
- * navigation is its entry in build/demo-definitions.ts, which the build read
- * too. src/components/markdown.tsx mounts it on each demo once React has
- * rendered the page, and leaves the demo's markup to it — React draws the
- * panel around the demo and its code tabs, never the demo itself.
- */
+// Builds no DOM: markup is stamped at build time (build/demos.ts), so this
+// wires only listeners and the readout. React never draws the demo itself.
 
 /** A keydown handler with keyrove's contract: truthy when it claimed the key. */
 type Handler = (e: KeyboardEvent) => unknown;
 
-/**
- * Picking, for the listbox demo.
- *
- * Selection is the widget's state rather than keyrove's, so this is the page's
- * own snippet made live: Space or Enter picks the focused option, a click picks
- * it, and either is reported to the readout. `followFocus` carries the roving
- * tab stop to wherever focus lands, the click included. Returns the keydown
- * half, to chain after navigation and typeahead.
- */
+/** The listbox page's snippet made live. Returns the keydown half to chain. */
 const wireSelection = (
   surface: HTMLElement,
   readout: Readout,
@@ -83,12 +65,8 @@ const wireSelection = (
 };
 
 /**
- * Folding, for the sidebar demo: the tree described in attributes, made live
- * as its page's snippet. → opens a folder and ← closes it, and a click flips
- * one — which is Enter and Space too, since a folder is a button and the
- * browser turns either key into a click. Every row's skip attribute is then
- * brought level with whether a closed folder hides it. Returns the keydown
- * half, to chain after navigation.
+ * The sidebar page's snippet made live. Enter and Space click the folder
+ * button. Returns the keydown half to chain.
  */
 const wireFolds = (
   surface: HTMLElement,
@@ -115,7 +93,7 @@ const wireFolds = (
       const open = folder.getAttribute('aria-expanded') === 'false';
       setOpen(folder, open);
 
-      // No key to name: the click did this one, whatever set it off.
+      // No key to name: the click did this, whatever set it off.
       readout.widget(folder, '', open ? 'expanded' : 'collapsed');
     },
     { signal },
@@ -125,8 +103,7 @@ const wireFolds = (
     const open = matchesCombo(e, 'ArrowRight');
     if (!open && !matchesCombo(e, 'ArrowLeft')) return null;
 
-    // Only a folder the key would change: a page, or a folder already that
-    // way round, leaves the key to the browser.
+    // A key that would change nothing is left to the browser.
     const folder = e.target as Element;
     if (folder.getAttribute('aria-expanded') !== String(!open)) return null;
 
@@ -139,16 +116,8 @@ const wireFolds = (
 };
 
 /**
- * Opening and closing, for the tree demo.
- *
- * keyrove walks the rows that are showing; the tree's shape is the tree's own,
- * so this is the page's snippet made live: → opens a closed folder and steps
- * into an open one, ← closes an open folder and steps out to the parent of
- * anything else, and a click opens or closes the folder it lands on, carrying
- * the roving tab stop with it. A key with nothing to do — → on a file, ← on a
- * closed top-level folder — is left to the browser, which is the contract the
- * handlers before it keep. Returns the keydown half, to chain after navigation
- * and typeahead.
+ * The tree page's snippet made live. A key with nothing to do is left to the
+ * browser, as the handlers before it do. Returns the keydown half to chain.
  */
 const wireTree = (
   surface: HTMLElement,
@@ -157,8 +126,7 @@ const wireTree = (
 ): Handler => {
   const ITEM = '[role="treeitem"]';
 
-  // A folder's rows are the group its `aria-owns` names, and the folder an
-  // item sits under is the row just before the group around it.
+  // An item's folder is the row just before the group around it.
   const groupOf = (item: Element) =>
     document.getElementById(item.getAttribute('aria-owns') ?? '');
   const parentOf = (item: Element) =>
@@ -201,7 +169,7 @@ const wireTree = (
     const item = (e.target as Element).closest(ITEM);
     if (!item) return null;
 
-    // Null on a file: only a folder says whether it is open.
+    // Null on a file.
     const expanded = item.getAttribute('aria-expanded');
     const parent = parentOf(item);
     const key = keyLabel(e);
@@ -231,11 +199,6 @@ const wireTree = (
   };
 };
 
-/**
- * The behaviours a definition can list in `extras`, each returning the
- * keydown handler to chain after `keyRove`. A demo listing none runs
- * navigation alone.
- */
 const EXTRAS: Record<
   DemoExtra,
   (
@@ -245,8 +208,7 @@ const EXTRAS: Record<
     signal: AbortSignal,
   ) => Handler
 > = {
-  // Handed the same group as navigation, which is the point the options page
-  // makes for the demos described in JavaScript.
+  // The same group as navigation: the options page's point.
   typeahead: (_surface, readout, group) =>
     createTypeahead({ ...group, onMove: readout.move }),
   selection: (surface, readout, _group, signal) =>
@@ -258,18 +220,11 @@ const EXTRAS: Record<
 };
 
 /**
- * The item a demo opens on: the first one a key would move away from.
- *
- * Items inside a nested root are passed over while the surface has items of
- * its own, so the nested demo opens on the menu rather than inside the
- * reaction row — the inner group answers to keys the page has not introduced
- * yet. Where every item lives in a nested root, as in the responsive grid,
- * the first of those is the first item. A demo with no items at all, like the
- * focus-keys panels, opens on the first element a focus key names.
+ * Nested items are passed over while the surface has its own, so the nested
+ * demo opens on the menu: the inner group's keys aren't introduced yet.
  */
 const firstItem = (surface: HTMLElement, { items: named }: GroupOptions) => {
-  // A group described in JavaScript carries no attribute to look for, so the
-  // selector its own config names stands in for one.
+  // A group described in JavaScript has no attribute to look for.
   const selector =
     typeof named === 'string'
       ? named
@@ -292,7 +247,6 @@ const firstItem = (surface: HTMLElement, { items: named }: GroupOptions) => {
   );
 };
 
-/** Every live demo on a page, in order: the panels, and the landing page's hero. */
 const LIVE_DEMO = '[data-demo], .hero-demo';
 
 /** The keys that bring the opening demo into play from the page. */
@@ -313,21 +267,9 @@ const inView = (element: HTMLElement) => {
 };
 
 /**
- * Hands the page's first navigation key to `item` if `demo` is the one the
- * page opens with, so the keys it documents work on arrival without a Tab or a
- * click. Only the first live demo: a page's opening demo is the one it is
- * about — on the landing page the hero, whichever of them mounts first.
- *
- * Focus itself stays where the browser puts it. Taking it on load sent the
- * first Tab through every item of the demo before the header, and started a
- * screen reader mid-page. So the key is taken only while nothing holds focus
- * and the item is wholly on screen: off screen, an arrow still scrolls the
- * page, as a reader pressing it expects. The key that hands focus over moves
- * nothing else.
- *
- * A client-side navigation hands focus back to the page first (see
- * src/components/docs-layout.tsx), so a page reached from the sidebar opens
- * the way a page loaded from its URL does.
+ * Hands the first bare navigation key to `item` while nothing holds focus and
+ * `item` is in view. Taking focus on load sent the first Tab through the demo
+ * and started screen readers mid-page.
  */
 export const focusOnArrival = (
   demo: HTMLElement,
@@ -359,12 +301,7 @@ export const focusOnArrival = (
   );
 };
 
-/**
- * Wires one demo, the `.demo-panel[data-demo]` build/demos.ts stamped, as its
- * entry in build/demo-definitions.ts says. Every listener goes on the demo's
- * own elements and comes off when `signal` aborts, which is when the component
- * holding the demo unmounts. Throws on markup the build did not stamp.
- */
+/** Listeners come off when `signal` aborts. Throws on unstamped markup. */
 export const mountDemo = (demo: HTMLElement, signal: AbortSignal) => {
   const { group = {}, extras = [] } = demoDefinition(demo.dataset.demo ?? '');
   const surface = demo.querySelector<HTMLElement>(
@@ -383,14 +320,11 @@ export const mountDemo = (demo: HTMLElement, signal: AbortSignal) => {
     ...extras.map((extra) => EXTRAS[extra](surface, readout, group, signal)),
   ];
 
-  // One listener for the demo, nested roots included: the event bubbles here
-  // and keyrove resolves the root from its target, not from this element.
+  // One listener serves nested roots too: keyrove resolves from the target.
   surface.addEventListener(
     'keydown',
     (e) => {
-      // The first handler to claim the key ends the chain, which is the `||`
-      // of the pages' own snippets — kept rather than discarded, because what
-      // it answered with is what the readout has to report.
+      // The pages' `||` chain, keeping the claim for the readout.
       let claimed: unknown = null;
       for (const handle of handlers) {
         claimed = handle(e);

@@ -1,21 +1,8 @@
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
-/**
- * The facts the About page states about the project, read from the manifests
- * rather than written down a second time in prose that would go stale.
- *
- * The version is the docs package's own, so releasing the site is what moves
- * it. The repository and author come from the workspace root, which is the
- * only manifest that carries them.
- *
- * The License page's text comes from the same place, the `LICENSE` npm ships
- * with the package, so the page cannot state terms the package does not.
- *
- * The files are read synchronously at module load: they are small, every
- * render needs them, and nothing here can change while the process is running,
- * so a promise would only have to be threaded through the whole layout.
- */
+// Read from the manifests so prose can't go stale. Read synchronously: small,
+// needed by every render, and unchanging while running.
 
 type Manifest = {
   name?: string;
@@ -34,27 +21,16 @@ const readManifest = (relativePath: string): Manifest =>
 const toBrowserUrl = (url: string) =>
   url.replace(/^git\+/, '').replace(/\.git$/, '');
 
-/**
- * `mixedrays <mixedrays@gmail.com>` → `mixedrays`.
- *
- * npm's author field carries an address; the site links to a GitHub profile
- * instead, so the address stays out of the generated HTML.
- */
+// Keeps the email address out of the generated HTML.
 const toAuthorName = (author: string) => author.replace(/\s*<.*$/, '').trim();
 
 const docs = readManifest('../package.json');
 const workspace = readManifest('../../../package.json');
-// The published library, which is the one an npm link should point at — the
-// docs package is private, so npm has no page for it.
+// The docs package is private, so npm has no page for it.
 const library = readManifest('../../../packages/keyrove/package.json');
 
-/**
- * Where the site is deployed.
- *
- * Canonical tags, Open Graph, the sitemap and llms.txt all need absolute URLs,
- * and nothing in a static build can work out its own origin. Overridable so a
- * preview deploy describes itself rather than claiming to be production.
- */
+// A static build can't know its origin. Overridable so a preview deploy
+// doesn't claim to be production.
 const siteUrl = (
   process.env.DOCS_SITE_URL ?? 'https://keyrove.pages.dev'
 ).replace(/\/$/, '');
@@ -79,60 +55,38 @@ if (
 
 export const META = {
   version,
-  /**
-   * The docs package's manifest on GitHub, where `version` is set — on `main`,
-   * the branch the site deploys from, like the "View source" links.
-   */
+  /** On `main`, the branch the site deploys from. */
   versionUrl: `${repoUrl}/blob/main/apps/docs/package.json`,
   siteUrl,
   repoUrl,
-  /** The repository without its scheme, e.g. `github.com/mixedrays/keyrove`. */
   repoLabel: repoUrl.replace(/^https?:\/\//, ''),
   author,
   authorUrl: `https://github.com/${author}`,
   packageName,
-  /**
-   * The published library's version, which is not `version` above — that one
-   * is the docs package's, and the two move independently. Only the structured
-   * data names a version, and the version it means is the library's.
-   */
+  /** The library's version; `version` above is the docs package's. */
   packageVersion,
   npmUrl: `https://www.npmjs.com/package/${packageName}`,
 } as const;
 
-/**
- * The placeholder the About page writes, alone on its line.
- *
- * The facts expand to markdown rather than to HTML so that one expansion
- * serves both the rendered page and its `.md` twin — anything fetching
- * `/docs/about.md` gets the version and the links, not an empty `<div>`.
- */
+// Expands to markdown, so the `.md` twin gets the facts too.
 const PLACEHOLDER = /^<div data-about><\/div>$/gm;
 
 const renderFacts = () =>
   [
-    // Both versions, each beside what it numbers: a lone "Docs version" reads
-    // as the release it documents.
+    // A lone "Docs version" would read as the release it documents.
     `- **Package** — [${META.packageName}](${META.npmUrl}) ${META.packageVersion} on npm`,
     `- **Docs version** — [${META.version}](${META.versionUrl}), numbered separately from the package`,
     `- **Repository** — [${META.repoLabel}](${META.repoUrl})`,
     `- **Author** — [@${META.author}](${META.authorUrl})`,
   ].join('\n');
 
-/**
- * The License page's placeholder, alone on its line, and what replaces it.
- *
- * The file's first line is the license's name, which the page carries as a
- * heading of its own. The rest is paragraphs, hard-wrapped the way the file is,
- * which markdown joins back up.
- */
+// The file's first line becomes the heading; markdown rejoins the wrapped rest.
 const LICENSE_PLACEHOLDER = /^<div data-license><\/div>$/gm;
 
 const licenseText = readText('../../../packages/keyrove/LICENSE')
   .replace(/^.*\n/, '')
   .trim();
 
-/** Replaces the About and License placeholders with the files' contents. */
 export const expandMeta = (body: string): string =>
   body
     .replace(PLACEHOLDER, renderFacts)

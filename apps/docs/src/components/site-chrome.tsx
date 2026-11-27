@@ -8,13 +8,6 @@ import { SiteLink } from '@/components/site-link.tsx';
 import { ThemeToggle } from '@/components/theme-toggle.tsx';
 import { Wordmark } from '@/components/wordmark.tsx';
 
-/**
- * The header and footer every page shares.
- *
- * The landing page's content is narrower than the docs grid; the header and
- * footer rows track whichever the page between them uses.
- */
-
 type Layout = 'docs' | 'landing';
 
 export function SiteHeader({
@@ -61,16 +54,13 @@ export function SiteHeader({
               <Icon name="github" className="size-4" />
               GitHub
             </a>
-            {/* A hair smaller than its neighbours: the npm mark is a solid
-                block where the rest of the set is drawn in outline, so at a
-                matching size it reads heavier than everything beside it. */}
+            {/* Smaller: a solid mark reads heavier than outlines at one size. */}
             <a href={meta.npmUrl} className="header-link">
               <Icon name="npm" className="size-3.5" />
               npm
             </a>
           </nav>
-          {/* The landing page has no drawer, so on a narrow screen the docs
-              keep one link of their own beside the icons. */}
+          {/* No drawer on the landing page, so narrow screens keep a Docs link. */}
           {layout === 'landing' ? (
             <SiteLink
               href="/docs/introduction"
@@ -79,9 +69,7 @@ export function SiteHeader({
               Docs
             </SiteLink>
           ) : null}
-          {/* The nav is hidden on narrow screens, so the repo keeps an
-              icon-only stop in the header there rather than dropping out of
-              it entirely. */}
+          {/* Icon-only on narrow screens, where the nav is hidden. */}
           <a
             href={meta.repoUrl}
             className="icon-button md:hidden"
@@ -96,12 +84,6 @@ export function SiteHeader({
   );
 }
 
-/**
- * The foot of every page: what the package is, and the places a reader is
- * most likely to want next, including llms.txt, which is otherwise linked
- * only from the sidebar. The row takes the header's width, so the two frame
- * the same column.
- */
 export function SiteFooter({ layout }: { layout: Layout }) {
   return (
     <footer className="site-footer">

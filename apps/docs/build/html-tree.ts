@@ -8,21 +8,8 @@ import { DomUtils, parseDocument } from 'htmlparser2';
 
 import { isOpaque, placeholderOf } from './placeholders.ts';
 
-/**
- * A page's rendered HTML as a tree React can draw without parsing anything.
- *
- * Parsed here, at build time, so the browser never has to: parsing there
- * would mean shipping an HTML parser, its entity tables and an attribute map
- * to every reader — more code than draws the chrome. The page's chunk carries
- * the result instead: every element as its tag, the props React takes for its
- * attributes, and its children. Server and browser render the one tree, so
- * hydration has nothing to disagree about.
- *
- * html-react-parser does the conversion — attribute names, inline styles,
- * whitespace React rejects inside tables — with JSON standing in for React
- * elements, so the tree is exactly the elements it would have built.
- * src/components/markdown.tsx walks it.
- */
+// Parsed at build time so the browser ships no HTML parser, and server and
+// browser render one tree.
 
 export type HtmlProps = Record<string, unknown>;
 
@@ -44,11 +31,7 @@ const isElement = (value: unknown): value is HtmlElement =>
   typeof value[1] === 'object' &&
   Array.isArray(value[2]);
 
-/**
- * React's element API, writing JSON. The `key` html-react-parser numbers
- * siblings with is dropped: the walker keys each element by its position as
- * it draws it, so the tree need not carry one on every node.
- */
+// `key` is dropped: the walker keys elements by position.
 const library = {
   createElement: (
     tag: string,
@@ -59,12 +42,6 @@ const library = {
   isValidElement: isElement,
 };
 
-/**
- * Whether an element's contents are kept as HTML, for
- * `dangerouslySetInnerHTML`, rather than as a tree React would reconcile: a
- * placeholder build/placeholders.ts marks opaque, which React draws once and
- * something else rearranges from then on.
- */
 const hasOpaqueContents = (element: DomElement) => {
   const name = placeholderOf(
     element.name,

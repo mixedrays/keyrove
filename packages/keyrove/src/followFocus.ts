@@ -1,13 +1,5 @@
-/**
- * The roving tab stop, following focus however it arrives.
- *
- * keyrove carries the stop on the moves it makes. Focus also arrives by
- * pointer, by `element.focus()` from app code, and by Tab onto a control
- * inside an item that is not the stop, and each of those leaves the stop
- * behind, so Tab away and back returns somewhere else. A `focusin` listener
- * closes that gap. It keeps the `keyRove` call shape and reads the group the
- * way a keypress does, so one config object serves every handler.
- */
+// Focus by pointer, `element.focus()` or Tab onto an inner control leaves the
+// stop behind, so Tab away and back would return somewhere else.
 
 import { readGroups } from './group.js';
 import { listenerElement } from './nesting.js';
@@ -48,7 +40,6 @@ export const followFocus = (
     const { root, focused } = group;
 
     if (focused) {
-      // Only a navigable item of the group's own roving ones takes the stop.
       if (!group.isNavigable(focused) || !group.roving.includes(focused)) {
         return null;
       }
@@ -58,8 +49,6 @@ export const followFocus = (
       return focused;
     }
 
-    // No item of this group holds focus. The group around it may, but never
-    // one past the listener's reach.
     group = scope && groups.around(root, scope);
   }
 

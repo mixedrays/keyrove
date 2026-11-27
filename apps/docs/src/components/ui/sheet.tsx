@@ -1,14 +1,6 @@
 import { Dialog as SheetPrimitive } from '@base-ui/react/dialog';
 
-/**
- * A panel that slides in from an edge, on Base UI's dialog: the mobile docs
- * navigation. Focus is trapped while it is open, Escape and the backdrop
- * close it, and focus returns to the button that opened it.
- *
- * Unstyled here. The slide is the caller's stylesheet, keyed off the
- * `data-starting-style` and `data-ending-style` attributes Base UI sets while
- * the panel enters and leaves.
- */
+// Unstyled; the caller slides it off `data-starting-style`/`data-ending-style`.
 
 function Sheet(props: SheetPrimitive.Root.Props) {
   return <SheetPrimitive.Root data-slot="sheet" {...props} />;

@@ -1,7 +1,4 @@
-/**
- * Reading a run: the helpers the UI and the Markdown report share. Nothing
- * here touches the DOM, so the same code can serve a page built elsewhere.
- */
+// Shared by the UI and the Markdown report, so nothing here touches the DOM.
 
 import { ITEMS_PER_GROUP } from './plan.ts';
 import type {
@@ -16,16 +13,15 @@ import type {
 /** A 60 Hz frame, in microseconds: the budget a keydown shares. */
 const FRAME_US = 1_000_000 / 60;
 
-/** How many items a fixture's page holds. */
 export const itemCount = (fixture: Fixture) =>
   fixture.items ?? fixture.groups * ITEMS_PER_GROUP;
 
-/** Section names in the order the run recorded them. */
+/** In recorded order. */
 export const sectionsOf = (results: BenchResults) => [
   ...new Set(results.cases.map((each) => each.section)),
 ];
 
-/** A case is its page and its label; the same pair names it in any run. */
+/** The same pair names a case in any run. */
 const caseKey = (fixture: string, label: string) => `${fixture}\u0000${label}`;
 
 export const indexCases = (results: BenchResults) =>
@@ -39,7 +35,6 @@ export const findCase = (
   label: string,
 ) => cases.get(caseKey(fixture, label));
 
-/** What each section measures, in a sentence. */
 export const SECTION_NOTES: Record<string, string> = {
   baseline:
     'The harness alone, building the event and calling nothing. The floor under every other number.',
@@ -54,11 +49,8 @@ export const SECTION_NOTES: Record<string, string> = {
     'Arrow keys between two items with a run of 1 to 1,000 items between them that refuse focus, so the move walks on past each, and the same run marked skipped.',
 };
 
-/**
- * The numbers a reader wants first, all on the 20,000-item page under a
- * document listener: what the three kinds of key cost, and the costliest
- * realistic setup the README's conclusion rests on.
- */
+// All on the 20,000-item page under a document listener; the last is the
+// costliest realistic setup the README's conclusion rests on.
 export const HEADLINES = [
   {
     title: 'Unbound key',
@@ -86,18 +78,15 @@ export const HEADLINES = [
   },
 ] as const;
 
-/** The units a time can be shown in. Reports always hold microseconds. */
+/** Reports always hold microseconds. */
 export type TimeUnit = 'µs' | 'ms';
 
 export const TIME_UNITS: TimeUnit[] = ['µs', 'ms'];
 
 const PER_MICROSECOND: Record<TimeUnit, number> = { µs: 1, ms: 1e-3 };
 
-/**
- * Table precision: two places in microseconds, as the README's tables print
- * them, and the same resolution in milliseconds, five places, so switching
- * the unit never rounds a difference away.
- */
+// The same resolution in both units, so switching never rounds a difference
+// away.
 const PLACES: Record<TimeUnit, number> = { µs: 2, ms: 5 };
 
 export const formatTime = (micros: number, unit: TimeUnit = 'µs') =>
@@ -112,7 +101,6 @@ export const formatTimeShort = (micros: number, unit: TimeUnit = 'µs') => {
   return value.toFixed(Math.max(0, 2 - magnitude));
 };
 
-/** A 60 Hz frame in `unit`: the scale a keydown's cost is read against. */
 export const formatFrame = (unit: TimeUnit) =>
   unit === 'µs'
     ? `${formatCount(Math.round(FRAME_US))} µs`
@@ -128,10 +116,7 @@ export const formatFrameShare = (micros: number) => {
   return `${percent.toFixed(places)}%`;
 };
 
-/**
- * Below this, a ratio says more about rounding than about the code: the
- * recorded medians carry two decimal places, which at 0.01 µs is ±50%.
- */
+// Medians carry two decimal places, which at 0.01 µs is ±50%.
 const MIN_RATIO_US = 0.1;
 
 /** How many times the reference this run took: above 1 is slower. */
@@ -169,11 +154,7 @@ export const compareCases = (base: BenchCase, other: BenchCase): Change => {
   };
 };
 
-/**
- * One run against another over every case both measured: the geometric
- * mean of their ratios, which weighs a 2 µs case and a 500 µs case alike,
- * and how many cases moved beyond noise either way.
- */
+// Geometric mean, so a 2 µs case and a 500 µs case weigh alike.
 export const summarize = (base: BenchResults, other: BenchResults) => {
   const others = indexCases(other);
   let logSum = 0;
@@ -202,11 +183,8 @@ export const summarize = (base: BenchResults, other: BenchResults) => {
 
 export type CaseRow = { section: string; fixture: string; label: string };
 
-/**
- * Every case any of `runs` measured or skipped, once, by section. The run
- * with the most cases sets the order; one another run has beyond it follows
- * in its section.
- */
+// The run with the most cases sets the order; extras from others follow in
+// their section.
 export const caseRows = (runs: BenchResults[]): CaseRow[] => {
   const rows = new Map<string, CaseRow>();
   const fullestFirst = [...runs].sort(
@@ -234,12 +212,10 @@ export const caseRows = (runs: BenchResults[]): CaseRow[] => {
   );
 };
 
-/** Why a run did not measure a case it knows of, if it skipped it. */
 export const skipReason = (run: BenchResults, fixture: string, label: string) =>
   run.skipped?.find((each) => each.fixture === fixture && each.label === label)
     ?.reason;
 
-/** Browser and major version, whichever way a report spells its browser. */
 export const browserMajor = (browser: string) => {
   const match = browser.match(/(Chrome|Firefox|Safari|Edge|Opera)\D*?(\d+)/);
   return match ? `${match[1]} ${match[2]}` : browser;
@@ -261,11 +237,7 @@ export const compareVersions = (a?: string, b?: string) => {
   return 0;
 };
 
-/**
- * Reports in the order a comparison reads best: those built from a git ref
- * by version, oldest first, then the rest (the working tree, the browser)
- * by date.
- */
+// Git-ref reports by version, oldest first, then the rest by date.
 export const sortReports = <T extends { name: string; report: BenchReport }>(
   entries: T[],
 ) =>
@@ -305,7 +277,6 @@ export const browserName = (userAgent: string) => {
   return userAgent;
 };
 
-/** Which keyrove a run measured, in one line. */
 export const describeLibrary = ({
   version,
   ref,
@@ -318,10 +289,8 @@ export const describeLibrary = ({
       ? `${version} (working tree at ${commit}${dirty ? ', with uncommitted changes' : ''})`
       : version;
 
-/**
- * Where a browser run ran, as far as a page can tell. The headless runner
- * knows more — the OS release, the CPU model — and records it itself.
- */
+// The headless runner knows more (OS release, CPU model) and records it
+// itself.
 export const browserEnvironment = (
   results: BenchResults,
   {

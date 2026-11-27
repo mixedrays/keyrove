@@ -16,9 +16,7 @@ function Landing() {
     <>
       <SiteHeader layout="landing" />
       <main id="content" tabIndex={-1} className="outline-none">
-        {/* The classes sit on the article rather than on main so that every
-            rule keyed to them, child combinators included, sees the same
-            structure it did before main had an article in it. */}
+        {/* Classes on the article, not main, so child-combinator rules match. */}
         <article className="landing markdown">
           <Suspense>
             <LandingContent />

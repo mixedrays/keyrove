@@ -22,11 +22,9 @@ function Side({
   );
 }
 
-/** Previous and next, in sidebar order. */
 export function Pager({ route }: { route: string }) {
   const index = readingOrder.indexOf(route);
-  // A page outside the sidebar — the 404 — has no siblings to page between,
-  // and index -1 would otherwise offer the first page as its "next".
+  // The 404 is outside the sidebar; -1 would offer the first page as "next".
   if (index === -1) return null;
 
   const prev = readingOrder[index - 1];
